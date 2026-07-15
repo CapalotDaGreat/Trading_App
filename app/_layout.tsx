@@ -1,22 +1,23 @@
 import { useFonts } from 'expo-font';
-import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
+import { Stack, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
+import '../global.css';
 
-import { useColorScheme } from '@/components/useColorScheme';
+import { useAuth } from '@/features/auth/hooks/useAuth';
+import { initializePushNotifications, usePushNotificationHandler } from '@/features/notifications/services/push-handler';
+import { isFirebaseConfigured } from '@/firebase/config';
+import { AppProviders } from '@/shared/providers/AppProviders';
 
 export {
-  // Catch any errors thrown by the Layout component.
   ErrorBoundary,
 } from 'expo-router';
 
 export const unstable_settings = {
-  // Ensure that reloading on `/modal` keeps a back button present.
-  initialRouteName: '(tabs)',
+  initialRouteName: isFirebaseConfigured() ? '(auth)/welcome' : '(tabs)',
 };
 
-// Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
@@ -24,7 +25,6 @@ export default function RootLayout() {
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
   });
 
-  // Expo Router uses Error Boundaries to catch errors in the navigation tree.
   useEffect(() => {
     if (error) throw error;
   }, [error]);
@@ -39,18 +39,89 @@ export default function RootLayout() {
     return null;
   }
 
-  return <RootLayoutNav />;
+  return (
+    <AppProviders>
+      <RootLayoutNav />
+    </AppProviders>
+  );
 }
 
 function RootLayoutNav() {
-  const colorScheme = useColorScheme();
+  const { status, user } = useAuth();
+  const segments = useSegments();
+  const router = useRouter();
+
+  usePushNotificationHandler();
+
+  useEffect(() => {
+    if (!isFirebaseConfigured()) return;
+    if (status === 'loading') return;
+
+    const inAuthGroup = segments[0] === '(auth)';
+
+    if (status === 'mfa_required' && segments[0] !== '(auth)') {
+      router.replace('/(auth)/mfa');
+      return;
+    }
+
+    const isAuthenticated =
+      status === 'authenticated' ||
+      (status === 'email_verification_required' && user !== null);
+
+    if (!isAuthenticated && !inAuthGroup) {
+      router.replace('/(auth)/welcome');
+      return;
+    }
+
+    if (isAuthenticated && inAuthGroup) {
+      if (status === 'email_verification_required') {
+        router.replace('/(auth)/verify-email');
+      } else {
+        router.replace('/(tabs)');
+      }
+    }
+  }, [status, user, segments, router]);
+
+  useEffect(() => {
+    if (status === 'authenticated' && user?.uid) {
+      void initializePushNotifications(user.uid);
+    }
+  }, [status, user?.uid]);
+
+  if (!isFirebaseConfigured()) {
+    return (
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="analysis" />
+        <Stack.Screen name="journal" />
+        <Stack.Screen name="alerts" />
+        <Stack.Screen name="academy" />
+        <Stack.Screen name="calendar" />
+        <Stack.Screen name="asset/[symbol]" />
+        <Stack.Screen name="settings" />
+        <Stack.Screen name="subscription" />
+        <Stack.Screen name="+not-found" />
+      </Stack>
+    );
+  }
+
+  if (status === 'loading') {
+    return null;
+  }
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
-      </Stack>
-    </ThemeProvider>
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="(auth)" />
+      <Stack.Screen name="(tabs)" />
+      <Stack.Screen name="analysis" />
+      <Stack.Screen name="journal" />
+      <Stack.Screen name="alerts" />
+      <Stack.Screen name="academy" />
+      <Stack.Screen name="calendar" />
+      <Stack.Screen name="asset/[symbol]" />
+      <Stack.Screen name="settings" />
+      <Stack.Screen name="subscription" />
+      <Stack.Screen name="+not-found" />
+    </Stack>
   );
 }

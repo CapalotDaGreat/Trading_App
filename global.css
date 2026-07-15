@@ -1,0 +1,62 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Fallback tokens for web/SSR before NativeWind vars() apply */
+:root {
+  --color-background: #f4f6f9;
+  --color-background-secondary: #eef2f7;
+  --color-background-tertiary: #e2e8f0;
+  --color-background-elevated: #ffffff;
+  --color-surface: rgba(15, 23, 42, 0.03);
+  --color-surface-hover: rgba(15, 23, 42, 0.05);
+  --color-surface-active: rgba(15, 23, 42, 0.08);
+  --color-surface-glass: rgba(255, 255, 255, 0.92);
+  --color-accent: #0f766e;
+  --color-accent-light: #0d9488;
+  --color-accent-dark: #115e59;
+  --color-accent-muted: rgba(15, 118, 110, 0.1);
+  --color-bullish: #059669;
+  --color-bullish-muted: rgba(5, 150, 105, 0.1);
+  --color-bearish: #dc2626;
+  --color-bearish-muted: rgba(220, 38, 38, 0.1);
+  --color-warning: #d97706;
+  --color-warning-muted: rgba(217, 119, 6, 0.1);
+  --color-border: rgba(15, 23, 42, 0.08);
+  --color-border-strong: rgba(15, 23, 42, 0.14);
+  --color-border-accent: rgba(15, 118, 110, 0.14);
+  --color-text-primary: #0f172a;
+  --color-text-secondary: #475569;
+  --color-text-tertiary: #64748b;
+  --color-text-inverse: #f8fafc;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-background: #0a0e17;
+    --color-background-secondary: #111827;
+    --color-background-tertiary: #1a2235;
+    --color-background-elevated: #1e293b;
+    --color-surface: rgba(255, 255, 255, 0.04);
+    --color-surface-hover: rgba(255, 255, 255, 0.07);
+    --color-surface-active: rgba(255, 255, 255, 0.1);
+    --color-surface-glass: rgba(17, 24, 39, 0.78);
+    --color-accent: #2dd4bf;
+    --color-accent-light: #5eead4;
+    --color-accent-dark: #14b8a6;
+    --color-accent-muted: rgba(45, 212, 191, 0.12);
+    --color-bullish: #34d399;
+    --color-bullish-muted: rgba(52, 211, 153, 0.12);
+    --color-bearish: #f87171;
+    --color-bearish-muted: rgba(248, 113, 113, 0.12);
+    --color-warning: #fbbf24;
+    --color-warning-muted: rgba(251, 191, 36, 0.12);
+    --color-border: rgba(148, 163, 184, 0.14);
+    --color-border-strong: rgba(148, 163, 184, 0.22);
+    --color-border-accent: rgba(45, 212, 191, 0.16);
+    --color-text-primary: #f1f5f9;
+    --color-text-secondary: #94a3b8;
+    --color-text-tertiary: #64748b;
+    --color-text-inverse: #0f172a;
+  }
+}

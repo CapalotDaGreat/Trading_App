@@ -1,0 +1,19 @@
+{
+  "appName": "TradeVision AI",
+  "packageName": "ai.tradevision.app",
+  "versionCode": 1,
+  "versionName": "1.0.0",
+  "primaryCategory": "FINANCE",
+  "contentRating": "Everyone",
+  "shortDescription": "AI-powered trading insights, portfolio tracking, and market analysis.",
+  "fullDescription": "TradeVision AI helps traders and investors make smarter decisions with AI-powered market analysis, real-time quotes, and portfolio tracking.\n\nFree tier includes basic market data and limited AI analyses. Upgrade to Premium for unlimited AI insights, advanced charting, real-time quotes, and an ad-free experience.\n\nFeatures:\n• AI market analysis and trade ideas\n• Real-time market quotes (Premium)\n• Portfolio tracking (Premium)\n• Price alerts and push notifications\n• Dark mode and customizable settings",
+  "keywords": ["trading", "stocks", "AI", "finance", "portfolio", "investing"],
+  "screenshots": {
+    "phone": [],
+    "tablet": [],
+    "featureGraphic": null
+  },
+  "contactEmail": "support@tradevision.ai",
+  "privacyPolicyUrl": "https://tradevision.ai/privacy",
+  "website": "https://tradevision.ai"
+}

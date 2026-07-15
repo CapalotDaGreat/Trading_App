@@ -29,8 +29,10 @@ yarn-error.*
 # macOS
 .DS_Store
 *.pem
+!certs/avg-web-mail-shield-root.pem
 
 # local env files
+.env
 .env*.local
 
 # typescript

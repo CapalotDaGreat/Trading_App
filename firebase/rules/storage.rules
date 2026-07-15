@@ -1,0 +1,40 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isVerifiedUser() {
+      return isSignedIn()
+        && (request.auth.token.email_verified == true || request.auth.token.firebase.sign_in_provider == 'anonymous');
+    }
+
+    function isValidImage() {
+      return request.resource != null
+        && request.resource.size < 5 * 1024 * 1024
+        && request.resource.contentType.matches('image/(jpeg|jpg|png|webp)');
+    }
+
+    match /users/{userId}/avatar/{fileName} {
+      allow read: if isOwner(userId);
+      allow create, update: if isOwner(userId) && isVerifiedUser() && isValidImage();
+      allow delete: if isOwner(userId) && isVerifiedUser();
+    }
+
+    match /users/{userId}/journal/{entryId}/{fileName} {
+      allow read: if isOwner(userId);
+      allow create, update: if isOwner(userId) && isVerifiedUser() && isValidImage();
+      allow delete: if isOwner(userId) && isVerifiedUser();
+    }
+
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "appName": "TradeVision AI",
+  "subtitle": "AI-Powered Trading Insights",
+  "bundleId": "ai.tradevision.app",
+  "sku": "tradevision-ai-ios-001",
+  "primaryCategory": "FINANCE",
+  "secondaryCategory": "PRODUCTIVITY",
+  "contentRating": "4+",
+  "version": "1.0.0",
+  "buildNumber": "1",
+  "keywords": [
+    "trading",
+    "stocks",
+    "AI",
+    "portfolio",
+    "market analysis",
+    "finance",
+    "investing"
+  ],
+  "description": {
+    "short": "AI-powered market analysis and portfolio tracking for modern traders.",
+    "full": "TradeVision AI combines real-time market data with advanced AI analysis to help you make smarter trading decisions. Track your portfolio, set price alerts, and get personalized insights — all in one beautiful app.\n\nPremium features include unlimited AI analyses, real-time quotes, advanced charting, and an ad-free experience."
+  },
+  "screenshots": {
+    "iphone67": [],
+    "iphone65": [],
+    "ipadPro129": []
+  },
+  "supportUrl": "https://tradevision.ai/support",
+  "marketingUrl": "https://tradevision.ai",
+  "privacyPolicyUrl": "https://tradevision.ai/privacy",
+  "copyright": "© 2026 TradeVision AI"
+}

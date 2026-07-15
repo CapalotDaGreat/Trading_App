@@ -1,0 +1,118 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isVerifiedUser() {
+      return isSignedIn()
+        && (request.auth.token.email_verified == true || request.auth.token.firebase.sign_in_provider == 'anonymous');
+    }
+
+    function hasValidTimestamps() {
+      return request.resource.data.createdAt is timestamp
+        && request.resource.data.updatedAt is timestamp;
+    }
+
+    function isValidUserProfile() {
+      let data = request.resource.data;
+      return data.keys().hasAll(['email', 'displayName', 'createdAt', 'updatedAt'])
+        && data.displayName is string
+        && data.displayName.size() >= 1
+        && data.displayName.size() <= 80
+        && (!('bio' in data) || (data.bio is string && data.bio.size() <= 500))
+        && (!('currency' in data) || (data.currency is string && data.currency.size() == 3))
+        && (!('timezone' in data) || data.timezone is string)
+        && (!('experienceLevel' in data) || data.experienceLevel in ['beginner', 'intermediate', 'advanced', 'professional'])
+        && (!('notificationsEnabled' in data) || data.notificationsEnabled is bool)
+        && (!('mfaEnabled' in data) || data.mfaEnabled is bool)
+        && (!('onboardingCompleted' in data) || data.onboardingCompleted is bool);
+    }
+
+    function isValidWatchlist() {
+      let data = request.resource.data;
+      return data.keys().hasAll(['name', 'symbols', 'createdAt', 'updatedAt'])
+        && data.name is string
+        && data.name.size() >= 1
+        && data.name.size() <= 100
+        && data.symbols is list
+        && data.symbols.size() <= 100;
+    }
+
+    function isValidPortfolioPosition() {
+      let data = request.resource.data;
+      return data.keys().hasAll(['symbol', 'quantity', 'createdAt', 'updatedAt'])
+        && data.symbol is string
+        && data.symbol.size() >= 1
+        && data.symbol.size() <= 20
+        && data.quantity is number;
+    }
+
+    function isValidJournalEntry() {
+      let data = request.resource.data;
+      return data.keys().hasAll(['title', 'content', 'createdAt', 'updatedAt'])
+        && data.title is string
+        && data.title.size() >= 1
+        && data.title.size() <= 200
+        && data.content is string
+        && data.content.size() <= 10000;
+    }
+
+    function isValidAlert() {
+      let data = request.resource.data;
+      return data.keys().hasAll(['symbol', 'condition', 'targetPrice', 'isActive', 'createdAt', 'updatedAt'])
+        && data.symbol is string
+        && data.symbol.size() >= 1
+        && data.symbol.size() <= 20
+        && data.condition in ['above', 'below', 'crosses']
+        && data.targetPrice is number
+        && data.targetPrice > 0
+        && data.isActive is bool;
+    }
+
+    match /users/{userId} {
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidUserProfile() && hasValidTimestamps();
+      allow update: if isOwner(userId) && isVerifiedUser() && isValidUserProfile();
+      allow delete: if isOwner(userId);
+
+      match /watchlists/{watchlistId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) && isVerifiedUser() && isValidWatchlist() && hasValidTimestamps();
+        allow update: if isOwner(userId) && isVerifiedUser() && isValidWatchlist();
+        allow delete: if isOwner(userId) && isVerifiedUser();
+      }
+
+      match /portfolio/{positionId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) && isVerifiedUser() && isValidPortfolioPosition() && hasValidTimestamps();
+        allow update: if isOwner(userId) && isVerifiedUser() && isValidPortfolioPosition();
+        allow delete: if isOwner(userId) && isVerifiedUser();
+      }
+
+      match /journal/{entryId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) && isVerifiedUser() && isValidJournalEntry() && hasValidTimestamps();
+        allow update: if isOwner(userId) && isVerifiedUser() && isValidJournalEntry();
+        allow delete: if isOwner(userId) && isVerifiedUser();
+      }
+
+      match /alerts/{alertId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) && isVerifiedUser() && isValidAlert() && hasValidTimestamps();
+        allow update: if isOwner(userId) && isVerifiedUser() && isValidAlert();
+        allow delete: if isOwner(userId) && isVerifiedUser();
+      }
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
