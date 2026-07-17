@@ -13,6 +13,7 @@ import {
 import { Header } from '@/shared/components/layout/Header';
 import { Screen } from '@/shared/components/layout/Screen';
 import { Button } from '@/shared/components/ui/Button';
+import { DataSourceBadge } from '@/features/markets/components/DataSourceBadge';
 import { GlassCard } from '@/shared/components/ui/GlassCard';
 import { Text } from '@/shared/components/ui/Text';
 import { cn } from '@/shared/utils/cn';
@@ -44,6 +45,13 @@ export default function BacktestScreen() {
       <Header title="Backtest" subtitle="Strategy simulation" onBack={() => router.back()} />
 
       <View className="mt-4 gap-4">
+        <View className="flex-row items-center justify-between">
+          <DataSourceBadge kind="sample" />
+          <Text variant="caption" className="text-text-secondary">
+            Research practice only — not live symbol data
+          </Text>
+        </View>
+
         <GlassCard className="p-4">
           <Text variant="h3" className="mb-3">
             Strategy
@@ -55,8 +63,8 @@ export default function BacktestScreen() {
                 accessibilityRole="button"
                 onPress={() => setStrategyType(type)}
                 className={cn(
-                  'flex-1 rounded-xl border py-2',
-                  strategyType === type ? 'border-border-strong bg-accent-muted' : 'border-border',
+                  'flex-1 rounded-full py-2.5',
+                  strategyType === type ? 'bg-accent-muted' : 'bg-surface',
                 )}
               >
                 <Text

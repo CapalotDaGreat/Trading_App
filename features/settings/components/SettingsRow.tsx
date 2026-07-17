@@ -39,7 +39,7 @@ export function SettingsRow({
   const content = (
     <View
       className={cn(
-        'flex-row items-center border-b border-border px-4 py-3.5',
+        'flex-row items-center px-4 py-3.5',
         disabled && 'opacity-50',
         className,
       )}

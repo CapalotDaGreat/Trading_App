@@ -46,12 +46,12 @@ export function MarketSearchBar({
         returnKeyType="search"
       />
 
-      <View className="mt-2 flex-row flex-wrap gap-2">
+      <View className="mt-3 flex-row flex-wrap gap-2">
         <Pressable
           onPress={() => setMarketType(undefined)}
           className={cn(
-            'rounded-lg border px-3 py-1.5',
-            !marketType ? 'border-border-strong bg-accent-muted' : 'border-border bg-surface',
+            'rounded-full px-3.5 py-1.5',
+            !marketType ? 'bg-accent-muted' : 'bg-surface',
           )}
         >
           <Text variant="caption" className={!marketType ? 'text-accent' : 'text-text-secondary'}>
@@ -63,8 +63,8 @@ export function MarketSearchBar({
             key={market.type}
             onPress={() => setMarketType(market.type)}
             className={cn(
-              'rounded-lg border px-3 py-1.5',
-              marketType === market.type ? 'border-border-strong bg-accent-muted' : 'border-border bg-surface',
+              'rounded-full px-3.5 py-1.5',
+              marketType === market.type ? 'bg-accent-muted' : 'bg-surface',
             )}
           >
             <Text
@@ -78,7 +78,7 @@ export function MarketSearchBar({
       </View>
 
       {showResults ? (
-        <View className="mt-3 max-h-64 overflow-hidden rounded-xl border border-border bg-background">
+        <View className="mt-3 max-h-64 overflow-hidden rounded-2xl bg-background-elevated">
           {isLoading || isFetching ? (
             <View className="gap-2 p-3">
               <Skeleton height={40} />
@@ -96,7 +96,7 @@ export function MarketSearchBar({
                     onSelect(item);
                     setQuery('');
                   }}
-                  className="border-b border-border px-4 py-3 active:bg-surface"
+                  className="px-4 py-3.5 active:bg-surface"
                 >
                   <View className="flex-row items-center justify-between">
                     <View className="flex-1">

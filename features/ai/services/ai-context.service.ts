@@ -8,6 +8,8 @@ import {
   fetchQuotes,
 } from '@/features/markets/services/market-data.service';
 import { fetchFinancialNews, type NewsArticle } from '@/features/news/services/news.service';
+import { buildDecisionIntelligenceContext } from '@/features/decision/services/decision-os.service';
+import { loadTraderMemory } from '@/features/decision/services/trader-intelligence.service';
 import type { Candle } from '@/shared/types/market';
 
 import type { AiEnrichedContext, AiRequestContext } from '../types/ai.types';
@@ -186,6 +188,24 @@ export async function enrichRequestContext(
       title: a.title,
       source: a.source,
     }));
+  }
+
+  // Attach Decision Intelligence Context — never generate isolated commentary.
+  try {
+    const memory = await loadTraderMemory();
+    const intel = buildDecisionIntelligenceContext({
+      traderMemory: memory,
+      portfolioSymbols: context.portfolio?.map((h) => h.symbol) ?? [],
+      topSetupSymbols: context.symbol ? [context.symbol] : memory.favoriteAssets.slice(0, 3),
+    });
+    enriched.decisionIntelligence = {
+      psychologyReminder: intel.psychologyReminder,
+      recommendedFocus: intel.recommendedFocus,
+      tradingStyle: memory.tradingStyle,
+      typicalMistakes: memory.typicalMistakes.slice(0, 3),
+    };
+  } catch {
+    // demo / offline — AI still works without DNA
   }
 
   return { ...context, enriched };

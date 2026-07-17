@@ -15,7 +15,7 @@ export function ThemeToggle() {
   const { settings, updateSettings, isUpdating } = useSettings();
 
   return (
-    <View className="flex-row gap-2 rounded-2xl border border-border bg-background-secondary p-1">
+    <View className="flex-row gap-1 rounded-2xl bg-surface p-1">
       {THEME_OPTIONS.map((option) => {
         const selected = settings.theme === option.mode;
 
@@ -26,7 +26,7 @@ export function ThemeToggle() {
             onPress={() => void updateSettings({ theme: option.mode })}
             className={cn(
               'flex-1 items-center rounded-xl py-2.5',
-              selected && 'border border-border bg-background-elevated',
+              selected && 'bg-background-elevated',
             )}
           >
             <Text className="text-base">{option.icon}</Text>

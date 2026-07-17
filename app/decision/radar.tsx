@@ -1,6 +1,7 @@
 import { RefreshControl, View } from 'react-native';
 import { useRouter } from 'expo-router';
 
+import { DecisionQualityExplainer } from '@/features/decision/components/DecisionQualityExplainer';
 import { SetupCard } from '@/features/decision/components/SetupCard';
 import { useSetupRadar } from '@/features/decision/hooks/useDecision';
 import { Header } from '@/shared/components/layout/Header';
@@ -27,16 +28,16 @@ export default function SetupRadarScreen() {
       }}
     >
       <Header
-        title="Setup Radar"
-        subtitle="What deserves research time"
+        title="Setups"
+        subtitle="Ranked by how much research time they deserve"
         onBack={() => router.back()}
       />
 
       <View className="mt-4 gap-3 pb-8">
         <GlassCard className="p-4">
-          <Text variant="body-sm">
-            Ranked live setups from your watchlist benchmarks. This prioritizes research time — it
-            does not execute trades.
+          <Text variant="body-sm" className="text-text-secondary">
+            These are research priorities — not buy/sell orders. Open a card’s chart before you
+            decide anything.
           </Text>
         </GlassCard>
 
@@ -46,13 +47,16 @@ export default function SetupRadarScreen() {
             <Skeleton height={140} rounded="lg" />
           </View>
         ) : (
-          (data ?? []).map((setup) => (
+          <>
+          {data?.length ? <DecisionQualityExplainer /> : null}
+          {(data ?? []).map((setup) => (
             <SetupCard
               key={setup.id}
               setup={setup}
               onPress={() => router.push(`/asset/${encodeURIComponent(setup.symbol)}` as never)}
             />
-          ))
+          ))}
+          </>
         )}
 
         {!isLoading && !data?.length ? (

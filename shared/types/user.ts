@@ -29,7 +29,7 @@ export interface UserProfile {
   createdAt: number;
   updatedAt: number;
   preferences: UserPreferences;
-  subscriptionTier: 'free' | 'premium' | 'pro';
+  subscriptionTier: 'free' | 'premium';
   onboardingCompleted: boolean;
 }
 

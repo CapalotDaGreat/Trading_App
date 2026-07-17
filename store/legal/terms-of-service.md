@@ -18,9 +18,10 @@ Premium subscriptions are billed through the Apple App Store or Google Play Stor
 
 ### Plans
 
-- **Monthly** — Billed monthly
-- **Yearly** — Billed annually
-- **Lifetime** — One-time purchase
+- **Monthly** — $9.99/month, billed monthly
+- **Yearly** — $71.99/year (~$5.99/mo), includes a 7-day free trial when configured in the store
+
+There is a single paid tier (**Premium**). Free includes limited AI and core decision tools.
 
 ## 4. Acceptable Use
 

@@ -123,14 +123,9 @@ export async function toggleAlert(
   await updateAlert(uid, alertId, { isActive });
 }
 
-export function shouldTriggerAlert(
-  alert: PriceAlert,
-  currentPrice: number,
-): boolean {
-  if (!alert.isActive || alert.triggeredAt) return false;
-
-  if (alert.condition === 'above') {
-    return currentPrice >= alert.targetPrice;
-  }
-  return currentPrice <= alert.targetPrice;
+export async function markAlertTriggered(uid: string, alertId: string): Promise<void> {
+  await updateDoc(alertDocRef(uid, alertId), {
+    triggeredAt: serverTimestamp(),
+    isActive: false,
+  });
 }

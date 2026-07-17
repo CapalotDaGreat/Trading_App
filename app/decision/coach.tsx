@@ -26,11 +26,11 @@ export default function JournalCoachScreen() {
         ),
       }}
     >
-      <Header title="Journal Coach" subtitle="Process over P&L" onBack={() => router.back()} />
+      <Header title="Journal coach" subtitle="One tip from your own history" onBack={() => router.back()} />
       <View className="mt-4 gap-4 pb-8">
         <GlassCard className="p-4">
-          <Text variant="body-sm">
-            Insights from your journal outcomes and notes. More closed trades improve personalization.
+          <Text variant="body-sm" className="text-text-secondary">
+            Built from closed trades and notes in your journal. More fills = more personal tips.
           </Text>
         </GlassCard>
         {isLoading && !data ? <Skeleton height={280} rounded="lg" /> : null}

@@ -11,6 +11,7 @@ import { requireDb, isFirebaseConfigured } from '@/firebase/config';
 import {
   PREMIUM_PRODUCT_IDS,
   REVENUECAT_ENTITLEMENT_ID,
+  YEARLY_TRIAL_DAYS,
   type SubscriptionTier,
 } from '@/shared/constants/subscription';
 
@@ -32,7 +33,7 @@ const DEFAULT_PLANS: SubscriptionPlan[] = [
     id: 'monthly',
     productId: PREMIUM_PRODUCT_IDS.monthly,
     title: 'Monthly',
-    description: 'Full premium access, billed monthly',
+    description: 'Full access, billed monthly. Cancel anytime.',
     price: '$9.99',
     pricePerMonth: '$9.99/mo',
   },
@@ -40,21 +41,14 @@ const DEFAULT_PLANS: SubscriptionPlan[] = [
     id: 'yearly',
     productId: PREMIUM_PRODUCT_IDS.yearly,
     title: 'Yearly',
-    description: 'Best value for active traders',
-    price: '$79.99',
-    pricePerMonth: '$6.67/mo',
-    badge: 'Most Popular',
-    savingsPercent: 33,
+    description: 'Best value — commit to the process for a year',
+    price: '$71.99',
+    pricePerMonth: '$5.99/mo',
+    badge: 'Save 40%',
+    savingsPercent: 40,
     isPopular: true,
-  },
-  {
-    id: 'lifetime',
-    productId: PREMIUM_PRODUCT_IDS.lifetime,
-    title: 'Lifetime',
-    description: 'One-time payment, forever access',
-    price: '$199.99',
-    badge: 'Best Deal',
-    savingsPercent: 50,
+    trialDays: YEARLY_TRIAL_DAYS,
+    trialLabel: `${YEARLY_TRIAL_DAYS}-day free trial`,
   },
 ];
 
@@ -118,7 +112,6 @@ function resolvePlanId(productId: string | null): SubscriptionPlanId | null {
   if (!productId) return null;
   if (productId === PREMIUM_PRODUCT_IDS.monthly) return 'monthly';
   if (productId === PREMIUM_PRODUCT_IDS.yearly) return 'yearly';
-  if (productId === PREMIUM_PRODUCT_IDS.lifetime) return 'lifetime';
   return null;
 }
 

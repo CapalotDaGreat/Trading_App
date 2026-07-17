@@ -85,13 +85,4 @@ export function requireDb(): Firestore {
   return db;
 }
 
-export function requireStorage(): FirebaseStorage {
-  if (!storage) {
-    throw new Error(
-      'Firebase Storage is not configured. Add EXPO_PUBLIC_FIREBASE_* values to your .env file.',
-    );
-  }
-  return storage;
-}
-
 export { firebaseApp, auth, db, storage, firebaseConfig };

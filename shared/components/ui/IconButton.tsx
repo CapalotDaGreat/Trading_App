@@ -24,15 +24,15 @@ interface IconButtonProps extends Omit<PressableProps, 'children'> {
 }
 
 const variantStyles: Record<IconButtonVariant, string> = {
-  default: 'bg-surface border border-border active:bg-surface-active',
+  default: 'bg-surface active:bg-surface-active',
   ghost: 'bg-transparent active:bg-surface',
-  accent: 'bg-accent-muted border border-border active:bg-surface-active',
+  accent: 'bg-accent-muted active:bg-surface-active',
 };
 
 const sizeStyles: Record<IconButtonSize, string> = {
-  sm: 'h-8 w-8 rounded-lg',
-  md: 'h-10 w-10 rounded-xl',
-  lg: 'h-12 w-12 rounded-2xl',
+  sm: 'h-8 w-8 rounded-full',
+  md: 'h-10 w-10 rounded-full',
+  lg: 'h-12 w-12 rounded-full',
 };
 
 export function IconButton({

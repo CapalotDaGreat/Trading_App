@@ -9,6 +9,7 @@ import { cn } from '@/shared/utils/cn';
 interface GlassCardProps extends ViewProps {
   children: ReactNode;
   intensity?: number;
+  /** Hairline borders are off by default — elevation + fill create hierarchy. */
   bordered?: boolean;
   glow?: boolean;
   className?: string;
@@ -16,8 +17,8 @@ interface GlassCardProps extends ViewProps {
 
 export function GlassCard({
   children,
-  intensity = 28,
-  bordered = true,
+  intensity = 36,
+  bordered = false,
   glow = false,
   className,
   style,
@@ -50,12 +51,9 @@ export function GlassCard({
       {...props}
     >
       <BlurView
-        intensity={isDark ? intensity : Math.min(intensity + 12, 48)}
+        intensity={isDark ? intensity : Math.min(intensity + 10, 52)}
         tint={isDark ? 'dark' : 'light'}
-        className={cn(
-          'bg-surface-glass',
-          bordered && 'border border-border',
-        )}
+        className={cn('bg-surface-glass', bordered && 'border border-border')}
       >
         {children}
       </BlurView>

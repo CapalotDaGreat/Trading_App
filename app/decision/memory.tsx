@@ -26,12 +26,12 @@ export default function MemoryScreen() {
         ),
       }}
     >
-      <Header title="AI Memory" subtitle="Your trading profile" onBack={() => router.back()} />
+      <Header title="Your trading DNA" subtitle="How the coach personalizes decisions for you" onBack={() => router.back()} />
       <View className="mt-4 gap-4 pb-8">
         <GlassCard className="p-4">
-          <Text variant="body-sm">
-            Stored locally so Decision Brief and Setup Radar can prefer your style, favorites, and
-            common mistakes.
+          <Text variant="body-sm" className="text-text-secondary">
+            Core memory personalizes your Research Value Score on-device. Expanded DNA analytics
+            improve with journal history over time.
           </Text>
         </GlassCard>
         {isLoading && !data ? <Skeleton height={200} rounded="lg" /> : null}

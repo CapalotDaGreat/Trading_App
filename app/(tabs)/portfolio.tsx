@@ -1,9 +1,11 @@
-import { ActivityIndicator, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { ActivityIndicator, Pressable, View } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 
 import { EmbeddedAiInsight } from '@/features/decision/components/EmbeddedAiInsight';
-import { RiskCenterCard } from '@/features/decision/components/RiskCenterCard';
 import { useRiskCenter } from '@/features/decision/hooks/useDecision';
+import { useAppendDecisionRecord } from '@/features/decision-log/hooks/useDecisionLog';
 import { PortfolioSummary } from '@/features/portfolio/components/PortfolioSummary';
 import { HoldingRow } from '@/features/portfolio/components/HoldingRow';
 import { PerformanceChart } from '@/features/portfolio/components/PerformanceChart';
@@ -13,9 +15,13 @@ import { EmptyState } from '@/shared/components/feedback/EmptyState';
 import { Header } from '@/shared/components/layout/Header';
 import { Screen } from '@/shared/components/layout/Screen';
 import { Text } from '@/shared/components/ui/Text';
+import { useTheme } from '@/shared/hooks/useTheme';
 
 export default function PortfolioScreen() {
   const router = useRouter();
+  const { colors } = useTheme();
+  const [showSizer, setShowSizer] = useState(false);
+  const appendDecision = useAppendDecisionRecord();
   const {
     holdings,
     holdingPnLs,
@@ -29,10 +35,24 @@ export default function PortfolioScreen() {
   } = usePortfolio();
   const riskQuery = useRiskCenter();
 
+  useEffect(() => {
+    const day = new Date().toISOString().slice(0, 10);
+    void AsyncStorage.getItem('tradevision-portfolio-reviewed-day').then((v) => {
+      if (v === day) return;
+      void appendDecision.mutateAsync({
+        symbol: '',
+        regime: 'portfolio',
+        action: 'portfolio_reviewed',
+        note: 'Portfolio tab reviewed',
+      });
+      void AsyncStorage.setItem('tradevision-portfolio-reviewed-day', day);
+    });
+  }, []);
+
   if (isLoading) {
     return (
       <Screen className="items-center justify-center">
-        <ActivityIndicator size="large" color="#00D4AA" />
+        <ActivityIndicator size="large" color={colors.accent.primary} />
       </Screen>
     );
   }
@@ -51,25 +71,25 @@ export default function PortfolioScreen() {
   }
 
   const pnlMap = new Map(holdingPnLs.map((p) => [p.holdingId, p]));
-  const topWeight = holdings[0]?.symbol;
 
   return (
     <Screen scrollable contentClassName="pb-8">
-      <Header title="Portfolio" subtitle="Track holdings & P&L" transparent />
+      <Header title="Portfolio" subtitle="Holdings, P&L, then risk" transparent />
 
       <View className="mt-4 gap-4">
         <PortfolioSummary summary={summary} />
 
         <EmbeddedAiInsight
-          title="Portfolio decision check"
+          title="Risk check"
           body={
             riskQuery.data?.concentrationWarning
               ? `${riskQuery.data.concentrationWarning}. ${riskQuery.data.recommendation}`
               : (riskQuery.data?.recommendation ??
-                'Track holdings to unlock concentration and correlation insights.')
+                'Add holdings to see concentration and correlation risk.')
           }
-          confidence={riskQuery.data ? 100 - riskQuery.data.riskScore : undefined}
+          confidence={riskQuery.data ? Math.max(20, 100 - riskQuery.data.riskScore) : undefined}
           onExplain={() => router.push('/decision/risk' as never)}
+          explainLabel="Open risk details"
         />
 
         {performance ? (
@@ -80,16 +100,17 @@ export default function PortfolioScreen() {
           />
         ) : null}
 
-        {riskQuery.data ? <RiskCenterCard data={riskQuery.data} /> : null}
-
         <View>
-          <Text variant="h3" className="mb-2">
+          <Text variant="h3" className="mb-1">
             Holdings
+          </Text>
+          <Text variant="caption" className="mb-2 text-text-secondary">
+            Long-press a row to remove it
           </Text>
           {holdings.length === 0 ? (
             <EmptyState
               title="No holdings yet"
-              description="Add positions to track your portfolio performance."
+              description="Add positions to track portfolio performance."
             />
           ) : (
             holdings.map((holding) => (
@@ -101,14 +122,19 @@ export default function PortfolioScreen() {
               />
             ))
           )}
-          {topWeight ? (
-            <Text variant="caption" className="mt-2 text-text-tertiary">
-              Tip: open {topWeight} on Setup Radar before adding size.
-            </Text>
-          ) : null}
         </View>
 
-        <RiskCalculatorForm currency={summary.currency} />
+        <Pressable
+          onPress={() => setShowSizer((v) => !v)}
+          className="rounded-2xl bg-surface px-4 py-3.5"
+        >
+          <Text variant="label">{showSizer ? 'Hide position size tool' : 'Position size tool'}</Text>
+          <Text variant="caption" className="mt-0.5 text-text-secondary">
+            How many shares/contracts for your risk %
+          </Text>
+        </Pressable>
+
+        {showSizer ? <RiskCalculatorForm currency={summary.currency} /> : null}
       </View>
     </Screen>
   );

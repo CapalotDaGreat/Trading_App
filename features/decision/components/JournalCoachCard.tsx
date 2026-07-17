@@ -1,10 +1,13 @@
-import { View } from 'react-native';
+import { useState } from 'react';
+import { Pressable, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
 import { ExplainabilityBlock } from '@/features/decision/components/ExplainabilityBlock';
 import type { JournalCoachInsight } from '@/features/decision/types/decision.types';
 import { Badge } from '@/shared/components/ui/Badge';
 import { GlassCard } from '@/shared/components/ui/GlassCard';
 import { Text } from '@/shared/components/ui/Text';
+import { useTheme } from '@/shared/hooks/useTheme';
 import { formatPercent } from '@/shared/utils/format';
 import { cn } from '@/shared/utils/cn';
 
@@ -25,71 +28,86 @@ function processBarClass(score: number): string {
 }
 
 export function JournalCoachCard({ insight }: JournalCoachCardProps) {
+  const { colors } = useTheme();
+  const [open, setOpen] = useState(false);
   const processScore = Math.max(0, Math.min(100, Math.round(insight.processScore)));
 
   return (
-    <GlassCard className="p-4" glow>
-      <View className="mb-3 flex-row items-start justify-between gap-2">
+    <GlassCard className="p-4">
+      <View className="mb-2 flex-row items-start justify-between gap-2">
         <View className="flex-1">
-          <Text variant="label" className="mb-1">
-            Journal Coach
+          <Text variant="caption" className="mb-1 text-text-tertiary">
+            From your journal
           </Text>
-          <Text variant="h3">Process review</Text>
+          <Text variant="h3">What to do next</Text>
         </View>
         <Badge
-          label={`${processScore} process`}
+          label={`${processScore}/100`}
           variant={processTone(processScore)}
           size="sm"
         />
       </View>
 
-      <View className="mb-4 flex-row gap-3">
-        <StatBlock
-          label="Win rate"
-          value={formatPercent(insight.winRate, { showSign: false })}
-        />
-        <StatBlock label="Avg R:R" value={insight.avgRr.toFixed(2)} />
-        <View className="flex-1">
-          <Text variant="caption" className="mb-1">
-            Process
-          </Text>
-          <View className="mb-1 h-2 overflow-hidden rounded-full bg-surface-active">
-            <View
-              className={cn('h-full rounded-full', processBarClass(processScore))}
-              style={{ width: `${processScore}%` }}
-            />
-          </View>
-          <Text variant="caption" className="font-semibold text-text-primary">
-            {processScore}/100
-          </Text>
-        </View>
-      </View>
-
-      <View className="mb-3 gap-2">
-        <InsightRow label="Common mistake" value={insight.mostCommonMistake} tone="bearish" />
-        <InsightRow label="Your edge" value={insight.edge} tone="bullish" />
-        <InsightRow label="Avoid" value={insight.avoid} tone="warning" />
-        <InsightRow label="Recommendation" value={insight.recommendation} />
-      </View>
-
-      <View className="mb-3 flex-row flex-wrap gap-1.5">
-        <Badge label={`Best: ${insight.bestWeekday}`} variant="success" size="sm" />
-        <Badge label={`Weak: ${insight.worstCondition}`} variant="danger" size="sm" />
-        <Badge label={insight.bestIndicator} variant="accent" size="sm" />
-      </View>
-
-      <Text variant="body-sm" className="mb-3 leading-relaxed text-text-secondary">
-        {insight.psychology}
+      <Text variant="body-sm" className="mb-3 leading-relaxed text-text-primary">
+        {insight.recommendation}
       </Text>
 
-      <ExplainabilityBlock explainability={insight.explainability} />
+      <View className="mb-3 h-2 overflow-hidden rounded-full bg-surface-active">
+        <View
+          className={cn('h-full rounded-full', processBarClass(processScore))}
+          style={{ width: `${processScore}%` }}
+        />
+      </View>
+
+      <Pressable
+        accessibilityRole="button"
+        onPress={() => setOpen((v) => !v)}
+        className="flex-row items-center justify-between pt-3"
+      >
+        <Text variant="caption" className="font-semibold text-text-secondary">
+          {open ? 'Hide coach stats' : 'Show coach stats'}
+        </Text>
+        <Ionicons
+          name={open ? 'chevron-up' : 'chevron-down'}
+          size={16}
+          color={colors.text.tertiary}
+        />
+      </Pressable>
+
+      {open ? (
+        <View className="mt-3 gap-3">
+          <View className="flex-row gap-3">
+            <StatBlock
+              label="Win rate"
+              value={formatPercent(insight.winRate, { showSign: false })}
+            />
+            <StatBlock label="Avg R:R" value={insight.avgRr.toFixed(1)} />
+          </View>
+
+          <InsightRow label="Watch out for" value={insight.mostCommonMistake} tone="bearish" />
+          <InsightRow label="Your edge" value={insight.edge} tone="bullish" />
+          <InsightRow label="Usually skip" value={insight.avoid} tone="warning" />
+
+          <View className="flex-row flex-wrap gap-1.5">
+            <Badge label={`Best day · ${insight.bestWeekday}`} variant="success" size="sm" />
+            <Badge label={`Weak · ${insight.worstCondition}`} variant="danger" size="sm" />
+            <Badge label={insight.bestIndicator} variant="accent" size="sm" />
+          </View>
+
+          <Text variant="body-sm" className="leading-relaxed text-text-secondary">
+            {insight.psychology}
+          </Text>
+
+          <ExplainabilityBlock explainability={insight.explainability} />
+        </View>
+      ) : null}
     </GlassCard>
   );
 }
 
 function StatBlock({ label, value }: { label: string; value: string }) {
   return (
-    <View className="flex-1 rounded-xl border border-border/60 bg-surface/30 p-2.5">
+    <View className="flex-1 rounded-xl bg-surface p-2.5">
       <Text variant="caption" className="mb-0.5">
         {label}
       </Text>
@@ -111,7 +129,7 @@ function InsightRow({
 }) {
   return (
     <View>
-      <Text variant="caption" className="mb-0.5 font-semibold uppercase tracking-wide">
+      <Text variant="caption" className="mb-0.5 font-semibold text-text-secondary">
         {label}
       </Text>
       <Text

@@ -13,6 +13,7 @@ import {
 } from 'firebase/firestore';
 
 import { requireDb, isFirebaseConfigured } from '@/firebase/config';
+import { loadDemoWatchlist } from '@/features/onboarding/services/demo-seed.service';
 import {
   getTierLimits,
   hasReachedLimit,
@@ -105,7 +106,19 @@ function assertSymbolLimit(symbolCount: number, tier: SubscriptionTier): void {
 
 export async function getWatchlists(uid: string): Promise<Watchlist[]> {
   if (!isFirebaseConfigured()) {
-    return [];
+    const demo = await loadDemoWatchlist();
+    if (!demo) return [];
+    const now = new Date().toISOString();
+    return [
+      {
+        id: 'demo-watchlist',
+        name: demo.name,
+        symbols: demo.symbols,
+        items: symbolsToItems(demo.symbols),
+        createdAt: now,
+        updatedAt: now,
+      },
+    ];
   }
   const q = query(watchlistsCollection(uid), orderBy('updatedAt', 'desc'));
   const snapshot = await getDocs(q);

@@ -1,15 +1,17 @@
 import { Pressable, View } from 'react-native';
+import { useRouter } from 'expo-router';
 
 import { Badge } from '@/shared/components/ui/Badge';
-import { GlassCard } from '@/shared/components/ui/GlassCard';
 import { Text } from '@/shared/components/ui/Text';
 import { useSubscriptionStore } from '@/shared/stores/subscription.store';
+import { useTheme } from '@/shared/hooks/useTheme';
+import { Ionicons } from '@expo/vector-icons';
 
-import type { Lesson } from '../services/academy.service';
+import { useAcademyProgressStore } from '../stores/academy-progress.store';
+import { CATEGORY_LABELS, type Lesson } from '../types/academy.types';
 
 interface LessonCardProps {
   lesson: Lesson;
-  onPress?: (lesson: Lesson) => void;
 }
 
 const difficultyVariant: Record<Lesson['difficulty'], 'success' | 'warning' | 'danger'> = {
@@ -18,36 +20,55 @@ const difficultyVariant: Record<Lesson['difficulty'], 'success' | 'warning' | 'd
   advanced: 'danger',
 };
 
-export function LessonCard({ lesson, onPress }: LessonCardProps) {
+export function LessonCard({ lesson }: LessonCardProps) {
+  const router = useRouter();
+  const { colors } = useTheme();
   const isPremium = useSubscriptionStore((s) => s.isPremium);
   const isLocked = lesson.isPremium && !isPremium;
+  const completed = useAcademyProgressStore((s) => s.isCompleted(lesson.id));
 
   return (
     <Pressable
       accessibilityRole="button"
-      disabled={isLocked}
-      onPress={() => onPress?.(lesson)}
+      onPress={() => {
+        if (isLocked) {
+          router.push('/subscription' as never);
+          return;
+        }
+        router.push(`/academy/lesson/${lesson.id}` as never);
+      }}
+      className="mb-2 flex-row items-start rounded-2xl bg-background-elevated p-3.5 active:opacity-80"
     >
-      <GlassCard className={isLocked ? 'mb-2 p-3 opacity-60' : 'mb-2 p-3'}>
-        <View className="flex-row items-start justify-between">
-          <View className="flex-1 pr-2">
-            <View className="mb-1 flex-row flex-wrap items-center gap-2">
-              <Badge label={lesson.difficulty} variant={difficultyVariant[lesson.difficulty]} size="sm" />
-              <Badge label={lesson.category.replace('_', ' ')} variant="outline" size="sm" />
-              {lesson.isPremium ? <Badge label="Premium" variant="accent" size="sm" /> : null}
-            </View>
-            <Text variant="h3" numberOfLines={2}>
-              {isLocked ? '🔒 ' : ''}{lesson.title}
-            </Text>
-            <Text variant="body-sm" numberOfLines={2} className="mt-1">
-              {lesson.description}
-            </Text>
-          </View>
-          <Text variant="caption" className="text-text-tertiary">
-            {lesson.durationMinutes} min
-          </Text>
+      <View className="mr-3 mt-0.5">
+        <Ionicons
+          name={
+            isLocked ? 'lock-closed-outline' : completed ? 'checkmark-circle' : 'ellipse-outline'
+          }
+          size={22}
+          color={
+            completed ? colors.bullish.primary : isLocked ? colors.text.tertiary : colors.accent.primary
+          }
+        />
+      </View>
+      <View className="min-w-0 flex-1 pr-2">
+        <View className="mb-1 flex-row flex-wrap items-center gap-1.5">
+          <Badge label={lesson.difficulty} variant={difficultyVariant[lesson.difficulty]} size="sm" />
+          <Badge label={CATEGORY_LABELS[lesson.category]} variant="outline" size="sm" />
+          {lesson.isPremium ? <Badge label="Premium" variant="accent" size="sm" /> : null}
+          {lesson.track === 'decision' ? (
+            <Badge label="Coach" variant="default" size="sm" />
+          ) : null}
         </View>
-      </GlassCard>
+        <Text variant="h3" numberOfLines={2}>
+          {lesson.title}
+        </Text>
+        <Text variant="body-sm" numberOfLines={2} className="mt-1">
+          {lesson.description}
+        </Text>
+      </View>
+      <Text variant="caption" className="text-text-tertiary">
+        {lesson.durationMinutes}m
+      </Text>
     </Pressable>
   );
 }

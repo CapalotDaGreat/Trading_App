@@ -1,72 +1,79 @@
-export type SubscriptionTier = 'free' | 'premium' | 'pro';
+export type SubscriptionTier = 'free' | 'premium';
 
 export interface TierLimits {
   tier: SubscriptionTier;
   label: string;
+  description: string;
   watchlistMax: number;
   alertsMax: number;
+  /**
+   * Hard daily AI analysis cap.
+   * Premium uses a generous fair-use ceiling (not marketed as infinite compute).
+   * `-1` is reserved for truly unlimited (unused while fair-use is active).
+   */
   aiAnalysisPerDay: number;
   historicalDataDays: number;
+  /** Faster quote refresh (polling), not exchange-tick realtime */
   realtimeQuotes: boolean;
+  quoteRefreshLabel: string;
   advancedCharts: boolean;
   portfolioTracking: boolean;
   exportData: boolean;
-  adFree: boolean;
   prioritySupport: boolean;
+  cloudAi: boolean;
 }
+
+/** Warn the user when usage reaches this fraction of their daily AI cap. */
+export const AI_USAGE_WARN_RATIO = 0.8;
+
+/** Yearly plan intro trial length (configure matching offer in RevenueCat / App Store Connect). */
+export const YEARLY_TRIAL_DAYS = 7;
 
 export const SUBSCRIPTION_TIERS: Record<SubscriptionTier, TierLimits> = {
   free: {
     tier: 'free',
     label: 'Free',
-    watchlistMax: 10,
-    alertsMax: 3,
+    description: 'Build discipline — Today brief, basic radar, journal, limited AI',
+    // Generous enough for a substantive Decision Brief universe before the upsell
+    watchlistMax: 25,
+    alertsMax: 5,
     aiAnalysisPerDay: 3,
     historicalDataDays: 30,
     realtimeQuotes: false,
+    quoteRefreshLabel: 'Delayed (~60s refresh)',
     advancedCharts: false,
     portfolioTracking: false,
     exportData: false,
-    adFree: false,
     prioritySupport: false,
+    cloudAi: false,
   },
   premium: {
     tier: 'premium',
     label: 'Premium',
-    watchlistMax: 50,
-    alertsMax: 25,
-    aiAnalysisPerDay: 25,
-    historicalDataDays: 365,
-    realtimeQuotes: true,
-    advancedCharts: true,
-    portfolioTracking: true,
-    exportData: true,
-    adFree: true,
-    prioritySupport: false,
-  },
-  pro: {
-    tier: 'pro',
-    label: 'Pro',
+    description:
+      'Everything unlocked — full radar, trader DNA, AI coach with cloud analysis, portfolio intelligence, replay, export, and priority data',
     watchlistMax: 200,
     alertsMax: 100,
-    aiAnalysisPerDay: -1,
+    // Fair-use ceiling — prevents unbounded cloud AI cost while staying generous
+    aiAnalysisPerDay: 100,
     historicalDataDays: -1,
     realtimeQuotes: true,
+    quoteRefreshLabel: 'Faster updates to delayed/last-quote data (~15–30s)',
     advancedCharts: true,
     portfolioTracking: true,
     exportData: true,
-    adFree: true,
     prioritySupport: true,
+    cloudAi: true,
   },
 };
 
 export const REVENUECAT_ENTITLEMENT_ID =
   process.env.EXPO_PUBLIC_REVENUECAT_ENTITLEMENT_ID ?? 'premium';
 
+/** Active store products — monthly + yearly only (no lifetime while in early development). */
 export const PREMIUM_PRODUCT_IDS = {
   monthly: 'tradevision_premium_monthly',
   yearly: 'tradevision_premium_yearly',
-  lifetime: 'tradevision_premium_lifetime',
 } as const;
 
 export function getTierLimits(tier: SubscriptionTier): TierLimits {
@@ -93,4 +100,11 @@ export function canAccessFeature(
 export function hasReachedLimit(current: number, max: number): boolean {
   if (isUnlimited(max)) return false;
   return current >= max;
+}
+
+/** True when the user has used ≥ 80% of their daily AI allowance (but not yet at the hard cap). */
+export function isNearAiDailyLimit(usedToday: number, limit: number): boolean {
+  if (isUnlimited(limit) || limit <= 0) return false;
+  if (usedToday >= limit) return false;
+  return usedToday / limit >= AI_USAGE_WARN_RATIO;
 }

@@ -1,4 +1,5 @@
 import { analyzeChart } from '@/features/charts/services/chart-analysis.service';
+import { fetchEconomicCalendar } from '@/features/calendar/services/economic-calendar.service';
 import {
   CORE_BENCHMARKS,
   MARKET_DATA_POLICY,
@@ -14,7 +15,32 @@ import {
 import { fetchFinancialNews } from '@/features/news/services/news.service';
 import type { Candle, Quote } from '@/shared/types/market';
 
-import { biasFromScore, buildExplainability } from './explainability.service';
+import { summarizeDecisionLog, getDecisionRecords } from '@/features/decision-log/services/decision-log.service';
+
+import { biasFromScore, buildExplainability, buildCounterfactuals } from './explainability.service';
+import { prioritizeResearch } from './research-prioritizer.service';
+import {
+  buildResearchQueue,
+  buildTradingDayPlan,
+} from './coaching-loop.service';
+import { applyLifecycleToSetups } from './setup-lifecycle.service';
+import {
+  buildSetupResearchChecklist,
+  historyNoteForSetup,
+} from './setup-enrichment.service';
+import { loadTraderMemory } from './trader-intelligence.service';
+import { buildSkipSuggestions, buildWhyNot } from './why-not.service';
+import {
+  buildResearchBalance,
+  computeDecisionQualityScore,
+  computeResearchValueScore,
+} from './research-value.service';
+import {
+  buildDecisionDebt,
+  buildDecisionFatigue,
+  buildDecisionIntelligenceContext,
+} from './decision-os.service';
+import { recordConvictionPoint } from './conviction-drift.service';
 import type {
   DecisionBias,
   DecisionBrief,
@@ -163,7 +189,7 @@ async function analyzeSymbolSetup(symbol: string, quote?: LiveQuote): Promise<Se
           : 'Range / wait';
 
     const asOf = Date.now();
-    return {
+    const setup: SetupCardData = {
       id: `${symbol}-${asOf}`,
       symbol,
       title,
@@ -200,6 +226,25 @@ async function analyzeSymbolSetup(symbol: string, quote?: LiveQuote): Promise<Se
         reasoning: `${why.length} factors assessed on daily timeframe. This is research prioritization — not a buy/sell order.`,
       }),
     };
+
+    return {
+      ...setup,
+      setupTypeLabel:
+        bias === 'neutral'
+          ? 'Wait / range'
+          : pattern
+            ? `${bias === 'bullish' ? 'Bullish' : 'Bearish'} ${pattern}`
+            : 'Trend continuation',
+      researchChecklist: buildSetupResearchChecklist(setup),
+      explainability: {
+        ...setup.explainability,
+        counterfactuals: buildCounterfactuals({
+          confidence: setup.confidence,
+          factors: setup.explainability.factors,
+          rsiSignal: analysis.summary.rsiSignal,
+        }),
+      },
+    };
   } catch {
     return null;
   }
@@ -216,59 +261,262 @@ export async function buildSetupRadar(symbols: string[]): Promise<SetupCardData[
     ),
   );
 
-  return setups
-    .filter((s): s is SetupCardData => Boolean(s))
+  const candleMap = new Map<string, Candle>();
+  await Promise.all(
+    unique.map(async (symbol) => {
+      try {
+        const marketType = buildAssetFromSymbol(symbol).marketType;
+        const candles = await fetchCandles({ symbol, marketType, interval: '1d', limit: 2 });
+        const last = candles[candles.length - 1];
+        if (last) candleMap.set(symbol.toUpperCase(), last);
+      } catch {
+        // lifecycle skip if candles unavailable
+      }
+    }),
+  );
+
+  return applyLifecycleToSetups(
+    setups.filter((s): s is SetupCardData => Boolean(s)),
+    candleMap,
+  )
+    .map((setup) => ({
+      ...setup,
+      researchChecklist: setup.researchChecklist ?? buildSetupResearchChecklist(setup),
+    }))
     .sort((a, b) => b.confidence - a.confidence);
 }
 
 export async function buildDecisionBrief(input?: {
   watchlistSymbols?: string[];
   portfolioChangePercent?: number;
+  portfolioSymbols?: string[];
+  uid?: string | null;
+  timeBudgetMinutes?: number;
 }): Promise<DecisionBrief> {
+  const memory = await loadTraderMemory();
+  const portfolioSyms = input?.portfolioSymbols ?? [];
   const watch = input?.watchlistSymbols?.length
-    ? input.watchlistSymbols.slice(0, 8)
-    : ['NVDA', 'AAPL', 'SPY', 'BTC/USD', 'EUR/USD'];
+    ? [...new Set([...input.watchlistSymbols, ...memory.favoriteAssets, ...portfolioSyms])].slice(0, 10)
+    : [...new Set([...memory.favoriteAssets, 'NVDA', 'AAPL', 'SPY', 'BTC/USD', 'EUR/USD'])].slice(0, 8);
 
-  const [regime, quotes, news, setups] = await Promise.all([
+  const now = Date.now();
+  const [regime, quotes, calendarEvents, news, setups, logRecords] = await Promise.all([
     detectRegime(),
     safeQuotes([...CORE_BENCHMARKS, ...watch.slice(0, 5)]),
-    fetchFinancialNews({ pageSize: 6 }).catch(() => ({
+    fetchEconomicCalendar({
+      from: now - 12 * 60 * 60 * 1000,
+      to: now + 48 * 60 * 60 * 1000,
+      impact: ['high', 'medium'],
+    }).catch(() => []),
+    fetchFinancialNews({ pageSize: 4 }).catch(() => ({
       articles: [] as { id: string; title: string }[],
       totalResults: 0,
       source: 'rss' as const,
     })),
     buildSetupRadar(watch),
+    getDecisionRecords(input?.uid).catch(() => []),
   ]);
 
-  const topSetups = setups.slice(0, 3);
+  const logSummary = summarizeDecisionLog(logRecords);
+  const calendarSource =
+    calendarEvents.length && calendarEvents[0]?.source === 'finnhub' ? 'finnhub' : 'mock';
+
+  const events =
+    calendarEvents.length > 0
+      ? calendarEvents.slice(0, 4).map((e) => ({
+          id: e.id,
+          title: e.title,
+          at: e.scheduledAt,
+          impact: e.impact as ImpactLevel,
+        }))
+      : news.articles.slice(0, 3).map((a, i) => ({
+          id: a.id,
+          title: a.title,
+          at: now + i * 3600_000,
+          impact: (i === 0 ? 'high' : 'medium') as ImpactLevel,
+        }));
+
   const quotesFetchedAt = Math.max(...quotes.map((q) => q.fetchedAt), Date.now());
+  const budget = input?.timeBudgetMinutes ?? 20;
 
-  const summary =
-    topSetups.length > 0
-      ? `${regime.label} tape. ${topSetups.length} watchlist setup${topSetups.length === 1 ? '' : 's'} deserve research time — start with ${topSetups[0].symbol}.`
-      : `${regime.label} tape. No high-conviction setups yet — reduce forcing trades and wait for clearer structure.`;
+  const enrichedSetups = setups.map((setup) => {
+    const withChecklist = {
+      ...setup,
+      researchChecklist: setup.researchChecklist ?? buildSetupResearchChecklist(setup),
+      historyNote: historyNoteForSetup(setup, memory),
+      whyNot: buildWhyNot(setup, regime.regime, memory, events.length),
+    };
+    const rvs = computeResearchValueScore({
+      setup: withChecklist,
+      regime: regime.regime,
+      memory,
+      portfolioSymbols: portfolioSyms,
+      eventCount: events.length,
+      timeBudgetMinutes: budget,
+    });
+    const dqs = computeDecisionQualityScore(withChecklist);
+    const balance = buildResearchBalance(
+      withChecklist,
+      enrichedAlternatives(setups, setup.symbol),
+    );
+    const scored: SetupCardData = {
+      ...withChecklist,
+      confidence: dqs.score,
+      researchValueScore: rvs.score,
+      decisionQualityScore: dqs.score,
+      researchValueExplanation: rvs.explanation,
+      decisionQualityExplanation: dqs.explanation,
+      reasonsToResearch: balance.reasonsToResearch,
+      reasonsNotToResearch: balance.reasonsNotToResearch,
+      missingConfirmations: balance.missingConfirmations,
+      alternativeSymbols: balance.alternativeSymbols,
+    };
+    void recordConvictionPoint(setup.symbol, {
+      researchValue: rvs.score,
+      decisionQuality: dqs.score,
+      risk: setup.risk,
+      note: `Brief refresh · RVS ${rvs.score} · DQS ${dqs.score}`,
+    }).catch(() => undefined);
+    return scored;
+  });
 
-  return {
+  // Rank by research value (attention), not raw chart confidence
+  enrichedSetups.sort(
+    (a, b) => (b.researchValueScore ?? b.confidence) - (a.researchValueScore ?? a.confidence),
+  );
+
+  const topSetups = enrichedSetups.slice(0, 3);
+  const priorities = prioritizeResearch(
+    {
+      greeting: '',
+      generatedAt: now,
+      regime: regime.regime,
+      regimeLabel: regime.label,
+      highImpactEvents: events,
+      setupCount: enrichedSetups.length,
+      topSetups,
+      watchFocus: watch.slice(0, 4),
+      headline: '',
+      summary: '',
+      suggestResearch: topSetups.slice(0, 2).map((s) => s.symbol),
+      explainability: regime.explainability,
+      quotesFetchedAt,
+    },
+    enrichedSetups,
+    budget,
+  );
+  const timeBudgetPick = priorities.map((p) => p.symbol);
+
+  const startSymbol = timeBudgetPick[0] ?? topSetups[0]?.symbol;
+  const researchQueue = buildResearchQueue(priorities);
+  const estimatedResearchMinutes = researchQueue.reduce((s, q) => s + q.estimatedMinutes, 0);
+  const risks = enrichedSetups.filter(
+    (s) => s.risk === 'high' || s.status === 'invalidated' || (s.whyNot?.reasons.length ?? 0) >= 2,
+  ).length;
+
+  const researchedToday = logRecords.filter(
+    (r) =>
+      r.action === 'researched' ||
+      r.action === 'opened' ||
+      r.action === 'skipped',
+  ).filter((r) => Date.now() - r.createdAt < 86_400_000).length;
+
+  const intel = buildDecisionIntelligenceContext({
+    regime: regime.regime,
+    regimeLabel: regime.label,
+    timeBudgetMinutes: budget,
+    watchlistSymbols: watch,
+    portfolioSymbols: portfolioSyms,
+    traderMemory: memory,
+    processScoreWeek: logSummary.processScore,
+    eventTitles: events.map((e) => e.title),
+    topSetupSymbols: topSetups.map((s) => s.symbol),
+  });
+
+  const fatigue = buildDecisionFatigue({
+    reviewedToday: researchedToday,
+    queueRemaining: researchQueue.filter((q) => !q.completed).length,
+  });
+
+  const decisionDebt = buildDecisionDebt({
+    unreviewedSetups: Math.max(0, enrichedSetups.length - researchedToday),
+    incompleteJournals: Math.max(0, logSummary.researched - logSummary.journaled),
+    unfinishedLessons: 0,
+    ignoredAlerts: 0,
+    unfinishedReplay: 0,
+  });
+
+  const summary = fatigue.shouldStop
+    ? `${regime.label} tape. ${fatigue.message}`
+    : topSetups.length > 0
+      ? `${regime.label} tape. ${topSetups.length} setup${topSetups.length === 1 ? '' : 's'} deserve research — start with ${startSymbol} (RVS ${topSetups[0]?.researchValueScore ?? '—'}).`
+      : `${regime.label} tape. No high-quality setups yet — reduce forcing trades and wait for clearer structure.`;
+
+  const memoryBoost = memory.bestSetups.length
+    ? topSetups.filter((s) =>
+        memory.bestSetups.some((b) => s.title.toLowerCase().includes(b.toLowerCase().split(' ')[0] ?? '')),
+      )
+    : topSetups;
+
+  const suggestResearch = [
+    ...new Set([
+      ...memoryBoost.slice(0, 1).map((s) => s.symbol),
+      ...topSetups.slice(0, 2).map((s) => s.symbol),
+    ]),
+  ].slice(0, 3);
+
+  const draftBrief = {
     greeting: greetingForNow(),
-    generatedAt: Date.now(),
+    generatedAt: now,
     regime: regime.regime,
     regimeLabel: regime.label,
     portfolioChangePercent: input?.portfolioChangePercent,
-    highImpactEvents: news.articles.slice(0, 3).map((a, i) => ({
-      id: a.id,
-      title: a.title,
-      at: Date.now() + i * 3600_000,
-      impact: (i === 0 ? 'high' : 'medium') as ImpactLevel,
-    })),
-    setupCount: setups.length,
+    highImpactEvents: events,
+    setupCount: enrichedSetups.length,
     topSetups,
     watchFocus: watch.slice(0, 4),
     headline: `Markets: ${regime.label}`,
     summary,
-    suggestResearch: topSetups.slice(0, 2).map((s) => s.symbol),
+    suggestResearch,
     explainability: regime.explainability,
     quotesFetchedAt,
+    startHereSymbol: startSymbol,
+    processScoreWeek: logSummary.processScore,
+    calendarSource: (calendarEvents.length ? calendarSource : 'rss') as DecisionBrief['calendarSource'],
+    timeBudgetPick,
+    focusSummary: {
+      opportunities: topSetups.length,
+      risks: Math.max(risks, portfolioSyms.length > 3 ? 1 : 0),
+      events: events.length,
+    },
+    estimatedResearchMinutes,
+    researchQueue,
+    skipSuggestions: buildSkipSuggestions(
+      enrichedSetups,
+      regime.regime,
+      memory,
+      events.length,
+      2,
+    ),
+    decisionDebt,
+    fatigue,
+    psychologyReminder: intel.psychologyReminder,
+    recommendedFocus: intel.recommendedFocus,
+    decisionQualityTrend: logSummary.processScore,
+    timeBudgetMinutes: budget,
+  } satisfies Omit<DecisionBrief, 'tradingDayPlan'>;
+
+  return {
+    ...draftBrief,
+    tradingDayPlan: buildTradingDayPlan(draftBrief),
   };
+}
+
+function enrichedAlternatives(setups: SetupCardData[], symbol: string): string[] {
+  return setups
+    .filter((s) => s.symbol.toUpperCase() !== symbol.toUpperCase())
+    .slice(0, 4)
+    .map((s) => s.symbol);
 }
 
 function candleBias(candles: Candle[]): MtfFrameBias {

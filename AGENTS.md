@@ -1,3 +1,46 @@
-# Expo HAS CHANGED
+# Agent guide — TradeVision AI
 
-Read the exact versioned docs at https://docs.expo.dev/versions/v57.0.0/ before writing any code.
+## Expo version (READ FIRST)
+
+This project runs **Expo SDK 54** (`expo@54.0.36`, React 19.1, React Native 0.81).
+
+Before writing any Expo/React Native code, consult the **SDK 54** docs, not newer versions:
+
+- API reference: https://docs.expo.dev/versions/v54.0.0/
+- Do **not** assume APIs from SDK 55/56/57. Verify anything version-sensitive against `package.json`.
+
+If you upgrade the SDK, update this file and `package.json` in the same change.
+
+## What this app is
+
+A **decision-first trading research and coaching app** — it helps discretionary traders
+decide *"should I spend time researching this?"*. It is **not** a broker, and it does **not**
+give buy/sell signals. Setup "confidence" is a **decision-quality score (DQS)**, never a
+prediction of price direction. Preserve this framing in all new work.
+
+## Stack
+
+- Expo Router v6 (file-based routing under `app/`)
+- NativeWind v4 + Tailwind (`global.css`, theme tokens in `shared/constants/`)
+- TanStack React Query for server/derived state
+- Zustand (+ AsyncStorage) for local/client state
+- Firebase Auth/Firestore/Storage — **optional**; the app has a full demo mode when
+  Firebase env vars are absent (guest uid `demo-guest`)
+- RevenueCat (REST) + Firestore for subscriptions
+
+## Conventions
+
+- Path alias `@/*` maps to the repo root.
+- Feature-first layout under `features/<feature>/{components,hooks,services,screens,types,stores,content}`.
+- Server/derived data → React Query hooks; preferences/progress/coaching state → Zustand + AsyncStorage.
+- Gate every Firestore read/write behind `canUseFirestore()` / `isFirebaseConfigured()` and
+  fall back to local/demo data.
+- Be honest about data: use `DataSourceBadge` (`live`/`delayed`/`approximate`/`sample`/`mock`)
+  and decision-side freshness. Never fabricate FX candles.
+- Run `npm run typecheck` before finishing a change.
+
+## Native vs Expo Go
+
+Some capabilities require an **EAS dev client** (see `docs/DEV_BUILD.md`): native IAP,
+reliable background alert evaluation / push, and home-screen widgets. In Expo Go the alert
+evaluator only runs in the foreground (~45s poll).

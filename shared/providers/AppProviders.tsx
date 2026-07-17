@@ -3,6 +3,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { AuthProvider } from '@/features/auth/hooks/useAuth';
+import { useAlertEvaluator } from '@/features/alerts/hooks/useAlertEvaluator';
 import { useSubscription } from '@/features/subscription/hooks/useSubscription';
 import { ToastProvider } from '@/shared/components/feedback/Toast';
 import { QueryProvider } from '@/shared/providers/QueryProvider';
@@ -24,6 +25,11 @@ function SubscriptionBootstrap({ children }: AppProvidersProps) {
   return children;
 }
 
+function AlertEvaluationBootstrap({ children }: AppProvidersProps) {
+  useAlertEvaluator();
+  return children;
+}
+
 export function AppProviders({ children }: AppProvidersProps) {
   return (
     <GestureHandlerRootView className="flex-1">
@@ -32,7 +38,9 @@ export function AppProviders({ children }: AppProvidersProps) {
           <ThemeProvider>
             <AuthProvider>
               <ToastProvider>
-                <SubscriptionBootstrap>{children}</SubscriptionBootstrap>
+                <SubscriptionBootstrap>
+                  <AlertEvaluationBootstrap>{children}</AlertEvaluationBootstrap>
+                </SubscriptionBootstrap>
               </ToastProvider>
             </AuthProvider>
           </ThemeProvider>

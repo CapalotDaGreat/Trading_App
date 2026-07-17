@@ -14,10 +14,10 @@ import { Screen } from '@/shared/components/layout/Screen';
 import { Input } from '@/shared/components/ui/Input';
 import { Text } from '@/shared/components/ui/Text';
 import { useSubscriptionStore } from '@/shared/stores/subscription.store';
-import { getTierLimits } from '@/shared/constants/subscription';
 
 import { AiChatBubble } from '../components/AiChatBubble';
 import { AiDisclaimer } from '../components/AiDisclaimer';
+import { AiUsageBanner } from '../components/AiUsageBanner';
 import { DEFAULT_CHAT_PROMPTS, PromptSuggestions } from '../components/PromptSuggestions';
 import { useAiChat } from '../hooks/useAiChat';
 import { useAiAnalysis } from '../hooks/useAiAnalysis';
@@ -31,7 +31,7 @@ interface AiChatScreenProps {
 export function AiChatScreen({ symbol }: AiChatScreenProps) {
   const [input, setInput] = useState('');
   const listRef = useRef<FlatList<AiMessage>>(null);
-  const tier = useSubscriptionStore((s) => s.tier);
+  const isPremium = useSubscriptionStore((s) => s.isPremium);
   const { usage } = useAiAnalysis();
   const { messages, sendMessage, clearChat, isSending, error } = useAiChat(
     symbol ? { symbol } : undefined,
@@ -47,9 +47,6 @@ export function AiChatScreen({ symbol }: AiChatScreenProps) {
 
   const errorMessage =
     error && aiService.isServiceError(error) ? error.message : error?.message;
-
-  const limit = usage?.limit ?? getTierLimits(tier).aiAnalysisPerDay;
-  const used = usage?.usedToday ?? 0;
 
   return (
     <Screen safeBottom={false} padded={false} className="flex-1">
@@ -87,9 +84,7 @@ export function AiChatScreen({ symbol }: AiChatScreenProps) {
         ) : null}
 
         <View className="border-t border-border bg-background-secondary/80 px-4 pb-4 pt-2">
-          <Text variant="caption" className="mb-2 text-center text-text-tertiary">
-            {limit === -1 ? `${used} analyses today` : `${used}/${limit} analyses today`}
-          </Text>
+          <AiUsageBanner usage={usage} isPremium={isPremium} className="mb-2" />
 
           <PromptSuggestions
             suggestions={DEFAULT_CHAT_PROMPTS}

@@ -30,7 +30,7 @@ We use the following third-party services:
 
 - **Firebase** — Authentication, database, and push notifications
 - **RevenueCat** — Subscription management
-- **Google AdMob** — Advertising (production builds only; disabled for premium users)
+- **Market data providers** — Finnhub, Alpha Vantage, CoinGecko (quotes and charts)
 
 ## Your Rights
 

@@ -1,53 +1,69 @@
 # TradeVision AI
 
-AI-powered trading insights, portfolio tracking, and market analysis — built with Expo and Firebase. Fully compatible with **Expo Go** for development (no native-only modules required).
+A **decision-first trading research and coaching app** built with **Expo SDK 54** and Firebase.
+It helps discretionary traders decide *"should I spend time researching this?"* — it is **not** a
+broker and does **not** produce buy/sell signals. Setup confidence is a **decision-quality score**,
+not a price prediction.
 
-## Features
+Runs in **Expo Go** for development; a few capabilities (native IAP, background alerts, widgets)
+require an EAS dev client — see [`docs/DEV_BUILD.md`](docs/DEV_BUILD.md).
 
-- **Subscription** — RevenueCat REST API + Firestore sync (monthly, yearly, lifetime)
-- **Ads** — Expo Go upsell slots with AdMob-ready service interface for production
-- **Notifications** — expo-notifications with FCM token registration to Firestore
-- **Settings** — Theme, privacy, notifications, and profile management
+## What's inside
+
+- **Today / Decision Brief** — market regime, ranked setups, time-budgeted research queue, and
+  explicit "why-not" skips
+- **Decision tools** — Setup Radar, Regime, Portfolio Risk, Journal Coach, Trader Memory (DNA),
+  Chart Replay
+- **Markets** — search, watchlists, quotes by asset class, heatmap, Fear & Greed
+- **AI** — on-device rule/template engine with optional cloud AI (citation-backed, Premium)
+- **Portfolio / Journal / Alerts / Calendar** — holdings & P&L, trade journal + export,
+  price alerts, economic calendar
+- **Academy** — dual-track (decision coach + classic trading school) lessons, learning paths,
+  quizzes, and desk checklists
+- **Subscription** — RevenueCat REST + Firestore sync (**monthly** or **yearly** Premium;
+  yearly supports a 7-day free trial when configured in the stores)
+- **Settings** — theme, privacy, notifications, profile, market-data health
 
 ## Prerequisites
 
 - Node.js 20+
 - Expo CLI (`npx expo`)
-- Firebase project
-- RevenueCat project (for subscriptions)
+- Firebase project (optional — app runs in demo mode without it)
+- RevenueCat project (optional — for real subscriptions)
+- Finnhub / Alpha Vantage API keys (optional — market data falls back to demo without them)
 
-## Quick Start
+## Quick start
 
 ```bash
-# Install dependencies
 npm install
-
-# Copy environment template
-cp .env.example .env
-
-# Start for Expo Go (same Wi‑Fi)
+cp .env.example .env   # fill in what you have; all keys are optional
 npm start
 ```
 
 Scan the QR code with Expo Go (iOS/Android), or open `exp://YOUR_LAN_IP:8081`.
 
+> **Demo mode:** with no Firebase env vars set, the app skips auth and boots as a guest with
+> seeded demo data so every screen is explorable.
+
 ### AVG / antivirus HTTPS fix
 
-If `npm start` fails with `TypeError: fetch failed` or `UNABLE_TO_VERIFY_LEAF_SIGNATURE`, AVG Web/Mail Shield is intercepting HTTPS. This repo trusts that root CA via `NODE_EXTRA_CA_CERTS` (same approach as the Expo Go test project).
+If `npm start` fails with `TypeError: fetch failed` or `UNABLE_TO_VERIFY_LEAF_SIGNATURE`, AVG
+Web/Mail Shield is intercepting HTTPS. This repo trusts that root CA via `NODE_EXTRA_CA_CERTS`.
 
 ```bash
-# Regenerate the CA file from the Windows cert store if needed
-npm run export-ca
+npm run export-ca   # regenerate the CA file from the Windows cert store if needed
 ```
 
-Alternatives: Node **v22.15+** with `NODE_USE_SYSTEM_CA=1`, or disable AVG **Web Shield → HTTPS scanning** for development. Fallback: `npm run start:offline`.
+Alternatives: Node **v22.15+** with `NODE_USE_SYSTEM_CA=1`, or disable AVG
+**Web Shield → HTTPS scanning** for development. Fallback: `npm run start:offline`.
 
-## Environment Variables
+## Environment variables
 
-Create a `.env` file in the project root:
+Create a `.env` file in the project root. Every value is optional; missing keys degrade to
+demo/local behavior rather than crashing.
 
 ```env
-# Firebase
+# Firebase (omit all to run in demo mode)
 EXPO_PUBLIC_FIREBASE_API_KEY=
 EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN=
 EXPO_PUBLIC_FIREBASE_PROJECT_ID=
@@ -56,115 +72,108 @@ EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=
 EXPO_PUBLIC_FIREBASE_APP_ID=
 EXPO_PUBLIC_FIREBASE_MEASUREMENT_ID=
 
+# Market data (fallback to demo data when absent)
+EXPO_PUBLIC_FINNHUB_API_KEY=
+EXPO_PUBLIC_ALPHA_VANTAGE_API_KEY=
+
 # RevenueCat (REST API — works in Expo Go)
 EXPO_PUBLIC_REVENUECAT_API_KEY=
 EXPO_PUBLIC_REVENUECAT_ENTITLEMENT_ID=premium
 EXPO_PUBLIC_REVENUECAT_WEB_CHECKOUT_URL=https://pay.rev.cat/checkout
 
-# AdMob (production builds only)
-EXPO_PUBLIC_ADMOB_BANNER_ID=
-EXPO_PUBLIC_ADMOB_NATIVE_ID=
-EXPO_PUBLIC_ADMOB_REWARDED_ID=
+# Cloud AI (optional — Premium; falls back to the local engine)
+EXPO_PUBLIC_AI_API_URL=
 
 # Expo / EAS
 EXPO_PUBLIC_EAS_PROJECT_ID=
-
-# API (optional)
-EXPO_PUBLIC_API_BASE_URL=https://api.tradevision.ai/v1
 ```
 
-## Firebase Setup
+## Firebase setup
 
 1. Create a Firebase project at [console.firebase.google.com](https://console.firebase.google.com)
 2. Enable **Authentication** (Email, Google, Apple)
 3. Create a **Firestore** database
 4. Add the web app config values to `.env`
-5. Deploy Firestore security rules:
+5. Deploy security rules:
 
 ```bash
-# Install Firebase CLI
 npm install -g firebase-tools
-
-# Login and init (if not done)
 firebase login
-firebase init firestore
-
-# Deploy rules
 firebase deploy --only firestore:rules
 ```
 
-### Firestore Collections
+### Firestore collections
 
-| Collection       | Document ID | Purpose                          |
-|------------------|-------------|----------------------------------|
-| `users`          | `{uid}`     | Profile + FCM push tokens        |
-| `subscriptions`  | `{uid}`     | Premium status synced from RC    |
-| `userSettings`   | `{uid}`     | App settings backup              |
+| Collection      | Document ID | Purpose                                   |
+|-----------------|-------------|-------------------------------------------|
+| `users`         | `{uid}`     | Profile, FCM push tokens; subcollections: `watchlists`, `portfolio`, `journal`, `alerts` |
+| `subscriptions` | `{uid}`     | Premium status synced from RevenueCat     |
+| `userSettings`  | `{uid}`     | App settings backup                       |
 
-## RevenueCat Setup (Expo Go)
+## RevenueCat setup (Expo Go)
 
 1. Create a project at [app.revenuecat.com](https://app.revenuecat.com)
-2. Add products: `tradevision_premium_monthly`, `tradevision_premium_yearly`, `tradevision_premium_lifetime`
-3. Create a `premium` entitlement
-4. Copy the **Public API Key** to `EXPO_PUBLIC_REVENUECAT_API_KEY`
-5. Configure web checkout URL for Expo Go purchases
+2. Add products: `tradevision_premium_monthly` ($9.99), `tradevision_premium_yearly` ($71.99)
+3. Attach a **7-day free trial** introductory offer to the yearly product
+4. Create a `premium` entitlement and attach both products
+5. Copy the **Public API Key** to `EXPO_PUBLIC_REVENUECAT_API_KEY`
+6. Configure the web checkout URL for Expo Go purchases
 
-Premium status is synced from RevenueCat REST API to Firestore on login and after purchase.
+Do **not** create a lifetime SKU for early development — billing is monthly + yearly only.
 
-## Expo Go Usage
+Premium status syncs from the RevenueCat REST API to Firestore on login and after purchase.
 
-All core features work in Expo Go:
+## Expo Go vs dev client
 
-| Feature         | Expo Go Behavior                                    |
-|-----------------|-----------------------------------------------------|
-| Subscriptions   | Web checkout via RevenueCat REST + Firestore sync   |
-| Ads             | Premium upsell banners (no AdMob in Expo Go)        |
-| Notifications   | Expo push tokens saved to Firestore                 |
-| Settings        | Full local + Firestore sync                         |
+| Capability            | Expo Go behavior                                    |
+|-----------------------|-----------------------------------------------------|
+| Subscriptions         | Web checkout via RevenueCat REST + Firestore sync   |
+| Notifications         | Expo push tokens saved to Firestore                 |
+| Price alerts          | Foreground-only evaluation (~45s poll while open)   |
+| Settings              | Full local + Firestore sync                         |
 
-For production AdMob, install `react-native-google-mobile-ads` and register an adapter:
+Background alert evaluation, native IAP, and widgets require an EAS dev client — see
+[`docs/DEV_BUILD.md`](docs/DEV_BUILD.md).
 
-```typescript
-import { adsService } from '@/features/ads/services/ads.service';
-// adsService.registerAdMobAdapter(yourProductionAdapter);
-```
-
-## Project Structure
+## Project structure
 
 ```
-app/                    # Expo Router screens
+app/                    # Expo Router screens (tabs, decision, analysis, academy, etc.)
 features/
+  decision/             # Decision engine: regime, setups, brief, coaching, explainability
+  decision-log/         # Append-only decision records
+  markets/              # Quotes, candles, search, data-source honesty
+  ai/                   # Local engine + optional cloud AI
+  alerts/               # Price alerts + foreground evaluator
+  academy/              # Lessons, paths, quizzes, checklists
+  analysis/ charts/     # Technical/fundamental/sentiment panels, indicators, backtest
+  auth/ profile/ settings/
+  portfolio/ journal/ watchlists/ calendar/
   subscription/         # RevenueCat + paywall
-  ads/                  # Ad service + components
-  notifications/        # Push notifications
-  settings/             # Settings screens
-shared/                 # UI, providers, stores
+  notifications/ onboarding/ news/
+shared/                 # UI primitives, providers, stores, theme, utils
+firebase/               # Config + Firestore/Storage rules
+functions/              # Cloud Functions (aiBrief HTTPS stub)
 store/                  # App store metadata + legal
-firebase/               # Firebase config
 ```
 
 ## Scripts
 
 ```bash
-npm start          # Start Expo dev server
-npm run android    # Android emulator
-npm run ios        # iOS simulator
+npm start          # Expo dev server (LAN)
+npm run android    # Android
+npm run ios        # iOS
+npm run web        # Web
 npm run lint       # ESLint
-npm run typecheck  # TypeScript
+npm run typecheck  # TypeScript (tsc --noEmit)
 npm test           # Jest
 ```
 
-## Building for Production
+## Building for production
 
 ```bash
-# Install EAS CLI
 npm install -g eas-cli
-
-# Configure EAS
-eas build:configure
-
-# Build
-eas build --platform all
+eas build --platform all   # profiles in eas.json
 ```
 
 ## License

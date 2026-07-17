@@ -10,6 +10,7 @@ interface EmbeddedAiInsightProps {
   title: string;
   body: string;
   onExplain?: () => void;
+  explainLabel?: string;
   confidence?: number;
   className?: string;
 }
@@ -18,6 +19,7 @@ export function EmbeddedAiInsight({
   title,
   body,
   onExplain,
+  explainLabel = 'Details',
   confidence,
   className,
 }: EmbeddedAiInsightProps) {
@@ -26,7 +28,7 @@ export function EmbeddedAiInsight({
   return (
     <View
       className={cn(
-        'flex-row items-start gap-2.5 rounded-xl border border-border bg-surface px-3 py-2.5',
+        'flex-row items-start gap-2.5 rounded-2xl bg-accent-muted/60 px-3.5 py-3',
         className,
       )}
     >
@@ -40,7 +42,7 @@ export function EmbeddedAiInsight({
             {title}
           </Text>
           {confidence !== undefined ? (
-            <Badge label={`${Math.round(confidence)}%`} variant="accent" size="sm" />
+            <Badge label={`${Math.round(confidence)}% quality`} variant="accent" size="sm" />
           ) : null}
         </View>
         <Text variant="caption" className="leading-relaxed text-text-secondary" numberOfLines={3}>
@@ -51,12 +53,12 @@ export function EmbeddedAiInsight({
       {onExplain ? (
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="Explain AI insight"
+          accessibilityLabel={explainLabel}
           onPress={onExplain}
-          className="rounded-lg border border-border bg-background-elevated px-2 py-1 active:bg-surface-active"
+          className="rounded-full bg-surface px-2.5 py-1 active:bg-surface-active"
         >
           <Text variant="caption" className="font-semibold text-accent">
-            Explain
+            {explainLabel}
           </Text>
         </Pressable>
       ) : null}

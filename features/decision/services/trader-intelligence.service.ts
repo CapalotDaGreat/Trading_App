@@ -3,8 +3,14 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { JournalEntry } from '@/features/journal/types/journal.types';
 import type { Holding } from '@/features/portfolio/types/portfolio.types';
 
-import type { JournalCoachInsight, RiskCenterSnapshot, TraderMemory } from '../types/decision.types';
+import type {
+  ImpactLevel,
+  JournalCoachInsight,
+  RiskCenterSnapshot,
+  TraderMemory,
+} from '../types/decision.types';
 import { buildExplainability } from './explainability.service';
+import { buildTradingDna } from './setup-enrichment.service';
 
 export interface MemoryProfileHints {
   favoriteAssets?: string[];
@@ -30,10 +36,13 @@ const DEFAULT_MEMORY: TraderMemory = {
 export async function loadTraderMemory(): Promise<TraderMemory> {
   try {
     const raw = await AsyncStorage.getItem(MEMORY_KEY);
-    if (!raw) return { ...DEFAULT_MEMORY, updatedAt: Date.now() };
-    return { ...DEFAULT_MEMORY, ...(JSON.parse(raw) as TraderMemory) };
+    const base = raw
+      ? { ...DEFAULT_MEMORY, ...(JSON.parse(raw) as TraderMemory) }
+      : { ...DEFAULT_MEMORY, updatedAt: Date.now() };
+    return { ...base, dna: buildTradingDna(base) };
   } catch {
-    return { ...DEFAULT_MEMORY, updatedAt: Date.now() };
+    const base = { ...DEFAULT_MEMORY, updatedAt: Date.now() };
+    return { ...base, dna: buildTradingDna(base) };
   }
 }
 
@@ -185,19 +194,60 @@ export function buildRiskCenter(holdings: Holding[]): RiskCenterSnapshot {
     Math.round(35 + maxWeight * 100 + (sectorExposure[0]?.percent ?? 0) * 0.3),
   );
 
+  const diversification: ImpactLevel =
+    sectorExposure.length >= 3 && maxWeight < 0.25
+      ? 'low'
+      : sectorExposure.length === 1 || maxWeight > 0.4
+        ? 'high'
+        : 'medium';
+
+  const correlation: ImpactLevel =
+    maxWeight > 0.3 || (sectorExposure[0]?.percent ?? 0) > 50 ? 'high' : 'medium';
+
+  const healthScore = Math.max(
+    5,
+    Math.min(100, 100 - riskScore + (diversification === 'low' ? 15 : diversification === 'medium' ? 5 : -10)),
+  );
+
+  const recommendations = [
+    maxWeight > 0.25
+      ? `Largest position ~${Math.round(maxWeight * 100)}% — review concentration before new risk.`
+      : 'Sizes look balanced relative to each other.',
+    correlation === 'high'
+      ? 'Correlation looks elevated — stress-test a risk-off day before adding same-theme names.'
+      : 'Cross-asset mix is moderate.',
+    'This is portfolio hygiene, not buy/sell advice.',
+  ];
+
+  const asOf = Date.now();
+
   return {
     riskScore,
     sectorExposure,
     cashPercent: 0,
     betaEstimate: Math.round((1 + maxWeight) * 100) / 100,
-    correlation: maxWeight > 0.3 || (sectorExposure[0]?.percent ?? 0) > 50 ? 'high' : 'medium',
-    recommendation:
-      maxWeight > 0.25
-        ? `Largest position is ~${Math.round(maxWeight * 100)}% — consider trimming concentration.`
-        : 'Position sizes look balanced. Revisit when adding correlated tech/crypto names.',
+    correlation,
+    recommendation: recommendations[0]!,
     holdingsCount: holdings.length,
     concentrationWarning:
       maxWeight > 0.3 ? `Single-name weight ${Math.round(maxWeight * 100)}%` : undefined,
-    asOf: Date.now(),
+    asOf,
+    health: {
+      healthScore,
+      diversification,
+      sectorExposure,
+      cashPercent: 0,
+      betaEstimate: Math.round((1 + maxWeight) * 100) / 100,
+      correlation,
+      concentrationWarning:
+        maxWeight > 0.3 ? `Single-name weight ${Math.round(maxWeight * 100)}%` : undefined,
+      stressTest:
+        correlation === 'high'
+          ? 'If the dominant theme drops 8–12%, portfolio drawdown would likely feel concentrated.'
+          : 'A broad selloff would be absorbed more evenly across holdings.',
+      recommendations,
+      holdingsCount: holdings.length,
+      asOf,
+    },
   };
 }

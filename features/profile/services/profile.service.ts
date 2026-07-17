@@ -1,3 +1,4 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   deleteDoc,
   doc,
@@ -18,6 +19,7 @@ import type {
 } from '../types/profile.types';
 
 const USERS_COLLECTION = 'users';
+const DEMO_PROFILE_KEY = 'tradevision-demo-profile';
 
 function profileDocRef(uid: string) {
   return doc(requireDb(), USERS_COLLECTION, uid);
@@ -74,7 +76,48 @@ function buildDefaultProfile(input: CreateUserProfileInput): UserProfileDocument
   };
 }
 
+function demoProfile(uid: string, patch?: Partial<UserProfile>): UserProfile {
+  const now = new Date().toISOString();
+  return {
+    uid,
+    email: patch?.email ?? 'demo@tradevision.local',
+    displayName: patch?.displayName ?? 'Demo Trader',
+    photoURL: patch?.photoURL ?? null,
+    bio: patch?.bio ?? '',
+    timezone: patch?.timezone ?? (Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'),
+    currency: patch?.currency ?? 'USD',
+    experienceLevel: patch?.experienceLevel ?? 'intermediate',
+    notificationsEnabled: patch?.notificationsEnabled ?? true,
+    mfaEnabled: false,
+    onboardingCompleted: true,
+    createdAt: patch?.createdAt ?? now,
+    updatedAt: patch?.updatedAt ?? now,
+  };
+}
+
+async function loadDemoProfile(uid: string): Promise<UserProfile> {
+  try {
+    const raw = await AsyncStorage.getItem(`${DEMO_PROFILE_KEY}:${uid}`);
+    if (raw) {
+      return { ...demoProfile(uid), ...(JSON.parse(raw) as UserProfile), uid };
+    }
+  } catch {
+    // fall through
+  }
+  return demoProfile(uid);
+}
+
+async function saveDemoProfile(profile: UserProfile): Promise<UserProfile> {
+  const next = { ...profile, updatedAt: new Date().toISOString() };
+  await AsyncStorage.setItem(`${DEMO_PROFILE_KEY}:${profile.uid}`, JSON.stringify(next));
+  return next;
+}
+
 export async function getUserProfile(uid: string): Promise<UserProfile | null> {
+  if (!isFirebaseConfigured()) {
+    return loadDemoProfile(uid);
+  }
+
   const snapshot = await getDoc(profileDocRef(uid));
   if (!snapshot.exists()) {
     return null;
@@ -84,6 +127,11 @@ export async function getUserProfile(uid: string): Promise<UserProfile | null> {
 
 export async function createUserProfile(input: CreateUserProfileInput): Promise<UserProfile> {
   const data = buildDefaultProfile(input);
+
+  if (!isFirebaseConfigured()) {
+    return saveDemoProfile({ uid: input.uid, ...data });
+  }
+
   await setDoc(profileDocRef(input.uid), {
     ...data,
     createdAt: serverTimestamp(),
@@ -108,6 +156,11 @@ export async function updateUserProfile(
   uid: string,
   updates: UpdateUserProfileInput,
 ): Promise<UserProfile> {
+  if (!isFirebaseConfigured()) {
+    const current = await loadDemoProfile(uid);
+    return saveDemoProfile({ ...current, ...updates, uid });
+  }
+
   const ref = profileDocRef(uid);
   const snapshot = await getDoc(ref);
 
@@ -125,5 +178,9 @@ export async function updateUserProfile(
 }
 
 export async function deleteUserProfile(uid: string): Promise<void> {
+  if (!isFirebaseConfigured()) {
+    await AsyncStorage.removeItem(`${DEMO_PROFILE_KEY}:${uid}`);
+    return;
+  }
   await deleteDoc(profileDocRef(uid));
 }

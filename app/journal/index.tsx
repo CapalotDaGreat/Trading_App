@@ -2,7 +2,6 @@ import { ActivityIndicator, View } from 'react-native';
 import { useRouter } from 'expo-router';
 
 import { EmbeddedAiInsight } from '@/features/decision/components/EmbeddedAiInsight';
-import { JournalCoachCard } from '@/features/decision/components/JournalCoachCard';
 import { useJournalCoach } from '@/features/decision/hooks/useDecision';
 import { JournalEntryCard } from '@/features/journal/components/JournalEntryCard';
 import { JournalForm } from '@/features/journal/components/JournalForm';
@@ -13,10 +12,12 @@ import { Screen } from '@/shared/components/layout/Screen';
 import { Button } from '@/shared/components/ui/Button';
 import { GlassCard } from '@/shared/components/ui/GlassCard';
 import { Text } from '@/shared/components/ui/Text';
+import { useTheme } from '@/shared/hooks/useTheme';
 import { formatChange, formatNumber, formatPercent } from '@/shared/utils/format';
 
 export default function JournalScreen() {
   const router = useRouter();
+  const { colors } = useTheme();
   const {
     entries,
     stats,
@@ -32,14 +33,14 @@ export default function JournalScreen() {
   if (isLoading) {
     return (
       <Screen className="items-center justify-center">
-        <ActivityIndicator size="large" color="#00D4AA" />
+        <ActivityIndicator size="large" color={colors.accent.primary} />
       </Screen>
     );
   }
 
   return (
     <Screen scrollable contentClassName="pb-8">
-      <Header title="Trade Journal" onBack={() => router.back()} />
+      <Header title="Trade journal" subtitle="Log first, review later" onBack={() => router.back()} />
 
       <View className="mt-4 gap-4">
         <GlassCard className="p-4">
@@ -66,16 +67,15 @@ export default function JournalScreen() {
         </GlassCard>
 
         <EmbeddedAiInsight
-          title="Coach snapshot"
+          title="Coach tip"
           body={
             coachQuery.data?.recommendation ??
             'Log closed trades to unlock personal process coaching.'
           }
           confidence={coachQuery.data?.processScore}
           onExplain={() => router.push('/decision/coach' as never)}
+          explainLabel="Full coach"
         />
-
-        {coachQuery.data ? <JournalCoachCard insight={coachQuery.data} /> : null}
 
         <JournalForm
           onSubmit={async (input) => {

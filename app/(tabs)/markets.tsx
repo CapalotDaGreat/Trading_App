@@ -4,7 +4,6 @@ import { Pressable, View } from 'react-native';
 
 import { DataFreshnessBadge } from '@/features/decision/components/DataFreshnessBadge';
 import { FearGreedGauge } from '@/features/markets/components/FearGreedGauge';
-import { MarketCard } from '@/features/markets/components/MarketCard';
 import { MarketHeatmap } from '@/features/markets/components/MarketHeatmap';
 import { MarketSearchBar } from '@/features/markets/components/MarketSearchBar';
 import { QuoteRow } from '@/features/markets/components/QuoteRow';
@@ -31,6 +30,7 @@ const MARKET_TABS: { label: string; type: MarketType }[] = [
 export default function MarketsScreen() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<MarketType>('stocks');
+  const [showOverview, setShowOverview] = useState(false);
   const { watchlists, isLoading: watchlistsLoading } = useWatchlists();
 
   const handleSelectAsset = useCallback(
@@ -56,14 +56,14 @@ export default function MarketsScreen() {
   const popularAssets = POPULAR_SYMBOLS[activeTab].map((symbol) =>
     buildAssetFromSymbol(symbol, activeTab),
   );
-  const popularSymbols = popularAssets.slice(0, 5).map((a) => a.symbol);
+  const popularSymbols = popularAssets.slice(0, 6).map((a) => a.symbol);
   const livePopular = useLiveQuotes(popularSymbols);
 
   return (
     <Screen scrollable safeTop={false}>
       <Header
         title="Markets"
-        subtitle="Live quotes"
+        subtitle="Find a symbol, then open the chart"
         rightAction={<DataFreshnessBadge fetchedAt={livePopular.dataUpdatedAt || undefined} />}
       />
 
@@ -71,15 +71,38 @@ export default function MarketsScreen() {
         <MarketSearchBar onSelect={handleSelectAsset} initialMarketType={activeTab} />
       </View>
 
+      <View className="mb-5">
+        <Text variant="h3" className="mb-1">
+          Your watchlists
+        </Text>
+        <Text variant="caption" className="mb-3 text-text-secondary">
+          Start here if you already have names you follow
+        </Text>
+        {watchlistsLoading ? (
+          <Skeleton height={100} rounded="lg" />
+        ) : watchlists.length > 0 ? (
+          <View className="gap-3">
+            {watchlists.map((list) => (
+              <WatchlistCard key={list.id} watchlist={list} />
+            ))}
+          </View>
+        ) : (
+          <EmptyState
+            title="No watchlists yet"
+            description="Search a symbol, open it, then tap + Watch."
+          />
+        )}
+      </View>
+
       <View className="mb-4 flex-row gap-2">
         {MARKET_TABS.map((tab) => (
           <Pressable
             key={tab.type}
             onPress={() => setActiveTab(tab.type)}
-            className={`flex-1 rounded-xl border py-2.5 ${
+            className={`flex-1 rounded-full py-2.5 ${
               activeTab === tab.type
-                ? 'border-border-strong bg-background-elevated'
-                : 'border-border bg-surface'
+                ? 'bg-accent-muted'
+                : 'bg-surface'
             }`}
           >
             <Text
@@ -94,37 +117,16 @@ export default function MarketsScreen() {
         ))}
       </View>
 
-      <View className="mb-6">
-        <Text variant="h3" className="mb-3">
+      <View className="mb-5">
+        <Text variant="h3" className="mb-1">
           Popular {activeTab}
         </Text>
-        <View className="gap-2">
-          {popularAssets.slice(0, 5).map((asset) => (
-            <QuoteRow key={asset.symbol} asset={asset} onPress={() => handleSymbolPress(asset.symbol)} />
-          ))}
-        </View>
-      </View>
-
-      <View className="mb-6">
-        <MarketHeatmap
-          symbols={POPULAR_SYMBOLS[activeTab].slice(0, 6)}
-          onPress={handleSymbolPress}
-        />
-      </View>
-
-      {activeTab === 'crypto' ? (
-        <View className="mb-6">
-          <FearGreedGauge />
-        </View>
-      ) : null}
-
-      <View className="mb-6">
-        <Text variant="h3" className="mb-3">
-          Trending
+        <Text variant="caption" className="mb-3 text-text-secondary">
+          Live quotes · tap any row for the chart
         </Text>
-        <View className="gap-3">
-          {popularAssets.slice(0, 3).map((asset) => (
-            <MarketCard
+        <View className="gap-1">
+          {popularAssets.slice(0, 6).map((asset) => (
+            <QuoteRow
               key={asset.symbol}
               asset={asset}
               onPress={() => handleSymbolPress(asset.symbol)}
@@ -133,25 +135,32 @@ export default function MarketsScreen() {
         </View>
       </View>
 
-      <View className="mb-8">
-        <Text variant="h3" className="mb-3">
-          Your Watchlists
+      <Pressable
+        onPress={() => setShowOverview((v) => !v)}
+        className="mb-3 flex-row items-center justify-between rounded-2xl bg-surface px-4 py-3.5"
+      >
+        <View>
+          <Text variant="label">Market overview</Text>
+          <Text variant="caption" className="text-text-secondary">
+            Heatmap{activeTab === 'crypto' ? ' & Fear & Greed' : ''}
+          </Text>
+        </View>
+        <Text variant="caption" className="text-accent">
+          {showOverview ? 'Hide' : 'Show'}
         </Text>
-        {watchlistsLoading ? (
-          <Skeleton height={120} rounded="lg" />
-        ) : watchlists.length > 0 ? (
-          <View className="gap-3">
-            {watchlists.map((list) => (
-              <WatchlistCard key={list.id} watchlist={list} />
-            ))}
-          </View>
-        ) : (
-          <EmptyState
-            title="No watchlists yet"
-            description="Search for an asset and add it to a watchlist from the asset detail screen."
+      </Pressable>
+
+      {showOverview ? (
+        <View className="mb-8 gap-4">
+          <MarketHeatmap
+            symbols={POPULAR_SYMBOLS[activeTab].slice(0, 6)}
+            onPress={handleSymbolPress}
           />
-        )}
-      </View>
+          {activeTab === 'crypto' ? <FearGreedGauge /> : null}
+        </View>
+      ) : (
+        <View className="mb-8" />
+      )}
     </Screen>
   );
 }

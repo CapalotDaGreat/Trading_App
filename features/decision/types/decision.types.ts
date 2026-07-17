@@ -14,6 +14,11 @@ export interface ExplainabilityFactor {
   detail: string;
 }
 
+export interface ExplainabilityCounterfactual {
+  label: string;
+  detail: string;
+}
+
 export interface Explainability {
   confidence: number;
   factors: ExplainabilityFactor[];
@@ -22,6 +27,20 @@ export interface Explainability {
   dataAsOf: number;
   freshness: 'live' | 'recent' | 'stale' | 'unknown';
   reasoning: string;
+  counterfactuals?: ExplainabilityCounterfactual[];
+}
+
+export interface ResearchChecklistItem {
+  id: string;
+  label: string;
+  done: boolean;
+}
+
+export interface WhyNotInsight {
+  symbol: string;
+  reasons: string[];
+  savedMinutes: number;
+  summary: string;
 }
 
 export interface SetupCardData {
@@ -30,7 +49,17 @@ export interface SetupCardData {
   title: string;
   bias: DecisionBias;
   status: SetupStatus;
+  /**
+   * Legacy field — same value as decisionQualityScore for backwards compatibility.
+   * Represents process/structure fit, NOT a price prediction.
+   */
   confidence: number;
+  /** Research Value Score (0–100): how worth spending research time is. */
+  researchValueScore?: number;
+  /** Decision Quality Score (0–100): process checklist quality, not direction. */
+  decisionQualityScore?: number;
+  researchValueExplanation?: string;
+  decisionQualityExplanation?: string;
   why: string[];
   invalidation?: string;
   risk: ImpactLevel;
@@ -38,16 +67,91 @@ export interface SetupCardData {
   explainability: Explainability;
   lastPrice?: number;
   changePercent?: number;
+  setupTypeLabel?: string;
+  researchChecklist?: ResearchChecklistItem[];
+  historyNote?: string;
+  whyNot?: WhyNotInsight;
+  reasonsToResearch?: string[];
+  reasonsNotToResearch?: string[];
+  missingConfirmations?: string[];
+  alternativeSymbols?: string[];
+  convictionDrift?: ConvictionDriftSnapshot;
 }
 
-export interface NewsDecisionCardData {
+export interface FocusSummary {
+  opportunities: number;
+  risks: number;
+  events: number;
+}
+
+export interface ResearchQueueItem {
+  symbol: string;
+  estimatedMinutes: number;
+  completed: boolean;
+  rankReason?: string;
+  learningValue?: string;
+  priority?: 'high' | 'medium' | 'low';
+  portfolioRelevance?: string;
+  researchValueScore?: number;
+}
+
+export interface TradingDayPlanItem {
   id: string;
-  symbol?: string;
-  headline: string;
-  summary: string;
-  impact: ImpactLevel;
-  historicalNote?: string;
-  explainability: Explainability;
+  label: string;
+  phase: 'before' | 'during' | 'after';
+  done: boolean;
+}
+
+export interface TradingDayPlan {
+  items: TradingDayPlanItem[];
+  estimatedMinutes: number;
+}
+
+export interface DecisionFatigueInsight {
+  shouldStop: boolean;
+  reviewedToday: number;
+  softCap: number;
+  message: string;
+}
+
+export interface DecisionDebtSnapshot {
+  score: number;
+  unreviewedSetups: number;
+  incompleteJournals: number;
+  unfinishedReplay: number;
+  unfinishedLessons: number;
+  ignoredAlerts: number;
+  items: { id: string; label: string; severity: ImpactLevel }[];
+  encouragement: string;
+}
+
+export interface ConvictionDriftPoint {
+  at: number;
+  researchValue: number;
+  decisionQuality: number;
+  risk: ImpactLevel;
+  note: string;
+}
+
+export interface ConvictionDriftSnapshot {
+  symbol: string;
+  points: ConvictionDriftPoint[];
+  trend: 'improving' | 'stable' | 'deteriorating';
+  latestChange?: string;
+}
+
+export interface PortfolioHealthSnapshot {
+  healthScore: number;
+  diversification: ImpactLevel;
+  sectorExposure: { label: string; percent: number }[];
+  cashPercent: number;
+  betaEstimate: number;
+  correlation: ImpactLevel;
+  concentrationWarning?: string;
+  stressTest: string;
+  recommendations: string[];
+  holdingsCount: number;
+  asOf: number;
 }
 
 export interface DecisionBrief {
@@ -65,6 +169,21 @@ export interface DecisionBrief {
   suggestResearch: string[];
   explainability: Explainability;
   quotesFetchedAt: number;
+  startHereSymbol?: string;
+  processScoreWeek?: number;
+  calendarSource?: 'finnhub' | 'mock' | 'rss';
+  timeBudgetPick?: string[];
+  focusSummary?: FocusSummary;
+  estimatedResearchMinutes?: number;
+  researchQueue?: ResearchQueueItem[];
+  tradingDayPlan?: TradingDayPlan;
+  skipSuggestions?: WhyNotInsight[];
+  decisionDebt?: DecisionDebtSnapshot;
+  fatigue?: DecisionFatigueInsight;
+  psychologyReminder?: string;
+  recommendedFocus?: string;
+  decisionQualityTrend?: number;
+  timeBudgetMinutes?: number;
 }
 
 export interface MtfFrameBias {
@@ -95,6 +214,24 @@ export interface RegimeSnapshot {
   explainability: Explainability;
 }
 
+export interface TradingDna {
+  styleLabel: string;
+  strengths: string[];
+  weaknesses: string[];
+  bestConditions: string[];
+  avoidConditions: string[];
+  bestSetups?: string[];
+  worstSetups?: string[];
+  preferredRegimes?: string[];
+  avgHoldHint?: string;
+  riskTolerance?: string;
+  psychologyPatterns?: string[];
+  commonMistakes?: string[];
+  bestWeekdays?: string[];
+  preferredIndicators?: string[];
+  mostProfitableCategories?: string[];
+}
+
 export interface TraderMemory {
   favoriteAssets: string[];
   tradingStyle: string;
@@ -106,6 +243,29 @@ export interface TraderMemory {
   weakestSetups: string[];
   notes: string[];
   updatedAt: number;
+  dna?: TradingDna;
+}
+
+export interface WeeklyReviewInsight {
+  decisionsMade: number;
+  bestDecision: string;
+  biggestMistake: string;
+  aiLesson: string;
+  researched: number;
+  skipped: number;
+  marketsStudied?: string[];
+  researchHoursEstimate?: number;
+  decisionQualityTrend?: number;
+  journalConsistency?: string;
+  mostImprovedSkill?: string;
+  recommendedFocus?: string;
+  celebrateDiscipline?: string;
+  isSundayReview?: boolean;
+}
+
+export interface DisciplineStreak {
+  days: number;
+  completedToday: { morningBrief: boolean; researchPlan: boolean; journal: boolean };
 }
 
 export interface JournalCoachInsight {
@@ -133,4 +293,22 @@ export interface RiskCenterSnapshot {
   holdingsCount: number;
   concentrationWarning?: string;
   asOf: number;
+  /** Extended portfolio health fields (Premium intelligence). */
+  health?: PortfolioHealthSnapshot;
+}
+
+/** Unified context for AI + brief — never generate isolated commentary without this. */
+export interface DecisionIntelligenceContext {
+  assembledAt: number;
+  regime?: MarketRegime;
+  regimeLabel?: string;
+  timeBudgetMinutes: number;
+  watchlistSymbols: string[];
+  portfolioSymbols: string[];
+  traderMemory?: TraderMemory;
+  processScoreWeek?: number;
+  eventTitles: string[];
+  topSetupSymbols: string[];
+  psychologyReminder: string;
+  recommendedFocus: string;
 }

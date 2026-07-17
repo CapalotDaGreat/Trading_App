@@ -18,7 +18,7 @@ export default function NotFoundScreen() {
             The screen you are looking for does not exist or has been moved.
           </Text>
           <Link href="/" asChild>
-            <Button variant="primary">Go to Dashboard</Button>
+            <Button variant="primary">Go to Today</Button>
           </Link>
         </View>
       </Screen>

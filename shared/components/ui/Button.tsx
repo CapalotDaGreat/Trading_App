@@ -31,16 +31,16 @@ interface ButtonProps extends Omit<PressableProps, 'children'> {
 
 const variantStyles: Record<ButtonVariant, string> = {
   primary: 'bg-accent active:bg-accent-dark',
-  secondary: 'bg-surface active:bg-surface-active border border-border',
+  secondary: 'bg-surface active:bg-surface-active',
   ghost: 'bg-transparent active:bg-surface',
   danger: 'bg-bearish active:opacity-90',
-  outline: 'bg-transparent border border-border active:bg-surface',
+  outline: 'bg-accent-muted active:bg-surface',
 };
 
 const sizeStyles: Record<ButtonSize, string> = {
-  sm: 'h-9 px-3 rounded-lg',
-  md: 'h-11 px-4 rounded-xl',
-  lg: 'h-13 px-6 rounded-2xl',
+  sm: 'h-9 px-3.5 rounded-full',
+  md: 'h-11 px-5 rounded-full',
+  lg: 'h-13 px-6 rounded-full',
 };
 
 const textVariantStyles: Record<ButtonVariant, string> = {

@@ -1,15 +1,18 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, View } from 'react-native';
 
 import { CandlestickChart } from '@/features/charts/components/CandlestickChart';
 import { IndicatorPanel } from '@/features/charts/components/IndicatorPanel';
 import { TimeframeSelector } from '@/features/charts/components/TimeframeSelector';
 import { useChartData } from '@/features/charts/hooks/useChartData';
+import { useAppendDecisionRecord } from '@/features/decision-log/hooks/useDecisionLog';
 import { DataFreshnessBadge } from '@/features/decision/components/DataFreshnessBadge';
 import { EmbeddedAiInsight } from '@/features/decision/components/EmbeddedAiInsight';
+import { ExplainabilityBlock } from '@/features/decision/components/ExplainabilityBlock';
 import { MtfConsensusCard } from '@/features/decision/components/MtfConsensusCard';
-import { useMtfConsensus } from '@/features/decision/hooks/useDecision';
+import { useMtfConsensus, useRegime } from '@/features/decision/hooks/useDecision';
+import { DataSourceBadge } from '@/features/markets/components/DataSourceBadge';
 import { useMarketQuote } from '@/features/markets/hooks/useMarketQuote';
 import { buildAssetFromSymbol } from '@/features/markets/services/market-data.service';
 import { AddToWatchlistSheet } from '@/features/watchlists/components/AddToWatchlistSheet';
@@ -32,7 +35,7 @@ import { cn } from '@/shared/utils/cn';
 
 import type { IndicatorType } from '@/features/charts/utils/indicators';
 
-type DetailTab = 'chart' | 'indicators' | 'analysis';
+type DetailTab = 'decision' | 'chart' | 'indicators' | 'analysis';
 
 export default function AssetDetailScreen() {
   const router = useRouter();
@@ -41,7 +44,7 @@ export default function AssetDetailScreen() {
   const marketType = (params.marketType as MarketType) ?? undefined;
 
   const [interval, setInterval] = useState<CandleInterval>('1d');
-  const [activeTab, setActiveTab] = useState<DetailTab>('chart');
+  const [activeTab, setActiveTab] = useState<DetailTab>('decision');
   const [activeIndicators, setActiveIndicators] = useState<IndicatorType[]>([
     'rsi',
     'macd',
@@ -63,6 +66,21 @@ export default function AssetDetailScreen() {
     indicators: activeIndicators,
   });
   const mtfQuery = useMtfConsensus(symbol);
+  const regimeQuery = useRegime();
+  const appendDecision = useAppendDecisionRecord();
+  const loggedRef = useRef(false);
+
+  useEffect(() => {
+    if (!symbol || !regimeQuery.data || loggedRef.current) return;
+    loggedRef.current = true;
+    void appendDecision.mutateAsync({
+      symbol,
+      regime: regimeQuery.data.label,
+      action: 'opened',
+      bias: analysis?.summary.overallBias,
+      note: 'Asset decision tab opened',
+    });
+  }, [symbol, regimeQuery.data, analysis?.summary.overallBias, appendDecision]);
 
   const toggleIndicator = useCallback((indicator: IndicatorType) => {
     setActiveIndicators((prev) =>
@@ -73,6 +91,7 @@ export default function AssetDetailScreen() {
   const changeClass = quote ? getPriceColorClass(quote.change) : 'text-text-secondary';
 
   const tabs: { key: DetailTab; label: string }[] = [
+    { key: 'decision', label: 'Decision' },
     { key: 'chart', label: 'Chart' },
     { key: 'indicators', label: 'Indicators' },
     { key: 'analysis', label: 'Analysis' },
@@ -139,7 +158,7 @@ export default function AssetDetailScreen() {
 
       <TimeframeSelector value={interval} onChange={setInterval} className="mb-4" />
 
-      <View className="mb-4 flex-row rounded-xl border border-border bg-surface p-1">
+      <View className="mb-4 flex-row rounded-2xl bg-surface p-1">
         {tabs.map((tab) => (
           <Pressable
             key={tab.key}
@@ -162,8 +181,68 @@ export default function AssetDetailScreen() {
         ))}
       </View>
 
+      {activeTab === 'decision' && analysis ? (
+        <View className="mb-8 gap-4">
+          {mtfQuery.data ? <MtfConsensusCard data={mtfQuery.data} /> : null}
+          <GlassCard className="p-4">
+            <View className="mb-2 flex-row items-center justify-between">
+              <Text variant="h3">Bias & invalidation</Text>
+              <Badge
+                label={analysis.summary.overallBias}
+                variant={
+                  analysis.summary.overallBias === 'bullish'
+                    ? 'success'
+                    : analysis.summary.overallBias === 'bearish'
+                      ? 'danger'
+                      : 'default'
+                }
+              />
+            </View>
+            <Text variant="body-sm" className="text-text-secondary">
+              {analysis.summary.trend} · {(analysis.summary.confidence * 100).toFixed(0)}% confidence
+            </Text>
+            {analysis.summary.supportLevels[0] ? (
+              <Text variant="caption" className="mt-2 text-bearish">
+                Invalidation (long): below {formatPrice(analysis.summary.supportLevels[0], quote?.currency)}
+              </Text>
+            ) : null}
+            {analysis.summary.resistanceLevels[0] ? (
+              <Text variant="caption" className="mt-1 text-bearish">
+                Invalidation (short): above {formatPrice(analysis.summary.resistanceLevels[0], quote?.currency)}
+              </Text>
+            ) : null}
+            <Button
+              className="mt-4"
+              variant="outline"
+              size="sm"
+              onPress={() => router.push('/journal' as never)}
+            >
+              Journal this research
+            </Button>
+          </GlassCard>
+          <ExplainabilityBlock
+            explainability={{
+              confidence: Math.round(analysis.summary.confidence * 100),
+              factors: [
+                { label: 'Trend', agrees: true, detail: analysis.summary.trend },
+                { label: 'RSI', agrees: analysis.summary.rsiSignal !== 'neutral', detail: analysis.summary.rsiSignal },
+                { label: 'MACD', agrees: analysis.summary.macdSignal !== 'neutral', detail: analysis.summary.macdSignal },
+              ],
+              agrees: 2,
+              disagrees: 1,
+              dataAsOf: dataUpdatedAt ?? Date.now(),
+              freshness: 'recent',
+              reasoning: 'Decision tab summarizes whether this symbol deserves research time today.',
+            }}
+          />
+        </View>
+      ) : null}
+
       {activeTab === 'chart' ? (
         <GlassCard className="mb-6 overflow-hidden p-2">
+          <View className="mb-2 flex-row justify-end px-1">
+            <DataSourceBadge kind="live" />
+          </View>
           <CandlestickChart
             candles={candles}
             isLoading={chartLoading}

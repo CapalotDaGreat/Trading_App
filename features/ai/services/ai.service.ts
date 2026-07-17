@@ -8,6 +8,7 @@ import {
 import {
   getTierLimits,
   hasReachedLimit,
+  isNearAiDailyLimit,
   type SubscriptionTier,
 } from '@/shared/constants/subscription';
 
@@ -23,6 +24,7 @@ import type {
 } from '../types/ai.types';
 import { enrichRequestContext } from './ai-context.service';
 import { generateEngineAnalysis, generateEngineChatResponse } from './ai-engine.service';
+import { fetchCloudAiBrief } from './cloud-ai.service';
 
 const AI_API_URL =
   process.env.EXPO_PUBLIC_AI_API_URL ??
@@ -68,10 +70,13 @@ async function incrementUsage(): Promise<number> {
 export async function getAiUsage(tier: SubscriptionTier): Promise<AiUsageStats> {
   const usage = await getStoredUsage();
   const limit = getTierLimits(tier).aiAnalysisPerDay;
+  const usedToday = usage.count;
   return {
-    usedToday: usage.count,
+    usedToday,
     limit,
     resetsAt: nextResetTimestamp(),
+    isNearLimit: isNearAiDailyLimit(usedToday, limit),
+    isAtLimit: hasReachedLimit(usedToday, limit),
   };
 }
 
@@ -98,10 +103,11 @@ export function checkAiAccess(
   }
 
   if (hasReachedLimit(usedToday, limits.aiAnalysisPerDay)) {
-    return createAiError(
-      'DAILY_LIMIT_REACHED',
-      `Daily AI limit reached (${limits.aiAnalysisPerDay}/day). Upgrade for more analyses.`,
-    );
+    const message =
+      tier === 'premium'
+        ? `Daily fair-use AI limit reached (${limits.aiAnalysisPerDay}/day). Resets at midnight UTC.`
+        : `Daily AI limit reached (${limits.aiAnalysisPerDay}/day). Upgrade to Premium for a much higher fair-use allowance.`;
+    return createAiError('DAILY_LIMIT_REACHED', message);
   }
 
   return null;
@@ -219,6 +225,16 @@ async function requestAnalysis(
     }
   }
 
+  if (
+    process.env.EXPO_PUBLIC_AI_API_URL &&
+    type === 'trade_suggestion' &&
+    enrichedContext.enriched
+  ) {
+    const cloudBrief = await fetchCloudAiBrief(enrichedContext.enriched, 'trade_suggestion');
+    await incrementUsage();
+    return cloudBrief;
+  }
+
   const engineResult = await generateEngineAnalysis(type, enrichedContext);
   await incrementUsage();
   return engineResult;
@@ -297,18 +313,6 @@ export const aiService = {
     return {
       message,
       sessionId: request.sessionId ?? generateId(),
-    };
-  },
-
-  /** Dashboard insight — lightweight daily summary */
-  getInsightPreview: async (tier: SubscriptionTier) => {
-    const result = await requestAnalysis('daily_summary', {}, tier);
-    return {
-      summary: result.dailySummary?.summary ?? result.content,
-      sentiment: result.sentiment ?? 'neutral',
-      generatedAt: result.generatedAt,
-      confidence: result.metadata?.confidence,
-      source: result.metadata?.source ?? 'engine',
     };
   },
 };

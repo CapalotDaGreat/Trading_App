@@ -5,9 +5,9 @@
   "versionName": "1.0.0",
   "primaryCategory": "FINANCE",
   "contentRating": "Everyone",
-  "shortDescription": "AI-powered trading insights, portfolio tracking, and market analysis.",
-  "fullDescription": "TradeVision AI helps traders and investors make smarter decisions with AI-powered market analysis, real-time quotes, and portfolio tracking.\n\nFree tier includes basic market data and limited AI analyses. Upgrade to Premium for unlimited AI insights, advanced charting, real-time quotes, and an ad-free experience.\n\nFeatures:\n• AI market analysis and trade ideas\n• Real-time market quotes (Premium)\n• Portfolio tracking (Premium)\n• Price alerts and push notifications\n• Dark mode and customizable settings",
-  "keywords": ["trading", "stocks", "AI", "finance", "portfolio", "investing"],
+  "shortDescription": "Decision-first trading research and coaching — not buy/sell signals.",
+  "fullDescription": "TradeVision AI helps discretionary traders decide what deserves research time. Get a Today brief, setup radar, regime context, journal coaching, chart replay, and an Academy.\n\nFree includes core decision tools, a generous watchlist, and limited AI. Premium unlocks full radar depth, cloud AI coaching (fair-use daily allowance), portfolio intelligence, faster quote updates (polling — not exchange ticks), advanced charts, and data export.\n\nBilling: monthly ($9.99) or yearly ($71.99, ~$5.99/mo) with a 7-day free trial on yearly when available.\n\nFeatures:\n• Decision Brief and setup radar\n• AI coaching and analysis\n• Portfolio tracking and risk (Premium)\n• Price alerts and economic calendar\n• Trading Academy with practice links",
+  "keywords": ["trading", "stocks", "AI", "finance", "portfolio", "investing", "coaching"],
   "screenshots": {
     "phone": [],
     "tablet": [],

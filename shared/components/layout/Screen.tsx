@@ -36,12 +36,12 @@ export function Screen({
 
   if (scrollable) {
     return (
-      <View className={cn('flex-1 bg-background', className)} style={style} {...props}>
+      <View className={cn('flex-1 bg-background-secondary', className)} style={style} {...props}>
         <ScrollView
           className={cn('flex-1', contentClassName)}
           contentContainerStyle={[
             paddingStyle,
-            padded && { paddingHorizontal: 16 },
+            padded && { paddingHorizontal: 20 },
             scrollViewProps?.contentContainerStyle,
           ]}
           showsVerticalScrollIndicator={false}
@@ -56,7 +56,7 @@ export function Screen({
 
   return (
     <View
-      className={cn('flex-1 bg-background', padded && 'px-4', className)}
+      className={cn('flex-1 bg-background-secondary', padded && 'px-5', className)}
       style={[paddingStyle, style]}
       {...props}
     >

@@ -12,11 +12,11 @@ import { Button } from '@/shared/components/ui/Button';
 import { GlassCard } from '@/shared/components/ui/GlassCard';
 import { Text } from '@/shared/components/ui/Text';
 import { useSubscriptionStore } from '@/shared/stores/subscription.store';
-import { getTierLimits } from '@/shared/constants/subscription';
 
 import { AiAnalysisCard } from '../components/AiAnalysisCard';
 import { AiContextPreview } from '../components/AiContextPreview';
 import { AiDisclaimer } from '../components/AiDisclaimer';
+import { AiUsageBanner } from '../components/AiUsageBanner';
 import { DEFAULT_ANALYSIS_PROMPTS, PromptSuggestions } from '../components/PromptSuggestions';
 import { useAiAnalysis } from '../hooks/useAiAnalysis';
 import { aiService } from '../services/ai.service';
@@ -76,7 +76,6 @@ interface AiAnalysisScreenProps {
 
 export function AiAnalysisScreen({ symbol = 'SPY' }: AiAnalysisScreenProps) {
   const router = useRouter();
-  const tier = useSubscriptionStore((s) => s.tier);
   const isPremium = useSubscriptionStore((s) => s.isPremium);
   const { user } = useAuth();
   const { holdings } = usePortfolio();
@@ -193,9 +192,6 @@ export function AiAnalysisScreen({ symbol = 'SPY' }: AiAnalysisScreenProps) {
   const errorMessage =
     error && aiService.isServiceError(error) ? error.message : error?.message;
 
-  const limit = usage?.limit ?? getTierLimits(tier).aiAnalysisPerDay;
-  const used = usage?.usedToday ?? 0;
-
   return (
     <Screen scrollable scrollViewProps={{ refreshControl: undefined }}>
       <Header title="AI Analysis" subtitle={symbol} onBack={() => router.back()} />
@@ -206,8 +202,11 @@ export function AiAnalysisScreen({ symbol = 'SPY' }: AiAnalysisScreenProps) {
             Usage Today
           </Text>
           <Text variant="h2" className="text-accent">
-            {limit === -1 ? used : `${used} / ${limit}`}
+            {usage && usage.limit !== -1
+              ? `${usage.usedToday} / ${usage.limit}`
+              : `${usage?.usedToday ?? 0}`}
           </Text>
+          <AiUsageBanner usage={usage} isPremium={isPremium} className="mt-2" />
           {!isPremium ? (
             <Pressable onPress={() => router.push('/subscription' as never)}>
               <Text variant="caption" className="mt-1 text-accent">

@@ -86,10 +86,21 @@ function buildTradeSuggestion(context: AiEnrichedContext): AiAnalysisResult {
   const resistance = nearestLevel(context.resistanceLevels ?? [], price, 'above') ?? price * 1.03;
   const atr = context.atr ?? price * 0.02;
 
-  let action: 'buy' | 'sell' | 'hold' | 'watch' = 'watch';
-  if (bias === 'bullish' && confidence >= 55) action = 'watch';
-  else if (bias === 'bearish' && confidence >= 55) action = 'watch';
-  else action = 'hold';
+  let action: 'buy' | 'sell' | 'hold' | 'watch' = 'hold';
+  if (confidence >= 58 && bias !== 'neutral') {
+    action = 'watch';
+  } else if (confidence < 45) {
+    action = 'hold';
+  }
+
+  const researchPaths: string[] = [];
+  if (confidence >= 58 && bias !== 'neutral') {
+    researchPaths.push(`Research path: open ${symbol} chart → confirm MTF alignment → define invalidation before sizing.`);
+  } else if (confidence >= 45) {
+    researchPaths.push('Research path: add to watchlist — revisit after next daily close.');
+  } else {
+    researchPaths.push('Research path: skip deep dive today — time better spent on higher-conviction setups.');
+  }
 
   const why: string[] = [];
   if (context.rsi) {
@@ -126,6 +137,7 @@ function buildTradeSuggestion(context: AiEnrichedContext): AiAnalysisResult {
         : `ADX at ${context.adx} suggests a range-bound market — mean-reversion setups may outperform breakouts.`,
     );
   }
+  why.push(...researchPaths);
 
   const entryLow = bias === 'bullish' ? support : price * 0.995;
   const entryHigh = bias === 'bullish' ? price : resistance;
@@ -769,6 +781,7 @@ export function generateEngineChatResponse(
     }
 
     const bias = enriched.overallBias ?? 'neutral';
+    const di = enriched.decisionIntelligence;
     const content = [
       `**${symbol}** snapshot:`,
       `• Price: ${formatPrice(enriched.quote.price)} (${formatPercent(enriched.quote.changePercent)})`,
@@ -782,9 +795,23 @@ export function generateEngineChatResponse(
         ? `• Resistance: ${enriched.resistanceLevels.slice(0, 2).map((p) => formatPrice(p)).join(', ')}`
         : '',
       '',
-      `Overall bias: **${bias}** (${enriched.biasConfidence ?? 'N/A'}% confidence).`,
+      `Overall bias: **${bias}** (${enriched.biasConfidence ?? 'N/A'}% structure confidence — not a price prediction).`,
+      di
+        ? [
+            '',
+            '**Decision Intelligence Context**',
+            `• Focus: ${di.recommendedFocus}`,
+            `• Psychology: ${di.psychologyReminder}`,
+            di.tradingStyle ? `• Your style: ${di.tradingStyle}` : '',
+            di.typicalMistakes?.length
+              ? `• Watch for: ${di.typicalMistakes.join('; ')}`
+              : '',
+          ]
+            .filter(Boolean)
+            .join('\n')
+        : '',
       '',
-      'Ask about RSI, MACD, risk, patterns, or trade setup for deeper analysis.',
+      'Ask about RSI, MACD, risk, patterns, or whether this deserves research time.',
     ]
       .filter(Boolean)
       .join('\n');

@@ -1,0 +1,19 @@
+{
+  "name": "tradevision-functions",
+  "private": true,
+  "main": "lib/index.js",
+  "scripts": {
+    "build": "tsc",
+    "serve": "npm run build && firebase emulators:start --only functions"
+  },
+  "engines": {
+    "node": "20"
+  },
+  "dependencies": {
+    "firebase-functions": "^6.3.0",
+    "firebase-admin": "^13.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.0"
+  }
+}

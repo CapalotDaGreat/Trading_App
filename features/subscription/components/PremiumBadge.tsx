@@ -27,7 +27,7 @@ export function PremiumBadge({ size = 'sm', className }: PremiumBadgeProps) {
           isSmall ? 'text-[10px]' : 'text-xs',
         )}
       >
-        PRO
+        PREMIUM
       </Text>
     </View>
   );

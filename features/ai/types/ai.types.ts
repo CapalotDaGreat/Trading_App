@@ -174,6 +174,15 @@ export interface AiEnrichedContext {
   portfolioHoldings?: { symbol: string; quantity: number; avgCost: number; weight?: number }[];
   fearGreedIndex?: number;
   fearGreedLabel?: string;
+  /** Unified Decision Intelligence — AI must not ignore this when present. */
+  decisionIntelligence?: {
+    psychologyReminder: string;
+    recommendedFocus: string;
+    regimeLabel?: string;
+    processScoreWeek?: number;
+    tradingStyle?: string;
+    typicalMistakes?: string[];
+  };
   assembledAt: number;
 }
 
@@ -192,6 +201,10 @@ export interface AiUsageStats {
   usedToday: number;
   limit: number;
   resetsAt: number;
+  /** True when usage is ≥ 80% of the daily cap but not yet exhausted. */
+  isNearLimit: boolean;
+  /** True when the hard daily cap has been reached. */
+  isAtLimit: boolean;
 }
 
 export interface AiChatRequest {

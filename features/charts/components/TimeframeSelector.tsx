@@ -27,8 +27,8 @@ export function TimeframeSelector({ value, onChange, className }: TimeframeSelec
             key={option.value}
             onPress={() => onChange(option.value)}
             className={cn(
-              'rounded-lg border px-3 py-2',
-              isActive ? 'border-border-strong bg-accent-muted' : 'border-border bg-surface',
+              'rounded-full px-3.5 py-2',
+              isActive ? 'bg-accent-muted' : 'bg-surface',
             )}
           >
             <Text

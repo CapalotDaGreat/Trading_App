@@ -1,4 +1,6 @@
-import { View } from 'react-native';
+import { useState } from 'react';
+import { Pressable, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
 import { DataFreshnessBadge } from '@/features/decision/components/DataFreshnessBadge';
 import type { DecisionBrief, ImpactLevel } from '@/features/decision/types/decision.types';
@@ -7,6 +9,7 @@ import { Button } from '@/shared/components/ui/Button';
 import { GlassCard } from '@/shared/components/ui/GlassCard';
 import { Skeleton } from '@/shared/components/ui/Skeleton';
 import { Text } from '@/shared/components/ui/Text';
+import { useTheme } from '@/shared/hooks/useTheme';
 import { formatRelativeTime } from '@/shared/utils/date';
 import { formatPercent, getPriceColorClass } from '@/shared/utils/format';
 
@@ -27,9 +30,12 @@ export function DecisionBriefHeader({
   onOpenRadar,
   isLoading = false,
 }: DecisionBriefHeaderProps) {
+  const { colors } = useTheme();
+  const [eventsOpen, setEventsOpen] = useState(false);
+
   if (isLoading) {
     return (
-      <GlassCard className="p-4" glow>
+      <GlassCard className="p-4">
         <Skeleton height={24} width="55%" className="mb-3" />
         <Skeleton height={16} width="40%" className="mb-4" />
         <Skeleton height={72} className="mb-3" />
@@ -39,28 +45,32 @@ export function DecisionBriefHeader({
   }
 
   const events = brief.highImpactEvents.slice(0, 3);
+  const focus = brief.focusSummary;
+  const minutes = brief.estimatedResearchMinutes;
   const portfolioColor =
     brief.portfolioChangePercent !== undefined
       ? getPriceColorClass(brief.portfolioChangePercent)
       : undefined;
 
   return (
-    <GlassCard className="p-4" glow>
+    <GlassCard className="p-4">
       <View className="mb-3 flex-row items-start justify-between gap-3">
         <View className="flex-1">
+          <Text variant="caption" className="mb-1 text-text-tertiary">
+            Morning brief · {formatRelativeTime(brief.generatedAt)}
+          </Text>
           <Text variant="h2" className="mb-1">
             {brief.greeting}
-          </Text>
-          <Text variant="caption" className="text-text-tertiary">
-            {formatRelativeTime(brief.generatedAt)}
           </Text>
         </View>
         <DataFreshnessBadge fetchedAt={brief.quotesFetchedAt} />
       </View>
 
+      <Text variant="caption" className="mb-1 font-semibold text-text-secondary">
+        Your market environment
+      </Text>
       <View className="mb-3 flex-row flex-wrap items-center gap-2">
         <Badge label={brief.regimeLabel} variant="accent" size="sm" />
-        <Badge label={`${brief.setupCount} setups`} variant="default" size="sm" />
         {brief.portfolioChangePercent !== undefined ? (
           <Text variant="caption" className={portfolioColor}>
             Portfolio {formatPercent(brief.portfolioChangePercent)}
@@ -68,42 +78,73 @@ export function DecisionBriefHeader({
         ) : null}
       </View>
 
-      <Text variant="h3" className="mb-1">
-        {brief.headline}
-      </Text>
+      {focus ? (
+        <View className="mb-3">
+          <Text variant="caption" className="mb-1.5 font-semibold text-text-secondary">
+            Your focus today
+          </Text>
+          <Text variant="body-sm" className="text-text-primary">
+            {focus.opportunities} opportunit{focus.opportunities === 1 ? 'y' : 'ies'} · {focus.risks}{' '}
+            risk{focus.risks === 1 ? '' : 's'} · {focus.events} event
+            {focus.events === 1 ? '' : 's'}
+          </Text>
+          {minutes !== undefined ? (
+            <Text variant="caption" className="mt-1 text-accent">
+              Estimated research time: {minutes} minutes
+            </Text>
+          ) : null}
+        </View>
+      ) : null}
+
       <Text variant="body-sm" className="mb-3 leading-relaxed text-text-secondary">
         {brief.summary}
       </Text>
 
       {events.length > 0 ? (
-        <View className="mb-4 gap-2">
-          <Text variant="caption" className="font-semibold uppercase tracking-wide">
-            High-impact events
-          </Text>
-          {events.map((event) => (
-            <View
-              key={event.id}
-              className="flex-row items-center justify-between gap-2 rounded-lg border border-border/50 bg-surface/20 px-2.5 py-2"
-            >
-              <View className="flex-1">
-                <Text variant="caption" className="font-medium text-text-primary" numberOfLines={1}>
-                  {event.title}
-                </Text>
-                <Text variant="caption">{formatRelativeTime(event.at)}</Text>
-              </View>
-              <Badge
-                label={event.impact}
-                variant={IMPACT_VARIANT[event.impact]}
-                size="sm"
-              />
-            </View>
-          ))}
+        <View className="mb-3">
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => setEventsOpen((v) => !v)}
+            className="mb-2 flex-row items-center justify-between"
+          >
+            <Text variant="caption" className="font-semibold text-text-secondary">
+              {events.length} catalyst{events.length === 1 ? '' : 's'} to respect
+            </Text>
+            <Ionicons
+              name={eventsOpen ? 'chevron-up' : 'chevron-down'}
+              size={16}
+              color={colors.text.tertiary}
+            />
+          </Pressable>
+          {eventsOpen
+            ? events.map((event) => (
+                <View
+                  key={event.id}
+                  className="mb-2 flex-row items-center justify-between gap-2 rounded-xl bg-surface px-3 py-2.5"
+                >
+                  <View className="flex-1">
+                    <Text
+                      variant="caption"
+                      className="font-medium text-text-primary"
+                      numberOfLines={2}
+                    >
+                      {event.title}
+                    </Text>
+                  </View>
+                  <Badge
+                    label={event.impact}
+                    variant={IMPACT_VARIANT[event.impact]}
+                    size="sm"
+                  />
+                </View>
+              ))
+            : null}
         </View>
       ) : null}
 
       {onOpenRadar ? (
         <Button variant="primary" fullWidth onPress={onOpenRadar}>
-          Open Setup Radar
+          Review today’s setups
         </Button>
       ) : null}
     </GlassCard>

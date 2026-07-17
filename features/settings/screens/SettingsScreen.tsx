@@ -29,7 +29,7 @@ export function SettingsScreen() {
             <View className="flex-1 pr-4">
               <Text variant="h3">Upgrade to Premium</Text>
               <Text variant="body-sm" className="mt-1">
-                Remove ads, unlock AI insights, and get real-time quotes.
+                Faster refresh, trader DNA, AI coach, full radar — improve decisions, not just charts.
               </Text>
             </View>
             <PremiumBadge size="md" />
@@ -55,6 +55,13 @@ export function SettingsScreen() {
           description={user?.email ?? 'Manage your account'}
           showChevron
           onPress={() => router.push('/settings/profile')}
+        />
+        <SettingsRow
+          icon="pulse-outline"
+          label="Market data health"
+          description="API keys & refresh policy"
+          showChevron
+          onPress={() => router.push('/settings/market-data' as never)}
         />
         <SettingsRow
           icon="notifications-outline"

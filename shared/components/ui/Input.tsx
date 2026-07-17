@@ -38,17 +38,16 @@ export const Input = forwardRef<TextInput, InputProps>(function Input(
   return (
     <View className={cn('w-full', containerClassName)}>
       {label ? (
-        <Text variant="label" className="mb-1.5 text-text-secondary">
+        <Text variant="label" className="mb-2 text-text-secondary">
           {label}
         </Text>
       ) : null}
 
       <View
         className={cn(
-          'flex-row items-center rounded-xl border bg-surface px-3',
-          isFocused && !hasError && 'border-border-strong',
-          hasError && 'border-bearish',
-          !isFocused && !hasError && 'border-border',
+          'flex-row items-center rounded-2xl bg-surface px-4',
+          isFocused && !hasError && 'bg-accent-muted',
+          hasError && 'bg-bearish-muted',
           !editable && 'opacity-50',
         )}
       >
@@ -66,7 +65,7 @@ export const Input = forwardRef<TextInput, InputProps>(function Input(
             onBlur?.(e);
           }}
           className={cn(
-            'flex-1 py-3 text-base text-text-primary',
+            'flex-1 py-3.5 text-base text-text-primary',
             leftElement && 'pl-2',
             rightElement && 'pr-2',
             inputClassName,
@@ -77,11 +76,11 @@ export const Input = forwardRef<TextInput, InputProps>(function Input(
       </View>
 
       {error ? (
-        <Text variant="caption" className="mt-1 text-bearish">
+        <Text variant="caption" className="mt-1.5 text-bearish">
           {error}
         </Text>
       ) : hint ? (
-        <Text variant="caption" className="mt-1 text-text-tertiary">
+        <Text variant="caption" className="mt-1.5 text-text-tertiary">
           {hint}
         </Text>
       ) : null}

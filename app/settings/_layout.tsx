@@ -7,6 +7,7 @@ export default function SettingsLayout() {
       <Stack.Screen name="notifications" />
       <Stack.Screen name="privacy" />
       <Stack.Screen name="profile" />
+      <Stack.Screen name="market-data" />
     </Stack>
   );
 }

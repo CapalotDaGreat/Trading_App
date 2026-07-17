@@ -1,21 +1,21 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useQuery } from '@tanstack/react-query';
 import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-
-import { useSubscriptionStore } from '@/shared/stores/subscription.store';
+import { createJSONStorage, persist } from 'zustand/middleware';
 
 import {
   getAllChecklists,
+  getLearningPathById,
+  getLearningPaths,
   getLessonById,
   getLessons,
   getLessonsByCategory,
+  getPathLessons,
   getTradingChecklist,
   type LessonCategory,
 } from '../services/academy.service';
+import { useAcademyProgressStore } from '../stores/academy-progress.store';
 
-const lessonsQueryKey = (includePremium: boolean) => ['academy-lessons', includePremium] as const;
-const lessonQueryKey = (id: string) => ['academy-lesson', id] as const;
 const checklistQueryKey = (id: string) => ['academy-checklist', id] as const;
 
 interface ChecklistProgressState {
@@ -51,48 +51,122 @@ export const useChecklistStore = create<ChecklistProgressState>()(
 );
 
 export function useAcademy(category?: LessonCategory) {
-  const isPremium = useSubscriptionStore((s) => s.isPremium);
-
+  // Always load full catalog; LessonCard / lesson screen enforce Premium locks.
   const lessonsQuery = useQuery({
-    queryKey: category
-      ? ['academy-lessons', category, isPremium]
-      : lessonsQueryKey(isPremium),
-    queryFn: () =>
-      category ? getLessonsByCategory(category, isPremium) : getLessons(isPremium),
+    queryKey: category ? ['academy-lessons', category, 'full'] : ['academy-lessons', 'full'],
+    queryFn: () => (category ? getLessonsByCategory(category, true) : getLessons(true)),
     staleTime: 30 * 60 * 1000,
   });
 
-  const checklistsQuery = useQuery({
+  const completedCount = useAcademyProgressStore((s) =>
+    (lessonsQuery.data ?? []).filter((l) => s.isCompleted(l.id)).length,
+  );
+
+  return {
+    lessons: lessonsQuery.data ?? [],
+    completedCount,
+    totalCount: lessonsQuery.data?.length ?? 0,
+    isLoading: lessonsQuery.isLoading,
+    isError: lessonsQuery.isError,
+    refetch: () => {
+      void lessonsQuery.refetch();
+    },
+  };
+}
+
+export function useLearningPaths() {
+  const completedCount = useAcademyProgressStore((s) => s.completedCount);
+
+  const query = useQuery({
+    queryKey: ['academy-paths'],
+    queryFn: getLearningPaths,
+    staleTime: 60 * 60 * 1000,
+  });
+
+  const paths = (query.data ?? []).map((path) => ({
+    ...path,
+    completedCount: completedCount(path.lessonIds),
+    totalCount: path.lessonIds.length,
+  }));
+
+  return {
+    paths,
+    isLoading: query.isLoading,
+    isError: query.isError,
+    refetch: query.refetch,
+  };
+}
+
+export function useLearningPath(pathId: string) {
+  const isCompleted = useAcademyProgressStore((s) => s.isCompleted);
+
+  const query = useQuery({
+    queryKey: ['academy-path', pathId],
+    queryFn: () => getPathLessons(pathId, true),
+    staleTime: 30 * 60 * 1000,
+    enabled: Boolean(pathId),
+  });
+
+  const lessons = query.data?.lessons ?? [];
+  const path = query.data?.path ?? null;
+
+  return {
+    path,
+    lessons,
+    completedCount: lessons.filter((l) => isCompleted(l.id)).length,
+    isLoading: query.isLoading,
+    isError: query.isError,
+    refetch: query.refetch,
+  };
+}
+
+export function useLesson(lessonId: string) {
+  const query = useQuery({
+    queryKey: ['academy-lesson', lessonId],
+    queryFn: () => getLessonById(lessonId),
+    staleTime: 30 * 60 * 1000,
+    enabled: Boolean(lessonId),
+  });
+
+  const markOpened = useAcademyProgressStore((s) => s.markOpened);
+  const markCompleted = useAcademyProgressStore((s) => s.markCompleted);
+  const recordQuizScore = useAcademyProgressStore((s) => s.recordQuizScore);
+  const progress = useAcademyProgressStore((s) => s.getProgress(lessonId));
+  const isCompleted = useAcademyProgressStore((s) => s.isCompleted(lessonId));
+
+  return {
+    lesson: query.data ?? null,
+    progress,
+    isCompleted,
+    markOpened,
+    markCompleted,
+    recordQuizScore,
+    isLoading: query.isLoading,
+    isError: query.isError,
+    refetch: query.refetch,
+  };
+}
+
+export function useAcademyChecklists() {
+  const query = useQuery({
     queryKey: ['academy-checklists'],
     queryFn: getAllChecklists,
     staleTime: 30 * 60 * 1000,
   });
 
   return {
-    lessons: lessonsQuery.data ?? [],
-    checklists: checklistsQuery.data ?? [],
-    isLoading: lessonsQuery.isLoading || checklistsQuery.isLoading,
-    isError: lessonsQuery.isError || checklistsQuery.isError,
-    refetch: () => {
-      void lessonsQuery.refetch();
-      void checklistsQuery.refetch();
-    },
+    checklists: query.data ?? [],
+    isLoading: query.isLoading,
+    refetch: query.refetch,
   };
 }
 
-export function useLesson(lessonId: string) {
-  const query = useQuery({
-    queryKey: lessonQueryKey(lessonId),
-    queryFn: () => getLessonById(lessonId),
-    enabled: Boolean(lessonId),
+export function usePathMeta(pathId: string) {
+  return useQuery({
+    queryKey: ['academy-path-meta', pathId],
+    queryFn: () => getLearningPathById(pathId),
+    enabled: Boolean(pathId),
   });
-
-  return {
-    lesson: query.data ?? null,
-    isLoading: query.isLoading,
-    isError: query.isError,
-    refetch: query.refetch,
-  };
 }
 
 export function useTradingChecklist(checklistId = 'pre-trade-checklist') {

@@ -454,43 +454,60 @@ async function fetchAlphaVantageCandles(
   return candles;
 }
 
+async function fetchFinnhubForexCandles(
+  symbol: string,
+  interval: CandleInterval,
+  limit: number,
+): Promise<Candle[] | null> {
+  if (!FINNHUB_KEY) return null;
+
+  const [base, quote = 'USD'] = symbol.split('/');
+  const finnhubSymbol = `OANDA:${base}_${quote}`;
+  const resolution = finnhubResolution(interval);
+  const to = Math.floor(Date.now() / 1000);
+  const from = to - intervalToDays(interval, limit) * 86400;
+
+  const data = await apiRequest<{
+    s: string;
+    t?: number[];
+    o?: number[];
+    h?: number[];
+    l?: number[];
+    c?: number[];
+    v?: number[];
+  }>(`${FINNHUB_BASE}/forex/candle`, {
+    skipAuth: true,
+    rateLimitKey: 'finnhub',
+    params: {
+      symbol: finnhubSymbol,
+      resolution,
+      from: String(from),
+      to: String(to),
+      token: FINNHUB_KEY,
+    },
+  });
+
+  if (data.s !== 'ok' || !data.t?.length) return null;
+
+  return data.t.map((timestamp, i) => ({
+    timestamp: timestamp * 1000,
+    open: data.o![i],
+    high: data.h![i],
+    low: data.l![i],
+    close: data.c![i],
+    volume: data.v?.[i] ?? 0,
+  })).slice(-limit);
+}
+
 async function fetchForexCandles(
   symbol: string,
   interval: CandleInterval,
   limit: number,
 ): Promise<Candle[]> {
-  const quote = await fetchForexQuote(symbol);
-  const now = Date.now();
-  const msPerCandle: Record<CandleInterval, number> = {
-    '1m': 60_000,
-    '5m': 300_000,
-    '15m': 900_000,
-    '30m': 1_800_000,
-    '1h': 3_600_000,
-    '4h': 14_400_000,
-    '1d': 86_400_000,
-    '1w': 604_800_000,
-    '1M': 2_592_000_000,
-  };
+  const finnhub = await fetchFinnhubForexCandles(symbol, interval, limit);
+  if (finnhub?.length) return finnhub;
 
-  const step = msPerCandle[interval];
-  const candles: Candle[] = [];
-
-  for (let i = limit - 1; i >= 0; i--) {
-    const timestamp = now - i * step;
-    const noise = (Math.sin(i * 0.3) * quote.changePercent) / 100;
-    const close = quote.price * (1 + noise);
-    candles.push({
-      timestamp,
-      open: close * 0.999,
-      high: close * 1.001,
-      low: close * 0.998,
-      close,
-      volume: 0,
-    });
-  }
-
-  return candles;
+  throw new ApiError(`Forex OHLC unavailable for ${symbol}. Configure Finnhub for real FX candles.`, 503);
 }
 
 export async function fetchCandles(request: CandlesRequest): Promise<Candle[]> {

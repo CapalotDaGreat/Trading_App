@@ -25,7 +25,7 @@ export default function RegimeScreen() {
         ),
       }}
     >
-      <Header title="Market Regime" subtitle="Live tape classification" onBack={() => router.back()} />
+      <Header title="Market condition" subtitle="What the tape favors right now" onBack={() => router.back()} />
       <View className="mt-4 gap-4 pb-8">
         {isLoading && !data ? <Skeleton height={220} rounded="lg" /> : null}
         {data ? <RegimeCard regime={data} /> : null}

@@ -1,6 +1,6 @@
 import type { SubscriptionTier } from '@/shared/constants/subscription';
 
-export type SubscriptionPlanId = 'monthly' | 'yearly' | 'lifetime';
+export type SubscriptionPlanId = 'monthly' | 'yearly';
 
 export type SubscriptionStatus = 'active' | 'expired' | 'cancelled' | 'grace_period' | 'none';
 
@@ -14,6 +14,9 @@ export interface SubscriptionPlan {
   badge?: string;
   savingsPercent?: number;
   isPopular?: boolean;
+  /** Intro free-trial days (configure matching offer in RevenueCat / store consoles). */
+  trialDays?: number;
+  trialLabel?: string;
 }
 
 export interface SubscriptionEntitlement {

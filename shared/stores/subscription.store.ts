@@ -34,7 +34,7 @@ export const useSubscriptionStore = create<SubscriptionState>()(
       setTier: (tier) =>
         set({
           tier,
-          isPremium: tier === 'premium' || tier === 'pro',
+          isPremium: tier === 'premium',
         }),
       setPremium: (isPremium, productId, expirationDate) =>
         set({

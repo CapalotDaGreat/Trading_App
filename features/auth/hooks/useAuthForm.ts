@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm, type DefaultValues, type FieldValues, type UseFormReturn } from 'react-hook-form';
+import { useForm, type DefaultValues } from 'react-hook-form';
 import { z } from 'zod';
 
 const emailSchema = z.string().trim().email('Enter a valid email address');
@@ -82,17 +82,6 @@ export function useForgotPasswordForm(
 export function useMfaForm(defaultValues: DefaultValues<MfaFormValues> = { verificationCode: '' }) {
   return useForm<MfaFormValues>({
     resolver: zodResolver(mfaSchema),
-    defaultValues,
-    mode: 'onBlur',
-  });
-}
-
-export function useAuthForm<T extends FieldValues>(
-  schema: z.ZodTypeAny,
-  defaultValues: DefaultValues<T>,
-): UseFormReturn<T> {
-  return useForm<T>({
-    resolver: zodResolver(schema),
     defaultValues,
     mode: 'onBlur',
   });

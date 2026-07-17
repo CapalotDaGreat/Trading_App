@@ -7,6 +7,7 @@ import {
 } from '@/features/markets/constants/freshness';
 import { usePortfolio } from '@/features/portfolio/hooks/usePortfolio';
 import { useWatchlists } from '@/features/watchlists/hooks/useWatchlists';
+import { useAuth } from '@/features/auth/hooks/useAuth';
 
 import {
   buildDecisionBrief,
@@ -48,18 +49,22 @@ function resolveSymbols(
   return [...DEFAULT_BRIEF_SYMBOLS];
 }
 
-export function useDecisionBrief() {
+export function useDecisionBrief(timeBudgetMinutes = 20) {
+  const { user } = useAuth();
   const { watchlists } = useWatchlists();
-  const { summary } = usePortfolio();
+  const { summary, holdings } = usePortfolio();
   const symbols = resolveSymbols(undefined, watchlists?.[0]?.symbols);
   const key = symbols.slice(0, 8).join(',');
 
   const query = useQuery({
-    queryKey: ['decision', 'brief', key] as const,
+    queryKey: ['decision', 'brief', key, timeBudgetMinutes, user?.uid] as const,
     queryFn: async (): Promise<DecisionBrief> =>
       buildDecisionBrief({
         watchlistSymbols: symbols,
         portfolioChangePercent: summary?.dayChangePercent ?? summary?.totalPnLPercent,
+        portfolioSymbols: holdings.map((h) => h.symbol),
+        uid: user?.uid,
+        timeBudgetMinutes,
       }),
     staleTime: MARKET_DATA_POLICY.briefStaleMs,
     refetchInterval: MARKET_DATA_POLICY.briefRefetchMs,

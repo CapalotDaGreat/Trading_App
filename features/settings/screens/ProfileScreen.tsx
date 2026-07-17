@@ -36,14 +36,18 @@ export function ProfileScreen() {
   useEffect(() => {
     if (!user?.uid) return;
 
-    void getUserProfile(user.uid).then((profile) => {
-      if (!profile) return;
-      setDisplayName(profile.displayName);
-      setBio(profile.bio);
-      setTimezone(profile.timezone);
-      setCurrency(profile.currency);
-      setExperienceLevel(profile.experienceLevel);
-    });
+    void getUserProfile(user.uid)
+      .then((profile) => {
+        if (!profile) return;
+        setDisplayName(profile.displayName);
+        setBio(profile.bio);
+        setTimezone(profile.timezone);
+        setCurrency(profile.currency);
+        setExperienceLevel(profile.experienceLevel);
+      })
+      .catch(() => {
+        // Demo / offline — keep auth-derived defaults
+      });
   }, [user?.uid]);
 
   const handleSave = async () => {

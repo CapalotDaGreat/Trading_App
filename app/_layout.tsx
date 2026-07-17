@@ -92,6 +92,7 @@ function RootLayoutNav() {
     return (
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="decision" />
         <Stack.Screen name="analysis" />
         <Stack.Screen name="journal" />
         <Stack.Screen name="alerts" />
@@ -113,6 +114,7 @@ function RootLayoutNav() {
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="(auth)" />
       <Stack.Screen name="(tabs)" />
+      <Stack.Screen name="decision" />
       <Stack.Screen name="analysis" />
       <Stack.Screen name="journal" />
       <Stack.Screen name="alerts" />

@@ -46,7 +46,7 @@ export function MtfConsensusCard({ data }: MtfConsensusCardProps) {
         {data.frames.map((frame) => (
           <View
             key={frame.interval}
-            className="flex-row items-center justify-between gap-2 rounded-lg border border-border/50 bg-surface/20 px-2.5 py-2"
+            className="flex-row items-center justify-between gap-2 rounded-xl bg-surface px-2.5 py-2"
           >
             <Text variant="caption" className="w-12 font-semibold text-text-primary">
               {frame.interval}

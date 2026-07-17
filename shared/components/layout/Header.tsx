@@ -28,11 +28,7 @@ export function Header({
 
   return (
     <View
-      className={cn(
-        'border-b border-border px-4 pb-3',
-        !transparent && 'bg-background',
-        className,
-      )}
+      className={cn('px-4 pb-4', !transparent && 'bg-background', className)}
       style={{ paddingTop: insets.top + 8 }}
     >
       <View className="flex-row items-center justify-between">
