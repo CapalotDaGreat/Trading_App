@@ -30,7 +30,17 @@ export const CLASSIC_LESSONS: Lesson[] = [
     isPremium: false,
     tags: ['orders', 'execution', 'basics'],
     relatedLessonIds: ['risk-position-sizing', 'basics-rr'],
-    practiceLinks: [],
+    practiceLinks: [
+      {
+        label: 'Decision Lab · Risk',
+        href: '/decision/lab?scenario=risk_management',
+        description: 'Practice stops and size with a complete thesis',
+      },
+      {
+        label: 'Pre-trade checklist',
+        href: '/academy/checklist/pre-trade-checklist',
+      },
+    ],
     sections: [
       {
         heading: 'Market vs limit',
@@ -508,7 +518,18 @@ export const CLASSIC_LESSONS: Lesson[] = [
     isPremium: true,
     tags: ['options', 'defined-risk', 'leverage'],
     relatedLessonIds: ['risk-position-sizing', 'dec-invalidation'],
-    practiceLinks: [],
+    practiceLinks: [
+      {
+        label: 'Decision Lab · Risk',
+        href: '/decision/lab?scenario=risk_management',
+        description: 'Defined-risk thesis practice (process, not options signals)',
+      },
+      {
+        label: 'Invalidation lesson',
+        href: '/academy/lesson/dec-invalidation',
+        description: 'Expiration is a time stop — revisit invalidation',
+      },
+    ],
     sections: [
       {
         heading: 'Calls, puts, and defined risk',

@@ -1,6 +1,45 @@
 import type { LearningPath, TradingChecklist } from '../types/academy.types';
 
-export const LEARNING_PATHS: LearningPath[] = [
+/**
+ * Decision Operator is the default journey.
+ * Classic paths are supporting curriculum — visibly secondary in IA.
+ *
+ * `unlockLabChallengeIds`: mastery badge when listed Lab challenges complete.
+ * Foundations stay free and unlocked (soft gate, never blocks reading).
+ */
+export interface AcademyPathMeta extends LearningPath {
+  isDefault?: boolean;
+  isSupporting?: boolean;
+  unlockLabChallengeIds?: string[];
+  iaHint?: string;
+}
+
+export const LEARNING_PATHS: AcademyPathMeta[] = [
+  {
+    id: 'path-decision-operator',
+    title: 'Decision Operator',
+    description:
+      'The default journey: filter attention → thesis & invalidation → regime → risk → psychology → Lab graduation.',
+    track: 'decision',
+    icon: 'navigate-circle-outline',
+    sortOrder: 0,
+    isPremium: false,
+    isDefault: true,
+    iaHint: 'Start here — decision-first operating system',
+    unlockLabChallengeIds: ['confirm-three', 'rr-two'],
+    lessonIds: [
+      'dec-research-filter',
+      'dec-time-budget',
+      'dec-setup-quality',
+      'dec-invalidation',
+      'dec-regime',
+      'dec-why-not',
+      'dec-journaling',
+      'dec-psychology',
+      'dec-trading-dna',
+      'dec-portfolio-risk',
+    ],
+  },
   {
     id: 'path-decision-foundations',
     title: 'Decision Coach Foundations',
@@ -9,6 +48,7 @@ export const LEARNING_PATHS: LearningPath[] = [
     icon: 'compass-outline',
     sortOrder: 1,
     isPremium: false,
+    iaHint: 'Shorter decision track if you want a focused pass',
     lessonIds: [
       'dec-research-filter',
       'dec-regime',
@@ -25,7 +65,14 @@ export const LEARNING_PATHS: LearningPath[] = [
     icon: 'sparkles-outline',
     sortOrder: 2,
     isPremium: false,
-    lessonIds: ['dec-journaling', 'dec-psychology', 'dec-why-not', 'dec-trading-dna', 'dec-portfolio-risk'],
+    unlockLabChallengeIds: ['stops-five'],
+    lessonIds: [
+      'dec-journaling',
+      'dec-psychology',
+      'dec-why-not',
+      'dec-trading-dna',
+      'dec-portfolio-risk',
+    ],
   },
   {
     id: 'path-technical-foundations',
@@ -35,6 +82,9 @@ export const LEARNING_PATHS: LearningPath[] = [
     icon: 'analytics-outline',
     sortOrder: 3,
     isPremium: false,
+    isSupporting: true,
+    iaHint: 'Supporting mechanics — after Decision Operator',
+    unlockLabChallengeIds: ['trend-only'],
     lessonIds: ['ta-structure', 'ta-candles', 'ta-trend-range', 'ta-volume', 'ta-mtf'],
   },
   {
@@ -45,6 +95,9 @@ export const LEARNING_PATHS: LearningPath[] = [
     icon: 'shield-checkmark-outline',
     sortOrder: 4,
     isPremium: false,
+    isSupporting: true,
+    iaHint: 'Supporting — pairs with Lab risk practice',
+    unlockLabChallengeIds: ['rr-two', 'stops-five'],
     lessonIds: ['basics-rr', 'basics-orders', 'risk-position-sizing', 'risk-expectancy'],
   },
   {
@@ -55,6 +108,8 @@ export const LEARNING_PATHS: LearningPath[] = [
     icon: 'globe-outline',
     sortOrder: 5,
     isPremium: false,
+    isSupporting: true,
+    iaHint: 'Optional depth — only if it changes a desk behavior',
     lessonIds: ['fund-basics', 'fund-calendar', 'opt-basics', 'crypto-structure'],
   },
 ];

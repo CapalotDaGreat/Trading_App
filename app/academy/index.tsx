@@ -3,6 +3,10 @@ import { ActivityIndicator, Pressable, View } from 'react-native';
 import { useRouter } from 'expo-router';
 
 import { CategoryChips, type CategoryFilter } from '@/features/academy/components/CategoryChips';
+import {
+  AcademyDisciplineCard,
+  NextLessonCard,
+} from '@/features/academy/components/CurriculumCards';
 import { LessonCard } from '@/features/academy/components/LessonCard';
 import { PathCard } from '@/features/academy/components/PathCard';
 import { TradingChecklist } from '@/features/academy/components/TradingChecklist';
@@ -10,21 +14,51 @@ import {
   useAcademy,
   useAcademyChecklists,
   useLearningPaths,
+  useNextAcademyLesson,
 } from '@/features/academy/hooks/useAcademy';
-import { EmbeddedAiInsight } from '@/features/decision/components/EmbeddedAiInsight';
+import { useAcademyProgressStore } from '@/features/academy/stores/academy-progress.store';
+import { buildDecisionDebt } from '@/features/decision/services/decision-os.service';
+import { useTraderMemory } from '@/features/decision/hooks/useDecision';
+import { useDecisionLog } from '@/features/decision-log/hooks/useDecisionLog';
+import { PremiumOsGate } from '@/features/decision/components/PremiumOsGate';
 import { Header } from '@/shared/components/layout/Header';
 import { Screen } from '@/shared/components/layout/Screen';
 import { Text } from '@/shared/components/ui/Text';
 import { useTheme } from '@/shared/hooks/useTheme';
+import { useSubscriptionStore } from '@/shared/stores/subscription.store';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function AcademyScreen() {
   const router = useRouter();
   const { colors } = useTheme();
   const [filter, setFilter] = useState<CategoryFilter>('all');
-  const { lessons, completedCount, totalCount, isLoading } = useAcademy();
+  const { lessons, completedCount, practicedCount, totalCount, isLoading } = useAcademy();
   const { paths, isLoading: pathsLoading } = useLearningPaths();
   const { checklists } = useAcademyChecklists();
+  const memoryQuery = useTraderMemory();
+  const { summary: logSummary } = useDecisionLog();
+  const isPremium = useSubscriptionStore((s) => s.isPremium);
+  const discipline = useAcademyProgressStore((s) => s.getDisciplineStreak());
+
+  const debt = useMemo(
+    () =>
+      buildDecisionDebt({
+        unreviewedSetups: 0,
+        incompleteJournals: Math.max(
+          0,
+          (logSummary?.researched ?? 0) - (logSummary?.journaled ?? 0),
+        ),
+        unfinishedLessons: Math.max(0, totalCount - practicedCount),
+        unfinishedReplay: 0,
+        ignoredAlerts: 0,
+      }),
+    [logSummary, totalCount, practicedCount],
+  );
+
+  const { recommendation, isPersonalized } = useNextAcademyLesson({
+    memory: memoryQuery.data,
+    debt,
+  });
 
   const filteredLessons = useMemo(() => {
     if (filter === 'all') return lessons;
@@ -33,6 +67,9 @@ export default function AcademyScreen() {
     }
     return lessons.filter((l) => l.category === filter);
   }, [filter, lessons]);
+
+  const primaryPaths = paths.filter((p) => !p.isSupporting);
+  const supportingPaths = paths.filter((p) => p.isSupporting);
 
   if (isLoading || pathsLoading) {
     return (
@@ -48,7 +85,7 @@ export default function AcademyScreen() {
     <Screen scrollable contentClassName="pb-10">
       <Header
         title="Trading Academy"
-        subtitle="Decision coaching + trading school"
+        subtitle="Decision Operator curriculum — learn, practice, review"
         onBack={() => router.back()}
       />
 
@@ -58,7 +95,7 @@ export default function AcademyScreen() {
             YOUR PROGRESS
           </Text>
           <Text variant="h2" className="mt-1">
-            {completedCount}/{totalCount} lessons
+            {completedCount} read · {practicedCount} practiced
           </Text>
           <View className="mt-3 h-2 overflow-hidden rounded-full bg-surface">
             <View
@@ -67,24 +104,42 @@ export default function AcademyScreen() {
             />
           </View>
           <Text variant="caption" className="mt-2">
-            Complete lessons and pass quizzes (70%+) to build durable process skills.
+            Read ≠ practiced. Mark lessons complete anytime; mastery surfaces reward practice
+            gates (Lab / Replay / Journal).
           </Text>
         </View>
 
-        <EmbeddedAiInsight
-          title="Train the decision muscle"
-          body="Start with Decision Coach Foundations, then reinforce with Chart Replay. Classic lessons deepen mechanics once your filter is sharp."
-          onExplain={() => router.push('/decision/replay' as never)}
-        />
+        <AcademyDisciplineCard days={discipline.days} today={discipline.today} />
+
+        {recommendation ? (
+          <NextLessonCard
+            recommendation={recommendation}
+            showPremiumBadge={isPersonalized && isPremium}
+          />
+        ) : null}
+
+        {isPremium ? null : (
+          <PremiumOsGate feature="tradingDnaInsights">
+            <View className="rounded-2xl bg-background-elevated p-4">
+              <Text variant="caption" className="mb-1 font-semibold text-text-tertiary">
+                PREMIUM · PERSONALIZED CURRICULUM
+              </Text>
+              <Text variant="body-sm" className="text-text-secondary">
+                Foundations stay free. Premium ranks next lessons from Trading DNA and Decision
+                Debt — coaching, not a content shelf.
+              </Text>
+            </View>
+          </PremiumOsGate>
+        )}
 
         <View>
-          <Text variant="h3" className="mb-2">
-            Learning paths
+          <Text variant="h3" className="mb-1">
+            Decision Operator
           </Text>
-          <Text variant="body-sm" className="mb-3">
-            Guided sequences — decision track first, classic school alongside.
+          <Text variant="body-sm" className="mb-3 text-text-secondary">
+            Start here. Classic TA is supporting curriculum below.
           </Text>
-          {paths.map((path) => (
+          {primaryPaths.map((path) => (
             <PathCard
               key={path.id}
               id={path.id}
@@ -93,7 +148,39 @@ export default function AcademyScreen() {
               icon={path.icon}
               track={path.track}
               completedCount={path.completedCount}
+              practicedCount={path.practicedCount}
               totalCount={path.totalCount}
+              isDefault={path.isDefault}
+              isSupporting={path.isSupporting}
+              masteryUnlocked={path.masteryUnlocked}
+              unlockHint={path.unlockHint}
+              iaHint={path.iaHint}
+            />
+          ))}
+        </View>
+
+        <View>
+          <Text variant="h3" className="mb-1">
+            Supporting school
+          </Text>
+          <Text variant="body-sm" className="mb-3 text-text-secondary">
+            Mechanics after your filter is sharp — Lab challenges unlock mastery badges.
+          </Text>
+          {supportingPaths.map((path) => (
+            <PathCard
+              key={path.id}
+              id={path.id}
+              title={path.title}
+              description={path.description}
+              icon={path.icon}
+              track={path.track}
+              completedCount={path.completedCount}
+              practicedCount={path.practicedCount}
+              totalCount={path.totalCount}
+              isSupporting
+              masteryUnlocked={path.masteryUnlocked}
+              unlockHint={path.unlockHint}
+              iaHint={path.iaHint}
             />
           ))}
         </View>

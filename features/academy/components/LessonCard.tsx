@@ -25,7 +25,8 @@ export function LessonCard({ lesson }: LessonCardProps) {
   const { colors } = useTheme();
   const isPremium = useSubscriptionStore((s) => s.isPremium);
   const isLocked = lesson.isPremium && !isPremium;
-  const completed = useAcademyProgressStore((s) => s.isCompleted(lesson.id));
+  const read = useAcademyProgressStore((s) => s.isRead(lesson.id));
+  const practiced = useAcademyProgressStore((s) => s.isPracticed(lesson.id));
 
   return (
     <Pressable
@@ -42,11 +43,23 @@ export function LessonCard({ lesson }: LessonCardProps) {
       <View className="mr-3 mt-0.5">
         <Ionicons
           name={
-            isLocked ? 'lock-closed-outline' : completed ? 'checkmark-circle' : 'ellipse-outline'
+            isLocked
+              ? 'lock-closed-outline'
+              : practiced
+                ? 'ribbon-outline'
+                : read
+                  ? 'checkmark-circle'
+                  : 'ellipse-outline'
           }
           size={22}
           color={
-            completed ? colors.bullish.primary : isLocked ? colors.text.tertiary : colors.accent.primary
+            practiced
+              ? colors.accent.primary
+              : read
+                ? colors.bullish.primary
+                : isLocked
+                  ? colors.text.tertiary
+                  : colors.accent.primary
           }
         />
       </View>
@@ -57,6 +70,11 @@ export function LessonCard({ lesson }: LessonCardProps) {
           {lesson.isPremium ? <Badge label="Premium" variant="accent" size="sm" /> : null}
           {lesson.track === 'decision' ? (
             <Badge label="Coach" variant="default" size="sm" />
+          ) : null}
+          {practiced ? (
+            <Badge label="Practiced" variant="accent" size="sm" />
+          ) : read ? (
+            <Badge label="Read" variant="success" size="sm" />
           ) : null}
         </View>
         <Text variant="h3" numberOfLines={2}>

@@ -33,6 +33,7 @@ import {
   loadDisciplineStreak,
   markDisciplineAction,
 } from '@/features/decision/services/coaching-loop.service';
+import { useAcademyProgressStore } from '@/features/academy/stores/academy-progress.store';
 import type { DisciplineStreak } from '@/features/decision/types/decision.types';
 import { ensureDemoSeedData } from '@/features/onboarding/services/demo-seed.service';
 import { ensureDemoDecisionTape } from '@/features/decision-replay/services/demo-tape.service';
@@ -93,6 +94,7 @@ export default function DecisionBriefScreen() {
     if (!briefQuery.data) return;
     const brief = briefQuery.data;
     void markDisciplineAction('morningBrief').then(setStreak);
+    useAcademyProgressStore.getState().markDisciplineAction('brief');
     const day = new Date().toISOString().slice(0, 10);
     void AsyncStorage.getItem('tradevision-brief-logged-day').then((v) => {
       if (v === day) return;
@@ -318,6 +320,7 @@ export default function DecisionBriefScreen() {
           <Pressable
             onPress={() => {
               void markDisciplineAction('journal').then(setStreak);
+              useAcademyProgressStore.getState().markDisciplineAction('journal');
               router.push('/journal' as never);
             }}
             className="flex-row items-center justify-between rounded-2xl bg-surface px-4 py-3.5"

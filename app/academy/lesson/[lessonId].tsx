@@ -16,6 +16,11 @@ import { useSubscriptionStore } from '@/shared/stores/subscription.store';
 import { useTheme } from '@/shared/hooks/useTheme';
 import { Ionicons } from '@expo/vector-icons';
 
+function withLessonQuery(href: string, lessonId: string): string {
+  const join = href.includes('?') ? '&' : '?';
+  return `${href}${join}fromLesson=${encodeURIComponent(lessonId)}`;
+}
+
 export default function AcademyLessonScreen() {
   const router = useRouter();
   const { colors } = useTheme();
@@ -24,10 +29,12 @@ export default function AcademyLessonScreen() {
   const {
     lesson,
     isLoading,
-    isCompleted,
+    isRead,
+    isPracticed,
     progress,
     markOpened,
     markCompleted,
+    markPracticed,
     recordQuizScore,
   } = useLesson(lessonId ?? '');
 
@@ -66,7 +73,7 @@ export default function AcademyLessonScreen() {
             Premium lesson
           </Text>
           <Text variant="body-sm" className="mt-2 text-center">
-            Upgrade to unlock advanced Academy modules, including this lesson.
+            Foundations stay free. Advanced modules unlock with Premium.
           </Text>
           <Button className="mt-6" onPress={() => router.push('/subscription' as never)}>
             Go Premium
@@ -101,7 +108,11 @@ export default function AcademyLessonScreen() {
           variant="accent"
           size="sm"
         />
-        {isCompleted ? <Badge label="Completed" variant="success" size="sm" /> : null}
+        {isPracticed ? (
+          <Badge label="Practiced" variant="accent" size="sm" />
+        ) : isRead ? (
+          <Badge label="Read" variant="success" size="sm" />
+        ) : null}
       </View>
 
       <Text variant="body-sm" className="mt-3">
@@ -132,13 +143,20 @@ export default function AcademyLessonScreen() {
 
       {lesson.practiceLinks.length > 0 ? (
         <View className="mt-6">
-          <Text variant="h3" className="mb-2">
-            Practice in the app
+          <Text variant="h3" className="mb-1">
+            Practice gate
+          </Text>
+          <Text variant="caption" className="mb-2 text-text-secondary">
+            Soft-mandatory: you can mark read without this — practiced status unlocks mastery
+            surfacing.
           </Text>
           {lesson.practiceLinks.map((link) => (
             <Pressable
               key={link.href + link.label}
-              onPress={() => router.push(link.href as never)}
+              onPress={() => {
+                markPracticed(lesson.id, link.href);
+                router.push(withLessonQuery(link.href, lesson.id) as never);
+              }}
               className="mb-2 flex-row items-center rounded-2xl bg-surface px-4 py-3 active:opacity-80"
             >
               <View className="flex-1">
@@ -191,11 +209,16 @@ export default function AcademyLessonScreen() {
 
       <Button
         className="mt-8"
-        variant={isCompleted ? 'secondary' : 'primary'}
+        variant={isRead ? 'secondary' : 'primary'}
         onPress={() => markCompleted(lesson.id)}
       >
-        {isCompleted ? 'Completed' : 'Mark lesson complete'}
+        {isRead ? 'Marked as read' : 'Mark as read'}
       </Button>
+      {!isPracticed && lesson.practiceLinks.length > 0 ? (
+        <Text variant="caption" className="mt-2 text-center text-text-tertiary">
+          Tip: open a practice gate above to earn Practiced — never blocked from reading.
+        </Text>
+      ) : null}
     </Screen>
   );
 }

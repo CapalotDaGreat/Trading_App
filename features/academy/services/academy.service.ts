@@ -43,7 +43,17 @@ export type {
   AcademyTrack,
 } from '../types/academy.types';
 
+export type { AcademyPathMeta } from '../content/paths-and-checklists';
 export { CATEGORY_LABELS } from '../types/academy.types';
+export {
+  buildDefaultNextLesson,
+  buildPersonalizedCurriculum,
+  evaluatePathUnlocks,
+  getDefaultOperatorPath,
+  mapMistakeToLesson,
+  auditLessonsWithoutPractice,
+} from './curriculum.service';
+export type { CurriculumRecommendation, PathUnlockStatus } from './curriculum.service';
 
 const LESSONS_COLLECTION = 'academy_lessons';
 const CHECKLISTS_COLLECTION = 'academy_checklists';
