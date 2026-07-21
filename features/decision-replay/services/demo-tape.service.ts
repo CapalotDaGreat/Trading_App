@@ -5,7 +5,7 @@ const LOCAL_LOG_KEY = 'tradevision-decision-log';
 
 /**
  * Seeds a short labelled demo decision tape once so Expo Go / guest users
- * can experience Decision Replay AI. Events are process footage only —
+ * can experience Process Tape. Events are process footage only —
  * no fabricated candle/price series.
  */
 export async function ensureDemoDecisionTape(): Promise<void> {
@@ -92,10 +92,7 @@ export async function ensureDemoDecisionTape(): Promise<void> {
     const others = (existing as { id?: string }[]).filter(
       (r) => !String(r.id ?? '').startsWith('demo-tape-'),
     );
-    await AsyncStorage.setItem(
-      LOCAL_LOG_KEY,
-      JSON.stringify([...seeded, ...others].slice(0, 200)),
-    );
+    await AsyncStorage.setItem(LOCAL_LOG_KEY, JSON.stringify([...seeded, ...others].slice(0, 200)));
     await AsyncStorage.setItem(DEMO_TAPE_KEY, '1');
   } catch {
     // non-blocking

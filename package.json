@@ -17,6 +17,7 @@
     "typecheck": "tsc --noEmit",
     "test": "jest",
     "test:rules": "cross-env NODE_EXTRA_CA_CERTS=./certs/avg-web-mail-shield-root.pem NODE_USE_SYSTEM_CA=1 firebase emulators:exec --only firestore \"cross-env NODE_OPTIONS=--experimental-vm-modules jest --config jest.rules.config.js --runInBand\"",
+    "expo:config": "expo config --type public",
     "functions:build": "npm --prefix functions run build",
     "functions:test": "npm --prefix functions test"
   },
@@ -66,6 +67,7 @@
   "devDependencies": {
     "@babel/core": "^7.26.0",
     "@firebase/rules-unit-testing": "^4.0.1",
+    "@testing-library/react-native": "^14.0.1",
     "@types/jest": "^29.5.14",
     "@types/react": "~19.1.10",
     "@typescript-eslint/eslint-plugin": "^8.29.0",

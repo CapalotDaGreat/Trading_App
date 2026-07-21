@@ -1,4 +1,3 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   addDoc,
   collection,
@@ -12,7 +11,8 @@ import {
   type DocumentData,
 } from 'firebase/firestore';
 
-import { requireDb, isFirebaseConfigured } from '@/firebase/config';
+import { requireDb } from '@/firebase/config';
+import { getLocalUserRepository, resolveUserDataBackend } from '@/shared/services/user-data';
 
 import type {
   CreateJournalEntryInput,
@@ -25,7 +25,6 @@ import type {
 
 const USERS_COLLECTION = 'users';
 const JOURNAL_SUBCOLLECTION = 'journal';
-const LOCAL_JOURNAL_KEY = 'tradevision-demo-journal';
 
 function journalCollection(uid: string) {
   return collection(requireDb(), USERS_COLLECTION, uid, JOURNAL_SUBCOLLECTION);
@@ -56,7 +55,8 @@ function calculatePnL(
 ): { pnl: number; pnlPercent: number } {
   const multiplier = direction === 'long' ? 1 : -1;
   const pnl = (exitPrice - entryPrice) * quantity * multiplier;
-  const pnlPercent = entryPrice > 0 ? ((exitPrice - entryPrice) / entryPrice) * 100 * multiplier : 0;
+  const pnlPercent =
+    entryPrice > 0 ? ((exitPrice - entryPrice) / entryPrice) * 100 * multiplier : 0;
   return { pnl, pnlPercent };
 }
 
@@ -96,7 +96,7 @@ function toLocalJournalEntry(data: Partial<JournalEntry> & { id: string }): Jour
   const createdAt =
     typeof data.createdAt === 'number'
       ? new Date(data.createdAt).toISOString()
-      : data.createdAt ?? new Date().toISOString();
+      : (data.createdAt ?? new Date().toISOString());
   return {
     id: data.id,
     symbol: data.symbol ?? '',
@@ -122,24 +122,13 @@ function toLocalJournalEntry(data: Partial<JournalEntry> & { id: string }): Jour
   };
 }
 
-async function loadLocalJournal(): Promise<JournalEntry[]> {
-  const raw = await AsyncStorage.getItem(LOCAL_JOURNAL_KEY);
-  if (!raw) return [];
-  return (JSON.parse(raw) as (Partial<JournalEntry> & { id: string })[]).map(toLocalJournalEntry);
-}
-
-async function saveLocalJournal(entries: JournalEntry[]): Promise<void> {
-  await AsyncStorage.setItem(LOCAL_JOURNAL_KEY, JSON.stringify(entries));
-}
-
 export function calculateJournalStats(entries: JournalEntry[]): JournalStats {
   const closed = entries.filter((e) => e.outcome !== 'open' && e.pnl !== undefined);
   const wins = closed.filter((e) => e.outcome === 'win');
   const losses = closed.filter((e) => e.outcome === 'loss');
 
   const totalPnL = closed.reduce((sum, e) => sum + (e.pnl ?? 0), 0);
-  const avgWin =
-    wins.length > 0 ? wins.reduce((sum, e) => sum + (e.pnl ?? 0), 0) / wins.length : 0;
+  const avgWin = wins.length > 0 ? wins.reduce((sum, e) => sum + (e.pnl ?? 0), 0) / wins.length : 0;
   const avgLoss =
     losses.length > 0
       ? Math.abs(losses.reduce((sum, e) => sum + (e.pnl ?? 0), 0) / losses.length)
@@ -160,8 +149,9 @@ export function calculateJournalStats(entries: JournalEntry[]): JournalStats {
 }
 
 export async function getJournalEntries(uid: string): Promise<JournalEntry[]> {
-  if (!isFirebaseConfigured()) {
-    return loadLocalJournal();
+  if (resolveUserDataBackend(uid) === 'local') {
+    const entries = await getLocalUserRepository(uid).list<JournalEntry>('journal');
+    return entries.map(toLocalJournalEntry).sort((a, b) => b.tradedAt.localeCompare(a.tradedAt));
   }
   const q = query(journalCollection(uid), orderBy('tradedAt', 'desc'));
   const snapshot = await getDocs(q);
@@ -180,7 +170,12 @@ export async function createJournalEntry(
   let outcome = input.outcome ?? 'open';
 
   if (input.exitPrice !== undefined) {
-    const calculated = calculatePnL(input.direction, input.entryPrice, input.exitPrice, input.quantity);
+    const calculated = calculatePnL(
+      input.direction,
+      input.entryPrice,
+      input.exitPrice,
+      input.quantity,
+    );
     pnl = calculated.pnl;
     pnlPercent = calculated.pnlPercent;
     outcome = input.outcome ?? deriveOutcome(pnl);
@@ -208,11 +203,8 @@ export async function createJournalEntry(
     updatedAt: now,
   };
 
-  if (!isFirebaseConfigured()) {
-    const entry = { id: `local-${Date.now()}`, ...data };
-    const entries = await loadLocalJournal();
-    await saveLocalJournal([entry, ...entries]);
-    return entry;
+  if (resolveUserDataBackend(uid) === 'local') {
+    return getLocalUserRepository(uid).create<JournalEntry>('journal', data);
   }
 
   const ref = await addDoc(journalCollection(uid), {
@@ -230,12 +222,11 @@ export async function updateJournalEntry(
   entryId: string,
   updates: UpdateJournalEntryInput,
 ): Promise<void> {
-  if (!isFirebaseConfigured()) {
-    const entries = await loadLocalJournal();
-    const updatedAt = new Date().toISOString();
-    await saveLocalJournal(
-      entries.map((entry) => (entry.id === entryId ? { ...entry, ...updates, updatedAt } : entry)),
-    );
+  if (resolveUserDataBackend(uid) === 'local') {
+    await getLocalUserRepository(uid).update<JournalEntry>('journal', entryId, {
+      ...updates,
+      updatedAt: new Date().toISOString(),
+    });
     return;
   }
   await updateDoc(journalDocRef(uid, entryId), {
@@ -245,9 +236,8 @@ export async function updateJournalEntry(
 }
 
 export async function deleteJournalEntry(uid: string, entryId: string): Promise<void> {
-  if (!isFirebaseConfigured()) {
-    const entries = await loadLocalJournal();
-    await saveLocalJournal(entries.filter((entry) => entry.id !== entryId));
+  if (resolveUserDataBackend(uid) === 'local') {
+    await getLocalUserRepository(uid).delete('journal', entryId);
     return;
   }
   await deleteDoc(journalDocRef(uid, entryId));
@@ -302,7 +292,9 @@ export function exportJournalToCsv(entries: JournalEntry[]): string {
   const lines = [
     headers.join(','),
     ...rows.map((row) =>
-      headers.map((h) => escape(row[h as keyof JournalExportRow] as string | number | null)).join(','),
+      headers
+        .map((h) => escape(row[h as keyof JournalExportRow] as string | number | null))
+        .join(','),
     ),
   ];
 

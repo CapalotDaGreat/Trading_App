@@ -1,5 +1,5 @@
-import { RefreshControl, View } from 'react-native';
 import { useRouter } from 'expo-router';
+import { RefreshControl, View } from 'react-native';
 
 import { TraderMemoryCard } from '@/features/decision/components/TraderMemoryCard';
 import { useTraderMemory } from '@/features/decision/hooks/useDecision';
@@ -26,7 +26,11 @@ export default function MemoryScreen() {
         ),
       }}
     >
-      <Header title="Your trading DNA" subtitle="How the coach personalizes decisions for you" onBack={() => router.back()} />
+      <Header
+        title="History"
+        subtitle="Patterns from your recorded decisions"
+        onBack={() => router.back()}
+      />
       <View className="mt-4 gap-4 pb-8">
         <GlassCard className="p-4">
           <Text variant="body-sm" className="text-text-secondary">

@@ -1,11 +1,9 @@
-import { useMemo, useState } from 'react';
-import { Pressable, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useState } from 'react';
+import { Pressable, View } from 'react-native';
 
-import {
-  LabAccountCard,
-  LabStatsCard,
-} from '@/features/decision-lab/components/LabCards';
+import { PremiumOsGate } from '@/features/decision/components/PremiumOsGate';
+import { LabAccountCard, LabStatsCard } from '@/features/decision-lab/components/LabCards';
 import { useDecisionLabStore } from '@/features/decision-lab/stores/lab.store';
 import {
   LAB_ACCOUNT_SIZES,
@@ -15,7 +13,6 @@ import {
   type LabCurrency,
   type LabScenarioId,
 } from '@/features/decision-lab/types/lab.types';
-import { PremiumOsGate } from '@/features/decision/components/PremiumOsGate';
 import { Header } from '@/shared/components/layout/Header';
 import { Screen } from '@/shared/components/layout/Screen';
 import { Button } from '@/shared/components/ui/Button';
@@ -29,7 +26,6 @@ export default function DecisionLabHomeScreen() {
   const { colors } = useTheme();
   const params = useLocalSearchParams<{ scenario?: string; symbol?: string }>();
   const account = useDecisionLabStore((s) => s.account);
-  const positions = useDecisionLabStore((s) => s.positions);
   const setAccountSize = useDecisionLabStore((s) => s.setAccountSize);
   const setCurrency = useDecisionLabStore((s) => s.setCurrency);
   const resetAccount = useDecisionLabStore((s) => s.resetAccount);
@@ -41,8 +37,8 @@ export default function DecisionLabHomeScreen() {
   const [showSettings, setShowSettings] = useState(false);
 
   const openPositions = getOpenPositions();
-  const stats = useMemo(() => getStats(), [positions]);
-  const challenges = useMemo(() => getChallenges(), [positions]);
+  const stats = getStats();
+  const challenges = getChallenges();
 
   const startThesis = (scenarioId?: LabScenarioId) => {
     const scenario = (params.scenario as LabScenarioId | undefined) ?? scenarioId ?? 'freeform';
@@ -164,9 +160,12 @@ export default function DecisionLabHomeScreen() {
 
         <Pressable
           onPress={() => router.push('/decision/decision-replay' as never)}
+          accessibilityRole="button"
+          accessibilityLabel="Open Review Process Tape"
+          testID="lab-open-review"
           className="rounded-2xl bg-surface px-4 py-3"
         >
-          <Text variant="label">Open Decision Replay AI</Text>
+          <Text variant="label">Open Review</Text>
           <Text variant="caption" className="text-text-secondary">
             Review Lab decisions on your process tape
           </Text>

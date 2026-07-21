@@ -110,6 +110,55 @@ test('rejects malformed documents', async () => {
   );
 });
 
+test('validates onboarding preferences in settings and profiles', async () => {
+  const db = ownerDb();
+  const preferences = {
+    timeBudgetMinutes: 20,
+    activationGoal: 'build_decision_discipline',
+    selectedUniverse: ['SPY', 'QQQ', 'AAPL'],
+  };
+
+  await assertSucceeds(
+    setDoc(doc(db, 'userSettings/owner'), {
+      theme: 'system',
+      preferences,
+      hasCompletedOnboarding: true,
+      updatedAt: Timestamp.now(),
+    }),
+  );
+  await assertSucceeds(
+    setDoc(doc(db, 'users/owner'), {
+      email: 'owner@example.com',
+      displayName: 'Owner',
+      onboardingCompleted: true,
+      preferences,
+      ...timestamps(),
+    }),
+  );
+  await assertFails(
+    setDoc(doc(db, 'userSettings/owner'), {
+      theme: 'system',
+      preferences: { ...preferences, timeBudgetMinutes: 999 },
+      updatedAt: Timestamp.now(),
+    }),
+  );
+  await assertFails(
+    setDoc(doc(db, 'userSettings/owner'), {
+      theme: 'system',
+      preferences: { ...preferences, selectedUniverse: ['SPY', 'QQQ', 123] },
+      updatedAt: Timestamp.now(),
+    }),
+  );
+  await assertFails(
+    setDoc(doc(db, 'users/owner'), {
+      email: 'owner@example.com',
+      displayName: 'Owner',
+      preferences: { ...preferences, selectedUniverse: ['SPY'] },
+      ...timestamps(),
+    }),
+  );
+});
+
 test('keeps subscription documents server-owned and owner-readable', async () => {
   const db = ownerDb();
   const otherDb = ownerDb('other');

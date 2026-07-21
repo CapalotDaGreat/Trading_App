@@ -1,7 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { useAuth } from '@/features/auth/hooks/useAuth';
-import { canUseFirestore } from '@/firebase/config';
 
 import {
   createUserProfile,
@@ -22,7 +21,7 @@ export function useProfile() {
   const profileQuery = useQuery({
     queryKey: profileQueryKey(uid),
     queryFn: () => getUserProfile(uid!),
-    enabled: canUseFirestore(uid),
+    enabled: Boolean(uid),
   });
 
   const createMutation = useMutation({

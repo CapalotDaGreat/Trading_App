@@ -15,7 +15,6 @@ import { useDecisionUiStore } from '@/features/decision/stores/decision-ui.store
 import { useDecisionLabStore } from '@/features/decision-lab/stores/lab.store';
 import { subscriptionService } from '@/features/subscription/services/subscription.service';
 import { DEMO_USER_UID, isFirebaseConfigured } from '@/firebase/config';
-import { useSettingsStore } from '@/shared/stores/settings.store';
 import { useSubscriptionStore } from '@/shared/stores/subscription.store';
 
 import {
@@ -254,7 +253,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           await deleteCurrentAccount();
           await subscriptionService.configureForUser(null);
           useSubscriptionStore.getState().reset();
-          useSettingsStore.getState().reset();
           useAcademyProgressStore.getState().resetProgress();
           useDecisionLabStore.getState().resetAccount();
           useDecisionUiStore.setState({ dqsExplainerDismissed: false });

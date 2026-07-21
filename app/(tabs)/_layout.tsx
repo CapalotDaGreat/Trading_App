@@ -38,7 +38,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Today',
+          title: 'Daily',
           tabBarIcon: ({ color }) => <TabIcon name="flash-outline" color={color} />,
         }}
       />
@@ -52,7 +52,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="ai"
         options={{
-          title: 'AI',
+          title: 'Ask',
           tabBarIcon: ({ color }) => <TabIcon name="sparkles-outline" color={color} />,
         }}
       />

@@ -1,54 +1,45 @@
-import { useEffect, useState } from 'react';
-import { Pressable, RefreshControl, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
+import { useEffect, useState } from 'react';
+import { Pressable, RefreshControl, View } from 'react-native';
 
-import {
-  DecisionDebtCard,
-  DecisionFatigueCard,
-} from '@/features/decision/components/DecisionOsCards';
-import {
-  DisciplineStreakCard,
-  WeeklyReviewCard,
-  WhyNotCard,
-} from '@/features/decision/components/CoachRetentionCards';
+import { useAcademyProgressStore } from '@/features/academy/stores/academy-progress.store';
+import { WhyNotCard } from '@/features/decision/components/CoachRetentionCards';
 import { DecisionBriefHeader } from '@/features/decision/components/DecisionBriefHeader';
+import { RegimeCard } from '@/features/decision/components/RegimeCard';
+import { ResearchQueueCard } from '@/features/decision/components/ResearchQueueCard';
+import { StartHereCard } from '@/features/decision/components/StartHereCard';
+import { useDecisionBrief, useRegime } from '@/features/decision/hooks/useDecision';
+import {
+  loadDisciplineStreak,
+  markDisciplineAction,
+  toggleQueueSymbol,
+} from '@/features/decision/services/coaching-loop.service';
+import {
+  reviewAccessLabel,
+  selectTodayTimeBudget,
+} from '@/features/decision/services/today-sections.service';
+import type { DecisionBrief, DisciplineStreak } from '@/features/decision/types/decision.types';
 import { DecisionLogCard } from '@/features/decision-log/components/DecisionLogCard';
-import { DecisionTimelineCard } from '@/features/decision-log/components/DecisionTimelineCard';
 import {
   useAppendDecisionRecord,
   useDecisionLog,
 } from '@/features/decision-log/hooks/useDecisionLog';
-import { buildDecisionTimeline } from '@/features/decision-log/services/decision-log.service';
-import { DecisionQualityExplainer } from '@/features/decision/components/DecisionQualityExplainer';
-import { PremiumOsGate } from '@/features/decision/components/PremiumOsGate';
-import { RegimeCard } from '@/features/decision/components/RegimeCard';
-import { ResearchQueueCard } from '@/features/decision/components/ResearchQueueCard';
-import { SetupCard } from '@/features/decision/components/SetupCard';
-import { TradingDayPlanCard } from '@/features/decision/components/TradingDayPlanCard';
-import { useDecisionBrief, useRegime } from '@/features/decision/hooks/useDecision';
-import {
-  buildWeeklyReview,
-  loadDisciplineStreak,
-  markDisciplineAction,
-} from '@/features/decision/services/coaching-loop.service';
-import { useAcademyProgressStore } from '@/features/academy/stores/academy-progress.store';
-import type { DisciplineStreak } from '@/features/decision/types/decision.types';
-import { ensureDemoSeedData } from '@/features/onboarding/services/demo-seed.service';
 import { ensureDemoDecisionTape } from '@/features/decision-replay/services/demo-tape.service';
+import { ensureDemoSeedData } from '@/features/onboarding/services/demo-seed.service';
 import { Screen } from '@/shared/components/layout/Screen';
 import { GlassCard } from '@/shared/components/ui/GlassCard';
-import { Text } from '@/shared/components/ui/Text';
 import { Skeleton } from '@/shared/components/ui/Skeleton';
+import { Text } from '@/shared/components/ui/Text';
 import { useTheme } from '@/shared/hooks/useTheme';
+import { useSettingsStore } from '@/shared/stores/settings.store';
+import { useSubscriptionStore } from '@/shared/stores/subscription.store';
 
-const COACH_DISMISS_KEY = 'tradevision-today-coach-dismissed';
-
-const EMPTY_BRIEF = {
+const EMPTY_BRIEF: DecisionBrief = {
   greeting: 'Loading',
   generatedAt: Date.now(),
-  regime: 'ranging' as const,
+  regime: 'ranging',
   regimeLabel: '…',
   highImpactEvents: [],
   setupCount: 0,
@@ -63,29 +54,112 @@ const EMPTY_BRIEF = {
     agrees: 0,
     disagrees: 0,
     dataAsOf: Date.now(),
-    freshness: 'unknown' as const,
+    freshness: 'unknown',
     reasoning: '',
   },
   quotesFetchedAt: Date.now(),
 };
 
+function TodayHeader({
+  streak,
+  onAskAi,
+}: {
+  streak: DisciplineStreak | null;
+  onAskAi: () => void;
+}) {
+  const { colors } = useTheme();
+  const completed = streak ? Object.values(streak.completedToday).filter(Boolean).length : 0;
+
+  return (
+    <View className="flex-row items-center justify-between" testID="today-section-header">
+      <View className="flex-1 pr-3">
+        <Text variant="h1" className="text-2xl">
+          Today
+        </Text>
+        <Text variant="caption" className="mt-1 text-text-secondary">
+          {streak
+            ? `${streak.days}d discipline streak · ${completed}/3 loop steps`
+            : 'Your decision loop'}
+        </Text>
+      </View>
+      <Pressable
+        onPress={onAskAi}
+        className="h-11 w-11 items-center justify-center rounded-full bg-surface"
+        accessibilityRole="button"
+        accessibilityLabel="Ask AI"
+        testID="today-ask-ai"
+      >
+        <Ionicons name="sparkles" size={20} color={colors.accent.primary} />
+      </Pressable>
+    </View>
+  );
+}
+
+function CloseLoopCard({
+  tier,
+  onJournal,
+  onReview,
+}: {
+  tier: 'free' | 'premium';
+  onJournal: () => void;
+  onReview: () => void;
+}) {
+  const { colors } = useTheme();
+  return (
+    <GlassCard className="p-4" testID="today-section-close-loop">
+      <Text variant="caption" className="mb-1 font-semibold text-text-tertiary">
+        CLOSE THE LOOP
+      </Text>
+      <Text variant="h3" className="mb-1">
+        Journal or review
+      </Text>
+      <Text variant="caption" className="mb-3 text-text-secondary">
+        Record what you researched or skipped. Weekly patterns belong in Review.
+      </Text>
+      <View className="flex-row gap-2">
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Journal today's decisions"
+          testID="today-close-loop-journal"
+          onPress={onJournal}
+          className="min-h-11 flex-1 flex-row items-center justify-center gap-2 rounded-xl bg-accent px-3"
+        >
+          <Ionicons name="book-outline" size={17} color={colors.text.inverse} />
+          <Text variant="label" className="text-text-inverse">
+            Journal
+          </Text>
+        </Pressable>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={reviewAccessLabel(tier)}
+          testID="today-close-loop-review"
+          onPress={onReview}
+          className="min-h-11 flex-1 flex-row items-center justify-center gap-2 rounded-xl bg-accent-muted px-3"
+        >
+          <Ionicons name="film-outline" size={17} color={colors.accent.primary} />
+          <Text variant="label" className="text-accent">
+            Review
+          </Text>
+        </Pressable>
+      </View>
+    </GlassCard>
+  );
+}
+
 export default function DecisionBriefScreen() {
   const router = useRouter();
   const { colors } = useTheme();
-  const [coachVisible, setCoachVisible] = useState(true);
   const [streak, setStreak] = useState<DisciplineStreak | null>(null);
-  const briefQuery = useDecisionBrief(20);
+  const timeBudgetMinutes = useSettingsStore(selectTodayTimeBudget);
+  const tier = useSubscriptionStore((state) => state.tier);
+  const briefQuery = useDecisionBrief(timeBudgetMinutes);
   const regimeQuery = useRegime();
-  const { summary: logSummary, records: logRecords } = useDecisionLog();
-  const appendDecision = useAppendDecisionRecord();
-  const timeline = logRecords?.length ? buildDecisionTimeline(logRecords).slice(-8) : [];
+  const { summary: logSummary } = useDecisionLog();
+  const { mutateAsync: appendDecision } = useAppendDecisionRecord();
 
   useEffect(() => {
     void ensureDemoSeedData();
     void ensureDemoDecisionTape();
-    void AsyncStorage.getItem(COACH_DISMISS_KEY).then((v) => {
-      if (v === '1') setCoachVisible(false);
-    });
     void loadDisciplineStreak().then(setStreak);
   }, []);
 
@@ -95,9 +169,9 @@ export default function DecisionBriefScreen() {
     void markDisciplineAction('morningBrief').then(setStreak);
     useAcademyProgressStore.getState().markDisciplineAction('brief');
     const day = new Date().toISOString().slice(0, 10);
-    void AsyncStorage.getItem('tradevision-brief-logged-day').then((v) => {
-      if (v === day) return;
-      void appendDecision.mutateAsync({
+    void AsyncStorage.getItem('tradevision-brief-logged-day').then((value) => {
+      if (value === day) return;
+      void appendDecision({
         symbol: '',
         regime: brief.regime,
         action: 'brief_opened',
@@ -105,11 +179,17 @@ export default function DecisionBriefScreen() {
       });
       void AsyncStorage.setItem('tradevision-brief-logged-day', day);
     });
-  }, [briefQuery.data?.generatedAt]);
+  }, [appendDecision, briefQuery.data]);
 
+  const brief = briefQuery.data;
+  const startHereSymbol = brief?.startHereSymbol;
+  const startHereSetup = brief?.topSetups.find(
+    (setup) => setup.symbol.toUpperCase() === startHereSymbol?.toUpperCase(),
+  );
+  const startHereQueueItem = brief?.researchQueue?.find(
+    (item) => item.symbol.toUpperCase() === startHereSymbol?.toUpperCase(),
+  );
   const refreshing = briefQuery.isRefetching || regimeQuery.isRefetching;
-  const startHere = briefQuery.data?.startHereSymbol;
-  const weeklyReview = logSummary ? buildWeeklyReview(logSummary) : null;
 
   return (
     <Screen
@@ -118,245 +198,96 @@ export default function DecisionBriefScreen() {
         refreshControl: (
           <RefreshControl
             refreshing={refreshing}
-            onRefresh={() => {
-              void Promise.all([briefQuery.refetch(), regimeQuery.refetch()]);
-            }}
+            onRefresh={() => void Promise.all([briefQuery.refetch(), regimeQuery.refetch()])}
             tintColor={colors.accent.primary}
           />
         ),
       }}
     >
-      <View className="pb-8 pt-4">
-        <View className="mb-5 flex-row items-center justify-between">
-          <View className="flex-1 pr-3">
-            <Text variant="h1" className="text-2xl">
-              Today
-            </Text>
-            <Text variant="caption" className="mt-1 text-text-secondary">
-              Your personal trading decision coach
-            </Text>
-          </View>
-          <Pressable
-            onPress={() => router.push('/ai' as never)}
-            className="h-10 w-10 items-center justify-center rounded-full bg-surface"
-            accessibilityLabel="Ask AI"
-          >
-            <Ionicons name="sparkles" size={20} color={colors.accent.primary} />
-          </Pressable>
-        </View>
+      <View className="gap-4 pb-8 pt-4">
+        <TodayHeader streak={streak} onAskAi={() => router.push('/ai' as never)} />
 
-        <View className="gap-4">
-          {coachVisible ? (
-            <GlassCard className="p-4">
-              <Text variant="label" className="text-text-primary">
-                How to use Today
-              </Text>
-              <Text variant="body-sm" className="mt-1 text-text-secondary">
-                1) Read your brief · 2) Follow the research queue · 3) Journal what you did or
-                skipped
-              </Text>
-              <Pressable
-                onPress={() => {
-                  setCoachVisible(false);
-                  void AsyncStorage.setItem(COACH_DISMISS_KEY, '1');
-                }}
-                className="mt-2"
-              >
-                <Text variant="caption" className="text-accent">
-                  Got it
-                </Text>
-              </Pressable>
-            </GlassCard>
-          ) : null}
-
-          {streak ? <DisciplineStreakCard streak={streak} /> : null}
-
-          {briefQuery.isLoading && !briefQuery.data ? (
+        <View testID="today-section-morning-brief">
+          {briefQuery.isLoading && !brief ? (
             <DecisionBriefHeader brief={EMPTY_BRIEF} isLoading />
-          ) : briefQuery.data ? (
-            <DecisionBriefHeader
-              brief={briefQuery.data}
-              onOpenRadar={() => {
-                void markDisciplineAction('researchPlan').then(setStreak);
-                router.push('/decision/radar' as never);
-              }}
-            />
+          ) : brief ? (
+            <DecisionBriefHeader brief={brief} />
           ) : (
             <GlassCard className="p-4">
               <Text variant="h3">Couldn’t load today’s brief</Text>
               <Text variant="body-sm" className="mt-2 text-text-secondary">
-                Pull to refresh. Stock quotes need Finnhub or Alpha Vantage keys in Settings / .env.
+                Pull to refresh. Market data keys can be configured in Settings.
               </Text>
             </GlassCard>
           )}
-
-          {briefQuery.data?.psychologyReminder ? (
-            <View className="rounded-2xl bg-accent-muted/40 p-4">
-              <Text variant="caption" className="mb-1 font-semibold text-text-tertiary">
-                PSYCHOLOGY
-              </Text>
-              <Text variant="body-sm" className="text-text-primary">
-                {briefQuery.data.psychologyReminder}
-              </Text>
-              {briefQuery.data.recommendedFocus ? (
-                <Text variant="caption" className="mt-2 text-accent">
-                  Focus: {briefQuery.data.recommendedFocus}
-                </Text>
-              ) : null}
-              {briefQuery.data.timeBudgetMinutes ? (
-                <Text variant="caption" className="mt-1 text-text-tertiary">
-                  Research budget: {briefQuery.data.timeBudgetMinutes} min · Process score{' '}
-                  {briefQuery.data.decisionQualityTrend ?? '—'}
-                </Text>
-              ) : null}
-            </View>
-          ) : null}
-
-          {briefQuery.data?.fatigue ? (
-            <DecisionFatigueCard fatigue={briefQuery.data.fatigue} />
-          ) : null}
-
-          {briefQuery.data?.decisionDebt ? (
-            <DecisionDebtCard debt={briefQuery.data.decisionDebt} />
-          ) : null}
-
-          {briefQuery.data?.tradingDayPlan ? (
-            <TradingDayPlanCard plan={briefQuery.data.tradingDayPlan} />
-          ) : null}
-
-          {briefQuery.data?.researchQueue?.length ? (
-            <ResearchQueueCard
-              queue={briefQuery.data.researchQueue}
-              regime={briefQuery.data.regimeLabel}
-            />
-          ) : null}
-
-          {briefQuery.data?.skipSuggestions?.length ? (
-            <WhyNotCard
-              items={briefQuery.data.skipSuggestions}
-              regime={briefQuery.data.regimeLabel}
-            />
-          ) : null}
-
-          {logSummary ? <DecisionLogCard summary={logSummary} /> : null}
-
-          {timeline.length ? (
-            <PremiumOsGate feature="decisionTimeline">
-              <DecisionTimelineCard events={timeline} title="Decision timeline" />
-            </PremiumOsGate>
-          ) : null}
-
-          {weeklyReview ? (
-            <PremiumOsGate feature="weeklyReviews">
-              <WeeklyReviewCard review={weeklyReview} />
-            </PremiumOsGate>
-          ) : null}
-
-          {regimeQuery.data ? <RegimeCard regime={regimeQuery.data} /> : null}
-
-          <View>
-            <Text variant="h3" className="mb-1">
-              Top setups
-            </Text>
-            <Text variant="caption" className="mb-3 text-text-secondary">
-              Research Value (RVS) ranks attention · Decision Quality (DQS) grades process — never
-              price odds
-            </Text>
-
-            {briefQuery.isLoading && !briefQuery.data?.topSetups?.length ? (
-              <View className="gap-3">
-                <Skeleton height={100} rounded="lg" />
-                <Skeleton height={100} rounded="lg" />
-              </View>
-            ) : (
-              <View>
-                {briefQuery.data?.topSetups?.length ? <DecisionQualityExplainer /> : null}
-                {(briefQuery.data?.topSetups ?? []).map((setup) => (
-                  <SetupCard
-                    key={setup.id}
-                    setup={setup}
-                    highlight={setup.symbol === startHere}
-                    onPress={() => {
-                      void markDisciplineAction('researchPlan').then(setStreak);
-                      router.push(`/asset/${encodeURIComponent(setup.symbol)}` as never);
-                    }}
-                  />
-                ))}
-                {!briefQuery.data?.topSetups?.length && !briefQuery.isLoading ? (
-                  <GlassCard className="p-4">
-                    <Text variant="body-sm" className="text-text-secondary">
-                      Nothing clear enough yet. Waiting is a valid decision — don’t force a trade.
-                    </Text>
-                  </GlassCard>
-                ) : null}
-              </View>
-            )}
-          </View>
-
-          <Pressable
-            onPress={() => router.push('/decision/lab' as never)}
-            className="flex-row items-center justify-between rounded-2xl bg-surface px-4 py-3.5"
-          >
-            <View className="flex-1 pr-3">
-              <Text variant="label" className="text-text-primary">
-                Decision Lab
-              </Text>
-              <Text variant="caption" className="mt-0.5 text-text-secondary">
-                Thesis-first paper practice — process, not P&L
-              </Text>
-            </View>
-            <Ionicons name="flask-outline" size={18} color={colors.accent.primary} />
-          </Pressable>
-
-          <Pressable
-            onPress={() => router.push('/decision/decision-replay' as never)}
-            className="flex-row items-center justify-between rounded-2xl bg-surface px-4 py-3.5"
-          >
-            <View className="flex-1 pr-3">
-              <Text variant="label" className="text-text-primary">
-                Decision Replay AI
-              </Text>
-              <Text variant="caption" className="mt-0.5 text-text-secondary">
-                Replay today’s process like game film
-              </Text>
-            </View>
-            <Ionicons name="film-outline" size={18} color={colors.accent.primary} />
-          </Pressable>
-
-          <Pressable
-            onPress={() => {
-              void markDisciplineAction('journal').then(setStreak);
-              useAcademyProgressStore.getState().markDisciplineAction('journal');
-              router.push('/journal' as never);
-            }}
-            className="flex-row items-center justify-between rounded-2xl bg-surface px-4 py-3.5"
-          >
-            <View className="flex-1 pr-3">
-              <Text variant="label" className="text-text-primary">
-                Journal today’s decisions
-              </Text>
-              <Text variant="caption" className="mt-0.5 text-text-secondary">
-                Close the loop — acted or skipped both count
-              </Text>
-            </View>
-            <Ionicons name="chevron-forward" size={18} color={colors.text.tertiary} />
-          </Pressable>
-
-          <Pressable
-            onPress={() => router.push('/(tabs)/more' as never)}
-            className="flex-row items-center justify-between rounded-2xl bg-surface px-4 py-3.5"
-          >
-            <View className="flex-1 pr-3">
-              <Text variant="label" className="text-text-primary">
-                More tools
-              </Text>
-              <Text variant="caption" className="mt-0.5 text-text-secondary">
-                Risk, coach, replay, calendar…
-              </Text>
-            </View>
-            <Ionicons name="chevron-forward" size={18} color={colors.text.tertiary} />
-          </Pressable>
         </View>
+
+        {brief && startHereSymbol ? (
+          <StartHereCard
+            symbol={startHereSymbol}
+            setup={startHereSetup}
+            queueItem={startHereQueueItem}
+            regime={brief.regimeLabel}
+            onOutcome={(action) => {
+              void markDisciplineAction('researchPlan').then(setStreak);
+              if (action === 'skipped') void toggleQueueSymbol(startHereSymbol);
+            }}
+          />
+        ) : null}
+
+        <View testID="today-section-research-queue">
+          {brief?.researchQueue?.length ? (
+            <>
+              <ResearchQueueCard
+                queue={brief.researchQueue}
+                regime={brief.regimeLabel}
+                freeItemLimit={3}
+                onOutcome={() => void markDisciplineAction('researchPlan').then(setStreak)}
+              />
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="See all setups in Radar"
+                testID="today-see-all-setups"
+                onPress={() => router.push('/decision/radar' as never)}
+                className="mt-2 min-h-11 items-center justify-center rounded-xl bg-surface px-4"
+              >
+                <Text variant="label" className="text-accent">
+                  See all setups in Radar
+                </Text>
+              </Pressable>
+            </>
+          ) : briefQuery.isLoading ? (
+            <Skeleton height={110} rounded="lg" />
+          ) : null}
+        </View>
+
+        {brief?.skipSuggestions?.length ? (
+          <View testID="today-section-why-not">
+            <WhyNotCard items={brief.skipSuggestions} regime={brief.regimeLabel} />
+          </View>
+        ) : null}
+
+        {logSummary ? (
+          <View testID="today-section-decision-log">
+            <DecisionLogCard summary={logSummary} />
+          </View>
+        ) : null}
+
+        {regimeQuery.data ? (
+          <View testID="today-section-regime">
+            <RegimeCard regime={regimeQuery.data} />
+          </View>
+        ) : null}
+
+        <CloseLoopCard
+          tier={tier}
+          onJournal={() => {
+            void markDisciplineAction('journal').then(setStreak);
+            useAcademyProgressStore.getState().markDisciplineAction('journal');
+            router.push('/journal' as never);
+          }}
+          onReview={() => router.push('/decision/decision-replay' as never)}
+        />
       </View>
     </Screen>
   );

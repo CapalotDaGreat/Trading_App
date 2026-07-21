@@ -9,8 +9,8 @@ Required scenes:
 2. Research Queue with RVS explanation
 3. Asset research with actual source/freshness badge
 4. Explicit Research / Skip / Ignore decision
-5. Journal and Decision Replay
-6. Premium plan comparison and cancellation terms
+5. Journal and free basic Review / Process Tape
+6. Premium plan comparison showing only implemented deeper capabilities and cancellation terms
 7. Academy or coaching remediation
 
 Required exports:
@@ -32,6 +32,8 @@ and each filename/device mapping is added to `store/metadata`. Also verify:
 
 - [ ] Data source and freshness labels are legible.
 - [ ] No production screenshot shows cloud-AI output or cloud-AI marketing.
+- [ ] Free screenshots demonstrate Brief, top-three queue, journal, and basic Review without a
+      paywall.
 - [ ] Premium screenshots show renewal, cancellation, and paid-through wording.
 - [ ] Terms, Privacy, Support, and account-deletion links open.
 - [ ] Account-deletion screenshots warn that store billing is not cancelled.

@@ -56,4 +56,5 @@ export interface SettingsService {
   updatePrivacySettings(updates: Partial<PrivacySettings>): Promise<PrivacySettings>;
   resetToDefaults(): Promise<AppSettings>;
   syncToFirestore(uid: string): Promise<void>;
+  hasRemoteSettings(uid: string): Promise<boolean>;
 }

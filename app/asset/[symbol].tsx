@@ -6,13 +6,14 @@ import { CandlestickChart } from '@/features/charts/components/CandlestickChart'
 import { IndicatorPanel } from '@/features/charts/components/IndicatorPanel';
 import { TimeframeSelector } from '@/features/charts/components/TimeframeSelector';
 import { useChartData } from '@/features/charts/hooks/useChartData';
-import { useAppendDecisionRecord } from '@/features/decision-log/hooks/useDecisionLog';
-import type { DecisionAction } from '@/features/decision-log/services/decision-log.service';
+import type { IndicatorType } from '@/features/charts/utils/indicators';
 import { DataFreshnessBadge } from '@/features/decision/components/DataFreshnessBadge';
 import { EmbeddedAiInsight } from '@/features/decision/components/EmbeddedAiInsight';
 import { ExplainabilityBlock } from '@/features/decision/components/ExplainabilityBlock';
 import { MtfConsensusCard } from '@/features/decision/components/MtfConsensusCard';
 import { useMtfConsensus, useRegime } from '@/features/decision/hooks/useDecision';
+import { useAppendDecisionRecord } from '@/features/decision-log/hooks/useDecisionLog';
+import type { DecisionAction } from '@/features/decision-log/services/decision-log.service';
 import { DataSourceBadge } from '@/features/markets/components/DataSourceBadge';
 import { getDataFreshness } from '@/features/markets/constants/freshness';
 import { useMarketQuote } from '@/features/markets/hooks/useMarketQuote';
@@ -26,6 +27,7 @@ import { GlassCard } from '@/shared/components/ui/GlassCard';
 import { Skeleton } from '@/shared/components/ui/Skeleton';
 import { Text } from '@/shared/components/ui/Text';
 import type { CandleInterval, MarketType } from '@/shared/types/market';
+import { cn } from '@/shared/utils/cn';
 import {
   formatChange,
   formatPercent,
@@ -33,20 +35,21 @@ import {
   formatVolume,
   getPriceColorClass,
 } from '@/shared/utils/format';
-import { cn } from '@/shared/utils/cn';
-
-import type { IndicatorType } from '@/features/charts/utils/indicators';
 
 type DetailTab = 'decision' | 'chart' | 'indicators' | 'analysis';
 
 export default function AssetDetailScreen() {
   const router = useRouter();
-  const params = useLocalSearchParams<{ symbol: string; marketType?: string }>();
+  const params = useLocalSearchParams<{ symbol: string; marketType?: string; tab?: string }>();
   const symbol = decodeURIComponent(params.symbol ?? '');
   const marketType = (params.marketType as MarketType) ?? undefined;
 
   const [interval, setInterval] = useState<CandleInterval>('1d');
-  const [activeTab, setActiveTab] = useState<DetailTab>('decision');
+  const requestedTab: DetailTab =
+    params.tab === 'chart' || params.tab === 'indicators' || params.tab === 'analysis'
+      ? params.tab
+      : 'decision';
+  const [activeTab, setActiveTab] = useState<DetailTab>(requestedTab);
   const [activeIndicators, setActiveIndicators] = useState<IndicatorType[]>([
     'rsi',
     'macd',
@@ -167,7 +170,13 @@ export default function AssetDetailScreen() {
                 title="Should this chart get your time?"
                 confidence={Math.round(analysis.summary.confidence * 100)}
                 body={`${analysis.summary.overallBias} bias · ${analysis.summary.trend} · RSI ${analysis.summary.rsiSignal}. Use invalidation levels before sizing any idea.`}
-                onExplain={() => router.push(`/analysis/${encodeURIComponent(symbol)}` as never)}
+                onExplain={() => {
+                  setActiveTab('analysis');
+                  router.replace({
+                    pathname: '/asset/[symbol]',
+                    params: { ...params, symbol, tab: 'analysis' },
+                  } as never);
+                }}
               />
             ) : null}
             <View className="mt-3 flex-row flex-wrap gap-4">
@@ -199,6 +208,10 @@ export default function AssetDetailScreen() {
           <Pressable
             key={tab.key}
             onPress={() => setActiveTab(tab.key)}
+            accessibilityRole="tab"
+            accessibilityState={{ selected: activeTab === tab.key }}
+            accessibilityLabel={`Show ${tab.label} for ${asset.symbol}`}
+            testID={`asset-tab-${tab.key}`}
             className={cn('flex-1 rounded-lg py-2', activeTab === tab.key && 'bg-accent-muted')}
           >
             <Text

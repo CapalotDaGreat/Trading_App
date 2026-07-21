@@ -12,13 +12,13 @@ import {
   type DocumentData,
 } from 'firebase/firestore';
 
-import { requireDb, isFirebaseConfigured } from '@/firebase/config';
-import { loadDemoWatchlist } from '@/features/onboarding/services/demo-seed.service';
+import { requireDb } from '@/firebase/config';
 import {
   getTierLimits,
   hasReachedLimit,
   type SubscriptionTier,
 } from '@/shared/constants/subscription';
+import { getLocalUserRepository, resolveUserDataBackend } from '@/shared/services/user-data';
 import type { WatchlistItem } from '@/shared/types/market';
 
 const USERS_COLLECTION = 'users';
@@ -105,20 +105,21 @@ function assertSymbolLimit(symbolCount: number, tier: SubscriptionTier): void {
 }
 
 export async function getWatchlists(uid: string): Promise<Watchlist[]> {
-  if (!isFirebaseConfigured()) {
-    const demo = await loadDemoWatchlist();
-    if (!demo) return [];
-    const now = new Date().toISOString();
-    return [
-      {
-        id: 'demo-watchlist',
-        name: demo.name,
-        symbols: demo.symbols,
-        items: symbolsToItems(demo.symbols),
-        createdAt: now,
-        updatedAt: now,
-      },
-    ];
+  if (resolveUserDataBackend(uid) === 'local') {
+    const watchlists = await getLocalUserRepository(uid).list<Watchlist>('watchlists');
+    return watchlists
+      .map((watchlist) => {
+        const timestamp = new Date().toISOString();
+        return {
+          ...watchlist,
+          name: watchlist.name ?? 'Watchlist',
+          symbols: watchlist.symbols ?? [],
+          items: symbolsToItems(watchlist.symbols ?? []),
+          createdAt: watchlist.createdAt ?? timestamp,
+          updatedAt: watchlist.updatedAt ?? watchlist.createdAt ?? timestamp,
+        };
+      })
+      .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
   }
   const q = query(watchlistsCollection(uid), orderBy('updatedAt', 'desc'));
   const snapshot = await getDocs(q);
@@ -126,6 +127,19 @@ export async function getWatchlists(uid: string): Promise<Watchlist[]> {
 }
 
 export async function getWatchlist(uid: string, watchlistId: string): Promise<Watchlist | null> {
+  if (resolveUserDataBackend(uid) === 'local') {
+    const watchlist = await getLocalUserRepository(uid).get<Watchlist>('watchlists', watchlistId);
+    if (!watchlist) return null;
+    const timestamp = new Date().toISOString();
+    return {
+      ...watchlist,
+      name: watchlist.name ?? 'Watchlist',
+      symbols: watchlist.symbols ?? [],
+      items: symbolsToItems(watchlist.symbols ?? []),
+      createdAt: watchlist.createdAt ?? timestamp,
+      updatedAt: watchlist.updatedAt ?? watchlist.createdAt ?? timestamp,
+    };
+  }
   const snapshot = await getDoc(watchlistDocRef(uid, watchlistId));
   if (!snapshot.exists()) return null;
   return toWatchlist(snapshot.id, snapshot.data());
@@ -142,13 +156,24 @@ export async function createWatchlist(
   const symbols = input.symbols ?? [];
   assertSymbolLimit(symbols.length, tier);
 
-  const ref = doc(watchlistsCollection(uid));
   const name = input.name.trim();
 
   if (!name) {
     throw new Error('Watchlist name is required.');
   }
 
+  if (resolveUserDataBackend(uid) === 'local') {
+    const now = new Date().toISOString();
+    return getLocalUserRepository(uid).create<Watchlist>('watchlists', {
+      name,
+      symbols,
+      items: symbolsToItems(symbols),
+      createdAt: now,
+      updatedAt: now,
+    });
+  }
+
+  const ref = doc(watchlistsCollection(uid));
   await setDoc(ref, {
     name,
     symbols,
@@ -166,15 +191,30 @@ export async function updateWatchlist(
   updates: UpdateWatchlistInput,
   tier: SubscriptionTier = 'free',
 ): Promise<Watchlist> {
+  if (updates.symbols) {
+    assertSymbolLimit(updates.symbols.length, tier);
+  }
+
+  if (resolveUserDataBackend(uid) === 'local') {
+    const current = await getWatchlist(uid, watchlistId);
+    if (!current) throw new Error('Watchlist not found.');
+    const symbols = updates.symbols ?? current.symbols;
+    const localUpdates: Partial<Watchlist> = {
+      symbols,
+      items: symbolsToItems(symbols),
+      updatedAt: new Date().toISOString(),
+    };
+    if (updates.name !== undefined) localUpdates.name = updates.name.trim();
+    return getLocalUserRepository(uid).update<Watchlist>('watchlists', watchlistId, {
+      ...localUpdates,
+    });
+  }
+
   const ref = watchlistDocRef(uid, watchlistId);
   const snapshot = await getDoc(ref);
 
   if (!snapshot.exists()) {
     throw new Error('Watchlist not found.');
-  }
-
-  if (updates.symbols) {
-    assertSymbolLimit(updates.symbols.length, tier);
   }
 
   const payload: Record<string, unknown> = { updatedAt: serverTimestamp() };
@@ -188,6 +228,10 @@ export async function updateWatchlist(
 }
 
 export async function deleteWatchlist(uid: string, watchlistId: string): Promise<void> {
+  if (resolveUserDataBackend(uid) === 'local') {
+    await getLocalUserRepository(uid).delete('watchlists', watchlistId);
+    return;
+  }
   await deleteDoc(watchlistDocRef(uid, watchlistId));
 }
 

@@ -1,7 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { useAuth } from '@/features/auth/hooks/useAuth';
-import { canUseFirestore, isFirebaseConfigured } from '@/firebase/config';
 import { useSubscriptionStore } from '@/shared/stores/subscription.store';
 
 import {
@@ -30,7 +29,7 @@ export function useWatchlists() {
   const query = useQuery({
     queryKey: watchlistKeys.list(uid ?? ''),
     queryFn: () => getWatchlists(uid!),
-    enabled: Boolean(uid) && (canUseFirestore(uid) || !isFirebaseConfigured()),
+    enabled: Boolean(uid),
   });
 
   const invalidate = () => {

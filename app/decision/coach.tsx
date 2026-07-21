@@ -1,5 +1,5 @@
-import { RefreshControl, View } from 'react-native';
 import { useRouter } from 'expo-router';
+import { RefreshControl, View } from 'react-native';
 
 import { JournalCoachCard } from '@/features/decision/components/JournalCoachCard';
 import { useJournalCoach } from '@/features/decision/hooks/useDecision';
@@ -26,7 +26,11 @@ export default function JournalCoachScreen() {
         ),
       }}
     >
-      <Header title="Journal coach" subtitle="One tip from your own history" onBack={() => router.back()} />
+      <Header
+        title="Ask"
+        subtitle="One process prompt from your history"
+        onBack={() => router.back()}
+      />
       <View className="mt-4 gap-4 pb-8">
         <GlassCard className="p-4">
           <Text variant="body-sm" className="text-text-secondary">

@@ -7,7 +7,15 @@ module.exports = defineConfig([
   ...expoConfig,
   eslintPluginPrettierRecommended,
   {
-    ignores: ['node_modules/', '.expo/', 'dist/', 'build/', 'coverage/', 'functions/lib/'],
+    ignores: [
+      'node_modules/',
+      '.expo/',
+      '.expo-export-test/',
+      'dist/',
+      'build/',
+      'coverage/',
+      'functions/lib/',
+    ],
   },
   {
     plugins: {

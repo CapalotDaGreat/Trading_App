@@ -9,6 +9,7 @@ import type {
   TradingDayPlan,
   WeeklyReviewInsight,
 } from '../types/decision.types';
+
 import type { ResearchPriority } from './research-prioritizer.service';
 
 const STREAK_KEY = 'tradevision-discipline-streak-v1';
@@ -39,20 +40,21 @@ export function buildResearchQueue(
     symbol: p.symbol,
     estimatedMinutes: p.estimatedMinutes,
     completed: completedSymbols.includes(p.symbol.toUpperCase()),
+    setupTitle: p.setup.setupTypeLabel ?? p.setup.title,
+    bias: p.setup.bias,
+    invalidation: p.setup.invalidation,
     rankReason: p.reason,
     learningValue:
       p.setup.historyNote ??
       (p.setup.decisionQualityScore != null && p.setup.decisionQualityScore < 60
         ? 'Practice defining invalidation before entry fantasy'
         : 'Reinforce regime + structure reads'),
-    priority: (index === 0 ? 'high' : index === 1 ? 'medium' : 'low') as
-      | 'high'
-      | 'medium'
-      | 'low',
+    priority: (index === 0 ? 'high' : index === 1 ? 'medium' : 'low') as 'high' | 'medium' | 'low',
     portfolioRelevance: p.setup.reasonsNotToResearch?.some((r) => /portfolio|held|theme/i.test(r))
       ? 'Check concentration before adding risk'
       : 'Fits as a standalone research candidate',
     researchValueScore: p.setup.researchValueScore ?? p.setup.confidence,
+    decisionQualityScore: p.setup.decisionQualityScore ?? p.setup.confidence,
   }));
 }
 
@@ -115,10 +117,7 @@ export async function togglePlanItem(id: string): Promise<Set<string>> {
   const current = await loadPlanCompletions();
   if (current.has(id)) current.delete(id);
   else current.add(id);
-  await AsyncStorage.setItem(
-    PLAN_DONE_KEY,
-    JSON.stringify({ day: todayKey(), ids: [...current] }),
-  );
+  await AsyncStorage.setItem(PLAN_DONE_KEY, JSON.stringify({ day: todayKey(), ids: [...current] }));
   return current;
 }
 
@@ -241,7 +240,7 @@ export function buildWeeklyReview(summary: DecisionLogSummary): WeeklyReviewInsi
         ? 'Rarely skipped — may be over-engaging every idea'
         : 'None clear — keep logging';
 
-  const researchHoursEstimate = Math.round((summary.researched * 12) / 60 * 10) / 10;
+  const researchHoursEstimate = Math.round(((summary.researched * 12) / 60) * 10) / 10;
 
   return {
     decisionsMade: summary.total,
@@ -263,9 +262,7 @@ export function buildWeeklyReview(summary: DecisionLogSummary): WeeklyReviewInsi
           ? 'Strong journaling cadence'
           : 'Light journaling — aim for one note per researched idea',
     mostImprovedSkill:
-      passed >= summary.researched
-        ? 'Selectivity / opportunity cost'
-        : 'Research follow-through',
+      passed >= summary.researched ? 'Selectivity / opportunity cost' : 'Research follow-through',
     recommendedFocus:
       summary.journaled < 2
         ? 'Journal every researched or skipped idea this week'

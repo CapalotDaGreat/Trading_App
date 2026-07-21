@@ -1,6 +1,7 @@
+import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, View } from 'react-native';
-import { useRouter } from 'expo-router';
 
 import { CategoryChips, type CategoryFilter } from '@/features/academy/components/CategoryChips';
 import {
@@ -17,16 +18,15 @@ import {
   useNextAcademyLesson,
 } from '@/features/academy/hooks/useAcademy';
 import { useAcademyProgressStore } from '@/features/academy/stores/academy-progress.store';
-import { buildDecisionDebt } from '@/features/decision/services/decision-os.service';
-import { useTraderMemory } from '@/features/decision/hooks/useDecision';
-import { useDecisionLog } from '@/features/decision-log/hooks/useDecisionLog';
 import { PremiumOsGate } from '@/features/decision/components/PremiumOsGate';
+import { useTraderMemory } from '@/features/decision/hooks/useDecision';
+import { buildDecisionDebt } from '@/features/decision/services/decision-os.service';
+import { useDecisionLog } from '@/features/decision-log/hooks/useDecisionLog';
 import { Header } from '@/shared/components/layout/Header';
 import { Screen } from '@/shared/components/layout/Screen';
 import { Text } from '@/shared/components/ui/Text';
 import { useTheme } from '@/shared/hooks/useTheme';
 import { useSubscriptionStore } from '@/shared/stores/subscription.store';
-import { Ionicons } from '@expo/vector-icons';
 
 export default function AcademyScreen() {
   const router = useRouter();
@@ -84,7 +84,7 @@ export default function AcademyScreen() {
   return (
     <Screen scrollable contentClassName="pb-10">
       <Header
-        title="Trading Academy"
+        title="Learn"
         subtitle="Decision Operator curriculum — learn, practice, review"
         onBack={() => router.back()}
       />
@@ -98,14 +98,11 @@ export default function AcademyScreen() {
             {completedCount} read · {practicedCount} practiced
           </Text>
           <View className="mt-3 h-2 overflow-hidden rounded-full bg-surface">
-            <View
-              className="h-full rounded-full bg-accent"
-              style={{ width: `${progressPct}%` }}
-            />
+            <View className="h-full rounded-full bg-accent" style={{ width: `${progressPct}%` }} />
           </View>
           <Text variant="caption" className="mt-2">
-            Read ≠ practiced. Mark lessons complete anytime; mastery surfaces reward practice
-            gates (Lab / Replay / Journal).
+            Read ≠ practiced. Mark lessons complete anytime; mastery surfaces reward practice gates
+            (Lab / Replay / Journal).
           </Text>
         </View>
 
@@ -125,8 +122,8 @@ export default function AcademyScreen() {
                 PREMIUM · PERSONALIZED CURRICULUM
               </Text>
               <Text variant="body-sm" className="text-text-secondary">
-                Foundations stay free. Premium ranks next lessons from Trading DNA and Decision
-                Debt — coaching, not a content shelf.
+                Foundations stay free. Premium ranks next lessons from Trading DNA and Decision Debt
+                — coaching, not a content shelf.
               </Text>
             </View>
           </PremiumOsGate>
@@ -188,7 +185,9 @@ export default function AcademyScreen() {
         <View>
           <View className="mb-2 flex-row items-center justify-between">
             <Text variant="h3">Desk checklists</Text>
-            <Pressable onPress={() => router.push('/academy/checklist/pre-trade-checklist' as never)}>
+            <Pressable
+              onPress={() => router.push('/academy/checklist/pre-trade-checklist' as never)}
+            >
               <Text variant="caption" className="text-accent">
                 Open full
               </Text>

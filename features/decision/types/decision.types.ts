@@ -1,12 +1,7 @@
 export type DecisionBias = 'bullish' | 'bearish' | 'neutral';
 export type ImpactLevel = 'low' | 'medium' | 'high';
 export type SetupStatus = 'watching' | 'forming' | 'confirmed' | 'invalidated';
-export type MarketRegime =
-  | 'risk_on'
-  | 'risk_off'
-  | 'ranging'
-  | 'high_volatility'
-  | 'trending';
+export type MarketRegime = 'risk_on' | 'risk_off' | 'ranging' | 'high_volatility' | 'trending';
 
 export interface ExplainabilityFactor {
   label: string;
@@ -88,11 +83,15 @@ export interface ResearchQueueItem {
   symbol: string;
   estimatedMinutes: number;
   completed: boolean;
+  setupTitle?: string;
+  bias?: DecisionBias;
+  invalidation?: string;
   rankReason?: string;
   learningValue?: string;
   priority?: 'high' | 'medium' | 'low';
   portfolioRelevance?: string;
   researchValueScore?: number;
+  decisionQualityScore?: number;
 }
 
 export interface TradingDayPlanItem {

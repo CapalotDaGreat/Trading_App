@@ -13,9 +13,9 @@ and does not provide buy/sell signals or execute trades.
 ## Core flow
 
 1. Open Today and review the brief.
-2. Select a queue item and record Research, Skip, or Ignore.
+2. Select a queue item and record Research or Skip.
 3. Save a journal entry.
-4. Open Decision Replay to see the process event tape.
+4. Open Review to see the basic Process Tape.
 
 RVS means Research Value Score: whether an idea deserves attention. DQS means
 Decision Quality Score: checklist/process quality. Neither predicts price
@@ -24,6 +24,10 @@ direction.
 ## Subscription review
 
 - Open Settings → Manage Subscription.
+- The Brief, top-three Research Queue, journal, and basic Process Tape remain
+  free. Premium gates only the deeper queue, advanced/weekly review insights,
+  Trading DNA, portfolio intelligence, Decision Lab, expanded Ask allowance,
+  and journal export.
 - Monthly and yearly products use native platform billing through RevenueCat.
 - Restore Purchases is available on the subscription screen.
 - Cancel opens the platform or provider subscription-management screen.

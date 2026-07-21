@@ -1,0 +1,61 @@
+appId: ai.tradevision.app
+name: Today decision loop smoke
+tags:
+  - smoke
+  - demo
+---
+- runFlow: demo-activation.yaml
+- assertVisible:
+    id: today-section-morning-brief
+- scrollUntilVisible:
+    element:
+      id: "research-queue-skip-.*"
+    direction: DOWN
+- tapOn:
+    id: "research-queue-skip-.*"
+- scrollUntilVisible:
+    element:
+      id: today-close-loop-journal
+    direction: DOWN
+- tapOn:
+    id: today-close-loop-journal
+- extendedWaitUntil:
+    visible:
+      id: journal-symbol
+    timeout: 15000
+- tapOn:
+    id: journal-symbol
+- inputText: AAPL
+- tapOn:
+    id: journal-entry-price
+- inputText: "100"
+- tapOn:
+    id: journal-quantity
+- inputText: "1"
+- tapOn:
+    id: journal-notes
+- inputText: Smoke test reflection
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: journal-save
+    direction: DOWN
+- tapOn:
+    id: journal-save
+- back
+- extendedWaitUntil:
+    visible:
+      id: today-section-header
+    timeout: 15000
+- scrollUntilVisible:
+    element:
+      id: today-close-loop-review
+    direction: DOWN
+- tapOn:
+    id: today-close-loop-review
+- extendedWaitUntil:
+    visible:
+      id: review-process-tape
+    timeout: 15000
+- assertVisible:
+    id: review-segment-process

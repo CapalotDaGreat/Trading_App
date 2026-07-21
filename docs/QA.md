@@ -6,16 +6,28 @@ Run the automated release gate from the repository root:
 npm ci
 npm run lint
 npm run typecheck
+npm run expo:config
 npm test -- --runInBand
 npm run functions:build
 npm --prefix functions test
-npx expo config --type public
 npm run test:rules
 git diff --check
 ```
 
 The Firestore emulator download uses the repository CA settings on managed
 Windows machines. CI must not merge when any command fails.
+
+For release-candidate bundle validation, also run:
+
+```bash
+npx expo export --platform all --output-dir .expo-export-test
+```
+
+The checked-in `.maestro/demo-activation.yaml` and
+`.maestro/decision-loop.yaml` flows are device-ready smoke specifications for
+guest activation and Today → Research/Skip → Journal → Review. They require a
+running signed or development client with app id `ai.tradevision.app`; their
+presence is not evidence that either platform executed them.
 
 ## Signed-build smoke test
 
@@ -24,7 +36,7 @@ build:
 
 1. Register after accepting Terms and Privacy, verify email, sign in, and sign
    out.
-2. Complete Brief → Research or Skip → Journal → Replay and confirm the event
+2. Complete Brief → Research or Skip → Journal → Review and confirm the event
    tape survives an app restart.
 3. Verify every chart and research result shows its actual data source and
    freshness.

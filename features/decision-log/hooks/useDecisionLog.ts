@@ -24,6 +24,7 @@ export function useDecisionLog() {
   const query = useQuery({
     queryKey: decisionLogKeys.list(uid),
     queryFn: () => getDecisionRecords(uid),
+    enabled: Boolean(uid),
     staleTime: 30_000,
   });
 
@@ -31,6 +32,7 @@ export function useDecisionLog() {
     queryKey: decisionLogKeys.summary(uid),
     queryFn: async (): Promise<DecisionLogSummary> =>
       summarizeDecisionLog(await getDecisionRecords(uid)),
+    enabled: Boolean(uid),
     staleTime: 30_000,
   });
 

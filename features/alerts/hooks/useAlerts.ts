@@ -1,7 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { useAuth } from '@/features/auth/hooks/useAuth';
-import { canUseFirestore } from '@/firebase/config';
 import { getTierLimits, hasReachedLimit } from '@/shared/constants/subscription';
 import { useSubscriptionStore } from '@/shared/stores/subscription.store';
 
@@ -27,7 +26,7 @@ export function useAlerts() {
   const alertsQuery = useQuery({
     queryKey: alertsQueryKey(uid),
     queryFn: () => getAlerts(uid!),
-    enabled: canUseFirestore(uid),
+    enabled: Boolean(uid),
   });
 
   const alerts = alertsQuery.data ?? [];
@@ -47,13 +46,8 @@ export function useAlerts() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({
-      alertId,
-      updates,
-    }: {
-      alertId: string;
-      updates: UpdateAlertInput;
-    }) => updateAlert(uid!, alertId, updates),
+    mutationFn: ({ alertId, updates }: { alertId: string; updates: UpdateAlertInput }) =>
+      updateAlert(uid!, alertId, updates),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: alertsQueryKey(uid) });
     },

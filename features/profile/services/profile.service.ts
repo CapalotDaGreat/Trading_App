@@ -1,4 +1,3 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   deleteDoc,
   doc,
@@ -9,7 +8,9 @@ import {
   type DocumentData,
 } from 'firebase/firestore';
 
-import { requireDb, isFirebaseConfigured } from '@/firebase/config';
+import { requireDb } from '@/firebase/config';
+import { getLocalUserRepository, resolveUserDataBackend } from '@/shared/services/user-data';
+import { DEFAULT_USER_PREFERENCES, type UserPreferences } from '@/shared/types/user';
 
 import type {
   CreateUserProfileInput,
@@ -19,7 +20,6 @@ import type {
 } from '../types/profile.types';
 
 const USERS_COLLECTION = 'users';
-const DEMO_PROFILE_KEY = 'tradevision-demo-profile';
 
 function profileDocRef(uid: string) {
   return doc(requireDb(), USERS_COLLECTION, uid);
@@ -40,6 +40,12 @@ function serializeTimestamp(value: unknown): string {
   return new Date().toISOString();
 }
 
+function toPreferences(value: unknown): UserPreferences {
+  return value && typeof value === 'object'
+    ? { ...DEFAULT_USER_PREFERENCES, ...(value as Partial<UserPreferences>) }
+    : { ...DEFAULT_USER_PREFERENCES };
+}
+
 function toUserProfile(uid: string, data: DocumentData): UserProfile {
   return {
     uid,
@@ -53,6 +59,7 @@ function toUserProfile(uid: string, data: DocumentData): UserProfile {
     notificationsEnabled: (data.notificationsEnabled as boolean) ?? true,
     mfaEnabled: (data.mfaEnabled as boolean) ?? false,
     onboardingCompleted: (data.onboardingCompleted as boolean) ?? false,
+    preferences: toPreferences(data.preferences),
     createdAt: serializeTimestamp(data.createdAt),
     updatedAt: serializeTimestamp(data.updatedAt),
   };
@@ -71,6 +78,7 @@ function buildDefaultProfile(input: CreateUserProfileInput): UserProfileDocument
     notificationsEnabled: true,
     mfaEnabled: false,
     onboardingCompleted: false,
+    preferences: { ...DEFAULT_USER_PREFERENCES },
     createdAt: now,
     updatedAt: now,
   };
@@ -89,33 +97,28 @@ function demoProfile(uid: string, patch?: Partial<UserProfile>): UserProfile {
     experienceLevel: patch?.experienceLevel ?? 'intermediate',
     notificationsEnabled: patch?.notificationsEnabled ?? true,
     mfaEnabled: false,
-    onboardingCompleted: true,
+    onboardingCompleted: patch?.onboardingCompleted ?? false,
+    preferences: toPreferences(patch?.preferences),
     createdAt: patch?.createdAt ?? now,
     updatedAt: patch?.updatedAt ?? now,
   };
 }
 
-async function loadDemoProfile(uid: string): Promise<UserProfile> {
-  try {
-    const raw = await AsyncStorage.getItem(`${DEMO_PROFILE_KEY}:${uid}`);
-    if (raw) {
-      return { ...demoProfile(uid), ...(JSON.parse(raw) as UserProfile), uid };
-    }
-  } catch {
-    // fall through
-  }
-  return demoProfile(uid);
-}
-
-async function saveDemoProfile(profile: UserProfile): Promise<UserProfile> {
+async function saveLocalProfile(profile: UserProfile): Promise<UserProfile> {
   const next = { ...profile, updatedAt: new Date().toISOString() };
-  await AsyncStorage.setItem(`${DEMO_PROFILE_KEY}:${profile.uid}`, JSON.stringify(next));
-  return next;
+  return getLocalUserRepository(profile.uid).put<UserProfile & { id: string }>('profiles', {
+    ...next,
+    id: profile.uid,
+  });
 }
 
 export async function getUserProfile(uid: string): Promise<UserProfile | null> {
-  if (!isFirebaseConfigured()) {
-    return loadDemoProfile(uid);
+  if (resolveUserDataBackend(uid) === 'local') {
+    const stored = await getLocalUserRepository(uid).get<UserProfile & { id: string }>(
+      'profiles',
+      uid,
+    );
+    return stored ? { ...demoProfile(uid), ...stored, uid } : demoProfile(uid);
   }
 
   const snapshot = await getDoc(profileDocRef(uid));
@@ -128,8 +131,8 @@ export async function getUserProfile(uid: string): Promise<UserProfile | null> {
 export async function createUserProfile(input: CreateUserProfileInput): Promise<UserProfile> {
   const data = buildDefaultProfile(input);
 
-  if (!isFirebaseConfigured()) {
-    return saveDemoProfile({ uid: input.uid, ...data });
+  if (resolveUserDataBackend(input.uid) === 'local') {
+    return saveLocalProfile({ uid: input.uid, ...data });
   }
 
   await setDoc(profileDocRef(input.uid), {
@@ -156,9 +159,9 @@ export async function updateUserProfile(
   uid: string,
   updates: UpdateUserProfileInput,
 ): Promise<UserProfile> {
-  if (!isFirebaseConfigured()) {
-    const current = await loadDemoProfile(uid);
-    return saveDemoProfile({ ...current, ...updates, uid });
+  if (resolveUserDataBackend(uid) === 'local') {
+    const current = (await getUserProfile(uid)) ?? demoProfile(uid);
+    return saveLocalProfile({ ...current, ...updates, uid });
   }
 
   const ref = profileDocRef(uid);
@@ -178,8 +181,8 @@ export async function updateUserProfile(
 }
 
 export async function deleteUserProfile(uid: string): Promise<void> {
-  if (!isFirebaseConfigured()) {
-    await AsyncStorage.removeItem(`${DEMO_PROFILE_KEY}:${uid}`);
+  if (resolveUserDataBackend(uid) === 'local') {
+    await getLocalUserRepository(uid).delete('profiles', uid);
     return;
   }
   await deleteDoc(profileDocRef(uid));

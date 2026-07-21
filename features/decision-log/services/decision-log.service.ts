@@ -1,4 +1,3 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   addDoc,
   collection,
@@ -13,7 +12,8 @@ import {
   type DocumentData,
 } from 'firebase/firestore';
 
-import { isFirebaseConfigured, requireDb } from '@/firebase/config';
+import { requireDb } from '@/firebase/config';
+import { getLocalUserRepository, resolveUserDataBackend } from '@/shared/services/user-data';
 
 export type DecisionAction =
   | 'researched'
@@ -71,7 +71,6 @@ export interface DecisionLogSummary {
   insight?: string;
 }
 
-const LOCAL_KEY = 'tradevision-decision-log';
 const USERS = 'users';
 const LOG = 'decisionLog';
 
@@ -100,20 +99,6 @@ function toRecord(id: string, data: DocumentData): DecisionRecord {
   };
 }
 
-async function loadLocal(): Promise<DecisionRecord[]> {
-  try {
-    const raw = await AsyncStorage.getItem(LOCAL_KEY);
-    if (!raw) return [];
-    return JSON.parse(raw) as DecisionRecord[];
-  } catch {
-    return [];
-  }
-}
-
-async function saveLocal(records: DecisionRecord[]): Promise<void> {
-  await AsyncStorage.setItem(LOCAL_KEY, JSON.stringify(records.slice(0, 200)));
-}
-
 export async function appendDecisionRecord(
   uid: string | null | undefined,
   input: Omit<DecisionRecord, 'id' | 'createdAt'>,
@@ -124,7 +109,7 @@ export async function appendDecisionRecord(
     createdAt: Date.now(),
   };
 
-  if (uid && isFirebaseConfigured()) {
+  if (uid && resolveUserDataBackend(uid) === 'firestore') {
     if (input.eventKey) {
       const stableId = input.eventKey.replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 180);
       const stableRef = doc(requireDb(), USERS, uid, LOG, stableId);
@@ -143,21 +128,24 @@ export async function appendDecisionRecord(
     return { ...record, id: ref.id };
   }
 
-  const existing = await loadLocal();
-  const duplicate = input.eventKey
-    ? existing.find((item) => item.eventKey === input.eventKey)
-    : undefined;
-  if (duplicate) return duplicate;
-  existing.unshift(record);
-  await saveLocal(existing);
-  return record;
+  if (!uid) return record;
+  const repository = getLocalUserRepository(uid);
+  if (input.eventKey) {
+    return repository.createUnique<DecisionRecord>(
+      'decisionLog',
+      'eventKey',
+      { ...record, id: record.id },
+      200,
+    );
+  }
+  return repository.create<DecisionRecord>('decisionLog', { ...record, id: record.id }, 200);
 }
 
 export async function getDecisionRecords(
   uid: string | null | undefined,
   max = 50,
 ): Promise<DecisionRecord[]> {
-  if (uid && isFirebaseConfigured()) {
+  if (uid && resolveUserDataBackend(uid) === 'firestore') {
     const q = query(
       collection(requireDb(), USERS, uid, LOG),
       orderBy('createdAt', 'desc'),
@@ -167,7 +155,8 @@ export async function getDecisionRecords(
     return snap.docs.map((d) => toRecord(d.id, d.data()));
   }
 
-  const local = await loadLocal();
+  if (!uid) return [];
+  const local = await getLocalUserRepository(uid).list<DecisionRecord>('decisionLog');
   return local.slice(0, max);
 }
 

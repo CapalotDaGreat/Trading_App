@@ -30,12 +30,13 @@ type JournalFormValues = z.infer<typeof journalSchema>;
 interface JournalFormProps {
   onSubmit: (input: CreateJournalEntryInput) => Promise<void>;
   isSubmitting?: boolean;
+  initialSymbol?: string;
 }
 
 const EMOTIONS: TradeEmotion[] = ['confident', 'fearful', 'greedy', 'neutral', 'fomo'];
 const DIRECTIONS: TradeDirection[] = ['long', 'short'];
 
-export function JournalForm({ onSubmit, isSubmitting }: JournalFormProps) {
+export function JournalForm({ onSubmit, isSubmitting, initialSymbol = '' }: JournalFormProps) {
   const {
     control,
     handleSubmit,
@@ -44,7 +45,7 @@ export function JournalForm({ onSubmit, isSubmitting }: JournalFormProps) {
   } = useForm<JournalFormValues>({
     resolver: zodResolver(journalSchema),
     defaultValues: {
-      symbol: '',
+      symbol: initialSymbol.toUpperCase(),
       direction: 'long',
       entryPrice: 0,
       exitPrice: '',
@@ -93,6 +94,7 @@ export function JournalForm({ onSubmit, isSubmitting }: JournalFormProps) {
               onChangeText={onChange}
               onBlur={onBlur}
               error={errors.symbol?.message}
+              testID="journal-symbol"
             />
           )}
         />
@@ -145,6 +147,7 @@ export function JournalForm({ onSubmit, isSubmitting }: JournalFormProps) {
                   onChangeText={onChange}
                   onBlur={onBlur}
                   error={errors.entryPrice?.message}
+                  testID="journal-entry-price"
                 />
               )}
             />
@@ -177,6 +180,7 @@ export function JournalForm({ onSubmit, isSubmitting }: JournalFormProps) {
               onChangeText={onChange}
               onBlur={onBlur}
               error={errors.quantity?.message}
+              testID="journal-quantity"
             />
           )}
         />
@@ -243,6 +247,7 @@ export function JournalForm({ onSubmit, isSubmitting }: JournalFormProps) {
               onBlur={onBlur}
               error={errors.notes?.message}
               inputClassName="min-h-[80px]"
+              testID="journal-notes"
             />
           )}
         />
@@ -262,7 +267,13 @@ export function JournalForm({ onSubmit, isSubmitting }: JournalFormProps) {
         />
       </View>
 
-      <Button className="mt-4" loading={isSubmitting} onPress={submit} fullWidth>
+      <Button
+        className="mt-4"
+        loading={isSubmitting}
+        onPress={submit}
+        fullWidth
+        testID="journal-save"
+      >
         Save Entry
       </Button>
     </GlassCard>

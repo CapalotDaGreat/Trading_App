@@ -1,4 +1,3 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import * as WebBrowser from 'expo-web-browser';
 import {
@@ -13,7 +12,6 @@ import {
   linkWithCredential,
   multiFactor,
   onAuthStateChanged,
-  reauthenticateWithCredential,
   sendEmailVerification,
   sendPasswordResetEmail,
   signInAnonymously,
@@ -28,7 +26,14 @@ import {
 import { httpsCallable } from 'firebase/functions';
 import { Platform } from 'react-native';
 
-import { auth, isFirebaseConfigured, requireAuth, requireFunctions } from '@/firebase/config';
+import {
+  auth,
+  DEMO_USER_UID,
+  isFirebaseConfigured,
+  requireAuth,
+  requireFunctions,
+} from '@/firebase/config';
+import { getLocalUserRepository } from '@/shared/services/user-data';
 
 import type {
   AuthServiceError,
@@ -139,7 +144,7 @@ export async function signOutUser(): Promise<void> {
 
 export async function deleteCurrentAccount(): Promise<void> {
   if (!isFirebaseConfigured()) {
-    await AsyncStorage.clear();
+    await getLocalUserRepository(DEMO_USER_UID).reset();
     return;
   }
 
@@ -149,10 +154,11 @@ export async function deleteCurrentAccount(): Promise<void> {
   }
 
   const deleteAccount = httpsCallable(requireFunctions(), 'deleteAccount');
+  const uid = user.uid;
   try {
     await deleteAccount();
     await signOut(getAuthOrThrow());
-    await AsyncStorage.clear();
+    await getLocalUserRepository(uid).reset();
   } catch (error) {
     const callableError = error as { code?: string };
     if (callableError.code === 'functions/failed-precondition') {

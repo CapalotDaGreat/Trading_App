@@ -1,6 +1,6 @@
-import { doc, serverTimestamp, setDoc } from 'firebase/firestore';
+import { doc, getDoc, serverTimestamp, setDoc } from 'firebase/firestore';
 
-import { requireDb, isFirebaseConfigured } from '@/firebase/config';
+import { canUseFirestore, requireDb } from '@/firebase/config';
 import { useSettingsStore } from '@/shared/stores/settings.store';
 import { useThemeStore } from '@/shared/stores/theme.store';
 import { DEFAULT_USER_PREFERENCES } from '@/shared/types/user';
@@ -151,7 +151,7 @@ class SettingsServiceImpl implements SettingsService {
   }
 
   async syncToFirestore(uid: string): Promise<void> {
-    if (!isFirebaseConfigured()) return;
+    if (!canUseFirestore(uid)) return;
 
     const settings = this.getSettings();
     const notifications = this.getNotificationSettings();
@@ -166,12 +166,18 @@ class SettingsServiceImpl implements SettingsService {
         preferences: settings.preferences,
         notifications,
         privacy,
+        hasCompletedOnboarding: settings.hasCompletedOnboarding,
         updatedAt: serverTimestamp(),
       },
       { merge: true },
     );
 
     useSettingsStore.getState().setLastSyncAt(Date.now());
+  }
+
+  async hasRemoteSettings(uid: string): Promise<boolean> {
+    if (!canUseFirestore(uid)) return false;
+    return (await getDoc(doc(requireDb(), 'userSettings', uid))).exists();
   }
 }
 

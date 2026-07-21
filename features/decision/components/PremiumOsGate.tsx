@@ -30,7 +30,10 @@ export function PremiumOsGate({ feature, children, freeAlways }: PremiumOsGatePr
   }
 
   return (
-    <View className="rounded-2xl border border-border bg-background-elevated p-4">
+    <View
+      className="rounded-2xl border border-border bg-background-elevated p-4"
+      testID={`premium-os-gate-${feature}`}
+    >
       <Text variant="caption" className="mb-1 font-semibold text-text-tertiary">
         PREMIUM
       </Text>
@@ -39,6 +42,8 @@ export function PremiumOsGate({ feature, children, freeAlways }: PremiumOsGatePr
       </Text>
       <Pressable
         accessibilityRole="button"
+        accessibilityLabel={`Unlock Premium: ${decisionOsUpsellCopy(feature)}`}
+        testID={`premium-os-unlock-${feature}`}
         onPress={() => router.push('/subscription' as never)}
         className="self-start rounded-full bg-accent-muted px-3 py-1.5"
       >

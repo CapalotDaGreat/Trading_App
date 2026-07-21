@@ -54,7 +54,20 @@ export const useSettingsStore = create<SettingsState>()(
     }),
     {
       name: 'tradevision-settings',
+      version: 2,
       storage: createJSONStorage(() => AsyncStorage),
+      migrate: (persistedState) => persistedState,
+      merge: (persistedState, currentState) => {
+        const persisted = (persistedState ?? {}) as Partial<SettingsState>;
+        return {
+          ...currentState,
+          ...persisted,
+          preferences: {
+            ...DEFAULT_USER_PREFERENCES,
+            ...(persisted.preferences ?? {}),
+          },
+        };
+      },
     },
   ),
 );

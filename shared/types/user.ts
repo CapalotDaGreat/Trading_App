@@ -6,6 +6,9 @@ export type ExperienceLevel = 'beginner' | 'intermediate' | 'advanced' | 'profes
 
 export type AuthProvider = 'email' | 'google' | 'apple' | 'anonymous';
 
+export type ActivationGoal =
+  'research_more_selectively' | 'build_decision_discipline' | 'improve_review_habit';
+
 export interface UserPreferences {
   defaultMarket: string;
   tradingStyle: TradingStyle;
@@ -17,6 +20,11 @@ export interface UserPreferences {
   priceAlertsEnabled: boolean;
   aiInsightsEnabled: boolean;
   biometricAuthEnabled: boolean;
+  /** Daily research budget used to size the decision queue. */
+  timeBudgetMinutes: number;
+  activationGoal: ActivationGoal;
+  /** User-selected symbols, normalized to uppercase. */
+  selectedUniverse: string[];
 }
 
 export interface UserProfile {
@@ -51,6 +59,9 @@ export const DEFAULT_USER_PREFERENCES: UserPreferences = {
   priceAlertsEnabled: true,
   aiInsightsEnabled: true,
   biometricAuthEnabled: false,
+  timeBudgetMinutes: 20,
+  activationGoal: 'research_more_selectively',
+  selectedUniverse: ['SPY', 'QQQ', 'AAPL'],
 };
 
 export const TRADING_STYLE_LABELS: Record<TradingStyle, string> = {

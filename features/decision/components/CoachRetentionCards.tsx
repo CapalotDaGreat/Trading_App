@@ -1,13 +1,16 @@
+import { Ionicons } from '@expo/vector-icons';
+import { useState } from 'react';
 import { Pressable, View } from 'react-native';
 
-import { useAppendDecisionRecord } from '@/features/decision-log/hooks/useDecisionLog';
 import type {
   DisciplineStreak,
   WeeklyReviewInsight,
   WhyNotInsight,
 } from '@/features/decision/types/decision.types';
+import { useAppendDecisionRecord } from '@/features/decision-log/hooks/useDecisionLog';
 import { GlassCard } from '@/shared/components/ui/GlassCard';
 import { Text } from '@/shared/components/ui/Text';
+import { useTheme } from '@/shared/hooks/useTheme';
 
 export function DisciplineStreakCard({ streak }: { streak: DisciplineStreak }) {
   const checks = [
@@ -86,6 +89,8 @@ export function WeeklyReviewCard({ review }: { review: WeeklyReviewInsight }) {
 }
 
 export function WhyNotCard({ items, regime }: { items: WhyNotInsight[]; regime: string }) {
+  const { colors } = useTheme();
+  const [open, setOpen] = useState(false);
   const appendDecision = useAppendDecisionRecord();
   if (!items.length) return null;
 
@@ -101,47 +106,70 @@ export function WhyNotCard({ items, regime }: { items: WhyNotInsight[]; regime: 
 
   return (
     <GlassCard className="p-4">
-      <Text variant="caption" className="mb-1 font-semibold text-text-tertiary">
-        Why not?
-      </Text>
-      <Text variant="h3" className="mb-1">
-        Save your attention
-      </Text>
-      <Text variant="caption" className="mb-3 text-text-secondary">
-        Ideas worth skipping so you protect research time
-      </Text>
-      {items.map((item) => (
-        <View key={item.symbol} className="mb-3 pb-3 last:mb-0 last:pb-0">
-          <Text variant="label" className="mb-1 text-text-primary">
-            {item.symbol} · save ~{item.savedMinutes}m
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="Why not, ideas worth skipping"
+        accessibilityState={{ expanded: open }}
+        testID="today-why-not-toggle"
+        onPress={() => setOpen((value) => !value)}
+        className="min-h-11 flex-row items-center justify-between"
+      >
+        <View className="flex-1 pr-3">
+          <Text variant="caption" className="mb-1 font-semibold text-text-tertiary">
+            WHY NOT?
           </Text>
-          {item.reasons.map((r) => (
-            <Text key={r} variant="caption" className="mb-0.5 leading-relaxed text-text-secondary">
-              ⚠ {r}
-            </Text>
-          ))}
-          <View className="mt-2 flex-row gap-2">
-            <Pressable
-              accessibilityRole="button"
-              onPress={() => recordOutcome(item, 'skipped')}
-              className="rounded-full bg-accent-muted px-3 py-1.5"
-            >
-              <Text variant="caption" className="font-semibold text-accent">
-                Skip
-              </Text>
-            </Pressable>
-            <Pressable
-              accessibilityRole="button"
-              onPress={() => recordOutcome(item, 'ignored')}
-              className="rounded-full bg-surface px-3 py-1.5"
-            >
-              <Text variant="caption" className="text-text-secondary">
-                Ignore
-              </Text>
-            </Pressable>
-          </View>
+          <Text variant="h3">
+            Save your attention · {items.length} idea{items.length === 1 ? '' : 's'}
+          </Text>
         </View>
-      ))}
+        <Ionicons
+          name={open ? 'chevron-up' : 'chevron-down'}
+          size={18}
+          color={colors.text.tertiary}
+        />
+      </Pressable>
+      {open
+        ? items.map((item) => (
+            <View key={item.symbol} className="mb-3 pb-3 last:mb-0 last:pb-0">
+              <Text variant="label" className="mb-1 text-text-primary">
+                {item.symbol} · save ~{item.savedMinutes}m
+              </Text>
+              {item.reasons.map((r) => (
+                <Text
+                  key={r}
+                  variant="caption"
+                  className="mb-0.5 leading-relaxed text-text-secondary"
+                >
+                  ⚠ {r}
+                </Text>
+              ))}
+              <View className="mt-2 flex-row gap-2">
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={`Skip ${item.symbol}`}
+                  testID={`why-not-skip-${item.symbol}`}
+                  onPress={() => recordOutcome(item, 'skipped')}
+                  className="min-h-11 justify-center rounded-full bg-accent-muted px-3 py-1.5"
+                >
+                  <Text variant="caption" className="font-semibold text-accent">
+                    Skip
+                  </Text>
+                </Pressable>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={`Ignore why not guidance for ${item.symbol}`}
+                  testID={`why-not-ignore-${item.symbol}`}
+                  onPress={() => recordOutcome(item, 'ignored')}
+                  className="min-h-11 justify-center rounded-full bg-surface px-3 py-1.5"
+                >
+                  <Text variant="caption" className="text-text-secondary">
+                    Ignore
+                  </Text>
+                </Pressable>
+              </View>
+            </View>
+          ))
+        : null}
     </GlassCard>
   );
 }

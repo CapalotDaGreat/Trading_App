@@ -1,3 +1,5 @@
+import type { UserPreferences } from '@/shared/types/user';
+
 export interface UserProfile {
   uid: string;
   email: string | null;
@@ -10,6 +12,7 @@ export interface UserProfile {
   notificationsEnabled: boolean;
   mfaEnabled: boolean;
   onboardingCompleted: boolean;
+  preferences: UserPreferences;
   createdAt: string;
   updatedAt: string;
 }
@@ -31,6 +34,7 @@ export interface UpdateUserProfileInput {
   notificationsEnabled?: boolean;
   mfaEnabled?: boolean;
   onboardingCompleted?: boolean;
+  preferences?: UserPreferences;
 }
 
 export type UserProfileDocument = Omit<UserProfile, 'uid'>;

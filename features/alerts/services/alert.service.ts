@@ -11,7 +11,8 @@ import {
   type DocumentData,
 } from 'firebase/firestore';
 
-import { requireDb, isFirebaseConfigured } from '@/firebase/config';
+import { requireDb } from '@/firebase/config';
+import { getLocalUserRepository, resolveUserDataBackend } from '@/shared/services/user-data';
 import type { PriceAlert } from '@/shared/types/market';
 
 const USERS_COLLECTION = 'users';
@@ -67,8 +68,9 @@ function toAlert(id: string, data: DocumentData): PriceAlert & { note?: string }
 }
 
 export async function getAlerts(uid: string): Promise<(PriceAlert & { note?: string })[]> {
-  if (!isFirebaseConfigured()) {
-    return [];
+  if (resolveUserDataBackend(uid) === 'local') {
+    const alerts = await getLocalUserRepository(uid).list<PriceAlert & { note?: string }>('alerts');
+    return alerts.sort((a, b) => b.createdAt - a.createdAt);
   }
   const q = query(alertsCollection(uid), orderBy('createdAt', 'desc'));
   const snapshot = await getDocs(q);
@@ -85,11 +87,19 @@ export async function createAlert(
     condition: input.condition,
     note: input.note ?? '',
     isActive: true,
-    createdAt: serverTimestamp(),
-    updatedAt: serverTimestamp(),
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
   };
 
-  const ref = await addDoc(alertsCollection(uid), data);
+  if (resolveUserDataBackend(uid) === 'local') {
+    return getLocalUserRepository(uid).create<PriceAlert & { note?: string }>('alerts', data);
+  }
+
+  const ref = await addDoc(alertsCollection(uid), {
+    ...data,
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  });
 
   return {
     id: ref.id,
@@ -107,6 +117,14 @@ export async function updateAlert(
   alertId: string,
   updates: UpdateAlertInput,
 ): Promise<void> {
+  if (resolveUserDataBackend(uid) === 'local') {
+    await getLocalUserRepository(uid).update<PriceAlert & { note?: string }>(
+      'alerts',
+      alertId,
+      updates,
+    );
+    return;
+  }
   await updateDoc(alertDocRef(uid, alertId), {
     ...updates,
     updatedAt: serverTimestamp(),
@@ -114,18 +132,25 @@ export async function updateAlert(
 }
 
 export async function deleteAlert(uid: string, alertId: string): Promise<void> {
+  if (resolveUserDataBackend(uid) === 'local') {
+    await getLocalUserRepository(uid).delete('alerts', alertId);
+    return;
+  }
   await deleteDoc(alertDocRef(uid, alertId));
 }
 
-export async function toggleAlert(
-  uid: string,
-  alertId: string,
-  isActive: boolean,
-): Promise<void> {
+export async function toggleAlert(uid: string, alertId: string, isActive: boolean): Promise<void> {
   await updateAlert(uid, alertId, { isActive });
 }
 
 export async function markAlertTriggered(uid: string, alertId: string): Promise<void> {
+  if (resolveUserDataBackend(uid) === 'local') {
+    await getLocalUserRepository(uid).update<PriceAlert>('alerts', alertId, {
+      triggeredAt: Date.now(),
+      isActive: false,
+    });
+    return;
+  }
   await updateDoc(alertDocRef(uid, alertId), {
     triggeredAt: serverTimestamp(),
     isActive: false,

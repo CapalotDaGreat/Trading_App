@@ -16,16 +16,14 @@ import { cn } from '@/shared/utils/cn';
 import { PremiumBadge } from './PremiumBadge';
 
 const PREMIUM_FEATURES = [
-  { icon: 'analytics' as const, label: 'Up to 100 AI analyses / day (fair use)' },
-  { icon: 'sparkles' as const, label: 'Deeper rules-based decision context and explainability' },
-  { icon: 'list' as const, label: 'Advanced Research Queue & conviction drift' },
-  { icon: 'flash' as const, label: 'More frequent quote updates (~15–30s)' },
+  { icon: 'analytics' as const, label: 'Expanded Ask allowance (up to 100/day, fair use)' },
+  { icon: 'list' as const, label: 'Research Queue beyond the free top three' },
   { icon: 'briefcase' as const, label: 'Portfolio health, stress tests & concentration' },
-  { icon: 'play-forward' as const, label: 'Advanced replay, DNA insights & decision timeline' },
-  { icon: 'film' as const, label: 'Decision Replay process coach & weekly game tape' },
+  { icon: 'play-forward' as const, label: 'Advanced Process Tape insights & score evolution' },
+  { icon: 'finger-print' as const, label: 'Full Trading DNA insights from recorded decisions' },
+  { icon: 'film' as const, label: 'Weekly game tape built from recorded decisions' },
   { icon: 'flask' as const, label: 'Decision Lab · thesis-first paper practice' },
-  { icon: 'calendar' as const, label: 'Sunday / weekly process reviews' },
-  { icon: 'download' as const, label: 'Data export' },
+  { icon: 'download' as const, label: 'Journal CSV and JSON export' },
 ];
 
 export function PaywallScreen() {
@@ -98,7 +96,7 @@ export function PaywallScreen() {
             You&apos;re Premium
           </Text>
           <Text variant="body-sm" className="mt-2 text-center">
-            Enjoy deeper decision coaching, faster data updates, and the full decision toolkit.
+            Enjoy deeper queue, portfolio, review, practice, and export capabilities.
           </Text>
           <Text variant="body-sm" className="mt-3 text-center text-text-secondary">
             {statusText}
@@ -131,7 +129,8 @@ export function PaywallScreen() {
           TradeVision AI Premium
         </Text>
         <Text variant="body-sm" className="mt-2 max-w-xs text-center">
-          Unlock the full decision coach — deeper radar, portfolio tools, and replay.
+          Keep the Brief, top-three queue, journal, and basic Review free. Upgrade for the deeper
+          tools listed below.
         </Text>
       </View>
 
@@ -279,8 +278,8 @@ export function PaywallScreen() {
       ) : null}
 
       <Text variant="caption" className="mt-4 text-center leading-5">
-        Subscriptions auto-renew unless cancelled. Quote refresh is faster polling of delayed data —
-        not exchange-tick realtime. Free includes{' '}
+        Subscriptions auto-renew unless cancelled. Premium does not provide brokerage execution or
+        exchange-tick realtime data. Free includes{' '}
         {SUBSCRIPTION_TIERS.free.aiAnalysisPerDay} AI analyses/day and up to{' '}
         {SUBSCRIPTION_TIERS.free.watchlistMax} watchlist symbols.
       </Text>

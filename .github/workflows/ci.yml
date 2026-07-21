@@ -18,6 +18,9 @@ jobs:
       - run: npm ci --prefix functions
       - run: npm run lint
       - run: npm run typecheck
+      - run: npm run expo:config
       - run: npm test -- --runInBand
+      - run: npm run functions:build
       - run: npm run functions:test
       - run: npm run test:rules
+      - run: git diff --check

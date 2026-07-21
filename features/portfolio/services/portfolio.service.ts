@@ -11,7 +11,8 @@ import {
   type DocumentData,
 } from 'firebase/firestore';
 
-import { requireDb, isFirebaseConfigured } from '@/firebase/config';
+import { requireDb } from '@/firebase/config';
+import { getLocalUserRepository, resolveUserDataBackend } from '@/shared/services/user-data';
 
 import type {
   CreateHoldingInput,
@@ -75,10 +76,14 @@ export function calculateHoldingPnL(holding: Holding, previousClose?: number): H
   const unrealizedPnL = marketValue - costBasis * multiplier;
   const unrealizedPnLPercent = costBasis > 0 ? (unrealizedPnL / costBasis) * 100 : 0;
 
-  const refPrice = previousClose ?? holding.averageCost;
-  const dayChange = holding.quantity * (holding.currentPrice - refPrice) * multiplier;
+  const dayChange =
+    previousClose === undefined
+      ? 0
+      : holding.quantity * (holding.currentPrice - previousClose) * multiplier;
   const dayChangePercent =
-    refPrice > 0 ? ((holding.currentPrice - refPrice) / refPrice) * 100 : 0;
+    previousClose !== undefined && previousClose > 0
+      ? ((holding.currentPrice - previousClose) / previousClose) * 100 * multiplier
+      : 0;
 
   return {
     holdingId: holding.id,
@@ -130,42 +135,25 @@ export function buildPerformanceHistory(
   holdings: Holding[],
   period: PortfolioPerformance['period'] = '1M',
 ): PortfolioPerformance {
-  const now = Date.now();
-  const periodDays: Record<PortfolioPerformance['period'], number> = {
-    '1W': 7,
-    '1M': 30,
-    '3M': 90,
-    '6M': 180,
-    '1Y': 365,
-    ALL: 730,
-  };
-
-  const days = periodDays[period];
   const summary = calculatePortfolioSummary(holdings);
-  const points: PerformancePoint[] = [];
-
-  for (let i = days; i >= 0; i -= Math.max(1, Math.floor(days / 30))) {
-    const date = new Date(now - i * 24 * 60 * 60 * 1000);
-    const drift = 1 + (Math.sin(i / 10) * 0.02);
-    const value = summary.totalValue * drift;
-    const cost = summary.totalCost;
-    const pnl = value - cost;
-    const pnlPercent = cost > 0 ? (pnl / cost) * 100 : 0;
-
-    points.push({
-      date: date.toISOString().split('T')[0] ?? '',
-      value,
-      pnl,
-      pnlPercent,
-    });
-  }
-
+  const points: PerformancePoint[] =
+    holdings.length === 0
+      ? []
+      : [
+          {
+            date: new Date().toISOString().split('T')[0] ?? '',
+            value: summary.totalValue,
+            pnl: summary.totalPnL,
+            pnlPercent: summary.totalPnLPercent,
+          },
+        ];
   return { points, period };
 }
 
 export async function getHoldings(uid: string): Promise<Holding[]> {
-  if (!isFirebaseConfigured()) {
-    return [];
+  if (resolveUserDataBackend(uid) === 'local') {
+    const holdings = await getLocalUserRepository(uid).list<Holding>('holdings');
+    return holdings.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
   }
   const q = query(holdingsCollection(uid), orderBy('updatedAt', 'desc'));
   const snapshot = await getDocs(q);
@@ -189,6 +177,10 @@ export async function createHolding(uid: string, input: CreateHoldingInput): Pro
     updatedAt: now,
   };
 
+  if (resolveUserDataBackend(uid) === 'local') {
+    return getLocalUserRepository(uid).create<Holding>('holdings', data);
+  }
+
   const ref = await addDoc(holdingsCollection(uid), {
     ...data,
     createdAt: serverTimestamp(),
@@ -203,6 +195,13 @@ export async function updateHolding(
   holdingId: string,
   updates: UpdateHoldingInput,
 ): Promise<void> {
+  if (resolveUserDataBackend(uid) === 'local') {
+    await getLocalUserRepository(uid).update<Holding>('holdings', holdingId, {
+      ...updates,
+      updatedAt: new Date().toISOString(),
+    });
+    return;
+  }
   await updateDoc(holdingDocRef(uid, holdingId), {
     ...updates,
     updatedAt: serverTimestamp(),
@@ -210,6 +209,10 @@ export async function updateHolding(
 }
 
 export async function deleteHolding(uid: string, holdingId: string): Promise<void> {
+  if (resolveUserDataBackend(uid) === 'local') {
+    await getLocalUserRepository(uid).delete('holdings', holdingId);
+    return;
+  }
   await deleteDoc(holdingDocRef(uid, holdingId));
 }
 
@@ -220,9 +223,7 @@ export async function updateHoldingPrices(
   const holdings = await getHoldings(uid);
   const updates = holdings
     .filter((h) => prices[h.symbol] !== undefined)
-    .map((h) =>
-      updateHolding(uid, h.id, { currentPrice: prices[h.symbol] }),
-    );
+    .map((h) => updateHolding(uid, h.id, { currentPrice: prices[h.symbol] }));
 
   await Promise.all(updates);
 }

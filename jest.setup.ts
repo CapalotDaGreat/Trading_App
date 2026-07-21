@@ -17,3 +17,5 @@ jest.mock('expo-secure-store', () => ({
   setItemAsync: jest.fn(),
   deleteItemAsync: jest.fn(),
 }));
+
+global.IS_REACT_ACT_ENVIRONMENT = true;

@@ -20,6 +20,28 @@ service cloud.firestore {
         && request.resource.data.updatedAt is timestamp;
     }
 
+    function isValidUniverse(universe) {
+      return universe is list
+        && universe.size() >= 3
+        && universe.size() <= 5
+        && universe[0] is string && universe[0].size() >= 1 && universe[0].size() <= 20
+        && universe[1] is string && universe[1].size() >= 1 && universe[1].size() <= 20
+        && universe[2] is string && universe[2].size() >= 1 && universe[2].size() <= 20
+        && (universe.size() < 4 || (universe[3] is string && universe[3].size() >= 1 && universe[3].size() <= 20))
+        && (universe.size() < 5 || (universe[4] is string && universe[4].size() >= 1 && universe[4].size() <= 20));
+    }
+
+    function isValidPreferences(data) {
+      return data is map
+        && (!('timeBudgetMinutes' in data) || data.timeBudgetMinutes in [10, 20, 30, 45])
+        && (!('activationGoal' in data) || data.activationGoal in [
+          'research_more_selectively',
+          'build_decision_discipline',
+          'improve_review_habit'
+        ])
+        && (!('selectedUniverse' in data) || isValidUniverse(data.selectedUniverse));
+    }
+
     function isValidUserProfile() {
       let data = request.resource.data;
       return data.keys().hasAll(['email', 'displayName', 'createdAt', 'updatedAt'])
@@ -32,7 +54,8 @@ service cloud.firestore {
         && (!('experienceLevel' in data) || data.experienceLevel in ['beginner', 'intermediate', 'advanced', 'professional'])
         && (!('notificationsEnabled' in data) || data.notificationsEnabled is bool)
         && (!('mfaEnabled' in data) || data.mfaEnabled is bool)
-        && (!('onboardingCompleted' in data) || data.onboardingCompleted is bool);
+        && (!('onboardingCompleted' in data) || data.onboardingCompleted is bool)
+        && (!('preferences' in data) || isValidPreferences(data.preferences));
     }
 
     function isValidWatchlist() {
@@ -125,6 +148,8 @@ service cloud.firestore {
       let data = request.resource.data;
       return data.keys().hasAll(['theme', 'updatedAt'])
         && data.theme in ['light', 'dark', 'system']
+        && (!('hasCompletedOnboarding' in data) || data.hasCompletedOnboarding is bool)
+        && (!('preferences' in data) || isValidPreferences(data.preferences))
         && data.updatedAt is timestamp;
     }
 

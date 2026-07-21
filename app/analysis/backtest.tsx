@@ -1,6 +1,6 @@
+import { useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, View } from 'react-native';
-import { useRouter } from 'expo-router';
 
 import {
   DEFAULT_BACKTEST_CONFIG,
@@ -10,10 +10,10 @@ import {
   smaStrategy,
   type BacktestResult,
 } from '@/features/analysis/services/backtesting.service';
+import { DataSourceBadge } from '@/features/markets/components/DataSourceBadge';
 import { Header } from '@/shared/components/layout/Header';
 import { Screen } from '@/shared/components/layout/Screen';
 import { Button } from '@/shared/components/ui/Button';
-import { DataSourceBadge } from '@/features/markets/components/DataSourceBadge';
 import { GlassCard } from '@/shared/components/ui/GlassCard';
 import { Text } from '@/shared/components/ui/Text';
 import { cn } from '@/shared/utils/cn';
@@ -42,13 +42,17 @@ export default function BacktestScreen() {
 
   return (
     <Screen scrollable contentClassName="pb-8">
-      <Header title="Backtest" subtitle="Strategy simulation" onBack={() => router.back()} />
+      <Header
+        title="Strategy sandbox — sample data"
+        subtitle="Generated-history practice"
+        onBack={() => router.back()}
+      />
 
       <View className="mt-4 gap-4">
         <View className="flex-row items-center justify-between">
           <DataSourceBadge kind="sample" />
           <Text variant="caption" className="text-text-secondary">
-            Research practice only — not live symbol data
+            Generated sample data only — not live or historical symbol data
           </Text>
         </View>
 
@@ -61,6 +65,9 @@ export default function BacktestScreen() {
               <Pressable
                 key={type}
                 accessibilityRole="button"
+                accessibilityState={{ selected: strategyType === type }}
+                accessibilityLabel={`Use ${type === 'sma' ? 'SMA crossover' : 'RSI reversion'} sample strategy`}
+                testID={`strategy-sandbox-${type}`}
                 onPress={() => setStrategyType(type)}
                 className={cn(
                   'flex-1 rounded-full py-2.5',
@@ -81,11 +88,18 @@ export default function BacktestScreen() {
           </View>
 
           <Text variant="caption" className="mb-3 text-text-tertiary">
-            {candles.length} daily candles · ${formatNumber(DEFAULT_BACKTEST_CONFIG.initialCapital, 0)} initial capital
+            {candles.length} daily candles · $
+            {formatNumber(DEFAULT_BACKTEST_CONFIG.initialCapital, 0)} initial capital
           </Text>
 
-          <Button loading={isRunning} onPress={run} fullWidth>
-            Run Backtest
+          <Button
+            loading={isRunning}
+            onPress={run}
+            fullWidth
+            accessibilityLabel="Run strategy sandbox on sample data"
+            testID="strategy-sandbox-run"
+          >
+            Run sample simulation
           </Button>
         </GlassCard>
 
@@ -118,10 +132,17 @@ function BacktestResults({ result }: { result: BacktestResult }) {
           positive={isPositive}
         />
         <Metric label="Win Rate" value={formatPercent(result.winRate, { showSign: false })} />
-        <Metric label="Max Drawdown" value={formatPercent(-result.maxDrawdown, { showSign: false })} />
+        <Metric
+          label="Max Drawdown"
+          value={formatPercent(-result.maxDrawdown, { showSign: false })}
+        />
         <Metric label="Sharpe Ratio" value={formatNumber(result.sharpeRatio, 2)} />
         <Metric label="Profit Factor" value={formatNumber(result.profitFactor, 2)} />
-        <Metric label="Final Capital" value={`$${formatNumber(result.finalCapital, 2)}`} positive={isPositive} />
+        <Metric
+          label="Final Capital"
+          value={`$${formatNumber(result.finalCapital, 2)}`}
+          positive={isPositive}
+        />
       </View>
 
       {result.trades.length > 0 ? (
@@ -129,37 +150,33 @@ function BacktestResults({ result }: { result: BacktestResult }) {
           <Text variant="label" className="mb-2">
             Recent Trades
           </Text>
-          {result.trades.slice(-5).reverse().map((trade, index) => (
-            <View
-              key={`${trade.entryIndex}-${trade.exitIndex}-${index}`}
-              className="mb-2 flex-row items-center justify-between rounded-lg bg-surface p-2"
-            >
-              <Text variant="caption">
-                #{result.trades.length - index} · {formatNumber(trade.entryPrice, 2)} → {formatNumber(trade.exitPrice, 2)}
-              </Text>
-              <Text
-                variant="caption"
-                className={trade.pnl >= 0 ? 'text-bullish' : 'text-bearish'}
+          {result.trades
+            .slice(-5)
+            .reverse()
+            .map((trade, index) => (
+              <View
+                key={`${trade.entryIndex}-${trade.exitIndex}-${index}`}
+                className="mb-2 flex-row items-center justify-between rounded-lg bg-surface p-2"
               >
-                {formatPercent(trade.pnlPercent)}
-              </Text>
-            </View>
-          ))}
+                <Text variant="caption">
+                  #{result.trades.length - index} · {formatNumber(trade.entryPrice, 2)} →{' '}
+                  {formatNumber(trade.exitPrice, 2)}
+                </Text>
+                <Text
+                  variant="caption"
+                  className={trade.pnl >= 0 ? 'text-bullish' : 'text-bearish'}
+                >
+                  {formatPercent(trade.pnlPercent)}
+                </Text>
+              </View>
+            ))}
         </View>
       ) : null}
     </GlassCard>
   );
 }
 
-function Metric({
-  label,
-  value,
-  positive,
-}: {
-  label: string;
-  value: string;
-  positive?: boolean;
-}) {
+function Metric({ label, value, positive }: { label: string; value: string; positive?: boolean }) {
   return (
     <View className="min-w-[45%] flex-1 rounded-xl bg-surface p-3">
       <Text variant="caption" className="text-text-tertiary">
@@ -167,7 +184,9 @@ function Metric({
       </Text>
       <Text
         variant="mono"
-        className={positive !== undefined ? (positive ? 'text-bullish' : 'text-bearish') : undefined}
+        className={
+          positive !== undefined ? (positive ? 'text-bullish' : 'text-bearish') : undefined
+        }
       >
         {value}
       </Text>

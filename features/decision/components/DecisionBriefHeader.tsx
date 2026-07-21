@@ -1,6 +1,6 @@
+import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { Pressable, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 
 import { DataFreshnessBadge } from '@/features/decision/components/DataFreshnessBadge';
 import type { DecisionBrief, ImpactLevel } from '@/features/decision/types/decision.types';
@@ -53,7 +53,7 @@ export function DecisionBriefHeader({
       : undefined;
 
   return (
-    <GlassCard className="p-4">
+    <GlassCard className="p-4" testID="morning-brief-card">
       <View className="mb-3 flex-row items-start justify-between gap-3">
         <View className="flex-1">
           <Text variant="caption" className="mb-1 text-text-tertiary">
@@ -84,8 +84,8 @@ export function DecisionBriefHeader({
             Your focus today
           </Text>
           <Text variant="body-sm" className="text-text-primary">
-            {focus.opportunities} opportunit{focus.opportunities === 1 ? 'y' : 'ies'} · {focus.risks}{' '}
-            risk{focus.risks === 1 ? '' : 's'} · {focus.events} event
+            {focus.opportunities} opportunit{focus.opportunities === 1 ? 'y' : 'ies'} ·{' '}
+            {focus.risks} risk{focus.risks === 1 ? '' : 's'} · {focus.events} event
             {focus.events === 1 ? '' : 's'}
           </Text>
           {minutes !== undefined ? (
@@ -100,12 +100,33 @@ export function DecisionBriefHeader({
         {brief.summary}
       </Text>
 
+      {brief.psychologyReminder || brief.recommendedFocus || brief.timeBudgetMinutes ? (
+        <View className="mb-3 rounded-xl bg-accent-muted/30 px-3 py-2.5">
+          {brief.psychologyReminder ? (
+            <Text variant="body-sm" className="text-text-primary">
+              {brief.psychologyReminder}
+            </Text>
+          ) : null}
+          <Text variant="caption" className="mt-1 text-accent">
+            {[
+              brief.recommendedFocus ? `Focus: ${brief.recommendedFocus}` : null,
+              brief.timeBudgetMinutes ? `Budget: ${brief.timeBudgetMinutes} min` : null,
+            ]
+              .filter(Boolean)
+              .join(' · ')}
+          </Text>
+        </View>
+      ) : null}
+
       {events.length > 0 ? (
         <View className="mb-3">
           <Pressable
             accessibilityRole="button"
+            accessibilityLabel={`${events.length} market catalysts`}
+            accessibilityState={{ expanded: eventsOpen }}
+            testID="morning-brief-events-toggle"
             onPress={() => setEventsOpen((v) => !v)}
-            className="mb-2 flex-row items-center justify-between"
+            className="mb-2 min-h-11 flex-row items-center justify-between"
           >
             <Text variant="caption" className="font-semibold text-text-secondary">
               {events.length} catalyst{events.length === 1 ? '' : 's'} to respect
@@ -131,11 +152,7 @@ export function DecisionBriefHeader({
                       {event.title}
                     </Text>
                   </View>
-                  <Badge
-                    label={event.impact}
-                    variant={IMPACT_VARIANT[event.impact]}
-                    size="sm"
-                  />
+                  <Badge label={event.impact} variant={IMPACT_VARIANT[event.impact]} size="sm" />
                 </View>
               ))
             : null}

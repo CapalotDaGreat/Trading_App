@@ -2,134 +2,11 @@ import { Ionicons } from '@expo/vector-icons';
 import { Link } from 'expo-router';
 import { Pressable, StyleSheet, View } from 'react-native';
 
+import { MORE_HUB_SECTIONS } from '@/features/navigation/config/more-hub.config';
 import { Header } from '@/shared/components/layout/Header';
 import { Screen } from '@/shared/components/layout/Screen';
 import { Text } from '@/shared/components/ui/Text';
 import { useTheme } from '@/shared/hooks/useTheme';
-
-interface HubItem {
-  href: string;
-  title: string;
-  description: string;
-  icon: keyof typeof Ionicons.glyphMap;
-}
-
-interface HubSection {
-  title: string;
-  hint: string;
-  items: HubItem[];
-}
-
-const HUB_SECTIONS: HubSection[] = [
-  {
-    title: 'Decide',
-    hint: 'What to look at before you spend time',
-    items: [
-      {
-        href: '/decision/radar',
-        title: 'Setups',
-        description: 'Ranked ideas worth researching',
-        icon: 'radio-outline',
-      },
-      {
-        href: '/decision/regime',
-        title: 'Market condition',
-        description: 'Risk-on, chop, or high vol right now',
-        icon: 'pulse-outline',
-      },
-      {
-        href: '/decision/risk',
-        title: 'Portfolio risk',
-        description: 'Concentration and how names move together',
-        icon: 'shield-checkmark-outline',
-      },
-    ],
-  },
-  {
-    title: 'Review yourself',
-    hint: 'Learn from your own trades',
-    items: [
-      {
-        href: '/journal',
-        title: 'Trade journal',
-        description: 'Log trades and results',
-        icon: 'book-outline',
-      },
-      {
-        href: '/decision/coach',
-        title: 'Journal coach',
-        description: 'Process tips from your history',
-        icon: 'fitness-outline',
-      },
-      {
-        href: '/decision/memory',
-        title: 'Your trading profile',
-        description: 'Style, favorites, and weak spots',
-        icon: 'person-outline',
-      },
-    ],
-  },
-  {
-    title: 'Practice & learn',
-    hint: 'Build skill without forcing live risk',
-    items: [
-      {
-        href: '/decision/lab',
-        title: 'Decision Lab',
-        description: 'Thesis-first paper trading for process practice',
-        icon: 'flask-outline',
-      },
-      {
-        href: '/decision/decision-replay',
-        title: 'Decision Replay AI',
-        description: 'Review your process like game film',
-        icon: 'film-outline',
-      },
-      {
-        href: '/decision/replay',
-        title: 'Chart replay',
-        description: 'Step through bars without foresight',
-        icon: 'play-forward-outline',
-      },
-      {
-        href: '/analysis/backtest',
-        title: 'Backtest',
-        description: 'Test a simple strategy on history',
-        icon: 'analytics-outline',
-      },
-      {
-        href: '/academy',
-        title: 'Academy',
-        description: 'Lessons and a trading checklist',
-        icon: 'school-outline',
-      },
-    ],
-  },
-  {
-    title: 'Stay on top',
-    hint: 'Alerts, calendar, and settings',
-    items: [
-      {
-        href: '/alerts',
-        title: 'Price alerts',
-        description: 'Notify when price hits your level',
-        icon: 'notifications-outline',
-      },
-      {
-        href: '/calendar',
-        title: 'Economic calendar',
-        description: 'Events that can move markets',
-        icon: 'calendar-outline',
-      },
-      {
-        href: '/settings',
-        title: 'Settings',
-        description: 'Theme, account, and preferences',
-        icon: 'settings-outline',
-      },
-    ],
-  },
-];
 
 export default function MoreScreen() {
   const { colors } = useTheme();
@@ -139,8 +16,11 @@ export default function MoreScreen() {
       <Header title="More" subtitle="Tools grouped by what you need" transparent />
 
       <View className="mt-2 gap-7">
-        {HUB_SECTIONS.map((section) => (
-          <View key={section.title}>
+        {MORE_HUB_SECTIONS.map((section) => (
+          <View
+            key={section.title}
+            testID={`more-section-${section.title.toLowerCase().replaceAll(' ', '-')}`}
+          >
             <Text variant="label" className="mb-1 px-1 text-text-tertiary">
               {section.title.toUpperCase()}
             </Text>
@@ -160,6 +40,8 @@ export default function MoreScreen() {
                   <Link href={item.href as never} asChild>
                     <Pressable
                       accessibilityRole="link"
+                      accessibilityLabel={`${item.title}. ${item.description}`}
+                      testID={item.testID}
                       className="flex-row items-center px-4 py-3.5 active:opacity-70"
                     >
                       <View className="mr-3.5 h-9 w-9 items-center justify-center rounded-xl bg-surface">

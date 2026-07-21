@@ -1,0 +1,34 @@
+appId: ai.tradevision.app
+name: Demo activation smoke
+tags:
+  - smoke
+  - demo
+---
+- launchApp:
+    clearState: true
+- extendedWaitUntil:
+    visible:
+      id: welcome-continue-guest
+    timeout: 15000
+- tapOn:
+    id: welcome-continue-guest
+- extendedWaitUntil:
+    visible:
+      id: activation-brief-continue
+    timeout: 20000
+- tapOn:
+    id: activation-brief-continue
+- extendedWaitUntil:
+    visible:
+      id: "research-queue-(research|skip)-.*"
+    timeout: 20000
+- tapOn:
+    id: "research-queue-skip-.*"
+- assertVisible:
+    id: activation-outcome-next
+- tapOn:
+    id: activation-finish-without-journal
+- extendedWaitUntil:
+    visible:
+      id: today-section-header
+    timeout: 15000

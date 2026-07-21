@@ -1,13 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
 
+import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useJournal } from '@/features/journal/hooks/useJournal';
-import {
-  DEFAULT_BRIEF_SYMBOLS,
-  MARKET_DATA_POLICY,
-} from '@/features/markets/constants/freshness';
+import { DEFAULT_BRIEF_SYMBOLS, MARKET_DATA_POLICY } from '@/features/markets/constants/freshness';
 import { usePortfolio } from '@/features/portfolio/hooks/usePortfolio';
 import { useWatchlists } from '@/features/watchlists/hooks/useWatchlists';
-import { useAuth } from '@/features/auth/hooks/useAuth';
 
 import {
   buildDecisionBrief,
@@ -49,11 +46,11 @@ function resolveSymbols(
   return [...DEFAULT_BRIEF_SYMBOLS];
 }
 
-export function useDecisionBrief(timeBudgetMinutes = 20) {
+export function useDecisionBrief(timeBudgetMinutes = 20, preferredSymbols?: string[]) {
   const { user } = useAuth();
   const { watchlists } = useWatchlists();
   const { summary, holdings } = usePortfolio();
-  const symbols = resolveSymbols(undefined, watchlists?.[0]?.symbols);
+  const symbols = resolveSymbols(preferredSymbols, watchlists?.[0]?.symbols);
   const key = symbols.slice(0, 8).join(',');
 
   const query = useQuery({

@@ -12,15 +12,8 @@ export interface TierLimits {
    * `-1` is reserved for truly unlimited (unused while fair-use is active).
    */
   aiAnalysisPerDay: number;
-  historicalDataDays: number;
-  /** Faster quote refresh (polling), not exchange-tick realtime */
-  realtimeQuotes: boolean;
-  quoteRefreshLabel: string;
-  advancedCharts: boolean;
   portfolioTracking: boolean;
   exportData: boolean;
-  prioritySupport: boolean;
-  cloudAi: boolean;
 }
 
 /** Warn the user when usage reaches this fraction of their daily AI cap. */
@@ -38,32 +31,20 @@ export const SUBSCRIPTION_TIERS: Record<SubscriptionTier, TierLimits> = {
     watchlistMax: 25,
     alertsMax: 5,
     aiAnalysisPerDay: 3,
-    historicalDataDays: 30,
-    realtimeQuotes: false,
-    quoteRefreshLabel: 'Delayed (~60s refresh)',
-    advancedCharts: false,
     portfolioTracking: false,
     exportData: false,
-    prioritySupport: false,
-    cloudAi: false,
   },
   premium: {
     tier: 'premium',
     label: 'Premium',
     description:
-      'Everything unlocked — full radar, trader DNA, AI coach with cloud analysis, portfolio intelligence, replay, export, and priority data',
+      'Deeper queue and review insights, expanded Ask, portfolio intelligence, practice, and export',
     watchlistMax: 200,
     alertsMax: 100,
-    // Fair-use ceiling — prevents unbounded cloud AI cost while staying generous
+    // Fair-use ceiling keeps higher-cost analysis bounded.
     aiAnalysisPerDay: 100,
-    historicalDataDays: -1,
-    realtimeQuotes: true,
-    quoteRefreshLabel: 'Faster updates to delayed/last-quote data (~15–30s)',
-    advancedCharts: true,
     portfolioTracking: true,
     exportData: true,
-    prioritySupport: true,
-    cloudAi: true,
   },
 };
 

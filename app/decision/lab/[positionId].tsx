@@ -1,6 +1,6 @@
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { Pressable, View } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
 
 import { LabScoresCard } from '@/features/decision-lab/components/LabCards';
 import { useDecisionLabStore } from '@/features/decision-lab/stores/lab.store';
@@ -26,9 +26,7 @@ export default function LabPositionScreen() {
     [positions, positionId],
   );
 
-  const [exitPrice, setExitPrice] = useState(
-    position ? String(position.markPrice) : '',
-  );
+  const [exitPrice, setExitPrice] = useState(position ? String(position.markPrice) : '');
   const [stopHonored, setStopHonored] = useState(true);
   const [willJournal, setWillJournal] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -54,7 +52,8 @@ export default function LabPositionScreen() {
   const active = closed ?? position!;
 
   const simulatedPnl = (() => {
-    const px = active.status === 'closed' ? active.exitPrice ?? active.markPrice : active.markPrice;
+    const px =
+      active.status === 'closed' ? (active.exitPrice ?? active.markPrice) : active.markPrice;
     const diff =
       active.thesis.bias === 'long'
         ? (px - active.entryPrice) * active.quantity
@@ -97,7 +96,9 @@ export default function LabPositionScreen() {
     <Screen scrollable>
       <Header
         title={`${active.thesis.symbol} Lab`}
-        subtitle={active.status === 'open' ? 'Track & close with process' : 'Closed — review scores'}
+        subtitle={
+          active.status === 'open' ? 'Track & close with process' : 'Closed — review scores'
+        }
         onBack={() => router.replace('/decision/lab' as never)}
       />
 
@@ -145,9 +146,7 @@ export default function LabPositionScreen() {
                 stopHonored ? 'bg-accent-muted' : 'bg-surface',
               )}
             >
-              <Text variant="label">
-                {stopHonored ? '✓' : '○'} Stop / plan honored
-              </Text>
+              <Text variant="label">{stopHonored ? '✓' : '○'} Stop / plan honored</Text>
             </Pressable>
             <Pressable
               onPress={() => setWillJournal((v) => !v)}
@@ -156,9 +155,7 @@ export default function LabPositionScreen() {
                 willJournal ? 'bg-accent-muted' : 'bg-surface',
               )}
             >
-              <Text variant="label">
-                {willJournal ? '✓' : '○'} I will journal this close
-              </Text>
+              <Text variant="label">{willJournal ? '✓' : '○'} I will journal this close</Text>
             </Pressable>
             {error ? (
               <Text variant="caption" className="text-bearish">
@@ -182,9 +179,11 @@ export default function LabPositionScreen() {
             </Button>
             <Button
               variant="outline"
+              accessibilityLabel="Review this Lab decision in Process Tape"
+              testID="lab-position-review"
               onPress={() => router.push('/decision/decision-replay' as never)}
             >
-              Review in Decision Replay AI
+              Review in Process Tape
             </Button>
             <Button variant="ghost" onPress={() => router.replace('/decision/lab' as never)}>
               Back to Lab

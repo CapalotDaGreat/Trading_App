@@ -34,8 +34,8 @@ export function WelcomeScreen() {
             <Text className="text-emerald-400">AI-powered</Text> insights
           </Text>
           <Text className="mt-4 text-base leading-6 text-slate-400">
-            Real-time analytics, intelligent alerts, and a premium trading journal — built for
-            serious traders.
+            Research-value briefs, honest source labels, and a decision journal — built to improve
+            process, not predict price direction.
           </Text>
 
           <BlurView intensity={30} tint="dark" className="mt-10 overflow-hidden rounded-3xl border border-slate-700/50">
@@ -70,6 +70,9 @@ export function WelcomeScreen() {
           <Pressable
             onPress={handleGuestAccess}
             disabled={isLoading}
+            accessibilityRole="button"
+            accessibilityLabel="Continue as Guest"
+            testID="welcome-continue-guest"
             className="items-center py-3 active:opacity-70"
           >
             {isLoading ? (
