@@ -1,8 +1,9 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { create } from 'zustand';
-import { createJSONStorage, persist } from 'zustand/middleware';
+import { persist } from 'zustand/middleware';
+
+import { createPersistedStorage } from '@/shared/stores/create-persisted-storage';
 
 import {
   getAllChecklists,
@@ -57,7 +58,7 @@ export const useChecklistStore = create<ChecklistProgressState>()(
     }),
     {
       name: 'tradevision-checklist-progress',
-      storage: createJSONStorage(() => AsyncStorage),
+      storage: createPersistedStorage(),
     },
   ),
 );

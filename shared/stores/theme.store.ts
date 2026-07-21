@@ -1,7 +1,8 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Appearance } from 'react-native';
 import { create } from 'zustand';
-import { createJSONStorage, persist } from 'zustand/middleware';
+import { persist } from 'zustand/middleware';
+
+import { createPersistedStorage } from '@/shared/stores/create-persisted-storage';
 
 export type ThemeMode = 'light' | 'dark' | 'system';
 
@@ -32,7 +33,7 @@ export const useThemeStore = create<ThemeState>()(
     }),
     {
       name: 'tradevision-theme-v2',
-      storage: createJSONStorage(() => AsyncStorage),
+      storage: createPersistedStorage(),
       partialize: (state) => ({ mode: state.mode }),
     },
   ),

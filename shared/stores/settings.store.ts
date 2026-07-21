@@ -1,7 +1,7 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
-import { createJSONStorage, persist } from 'zustand/middleware';
+import { persist } from 'zustand/middleware';
 
+import { createPersistedStorage } from '@/shared/stores/create-persisted-storage';
 import { DEFAULT_USER_PREFERENCES, type UserPreferences } from '@/shared/types/user';
 
 interface SettingsState {
@@ -72,7 +72,7 @@ export const useSettingsStore = create<SettingsState>()(
     {
       name: 'tradevision-settings',
       version: 3,
-      storage: createJSONStorage(() => AsyncStorage),
+      storage: createPersistedStorage(),
       partialize: (state) => {
         const { hasHydrated: _, ...persisted } = state;
         return persisted;

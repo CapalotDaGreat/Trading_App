@@ -1,6 +1,7 @@
 import { create } from 'zustand';
-import { createJSONStorage, persist } from 'zustand/middleware';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { persist } from 'zustand/middleware';
+
+import { createPersistedStorage } from '@/shared/stores/create-persisted-storage';
 
 import type { MarketRegime, TraderMemory } from '@/features/decision/types/decision.types';
 import type { Holding } from '@/features/portfolio/types/portfolio.types';
@@ -326,7 +327,7 @@ export const useDecisionLabStore = create<LabState>()(
     }),
     {
       name: 'tradevision-decision-lab-v1',
-      storage: createJSONStorage(() => AsyncStorage),
+      storage: createPersistedStorage(),
       partialize: (s) => ({
         account: s.account,
         positions: s.positions,

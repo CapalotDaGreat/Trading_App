@@ -1,9 +1,9 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
-import { createJSONStorage, persist } from 'zustand/middleware';
+import { persist } from 'zustand/middleware';
 
 import type { SubscriptionTier } from '@/shared/constants/subscription';
 import { REVENUECAT_ENTITLEMENT_ID } from '@/shared/constants/subscription';
+import { createPersistedStorage } from '@/shared/stores/create-persisted-storage';
 
 interface SubscriptionState {
   ownerUid: string | null;
@@ -57,7 +57,7 @@ export const useSubscriptionStore = create<SubscriptionState>()(
     }),
     {
       name: 'tradevision-subscription',
-      storage: createJSONStorage(() => AsyncStorage),
+      storage: createPersistedStorage(),
       partialize: (state) => ({
         ownerUid: state.ownerUid,
         tier: state.tier,

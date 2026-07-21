@@ -1,6 +1,7 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
-import { createJSONStorage, persist } from 'zustand/middleware';
+import { persist } from 'zustand/middleware';
+
+import { createPersistedStorage } from '@/shared/stores/create-persisted-storage';
 
 interface DecisionUiState {
   /** First-run explainer clarifying decision-quality score (DQS) vs price prediction. */
@@ -16,7 +17,7 @@ export const useDecisionUiStore = create<DecisionUiState>()(
     }),
     {
       name: 'tradevision-decision-ui',
-      storage: createJSONStorage(() => AsyncStorage),
+      storage: createPersistedStorage(),
     },
   ),
 );

@@ -1,6 +1,7 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
-import { createJSONStorage, persist } from 'zustand/middleware';
+import { persist } from 'zustand/middleware';
+
+import { createPersistedStorage } from '@/shared/stores/create-persisted-storage';
 
 /**
  * Soft-mandatory practice model:
@@ -222,7 +223,7 @@ export const useAcademyProgressStore = create<AcademyProgressState>()(
     }),
     {
       name: 'tradevision-academy-progress',
-      storage: createJSONStorage(() => AsyncStorage),
+      storage: createPersistedStorage(),
       version: 2,
       migrate: (persisted: unknown) => {
         const state = persisted as {
