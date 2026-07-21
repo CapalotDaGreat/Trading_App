@@ -1,6 +1,6 @@
 {
   "appName": "TradeVision AI",
-  "subtitle": "AI-Powered Trading Insights",
+  "subtitle": "Trading Decision Coach",
   "bundleId": "ai.tradevision.app",
   "sku": "tradevision-ai-ios-001",
   "primaryCategory": "FINANCE",
@@ -11,15 +11,15 @@
   "keywords": [
     "trading",
     "stocks",
-    "AI",
+    "decision journal",
     "portfolio",
     "market analysis",
     "finance",
     "investing"
   ],
   "description": {
-    "short": "AI-powered market analysis and portfolio tracking for modern traders.",
-    "full": "TradeVision AI is a decision-first trading research and coaching app. It helps you decide what deserves research time — with a Today brief, setup radar, regime context, journal coaching, chart replay, and an Academy.\n\nFree includes core decision tools and limited AI. Premium unlocks full radar depth, cloud AI coaching, portfolio intelligence, faster quote updates (polling — not exchange ticks), advanced charts, and data export. Choose monthly or yearly billing; yearly includes a 7-day free trial when available."
+    "short": "A decision coach for consistent trading research, journaling, and review.",
+    "full": "TradeVision AI is a decision-first research and coaching app for discretionary traders. It helps you decide what deserves research time with a Today brief, research-value queue, regime context, decision journal, replay, and Academy practice.\n\nScores measure research priority and decision-process quality; they do not predict price direction. TradeVision is not a broker, does not execute trades, and does not provide buy/sell signals.\n\nPremium adds deeper decision radar, portfolio context, faster quote polling, advanced charts, and data export. Monthly and yearly subscriptions renew automatically unless cancelled in App Store subscription settings. Cancellation stops renewal while access continues through the store-reported paid-through date. The yearly plan includes a 7-day trial only when shown on the App Store purchase sheet."
   },
   "screenshots": {
     "iphone67": [],
@@ -27,7 +27,10 @@
     "ipadPro129": []
   },
   "supportUrl": "https://tradevision.ai/support",
+  "termsUrl": "https://tradevision.ai/terms",
+  "accountDeletionUrl": "https://tradevision.ai/account-deletion",
   "marketingUrl": "https://tradevision.ai",
   "privacyPolicyUrl": "https://tradevision.ai/privacy",
+  "screenshotInventory": "store/screenshots/README.md",
   "copyright": "© 2026 TradeVision AI"
 }

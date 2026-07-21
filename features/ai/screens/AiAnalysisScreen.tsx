@@ -35,8 +35,8 @@ const ANALYSIS_OPTIONS: AnalysisOption[] = [
   { type: 'daily_summary', label: 'Daily Summary', description: 'Market overview for today' },
   {
     type: 'trade_suggestion',
-    label: 'Trade Ideas',
-    description: 'Data-driven setups with WHY',
+    label: 'Research Priority',
+    description: 'Research, watch, or skip with cited local evidence',
     requiresPremium: true,
     requiresSymbol: true,
   },
@@ -194,7 +194,7 @@ export function AiAnalysisScreen({ symbol = 'SPY' }: AiAnalysisScreenProps) {
 
   return (
     <Screen scrollable scrollViewProps={{ refreshControl: undefined }}>
-      <Header title="AI Analysis" subtitle={symbol} onBack={() => router.back()} />
+      <Header title="Local Analysis" subtitle={`${symbol} · rules-based`} onBack={() => router.back()} />
 
       <View className="py-4">
         <GlassCard className="mb-4 p-4">
@@ -207,13 +207,9 @@ export function AiAnalysisScreen({ symbol = 'SPY' }: AiAnalysisScreenProps) {
               : `${usage?.usedToday ?? 0}`}
           </Text>
           <AiUsageBanner usage={usage} isPremium={isPremium} className="mt-2" />
-          {!isPremium ? (
-            <Pressable onPress={() => router.push('/subscription' as never)}>
-              <Text variant="caption" className="mt-1 text-accent">
-                Upgrade for premium AI tools →
-              </Text>
-            </Pressable>
-          ) : null}
+          <Text variant="caption" className="mt-1 text-text-tertiary">
+            Runs on-device from available market context. Cloud AI is not used in this release.
+          </Text>
         </GlassCard>
 
         <AiContextPreview context={enrichedContext} isLoading={contextQuery.isLoading} />
@@ -234,7 +230,7 @@ export function AiAnalysisScreen({ symbol = 'SPY' }: AiAnalysisScreenProps) {
         <AiDisclaimer className="mb-4" />
 
         <Text variant="h3" className="mb-3">
-          Analysis Tools
+          Local Research Tools
         </Text>
 
         <View className="mb-4 gap-2">
@@ -291,7 +287,7 @@ export function AiAnalysisScreen({ symbol = 'SPY' }: AiAnalysisScreenProps) {
           onPress={() => router.push({ pathname: '/ai', params: { symbol } } as never)}
           fullWidth
         >
-          Chat about {symbol}
+          Ask the local research coach about {symbol}
         </Button>
       </View>
     </Screen>

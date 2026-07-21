@@ -1,6 +1,6 @@
 # Privacy Policy
 
-**Last updated:** July 10, 2026
+**Last updated:** July 21, 2026
 
 TradeVision AI ("we", "our", or "us") operates the TradeVision AI mobile application. This policy describes how we collect, use, and protect your information.
 
@@ -15,7 +15,7 @@ TradeVision AI ("we", "our", or "us") operates the TradeVision AI mobile applica
 ## How We Use Your Information
 
 - Provide and improve the TradeVision AI service
-- Send price alerts and AI insight notifications (with your consent)
+- Send enabled price-alert and app notifications
 - Process subscriptions and manage premium access
 - Analyze anonymized usage patterns to improve the product
 - Comply with legal obligations
@@ -34,7 +34,7 @@ We use the following third-party services:
 
 ## Your Rights
 
-You may request access, correction, or deletion of your personal data by contacting support@tradevision.ai. You can disable analytics and notifications in app Settings.
+You may initiate deletion of your account and associated app data in Settings, or contact support@tradevision.ai for help. Deletion removes the Firebase Authentication account, the account document and its subcollections, user settings, server subscription-access record, files under the user's storage path, and local app data. Store purchase records remain with Apple or Google under their policies, and deleting the TradeVision account does not cancel store billing. Open Manage Subscription before deletion if you do not want the subscription to renew. Notification preferences are available in Settings.
 
 ## Children's Privacy
 

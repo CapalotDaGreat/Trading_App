@@ -2,7 +2,14 @@ import type { SubscriptionTier } from '@/shared/constants/subscription';
 
 export type SubscriptionPlanId = 'monthly' | 'yearly';
 
-export type SubscriptionStatus = 'active' | 'expired' | 'cancelled' | 'grace_period' | 'none';
+export type SubscriptionStatus =
+  | 'active'
+  | 'expired'
+  | 'cancelled'
+  | 'grace_period'
+  | 'billing_issue'
+  | 'refunded'
+  | 'none';
 
 export interface SubscriptionPlan {
   id: SubscriptionPlanId;
@@ -38,6 +45,10 @@ export interface SubscriptionRecord {
   entitlementId: string;
   expiresAt: string | null;
   purchasedAt: string | null;
+  cancelledAt: string | null;
+  willRenew: boolean;
+  store: SubscriptionEntitlement['store'];
+  lastEventId: string | null;
   revenueCatAppUserId: string;
   lastSyncedAt: string;
   source: 'firestore' | 'revenuecat' | 'local';
@@ -45,8 +56,7 @@ export interface SubscriptionRecord {
 
 export interface PurchaseResult {
   success: boolean;
-  requiresWebCheckout: boolean;
-  checkoutUrl?: string;
+  requiresWebCheckout: false;
   message: string;
   subscription?: SubscriptionRecord;
 }
@@ -83,4 +93,7 @@ export interface SubscriptionService {
   syncFromRevenueCat(uid: string): Promise<SubscriptionRecord>;
   purchasePlan(uid: string, planId: SubscriptionPlanId): Promise<PurchaseResult>;
   restorePurchases(uid: string): Promise<SubscriptionRecord>;
+  configureForUser(uid: string | null): Promise<boolean>;
+  manageSubscription(record: SubscriptionRecord | null): Promise<void>;
+  isNativeBillingAvailable(): boolean;
 }

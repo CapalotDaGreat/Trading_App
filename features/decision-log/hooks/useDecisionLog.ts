@@ -59,6 +59,7 @@ export function useAppendDecisionRecord() {
       researchValueScore?: number;
       decisionQualityScore?: number;
       risk?: DecisionRecord['risk'];
+      eventKey?: string;
     }) => appendDecisionRecord(uid, input),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: decisionLogKeys.list(uid) });

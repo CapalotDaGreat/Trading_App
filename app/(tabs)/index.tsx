@@ -16,7 +16,10 @@ import {
 import { DecisionBriefHeader } from '@/features/decision/components/DecisionBriefHeader';
 import { DecisionLogCard } from '@/features/decision-log/components/DecisionLogCard';
 import { DecisionTimelineCard } from '@/features/decision-log/components/DecisionTimelineCard';
-import { useDecisionLog } from '@/features/decision-log/hooks/useDecisionLog';
+import {
+  useAppendDecisionRecord,
+  useDecisionLog,
+} from '@/features/decision-log/hooks/useDecisionLog';
 import { buildDecisionTimeline } from '@/features/decision-log/services/decision-log.service';
 import { DecisionQualityExplainer } from '@/features/decision/components/DecisionQualityExplainer';
 import { PremiumOsGate } from '@/features/decision/components/PremiumOsGate';
@@ -24,10 +27,7 @@ import { RegimeCard } from '@/features/decision/components/RegimeCard';
 import { ResearchQueueCard } from '@/features/decision/components/ResearchQueueCard';
 import { SetupCard } from '@/features/decision/components/SetupCard';
 import { TradingDayPlanCard } from '@/features/decision/components/TradingDayPlanCard';
-import {
-  useDecisionBrief,
-  useRegime,
-} from '@/features/decision/hooks/useDecision';
+import { useDecisionBrief, useRegime } from '@/features/decision/hooks/useDecision';
 import {
   buildWeeklyReview,
   loadDisciplineStreak,
@@ -37,7 +37,6 @@ import { useAcademyProgressStore } from '@/features/academy/stores/academy-progr
 import type { DisciplineStreak } from '@/features/decision/types/decision.types';
 import { ensureDemoSeedData } from '@/features/onboarding/services/demo-seed.service';
 import { ensureDemoDecisionTape } from '@/features/decision-replay/services/demo-tape.service';
-import { useAppendDecisionRecord } from '@/features/decision-log/hooks/useDecisionLog';
 import { Screen } from '@/shared/components/layout/Screen';
 import { GlassCard } from '@/shared/components/ui/GlassCard';
 import { Text } from '@/shared/components/ui/Text';
@@ -153,7 +152,8 @@ export default function DecisionBriefScreen() {
                 How to use Today
               </Text>
               <Text variant="body-sm" className="mt-1 text-text-secondary">
-                1) Read your brief · 2) Follow the research queue · 3) Journal what you did or skipped
+                1) Read your brief · 2) Follow the research queue · 3) Journal what you did or
+                skipped
               </Text>
               <Pressable
                 onPress={() => {
@@ -225,11 +225,17 @@ export default function DecisionBriefScreen() {
           ) : null}
 
           {briefQuery.data?.researchQueue?.length ? (
-            <ResearchQueueCard queue={briefQuery.data.researchQueue} />
+            <ResearchQueueCard
+              queue={briefQuery.data.researchQueue}
+              regime={briefQuery.data.regimeLabel}
+            />
           ) : null}
 
           {briefQuery.data?.skipSuggestions?.length ? (
-            <WhyNotCard items={briefQuery.data.skipSuggestions} />
+            <WhyNotCard
+              items={briefQuery.data.skipSuggestions}
+              regime={briefQuery.data.regimeLabel}
+            />
           ) : null}
 
           {logSummary ? <DecisionLogCard summary={logSummary} /> : null}

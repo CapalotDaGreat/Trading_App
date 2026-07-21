@@ -7,12 +7,14 @@ import { IndicatorPanel } from '@/features/charts/components/IndicatorPanel';
 import { TimeframeSelector } from '@/features/charts/components/TimeframeSelector';
 import { useChartData } from '@/features/charts/hooks/useChartData';
 import { useAppendDecisionRecord } from '@/features/decision-log/hooks/useDecisionLog';
+import type { DecisionAction } from '@/features/decision-log/services/decision-log.service';
 import { DataFreshnessBadge } from '@/features/decision/components/DataFreshnessBadge';
 import { EmbeddedAiInsight } from '@/features/decision/components/EmbeddedAiInsight';
 import { ExplainabilityBlock } from '@/features/decision/components/ExplainabilityBlock';
 import { MtfConsensusCard } from '@/features/decision/components/MtfConsensusCard';
 import { useMtfConsensus, useRegime } from '@/features/decision/hooks/useDecision';
 import { DataSourceBadge } from '@/features/markets/components/DataSourceBadge';
+import { getDataFreshness } from '@/features/markets/constants/freshness';
 import { useMarketQuote } from '@/features/markets/hooks/useMarketQuote';
 import { buildAssetFromSymbol } from '@/features/markets/services/market-data.service';
 import { AddToWatchlistSheet } from '@/features/watchlists/components/AddToWatchlistSheet';
@@ -59,7 +61,13 @@ export default function AssetDetailScreen() {
     marketType: asset.marketType,
   });
 
-  const { candles, analysis, isLoading: chartLoading, dataUpdatedAt } = useChartData({
+  const {
+    candles,
+    analysis,
+    isLoading: chartLoading,
+    dataUpdatedAt,
+    source: chartSource,
+  } = useChartData({
     symbol,
     interval,
     marketType: asset.marketType,
@@ -69,6 +77,7 @@ export default function AssetDetailScreen() {
   const regimeQuery = useRegime();
   const appendDecision = useAppendDecisionRecord();
   const loggedRef = useRef(false);
+  const [decisionOutcome, setDecisionOutcome] = useState<DecisionAction | null>(null);
 
   useEffect(() => {
     if (!symbol || !regimeQuery.data || loggedRef.current) return;
@@ -79,8 +88,34 @@ export default function AssetDetailScreen() {
       action: 'opened',
       bias: analysis?.summary.overallBias,
       note: 'Asset decision tab opened',
+      eventKey: `asset-opened:${symbol.toUpperCase()}:${new Date().toISOString().slice(0, 10)}`,
     });
   }, [symbol, regimeQuery.data, analysis?.summary.overallBias, appendDecision]);
+
+  const recordOutcome = useCallback(
+    (action: 'researched' | 'skipped' | 'ignored') => {
+      if (!symbol || !regimeQuery.data || !analysis) return;
+      const score = Math.round(analysis.summary.confidence * 100);
+      const invalidation =
+        analysis.summary.overallBias === 'bearish'
+          ? analysis.summary.resistanceLevels[0]
+          : analysis.summary.supportLevels[0];
+      appendDecision.mutate(
+        {
+          symbol,
+          regime: regimeQuery.data.label,
+          action,
+          setupScore: score,
+          bias: analysis.summary.overallBias,
+          invalidation: invalidation != null ? String(invalidation) : undefined,
+          note: `Asset decision · ${analysis.summary.trend} · chart context ${score}`,
+          eventKey: `asset-outcome:${symbol.toUpperCase()}:${action}:${new Date().toISOString().slice(0, 10)}`,
+        },
+        { onSuccess: () => setDecisionOutcome(action) },
+      );
+    },
+    [analysis, appendDecision, regimeQuery.data, symbol],
+  );
 
   const toggleIndicator = useCallback((indicator: IndicatorType) => {
     setActiveIndicators((prev) =>
@@ -123,6 +158,7 @@ export default function AssetDetailScreen() {
                 {formatChange(quote.change, quote.currency)} ({formatPercent(quote.changePercent)})
               </Text>
               <Badge label={quote.status} size="sm" variant="outline" />
+              <DataSourceBadge kind={quote.dataSourceKind} />
               <DataFreshnessBadge fetchedAt={quote.fetchedAt ?? dataUpdatedAt} />
             </View>
             {analysis ? (
@@ -163,10 +199,7 @@ export default function AssetDetailScreen() {
           <Pressable
             key={tab.key}
             onPress={() => setActiveTab(tab.key)}
-            className={cn(
-              'flex-1 rounded-lg py-2',
-              activeTab === tab.key && 'bg-accent-muted',
-            )}
+            className={cn('flex-1 rounded-lg py-2', activeTab === tab.key && 'bg-accent-muted')}
           >
             <Text
               variant="caption"
@@ -185,6 +218,50 @@ export default function AssetDetailScreen() {
         <View className="mb-8 gap-4">
           {mtfQuery.data ? <MtfConsensusCard data={mtfQuery.data} /> : null}
           <GlassCard className="p-4">
+            <Text variant="caption" className="mb-1 font-semibold text-text-tertiary">
+              ATTENTION DECISION
+            </Text>
+            <Text variant="h3">What should happen next?</Text>
+            <Text variant="caption" className="mt-1 text-text-secondary">
+              Log the research outcome—not a buy or sell signal.
+            </Text>
+            <View className="mt-3 flex-row flex-wrap gap-2">
+              <Button
+                size="sm"
+                onPress={() => recordOutcome('researched')}
+                disabled={appendDecision.isPending}
+              >
+                Research
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onPress={() => recordOutcome('skipped')}
+                disabled={appendDecision.isPending}
+              >
+                Skip
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                onPress={() => recordOutcome('ignored')}
+                disabled={appendDecision.isPending}
+              >
+                Ignore
+              </Button>
+            </View>
+            {decisionOutcome ? (
+              <Text variant="caption" className="mt-2 text-accent">
+                Logged:{' '}
+                {decisionOutcome === 'researched'
+                  ? 'Research'
+                  : decisionOutcome === 'skipped'
+                    ? 'Skip'
+                    : 'Ignore'}
+              </Text>
+            ) : null}
+          </GlassCard>
+          <GlassCard className="p-4">
             <View className="mb-2 flex-row items-center justify-between">
               <Text variant="h3">Bias & invalidation</Text>
               <Badge
@@ -199,16 +276,19 @@ export default function AssetDetailScreen() {
               />
             </View>
             <Text variant="body-sm" className="text-text-secondary">
-              {analysis.summary.trend} · {(analysis.summary.confidence * 100).toFixed(0)}% confidence
+              {analysis.summary.trend} · Technical evidence quality{' '}
+              {(analysis.summary.confidence * 100).toFixed(0)}%
             </Text>
             {analysis.summary.supportLevels[0] ? (
               <Text variant="caption" className="mt-2 text-bearish">
-                Invalidation (long): below {formatPrice(analysis.summary.supportLevels[0], quote?.currency)}
+                Invalidation (long): below{' '}
+                {formatPrice(analysis.summary.supportLevels[0], quote?.currency)}
               </Text>
             ) : null}
             {analysis.summary.resistanceLevels[0] ? (
               <Text variant="caption" className="mt-1 text-bearish">
-                Invalidation (short): above {formatPrice(analysis.summary.resistanceLevels[0], quote?.currency)}
+                Invalidation (short): above{' '}
+                {formatPrice(analysis.summary.resistanceLevels[0], quote?.currency)}
               </Text>
             ) : null}
             <Button
@@ -225,14 +305,23 @@ export default function AssetDetailScreen() {
               confidence: Math.round(analysis.summary.confidence * 100),
               factors: [
                 { label: 'Trend', agrees: true, detail: analysis.summary.trend },
-                { label: 'RSI', agrees: analysis.summary.rsiSignal !== 'neutral', detail: analysis.summary.rsiSignal },
-                { label: 'MACD', agrees: analysis.summary.macdSignal !== 'neutral', detail: analysis.summary.macdSignal },
+                {
+                  label: 'RSI',
+                  agrees: analysis.summary.rsiSignal !== 'neutral',
+                  detail: analysis.summary.rsiSignal,
+                },
+                {
+                  label: 'MACD',
+                  agrees: analysis.summary.macdSignal !== 'neutral',
+                  detail: analysis.summary.macdSignal,
+                },
               ],
               agrees: 2,
               disagrees: 1,
               dataAsOf: dataUpdatedAt ?? Date.now(),
-              freshness: 'recent',
-              reasoning: 'Decision tab summarizes whether this symbol deserves research time today.',
+              freshness: getDataFreshness(chartSource?.fetchedAt),
+              reasoning:
+                'Decision tab summarizes whether this symbol deserves research time today.',
             }}
           />
         </View>
@@ -241,7 +330,13 @@ export default function AssetDetailScreen() {
       {activeTab === 'chart' ? (
         <GlassCard className="mb-6 overflow-hidden p-2">
           <View className="mb-2 flex-row justify-end px-1">
-            <DataSourceBadge kind="live" />
+            {chartSource ? <DataSourceBadge kind={chartSource.kind} /> : null}
+            {chartSource ? (
+              <Text variant="caption" className="ml-2 text-text-tertiary">
+                {chartSource.provider} · fetched{' '}
+                {new Date(chartSource.fetchedAt).toLocaleTimeString()}
+              </Text>
+            ) : null}
           </View>
           <CandlestickChart
             candles={candles}
@@ -283,7 +378,10 @@ export default function AssetDetailScreen() {
                   <View className="gap-1">
                     <Text variant="mono">MACD: {macd.macd.toFixed(4)}</Text>
                     <Text variant="mono">Signal: {macd.signal.toFixed(4)}</Text>
-                    <Text variant="mono" className={macd.histogram >= 0 ? 'text-bullish' : 'text-bearish'}>
+                    <Text
+                      variant="mono"
+                      className={macd.histogram >= 0 ? 'text-bullish' : 'text-bearish'}
+                    >
                       Histogram: {macd.histogram.toFixed(4)}
                     </Text>
                   </View>
@@ -299,7 +397,7 @@ export default function AssetDetailScreen() {
           {mtfQuery.data ? <MtfConsensusCard data={mtfQuery.data} /> : null}
           <GlassCard className="p-4">
             <View className="mb-3 flex-row items-center justify-between">
-              <Text variant="h3">Overall Bias</Text>
+              <Text variant="h3">Technical Bias</Text>
               <Badge
                 label={analysis.summary.overallBias}
                 variant={
@@ -312,7 +410,7 @@ export default function AssetDetailScreen() {
               />
             </View>
             <Text variant="body-sm">
-              Trend: {analysis.summary.trend} · Confidence:{' '}
+              Trend: {analysis.summary.trend} · Evidence quality:{' '}
               {(analysis.summary.confidence * 100).toFixed(0)}%
             </Text>
             <View className="mt-3 flex-row gap-3">

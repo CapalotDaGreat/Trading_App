@@ -17,12 +17,12 @@ import { PremiumBadge } from './PremiumBadge';
 
 const PREMIUM_FEATURES = [
   { icon: 'analytics' as const, label: 'Up to 100 AI analyses / day (fair use)' },
-  { icon: 'sparkles' as const, label: 'Priority cloud AI with Decision Intelligence Context' },
+  { icon: 'sparkles' as const, label: 'Deeper rules-based decision context and explainability' },
   { icon: 'list' as const, label: 'Advanced Research Queue & conviction drift' },
   { icon: 'flash' as const, label: 'More frequent quote updates (~15–30s)' },
   { icon: 'briefcase' as const, label: 'Portfolio health, stress tests & concentration' },
   { icon: 'play-forward' as const, label: 'Advanced replay, DNA insights & decision timeline' },
-  { icon: 'film' as const, label: 'Decision Replay AI coach & weekly game tape' },
+  { icon: 'film' as const, label: 'Decision Replay process coach & weekly game tape' },
   { icon: 'flask' as const, label: 'Decision Lab · thesis-first paper practice' },
   { icon: 'calendar' as const, label: 'Sunday / weekly process reviews' },
   { icon: 'download' as const, label: 'Data export' },
@@ -34,6 +34,7 @@ export function PaywallScreen() {
   const {
     plans,
     isPremium,
+    subscription,
     isLoading,
     purchase,
     isPurchasing,
@@ -41,10 +42,13 @@ export function PaywallScreen() {
     isRestoring,
     refresh,
     isRefreshing,
+    manage,
+    nativeBillingAvailable,
   } = useSubscription();
 
   const defaultPlan = plans.find((p) => p.isPopular)?.id ?? 'yearly';
   const [selectedPlan, setSelectedPlan] = useState<SubscriptionPlanId>(defaultPlan);
+  const [actionMessage, setActionMessage] = useState<string | null>(null);
 
   const selected = useMemo(
     () => plans.find((p) => p.id === selectedPlan) ?? plans[0],
@@ -52,8 +56,14 @@ export function PaywallScreen() {
   );
 
   const handlePurchase = async () => {
-    await purchase(selectedPlan);
-    await refresh();
+    setActionMessage(null);
+    try {
+      const result = await purchase(selectedPlan);
+      setActionMessage(result.message);
+      await refresh();
+    } catch (error) {
+      setActionMessage(error instanceof Error ? error.message : 'Purchase could not be completed.');
+    }
   };
 
   if (isLoading) {
@@ -65,6 +75,20 @@ export function PaywallScreen() {
   }
 
   if (isPremium) {
+    const expiryLabel = subscription?.expiresAt
+      ? new Date(subscription.expiresAt).toLocaleDateString()
+      : null;
+    const statusText =
+      subscription?.status === 'cancelled'
+        ? `Cancelled — Premium remains active until ${expiryLabel ?? 'the end of the paid period'}.`
+        : subscription?.status === 'grace_period' || subscription?.status === 'billing_issue'
+          ? `Payment issue — Premium remains available until ${expiryLabel ?? 'the grace period ends'}.`
+          : subscription?.willRenew
+            ? `Renews ${expiryLabel ? `on ${expiryLabel}` : 'automatically'}.`
+            : expiryLabel
+              ? `Premium active until ${expiryLabel}.`
+              : 'Premium is active.';
+
     return (
       <Screen scrollable>
         <Header title="Premium" onBack={() => router.back()} />
@@ -74,8 +98,14 @@ export function PaywallScreen() {
             You&apos;re Premium
           </Text>
           <Text variant="body-sm" className="mt-2 text-center">
-            Enjoy AI coaching, faster data updates, and the full decision toolkit.
+            Enjoy deeper decision coaching, faster data updates, and the full decision toolkit.
           </Text>
+          <Text variant="body-sm" className="mt-3 text-center text-text-secondary">
+            {statusText}
+          </Text>
+          <Button variant="outline" className="mt-6" onPress={() => void manage()}>
+            {subscription?.status === 'cancelled' ? 'Resume Subscription' : 'Manage Subscription'}
+          </Button>
           <Button variant="secondary" className="mt-6" onPress={() => refresh()} loading={isRefreshing}>
             Refresh Status
           </Button>
@@ -101,9 +131,24 @@ export function PaywallScreen() {
           TradeVision AI Premium
         </Text>
         <Text variant="body-sm" className="mt-2 max-w-xs text-center">
-          Unlock the full decision coach — AI, radar depth, portfolio tools, and replay.
+          Unlock the full decision coach — deeper radar, portfolio tools, and replay.
         </Text>
       </View>
+
+      {!nativeBillingAvailable ? (
+        <View className="mb-5 rounded-2xl bg-background-elevated p-4">
+          <Text variant="body-sm" className="text-center">
+            Store purchases are available in EAS development and production builds. Expo Go and
+            demo mode remain free.
+          </Text>
+        </View>
+      ) : null}
+
+      {subscription?.status === 'expired' || subscription?.status === 'refunded' ? (
+        <Text variant="body-sm" className="mb-4 text-center text-text-secondary">
+          Your previous subscription is no longer active. Choose a plan to resubscribe.
+        </Text>
+      ) : null}
 
       {/* Billing period toggle */}
       <View className="mb-5 flex-row rounded-2xl bg-surface p-1">
@@ -195,6 +240,7 @@ export function PaywallScreen() {
         fullWidth
         size="lg"
         loading={isPurchasing}
+        disabled={!nativeBillingAvailable}
         onPress={() => void handlePurchase()}
       >
         {ctaLabel}
@@ -205,10 +251,32 @@ export function PaywallScreen() {
         className="mt-3"
         fullWidth
         loading={isRestoring}
-        onPress={() => void restore()}
+        disabled={!nativeBillingAvailable}
+        onPress={() => {
+          setActionMessage(null);
+          void restore()
+            .then((record) =>
+              setActionMessage(
+                record.isPremium
+                  ? 'Purchases restored.'
+                  : 'No active purchase was found for this store account.',
+              ),
+            )
+            .catch((error: unknown) =>
+              setActionMessage(
+                error instanceof Error ? error.message : 'Purchases could not be restored.',
+              ),
+            );
+        }}
       >
         Restore Purchases
       </Button>
+
+      {actionMessage ? (
+        <Text variant="body-sm" className="mt-3 text-center text-text-secondary">
+          {actionMessage}
+        </Text>
+      ) : null}
 
       <Text variant="caption" className="mt-4 text-center leading-5">
         Subscriptions auto-renew unless cancelled. Quote refresh is faster polling of delayed data —

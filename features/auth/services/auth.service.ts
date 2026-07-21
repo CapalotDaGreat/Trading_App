@@ -1,3 +1,4 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import * as WebBrowser from 'expo-web-browser';
 import {
@@ -24,9 +25,10 @@ import {
   type MultiFactorResolver,
   type Auth,
 } from 'firebase/auth';
+import { httpsCallable } from 'firebase/functions';
 import { Platform } from 'react-native';
 
-import { auth, isFirebaseConfigured, requireAuth } from '@/firebase/config';
+import { auth, isFirebaseConfigured, requireAuth, requireFunctions } from '@/firebase/config';
 
 import type {
   AuthServiceError,
@@ -68,6 +70,8 @@ export function mapAuthError(error: unknown): AuthServiceError {
     'auth/multi-factor-auth-required': 'Multi-factor authentication is required.',
     'auth/invalid-verification-code': 'Invalid verification code.',
     'auth/missing-multi-factor-info': 'No MFA factor found for this account.',
+    'auth/requires-recent-login':
+      'Recent sign-in required. Sign out, sign back in, and try account deletion again.',
     'auth/popup-closed-by-user': 'Sign-in was cancelled.',
     'auth/cancelled-popup-request': 'Sign-in was cancelled.',
   };
@@ -95,7 +99,11 @@ export async function signInAnonymouslyUser(): Promise<User> {
   return result.user;
 }
 
-export async function signUpWithEmail({ email, password, displayName }: SignUpParams): Promise<User> {
+export async function signUpWithEmail({
+  email,
+  password,
+  displayName,
+}: SignUpParams): Promise<User> {
   const result = await createUserWithEmailAndPassword(getAuthOrThrow(), email, password);
 
   if (displayName) {
@@ -127,6 +135,34 @@ export async function signOutUser(): Promise<void> {
     return;
   }
   await signOut(auth);
+}
+
+export async function deleteCurrentAccount(): Promise<void> {
+  if (!isFirebaseConfigured()) {
+    await AsyncStorage.clear();
+    return;
+  }
+
+  const user = getAuthOrThrow().currentUser;
+  if (!user) {
+    throw new Error('No authenticated user.');
+  }
+
+  const deleteAccount = httpsCallable(requireFunctions(), 'deleteAccount');
+  try {
+    await deleteAccount();
+    await signOut(getAuthOrThrow());
+    await AsyncStorage.clear();
+  } catch (error) {
+    const callableError = error as { code?: string };
+    if (callableError.code === 'functions/failed-precondition') {
+      throw {
+        code: 'auth/requires-recent-login',
+        message: 'Recent sign-in required. Sign out, sign back in, and try account deletion again.',
+      };
+    }
+    throw error;
+  }
 }
 
 export async function sendPasswordReset(email: string): Promise<void> {
@@ -312,7 +348,9 @@ async function reauthenticateIfNeeded(user: User): Promise<void> {
     return;
   }
 
-  throw new Error('Recent sign-in required. Please sign out and sign in again before enrolling MFA.');
+  throw new Error(
+    'Recent sign-in required. Please sign out and sign in again before enrolling MFA.',
+  );
 }
 
 export async function linkEmailPassword(email: string, password: string): Promise<User> {

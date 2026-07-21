@@ -8,6 +8,7 @@ export interface AiCitation {
 
 export interface AiAnalysisMetadata {
   source: AiDataSource;
+  /** Output/evidence quality, never predictive probability. */
   confidence: number;
   dataAsOf: number;
   citations: AiCitation[];
@@ -53,7 +54,9 @@ export interface AiChatSession {
 
 export interface TradeSuggestion {
   symbol: string;
-  action: 'buy' | 'sell' | 'hold' | 'watch';
+  /** Research-priority outcome; never an execution instruction. */
+  action: 'research' | 'watch' | 'skip';
+  /** Evidence completeness/quality, not probability of price direction. */
   confidence: number;
   reasoning: string;
   why: string[];

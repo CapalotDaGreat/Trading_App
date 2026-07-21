@@ -24,17 +24,24 @@ export function useChartData({
   const candlesQuery = useCandles({ symbol, interval, marketType, limit });
 
   const analysis = useMemo(() => {
-    if (!candlesQuery.data?.length) return null;
-    return analyzeChart(candlesQuery.data, indicators);
+    if (!candlesQuery.data?.candles.length) return null;
+    return analyzeChart(candlesQuery.data.candles, indicators);
   }, [candlesQuery.data, indicators]);
 
   return {
-    candles: candlesQuery.data ?? [],
+    candles: candlesQuery.data?.candles ?? [],
+    source: candlesQuery.data
+      ? {
+          provider: candlesQuery.data.provider,
+          kind: candlesQuery.data.kind,
+          fetchedAt: candlesQuery.data.fetchedAt,
+        }
+      : undefined,
     analysis,
     isLoading: candlesQuery.isLoading,
     isError: candlesQuery.isError,
     error: candlesQuery.error,
     refetch: candlesQuery.refetch,
-    dataUpdatedAt: candlesQuery.dataUpdatedAt,
+    dataUpdatedAt: candlesQuery.data?.fetchedAt ?? candlesQuery.dataUpdatedAt,
   };
 }

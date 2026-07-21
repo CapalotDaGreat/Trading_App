@@ -7,6 +7,7 @@ import { formatPercent, formatPrice } from '@/shared/utils/format';
 import { formatRelativeTime } from '@/shared/utils/date';
 
 import type { AiAnalysisResult } from '../types/ai.types';
+import { LOCAL_ANALYSIS_LABEL } from '../constants/ai-release';
 import { AiDisclaimer } from './AiDisclaimer';
 
 interface AiAnalysisCardProps {
@@ -24,11 +25,11 @@ export function AiAnalysisCard({ result }: AiAnalysisCardProps) {
           {meta ? (
             <View className="mt-1 flex-row flex-wrap items-center gap-2">
               <Badge
-                label={meta.source === 'cloud' ? 'Cloud AI' : 'TradeVision Engine'}
-                variant={meta.source === 'cloud' ? 'accent' : 'default'}
+                label={LOCAL_ANALYSIS_LABEL}
+                variant="default"
                 size="sm"
               />
-              <Text variant="caption">{meta.confidence}% confidence</Text>
+              <Text variant="caption">{meta.confidence}% output quality</Text>
               <Text variant="caption">· {formatRelativeTime(meta.dataAsOf)}</Text>
             </View>
           ) : null}
@@ -81,6 +82,7 @@ export function AiAnalysisCard({ result }: AiAnalysisCardProps) {
 }
 
 function formatTypeLabel(type: AiAnalysisResult['type']): string {
+  if (type === 'trade_suggestion') return 'Research Priority';
   return type.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
@@ -99,7 +101,7 @@ function TradeSuggestionSection({
         {data.reasoning}
       </Text>
       <Text variant="caption" className="mb-1 font-semibold uppercase">
-        Why (not a prediction)
+        Research evidence (not a prediction)
       </Text>
       {data.why.map((reason, i) => (
         <Text key={i} variant="caption" className="mb-1 leading-relaxed">
@@ -109,19 +111,19 @@ function TradeSuggestionSection({
       <View className="mt-3 gap-1">
         {data.entryZone ? (
           <LevelRow
-            label="Entry zone"
+            label="Observation zone"
             value={`${formatPrice(data.entryZone.low)} – ${formatPrice(data.entryZone.high)}`}
           />
         ) : null}
         {data.stopLoss !== undefined ? (
-          <LevelRow label="Stop loss" value={formatPrice(data.stopLoss)} tone="bearish" />
+          <LevelRow label="Invalidation reference" value={formatPrice(data.stopLoss)} tone="bearish" />
         ) : null}
         {data.takeProfit !== undefined ? (
-          <LevelRow label="Target" value={formatPrice(data.takeProfit)} tone="bullish" />
+          <LevelRow label="Next level to research" value={formatPrice(data.takeProfit)} tone="bullish" />
         ) : null}
       </View>
       <Text variant="caption" className="mt-2 text-text-tertiary">
-        Confidence: {data.confidence}% · Timeframe: {data.timeframe}
+        Evidence quality: {data.confidence}% · Research window: {data.timeframe}
       </Text>
     </View>
   );

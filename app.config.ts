@@ -2,6 +2,15 @@ import type { ExpoConfig, ConfigContext } from 'expo/config';
 
 const APP_SCHEME = 'tradevision';
 const BUNDLE_IDENTIFIER = 'ai.tradevision.app';
+const EAS_PROJECT_ID = process.env.EXPO_PUBLIC_EAS_PROJECT_ID?.trim();
+const EAS_OWNER = process.env.EAS_OWNER?.trim();
+
+if (
+  EAS_PROJECT_ID &&
+  !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(EAS_PROJECT_ID)
+) {
+  throw new Error('EXPO_PUBLIC_EAS_PROJECT_ID must be a valid EAS project UUID.');
+}
 
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
@@ -97,7 +106,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     [
       'expo-notifications',
       {
-        icon: './assets/images/notification-icon.png',
+        icon: './assets/images/android-icon-monochrome.png',
         color: '#00D4AA',
         defaultChannel: 'default',
         sounds: [],
@@ -109,22 +118,24 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   experiments: {
     typedRoutes: true,
   },
-  updates: {
-    url: 'https://u.expo.dev/your-eas-project-id',
-    enabled: true,
-    checkAutomatically: 'ON_LOAD',
-    fallbackToCacheTimeout: 0,
-  },
+  updates: EAS_PROJECT_ID
+    ? {
+        url: `https://u.expo.dev/${EAS_PROJECT_ID}`,
+        enabled: true,
+        checkAutomatically: 'ON_LOAD',
+        fallbackToCacheTimeout: 0,
+      }
+    : {
+        enabled: false,
+      },
   runtimeVersion: {
     policy: 'appVersion',
   },
   extra: {
-    eas: {
-      projectId: process.env.EXPO_PUBLIC_EAS_PROJECT_ID ?? '',
-    },
+    ...(EAS_PROJECT_ID ? { eas: { projectId: EAS_PROJECT_ID } } : {}),
     router: {
       origin: false,
     },
   },
-  owner: 'tradevision',
+  ...(EAS_OWNER ? { owner: EAS_OWNER } : {}),
 });

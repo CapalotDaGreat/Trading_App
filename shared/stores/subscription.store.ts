@@ -6,6 +6,7 @@ import type { SubscriptionTier } from '@/shared/constants/subscription';
 import { REVENUECAT_ENTITLEMENT_ID } from '@/shared/constants/subscription';
 
 interface SubscriptionState {
+  ownerUid: string | null;
   tier: SubscriptionTier;
   isPremium: boolean;
   isLoading: boolean;
@@ -13,12 +14,18 @@ interface SubscriptionState {
   productId: string | null;
   entitlementId: string;
   setTier: (tier: SubscriptionTier) => void;
-  setPremium: (isPremium: boolean, productId?: string, expirationDate?: string) => void;
+  setPremium: (
+    isPremium: boolean,
+    productId?: string,
+    expirationDate?: string,
+    ownerUid?: string,
+  ) => void;
   setLoading: (isLoading: boolean) => void;
   reset: () => void;
 }
 
 const initialState = {
+  ownerUid: null,
   tier: 'free' as SubscriptionTier,
   isPremium: false,
   isLoading: true,
@@ -36,8 +43,9 @@ export const useSubscriptionStore = create<SubscriptionState>()(
           tier,
           isPremium: tier === 'premium',
         }),
-      setPremium: (isPremium, productId, expirationDate) =>
+      setPremium: (isPremium, productId, expirationDate, ownerUid) =>
         set({
+          ownerUid: ownerUid ?? null,
           isPremium,
           tier: isPremium ? 'premium' : 'free',
           productId: productId ?? null,
@@ -51,6 +59,7 @@ export const useSubscriptionStore = create<SubscriptionState>()(
       name: 'tradevision-subscription',
       storage: createJSONStorage(() => AsyncStorage),
       partialize: (state) => ({
+        ownerUid: state.ownerUid,
         tier: state.tier,
         isPremium: state.isPremium,
         expirationDate: state.expirationDate,

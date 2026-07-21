@@ -2,11 +2,14 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   addDoc,
   collection,
+  doc,
+  getDoc,
   getDocs,
   limit,
   orderBy,
   query,
   serverTimestamp,
+  setDoc,
   type DocumentData,
 } from 'firebase/firestore';
 
@@ -45,6 +48,8 @@ export interface DecisionRecord {
   /** Optional Decision Quality at event time. */
   decisionQualityScore?: number;
   risk?: 'low' | 'medium' | 'high';
+  /** Stable key used to make cross-feature event writes idempotent. */
+  eventKey?: string;
 }
 
 export interface DecisionTimelineEvent {
@@ -60,6 +65,7 @@ export interface DecisionLogSummary {
   total: number;
   researched: number;
   skipped: number;
+  ignored: number;
   journaled: number;
   processScore: number;
   insight?: string;
@@ -90,6 +96,7 @@ function toRecord(id: string, data: DocumentData): DecisionRecord {
     researchValueScore: data.researchValueScore as number | undefined,
     decisionQualityScore: data.decisionQualityScore as number | undefined,
     risk: data.risk as DecisionRecord['risk'] | undefined,
+    eventKey: data.eventKey as string | undefined,
   };
 }
 
@@ -118,6 +125,17 @@ export async function appendDecisionRecord(
   };
 
   if (uid && isFirebaseConfigured()) {
+    if (input.eventKey) {
+      const stableId = input.eventKey.replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 180);
+      const stableRef = doc(requireDb(), USERS, uid, LOG, stableId);
+      const existing = await getDoc(stableRef);
+      if (existing.exists()) return toRecord(existing.id, existing.data());
+      await setDoc(stableRef, {
+        ...input,
+        createdAt: serverTimestamp(),
+      });
+      return { ...record, id: stableId };
+    }
     const ref = await addDoc(collection(requireDb(), USERS, uid, LOG), {
       ...input,
       createdAt: serverTimestamp(),
@@ -126,6 +144,10 @@ export async function appendDecisionRecord(
   }
 
   const existing = await loadLocal();
+  const duplicate = input.eventKey
+    ? existing.find((item) => item.eventKey === input.eventKey)
+    : undefined;
+  if (duplicate) return duplicate;
   existing.unshift(record);
   await saveLocal(existing);
   return record;
@@ -151,28 +173,52 @@ export async function getDecisionRecords(
 
 export function summarizeDecisionLog(records: DecisionRecord[]): DecisionLogSummary {
   const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
-  const recent = records.filter((r) => r.createdAt >= weekAgo);
+  const seenEventKeys = new Set<string>();
+  const recent = records.filter((record) => {
+    if (record.createdAt < weekAgo) return false;
+    if (!record.eventKey) return true;
+    if (seenEventKeys.has(record.eventKey)) return false;
+    seenEventKeys.add(record.eventKey);
+    return true;
+  });
 
   const researched = recent.filter((r) => r.action === 'researched').length;
   const skipped = recent.filter((r) => r.action === 'skipped').length;
+  const ignored = recent.filter((r) => r.action === 'ignored').length;
   const journaled = recent.filter((r) => r.action === 'journaled').length;
   const total = recent.length;
 
-  const discipline = total > 0 ? Math.round((skipped / total) * 30) : 0;
+  const discipline = total > 0 ? Math.round(((skipped + ignored) / total) * 30) : 0;
   const followThrough = total > 0 ? Math.round((journaled / total) * 40) : 0;
   const engagement = total > 0 ? Math.round((researched / total) * 30) : 0;
-  const processScore = Math.min(100, discipline + followThrough + engagement + (total > 3 ? 10 : 0));
+  const processScore = Math.min(
+    100,
+    discipline + followThrough + engagement + (total > 3 ? 10 : 0),
+  );
 
   let insight: string | undefined;
-  if (skipped >= 3 && total >= 5) {
-    insight = `You skipped ${skipped} low-conviction ideas this week — good discipline.`;
+  if (skipped + ignored >= 3 && total >= 5) {
+    insight = `You passed on ${skipped + ignored} low-conviction ideas this week — good discipline.`;
   } else if (journaled >= 2) {
     insight = `${journaled} journaled decisions — process score trending up.`;
   } else if (total === 0) {
     insight = 'Log decisions as you research setups to build your process score.';
   }
 
-  return { total, researched, skipped, journaled, processScore, insight };
+  return { total, researched, skipped, ignored, journaled, processScore, insight };
+}
+
+/** Counts explicit attention outcomes, excluding passive opened/viewed telemetry. */
+export function countExplicitDecisionOutcomes(records: DecisionRecord[], since: number): number {
+  const seenEventKeys = new Set<string>();
+  return records.filter((record) => {
+    if (record.createdAt < since) return false;
+    if (!['researched', 'skipped', 'ignored'].includes(record.action)) return false;
+    if (!record.eventKey) return true;
+    if (seenEventKeys.has(record.eventKey)) return false;
+    seenEventKeys.add(record.eventKey);
+    return true;
+  }).length;
 }
 
 const ACTION_LABELS: Record<DecisionAction, string> = {

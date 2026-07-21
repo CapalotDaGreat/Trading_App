@@ -4,6 +4,7 @@ import { useState } from 'react';
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
+  Linking,
   Platform,
   Pressable,
   ScrollView,
@@ -13,6 +14,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useProfile } from '@/features/profile/hooks/useProfile';
+import { LEGAL_URLS } from '@/shared/constants/legal';
 
 import { AuthDivider } from '../components/AuthDivider';
 import { AuthInput } from '../components/AuthInput';
@@ -26,6 +28,7 @@ export function RegisterScreen() {
     useAuth();
   const { upsertProfile } = useProfile();
   const [submitting, setSubmitting] = useState(false);
+  const [acceptedLegal, setAcceptedLegal] = useState(false);
 
   const {
     handleSubmit,
@@ -45,6 +48,9 @@ export function RegisterScreen() {
   const confirmPassword = watch('confirmPassword');
 
   const onSubmit = handleSubmit(async (values) => {
+    if (!acceptedLegal) {
+      return;
+    }
     setSubmitting(true);
     clearError();
     try {
@@ -105,7 +111,7 @@ export function RegisterScreen() {
 
             <Text className="text-3xl font-bold text-white">Create your account</Text>
             <Text className="mt-2 text-base text-slate-400">
-              Join TradeVision AI and unlock intelligent trading tools.
+              Build a more consistent research and decision process.
             </Text>
 
             {error ? (
@@ -151,9 +157,40 @@ export function RegisterScreen() {
                 error={errors.confirmPassword?.message}
               />
 
+              <View className="mb-4 mt-2 flex-row items-start">
+                <Pressable
+                  accessibilityRole="checkbox"
+                  accessibilityState={{ checked: acceptedLegal }}
+                  accessibilityLabel="Accept Terms of Service and Privacy Policy"
+                  onPress={() => setAcceptedLegal((value) => !value)}
+                  className="mr-3 mt-0.5"
+                >
+                  <Ionicons
+                    name={acceptedLegal ? 'checkbox' : 'square-outline'}
+                    size={22}
+                    color={acceptedLegal ? '#34D399' : '#94A3B8'}
+                  />
+                </Pressable>
+                <View className="flex-1">
+                  <Text className="text-sm text-slate-400">I have read and agree to the</Text>
+                  <View className="mt-1 flex-row flex-wrap">
+                    <Pressable onPress={() => void Linking.openURL(LEGAL_URLS.terms)}>
+                      <Text className="text-sm font-semibold text-emerald-400">
+                        Terms of Service
+                      </Text>
+                    </Pressable>
+                    <Text className="text-sm text-slate-400"> and </Text>
+                    <Pressable onPress={() => void Linking.openURL(LEGAL_URLS.privacy)}>
+                      <Text className="text-sm font-semibold text-emerald-400">Privacy Policy</Text>
+                    </Pressable>
+                    <Text className="text-sm text-slate-400">.</Text>
+                  </View>
+                </View>
+              </View>
+
               <Pressable
                 onPress={onSubmit}
-                disabled={isBusy}
+                disabled={isBusy || !acceptedLegal}
                 className="mt-2 items-center rounded-2xl bg-emerald-500 py-4 active:bg-emerald-600 disabled:opacity-60"
               >
                 {isBusy ? (
@@ -167,7 +204,7 @@ export function RegisterScreen() {
             <AuthDivider />
 
             <SocialAuthButtons
-              disabled={isBusy}
+              disabled={isBusy || !acceptedLegal}
               onGoogleSuccess={(idToken) => handleSocialSuccess(() => signInWithGoogle(idToken))}
               onAppleSuccess={() => handleSocialSuccess(signInWithAppleProvider)}
             />

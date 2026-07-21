@@ -41,12 +41,12 @@ export function AiChatBubble({ message }: AiChatBubbleProps) {
         {!isUser && message.metadata?.source ? (
           <View className="mt-2 flex-row items-center gap-2">
             <Badge
-              label={message.metadata.source === 'cloud' ? 'Cloud AI' : 'Engine'}
+              label="Local rules engine"
               variant="default"
               size="sm"
             />
             {message.metadata.confidence ? (
-              <Text variant="caption">{message.metadata.confidence}% confidence</Text>
+              <Text variant="caption">{message.metadata.confidence}% output quality</Text>
             ) : null}
           </View>
         ) : null}

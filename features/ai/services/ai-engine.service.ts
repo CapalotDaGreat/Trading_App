@@ -86,11 +86,11 @@ function buildTradeSuggestion(context: AiEnrichedContext): AiAnalysisResult {
   const resistance = nearestLevel(context.resistanceLevels ?? [], price, 'above') ?? price * 1.03;
   const atr = context.atr ?? price * 0.02;
 
-  let action: 'buy' | 'sell' | 'hold' | 'watch' = 'hold';
+  let action: 'research' | 'watch' | 'skip' = 'watch';
   if (confidence >= 58 && bias !== 'neutral') {
-    action = 'watch';
+    action = 'research';
   } else if (confidence < 45) {
-    action = 'hold';
+    action = 'skip';
   }
 
   const researchPaths: string[] = [];
@@ -127,7 +127,7 @@ function buildTradeSuggestion(context: AiEnrichedContext): AiAnalysisResult {
   if (context.detectedPatterns?.length) {
     const top = context.detectedPatterns[0];
     why.push(
-      `Recent ${top.name} pattern (${top.confidence}% confidence) ${top.bullish ? 'favors upside continuation if confirmed' : 'suggests caution on long exposure'}.`,
+      `Recent ${top.name} pattern (${top.confidence}% detection quality) ${top.bullish ? 'has an upward technical bias if confirmed' : 'has a downward technical bias if confirmed'}.`,
     );
   }
   if (context.adx !== undefined) {
@@ -146,8 +146,8 @@ function buildTradeSuggestion(context: AiEnrichedContext): AiAnalysisResult {
 
   const content =
     bias === 'neutral'
-      ? `${symbol} shows mixed technical signals. Wait for a clearer break above ${formatPrice(resistance)} or below ${formatPrice(support)} before committing capital.`
-      : `${symbol} leans ${bias} with ${confidence}% structural confidence. A disciplined approach uses ${formatPrice(support)}–${formatPrice(resistance)} as the decision zone.`;
+      ? `${symbol} has mixed technical evidence. Watch for clearer structure above ${formatPrice(resistance)} or below ${formatPrice(support)} before spending more research time.`
+      : `${symbol} has a ${bias} technical bias with ${confidence}% evidence quality. Use ${formatPrice(support)}–${formatPrice(resistance)} as a research zone, not a price forecast.`;
 
   return {
     type: 'trade_suggestion',
@@ -356,7 +356,7 @@ function buildIndicatorExplanation(
       context.rsi.signal === 'overbought'
         ? 'Consider waiting for pullback or using tighter risk if chasing longs.'
         : context.rsi.signal === 'oversold'
-          ? 'Watch for bullish reversal signals at support — not automatic buy.'
+          ? 'Watch for upward reversal evidence at support; the reading alone is not actionable.'
           : 'Momentum is balanced; combine with MACD and structure for conviction.'
     }`;
   } else if (normalized.includes('macd') && context.macd) {
@@ -396,7 +396,7 @@ function buildIndicatorExplanation(
         ? 'Overbought zone — watch for bearish crossover.'
         : context.stochastic.k < 20
           ? 'Oversold zone — watch for bullish crossover at support.'
-          : 'Mid-range — low conviction signal alone.'
+          : 'Mid-range — low-quality evidence on its own.'
     }`;
   } else if (context.rsi) {
     return buildIndicatorExplanation(context, 'RSI (14)');
@@ -452,7 +452,7 @@ function buildDailySummary(context: AiEnrichedContext): AiAnalysisResult {
       ? 'Risk appetite is improving across key benchmarks. Leadership appears in growth-sensitive areas while defensives lag. Favor confirmed breakouts with defined risk.'
       : sentiment === 'bearish'
         ? 'Markets are under pressure with risk-off undertones. Reduce exposure to high-beta names until support stabilizes. Cash is a valid position.'
-        : 'Markets are digesting mixed signals in a consolidation phase. Selectivity matters — wait for high-conviction setups rather than forcing trades.';
+        : 'Markets are digesting mixed evidence in a consolidation phase. Selectivity matters — prioritize clearer research candidates.';
 
   return {
     type: 'daily_summary',
@@ -726,14 +726,14 @@ export function generateEngineChatResponse(
         '',
         analysis.content,
         '',
-        '**Why (not a prediction):**',
+        '**Research evidence (not a prediction):**',
         ...(ts?.why.map((w) => `• ${w}`) ?? []),
         '',
         ts?.entryZone
-          ? `Entry zone: ${formatPrice(ts.entryZone.low)} – ${formatPrice(ts.entryZone.high)}`
+          ? `Observation zone: ${formatPrice(ts.entryZone.low)} – ${formatPrice(ts.entryZone.high)}`
           : '',
-        ts?.stopLoss ? `Suggested stop: ${formatPrice(ts.stopLoss)}` : '',
-        ts?.takeProfit ? `Target area: ${formatPrice(ts.takeProfit)}` : '',
+        ts?.stopLoss ? `Invalidation reference: ${formatPrice(ts.stopLoss)}` : '',
+        ts?.takeProfit ? `Next level to research: ${formatPrice(ts.takeProfit)}` : '',
         '',
         '_This is educational analysis, not financial advice._',
       ]

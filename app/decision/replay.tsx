@@ -35,11 +35,17 @@ export default function ChartReplayScreen() {
     return fromRadar.length ? fromRadar : ['SPY', 'NVDA', 'AAPL'];
   }, [radar.data]);
 
-  const { data: candles = [], isLoading, dataUpdatedAt } = useCandles({
+  const {
+    data: candleResult,
+    isLoading,
+    dataUpdatedAt: queryUpdatedAt,
+  } = useCandles({
     symbol,
     interval,
     limit: 120,
   });
+  const candles = useMemo(() => candleResult?.candles ?? [], [candleResult]);
+  const dataUpdatedAt = candleResult?.fetchedAt ?? queryUpdatedAt;
 
   const session = useMemo(
     () => buildChartReplay(symbol, candles, interval),

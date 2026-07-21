@@ -1,5 +1,6 @@
 import { View } from 'react-native';
 
+import { DataSourceBadge } from '@/features/markets/components/DataSourceBadge';
 import { Badge } from '@/shared/components/ui/Badge';
 import { GlassCard } from '@/shared/components/ui/GlassCard';
 import { Skeleton, SkeletonGroup } from '@/shared/components/ui/Skeleton';
@@ -29,7 +30,10 @@ export function SentimentPanel({ data, isLoading }: SentimentPanelProps) {
     <GlassCard className="p-4">
       <View className="mb-3 flex-row items-center justify-between">
         <Text variant="h3">Sentiment</Text>
-        <Badge label={levelToLabel(data.overallLevel)} variant="accent" size="sm" />
+        <View className="flex-row items-center gap-2">
+          <DataSourceBadge kind={data.source === 'mock' ? 'mock' : 'delayed'} />
+          <Badge label={levelToLabel(data.overallLevel)} variant="accent" size="sm" />
+        </View>
       </View>
 
       <View className="mb-4 items-center">

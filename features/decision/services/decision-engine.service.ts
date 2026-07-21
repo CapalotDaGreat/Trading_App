@@ -15,19 +15,17 @@ import {
 import { fetchFinancialNews } from '@/features/news/services/news.service';
 import type { Candle, Quote } from '@/shared/types/market';
 
-import { summarizeDecisionLog, getDecisionRecords } from '@/features/decision-log/services/decision-log.service';
+import {
+  countExplicitDecisionOutcomes,
+  getDecisionRecords,
+  summarizeDecisionLog,
+} from '@/features/decision-log/services/decision-log.service';
 
 import { biasFromScore, buildExplainability, buildCounterfactuals } from './explainability.service';
 import { prioritizeResearch } from './research-prioritizer.service';
-import {
-  buildResearchQueue,
-  buildTradingDayPlan,
-} from './coaching-loop.service';
+import { buildResearchQueue, buildTradingDayPlan } from './coaching-loop.service';
 import { applyLifecycleToSetups } from './setup-lifecycle.service';
-import {
-  buildSetupResearchChecklist,
-  historyNoteForSetup,
-} from './setup-enrichment.service';
+import { buildSetupResearchChecklist, historyNoteForSetup } from './setup-enrichment.service';
 import { loadTraderMemory } from './trader-intelligence.service';
 import { buildSkipSuggestions, buildWhyNot } from './why-not.service';
 import {
@@ -108,10 +106,19 @@ export async function detectRegime(): Promise<RegimeSnapshot> {
     regime === 'high_volatility' ? 'high' : absAvg > 0.5 ? 'medium' : 'low';
 
   const strategyMap: Record<MarketRegime, { best: string[]; avoid: string[] }> = {
-    risk_on: { best: ['Momentum', 'Swing longs', 'Breakout continuation'], avoid: ['Aggressive shorting'] },
-    risk_off: { best: ['Capital preservation', 'Defensive hedges', 'Selective shorts'], avoid: ['FOMO breakouts'] },
+    risk_on: {
+      best: ['Momentum', 'Swing longs', 'Breakout continuation'],
+      avoid: ['Aggressive shorting'],
+    },
+    risk_off: {
+      best: ['Capital preservation', 'Defensive hedges', 'Selective shorts'],
+      avoid: ['FOMO breakouts'],
+    },
     ranging: { best: ['Mean reversion', 'Support/resistance fades'], avoid: ['Breakout chasing'] },
-    high_volatility: { best: ['Smaller size', 'Wider stops / defined risk'], avoid: ['Oversized entries'] },
+    high_volatility: {
+      best: ['Smaller size', 'Wider stops / defined risk'],
+      avoid: ['Oversized entries'],
+    },
     trending: { best: ['Pullback entries with trend', 'Swing'], avoid: ['Counter-trend picks'] },
   };
 
@@ -153,7 +160,10 @@ export async function detectRegime(): Promise<RegimeSnapshot> {
   };
 }
 
-async function analyzeSymbolSetup(symbol: string, quote?: LiveQuote): Promise<SetupCardData | null> {
+async function analyzeSymbolSetup(
+  symbol: string,
+  quote?: LiveQuote,
+): Promise<SetupCardData | null> {
   try {
     const marketType = buildAssetFromSymbol(symbol).marketType;
     const candles = await fetchCandles({ symbol, marketType, interval: '1d', limit: 90 });
@@ -172,10 +182,9 @@ async function analyzeSymbolSetup(symbol: string, quote?: LiveQuote): Promise<Se
     if (analysis.summary.rsiSignal) why.push(`RSI: ${analysis.summary.rsiSignal}`);
     if (analysis.summary.macdSignal) why.push(`MACD: ${analysis.summary.macdSignal}`);
     if (pattern) why.push(`Recent pattern: ${pattern}`);
-    if (!why.length) why.push('Mixed signals — wait for clearer confirmation');
+    if (!why.length) why.push('Mixed technical evidence — wait for clearer confirmation');
 
-    const status =
-      confidence >= 65 ? 'forming' : confidence >= 45 ? 'watching' : 'watching';
+    const status = confidence >= 65 ? 'forming' : confidence >= 45 ? 'watching' : 'watching';
 
     const title =
       bias === 'bullish'
@@ -206,7 +215,10 @@ async function analyzeSymbolSetup(symbol: string, quote?: LiveQuote): Promise<Se
       risk: confidence > 70 ? 'medium' : 'low',
       entryZone:
         last && support && resistance
-          ? { low: round(Math.min(support, last.close)), high: round(Math.max(resistance, last.close)) }
+          ? {
+              low: round(Math.min(support, last.close)),
+              high: round(Math.max(resistance, last.close)),
+            }
           : undefined,
       lastPrice: quote?.price ?? last.close,
       changePercent: quote?.changePercent,
@@ -214,11 +226,21 @@ async function analyzeSymbolSetup(symbol: string, quote?: LiveQuote): Promise<Se
         confidence: Math.max(40, confidence),
         factors: [
           { label: 'Trend', agrees: bias !== 'neutral', detail: analysis.summary.trend },
-          { label: 'RSI', agrees: analysis.summary.rsiSignal !== 'neutral', detail: analysis.summary.rsiSignal },
-          { label: 'MACD', agrees: analysis.summary.macdSignal !== 'neutral', detail: analysis.summary.macdSignal },
+          {
+            label: 'RSI',
+            agrees: analysis.summary.rsiSignal !== 'neutral',
+            detail: analysis.summary.rsiSignal,
+          },
+          {
+            label: 'MACD',
+            agrees: analysis.summary.macdSignal !== 'neutral',
+            detail: analysis.summary.macdSignal,
+          },
           {
             label: 'Fresh quote',
-            agrees: Boolean(quote && Date.now() - quote.fetchedAt < MARKET_DATA_POLICY.maxQuoteAgeMs),
+            agrees: Boolean(
+              quote && Date.now() - quote.fetchedAt < MARKET_DATA_POLICY.maxQuoteAgeMs,
+            ),
             detail: quote ? `${round(quote.changePercent)}%` : 'Candle close only',
           },
         ],
@@ -296,8 +318,14 @@ export async function buildDecisionBrief(input?: {
   const memory = await loadTraderMemory();
   const portfolioSyms = input?.portfolioSymbols ?? [];
   const watch = input?.watchlistSymbols?.length
-    ? [...new Set([...input.watchlistSymbols, ...memory.favoriteAssets, ...portfolioSyms])].slice(0, 10)
-    : [...new Set([...memory.favoriteAssets, 'NVDA', 'AAPL', 'SPY', 'BTC/USD', 'EUR/USD'])].slice(0, 8);
+    ? [...new Set([...input.watchlistSymbols, ...memory.favoriteAssets, ...portfolioSyms])].slice(
+        0,
+        10,
+      )
+    : [...new Set([...memory.favoriteAssets, 'NVDA', 'AAPL', 'SPY', 'BTC/USD', 'EUR/USD'])].slice(
+        0,
+        8,
+      );
 
   const now = Date.now();
   const [regime, quotes, calendarEvents, news, setups, logRecords] = await Promise.all([
@@ -355,10 +383,7 @@ export async function buildDecisionBrief(input?: {
       timeBudgetMinutes: budget,
     });
     const dqs = computeDecisionQualityScore(withChecklist);
-    const balance = buildResearchBalance(
-      withChecklist,
-      enrichedAlternatives(setups, setup.symbol),
-    );
+    const balance = buildResearchBalance(withChecklist, enrichedAlternatives(setups, setup.symbol));
     const scored: SetupCardData = {
       ...withChecklist,
       confidence: dqs.score,
@@ -414,12 +439,7 @@ export async function buildDecisionBrief(input?: {
     (s) => s.risk === 'high' || s.status === 'invalidated' || (s.whyNot?.reasons.length ?? 0) >= 2,
   ).length;
 
-  const researchedToday = logRecords.filter(
-    (r) =>
-      r.action === 'researched' ||
-      r.action === 'opened' ||
-      r.action === 'skipped',
-  ).filter((r) => Date.now() - r.createdAt < 86_400_000).length;
+  const explicitDecisionsToday = countExplicitDecisionOutcomes(logRecords, Date.now() - 86_400_000);
 
   const intel = buildDecisionIntelligenceContext({
     regime: regime.regime,
@@ -434,12 +454,12 @@ export async function buildDecisionBrief(input?: {
   });
 
   const fatigue = buildDecisionFatigue({
-    reviewedToday: researchedToday,
+    reviewedToday: explicitDecisionsToday,
     queueRemaining: researchQueue.filter((q) => !q.completed).length,
   });
 
   const decisionDebt = buildDecisionDebt({
-    unreviewedSetups: Math.max(0, enrichedSetups.length - researchedToday),
+    unreviewedSetups: Math.max(0, enrichedSetups.length - explicitDecisionsToday),
     incompleteJournals: Math.max(0, logSummary.researched - logSummary.journaled),
     unfinishedLessons: 0,
     ignoredAlerts: 0,
@@ -454,7 +474,9 @@ export async function buildDecisionBrief(input?: {
 
   const memoryBoost = memory.bestSetups.length
     ? topSetups.filter((s) =>
-        memory.bestSetups.some((b) => s.title.toLowerCase().includes(b.toLowerCase().split(' ')[0] ?? '')),
+        memory.bestSetups.some((b) =>
+          s.title.toLowerCase().includes(b.toLowerCase().split(' ')[0] ?? ''),
+        ),
       )
     : topSetups;
 
@@ -482,7 +504,9 @@ export async function buildDecisionBrief(input?: {
     quotesFetchedAt,
     startHereSymbol: startSymbol,
     processScoreWeek: logSummary.processScore,
-    calendarSource: (calendarEvents.length ? calendarSource : 'rss') as DecisionBrief['calendarSource'],
+    calendarSource: (calendarEvents.length
+      ? calendarSource
+      : 'rss') as DecisionBrief['calendarSource'],
     timeBudgetPick,
     focusSummary: {
       opportunities: topSetups.length,
@@ -491,13 +515,7 @@ export async function buildDecisionBrief(input?: {
     },
     estimatedResearchMinutes,
     researchQueue,
-    skipSuggestions: buildSkipSuggestions(
-      enrichedSetups,
-      regime.regime,
-      memory,
-      events.length,
-      2,
-    ),
+    skipSuggestions: buildSkipSuggestions(enrichedSetups, regime.regime, memory, events.length, 2),
     decisionDebt,
     fatigue,
     psychologyReminder: intel.psychologyReminder,

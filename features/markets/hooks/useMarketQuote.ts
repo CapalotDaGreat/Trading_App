@@ -2,8 +2,8 @@ import { useQuery } from '@tanstack/react-query';
 
 import type { MarketType } from '@/shared/types/market';
 
-import { MARKET_DATA_POLICY, withFetchedAt } from '../constants/freshness';
-import { buildAssetFromSymbol, fetchQuote } from '../services/market-data.service';
+import { MARKET_DATA_POLICY } from '../constants/freshness';
+import { buildAssetFromSymbol, fetchQuoteWithMetadata } from '../services/market-data.service';
 
 export const marketQuoteKeys = {
   all: ['market-quote'] as const,
@@ -27,8 +27,14 @@ export function useMarketQuote({
   return useQuery({
     queryKey: marketQuoteKeys.quote(symbol, marketType),
     queryFn: async () => {
-      const quote = await fetchQuote(symbol, marketType);
-      return withFetchedAt(quote, marketType ?? buildAssetFromSymbol(symbol).marketType);
+      const result = await fetchQuoteWithMetadata(symbol, marketType);
+      return {
+        ...result.quote,
+        fetchedAt: result.fetchedAt,
+        provider: result.provider,
+        dataSourceKind: result.kind,
+        marketType: marketType ?? buildAssetFromSymbol(symbol).marketType,
+      };
     },
     enabled: enabled && symbol.length > 0,
     refetchInterval,

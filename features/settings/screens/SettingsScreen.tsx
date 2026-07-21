@@ -1,23 +1,45 @@
 import { useRouter } from 'expo-router';
-import { View } from 'react-native';
+import { useState } from 'react';
+import { Linking, TextInput, View } from 'react-native';
 
 import { useAuth } from '@/features/auth/hooks/useAuth';
-import { PremiumBadge } from '@/features/subscription/components/PremiumBadge';
-import { useSubscription } from '@/features/subscription/hooks/useSubscription';
 import { SettingsRow } from '@/features/settings/components/SettingsRow';
 import { ThemeToggle } from '@/features/settings/components/ThemeToggle';
 import { useSettings } from '@/features/settings/hooks/useSettings';
+import { PremiumBadge } from '@/features/subscription/components/PremiumBadge';
+import { useSubscription } from '@/features/subscription/hooks/useSubscription';
 import { Header } from '@/shared/components/layout/Header';
 import { Screen } from '@/shared/components/layout/Screen';
 import { Button } from '@/shared/components/ui/Button';
 import { GlassCard } from '@/shared/components/ui/GlassCard';
 import { Text } from '@/shared/components/ui/Text';
+import { LEGAL_URLS } from '@/shared/constants/legal';
 
 export function SettingsScreen() {
   const router = useRouter();
-  const { user, signOut } = useAuth();
-  const { isPremium } = useSubscription();
+  const { user, signOut, deleteAccount } = useAuth();
+  const { isPremium, manage } = useSubscription();
   const { settings, updateSettings, sync } = useSettings();
+  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
+  const [deletePhrase, setDeletePhrase] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deletionError, setDeletionError] = useState<string | null>(null);
+
+  const handleDeleteAccount = async () => {
+    if (deletePhrase !== 'DELETE') return;
+    setIsDeleting(true);
+    setDeletionError(null);
+    try {
+      await deleteAccount();
+    } catch (error) {
+      setDeletionError(
+        (error as { message?: string }).message ??
+          'Account deletion failed. Please sign in again and retry.',
+      );
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   return (
     <Screen scrollable>
@@ -29,7 +51,7 @@ export function SettingsScreen() {
             <View className="flex-1 pr-4">
               <Text variant="h3">Upgrade to Premium</Text>
               <Text variant="body-sm" className="mt-1">
-                Faster refresh, trader DNA, AI coach, full radar — improve decisions, not just charts.
+                Faster refresh, trader DNA, process coaching, and full radar depth.
               </Text>
             </View>
             <PremiumBadge size="md" />
@@ -106,8 +128,98 @@ export function SettingsScreen() {
           label="Manage Subscription"
           value={isPremium ? 'Premium' : 'Free'}
           showChevron
-          onPress={() => router.push('/subscription')}
+          onPress={() => void manage()}
         />
+      </GlassCard>
+
+      <Text variant="label" className="mb-2 mt-6 px-1">
+        Legal & Support
+      </Text>
+      <GlassCard className="overflow-hidden">
+        <SettingsRow
+          icon="document-text-outline"
+          label="Terms of Service"
+          showChevron
+          onPress={() => void Linking.openURL(LEGAL_URLS.terms)}
+        />
+        <SettingsRow
+          icon="lock-closed-outline"
+          label="Privacy Policy"
+          showChevron
+          onPress={() => void Linking.openURL(LEGAL_URLS.privacy)}
+        />
+        <SettingsRow
+          icon="help-circle-outline"
+          label="Support"
+          showChevron
+          onPress={() => void Linking.openURL(LEGAL_URLS.support)}
+        />
+        <SettingsRow
+          icon="information-circle-outline"
+          label="Account deletion information"
+          showChevron
+          onPress={() => void Linking.openURL(LEGAL_URLS.accountDeletion)}
+        />
+      </GlassCard>
+
+      <Text variant="label" className="mb-2 mt-6 px-1">
+        Delete Account
+      </Text>
+      <GlassCard className="p-4">
+        <Text variant="body-sm">
+          Permanently deletes your account and TradeVision app data. Deleting your account does not
+          cancel Apple App Store or Google Play billing.
+        </Text>
+        <Button variant="secondary" className="mt-4" onPress={() => void manage()}>
+          Manage Subscription First
+        </Button>
+        {!showDeleteConfirmation ? (
+          <Button variant="danger" className="mt-3" onPress={() => setShowDeleteConfirmation(true)}>
+            Delete Account
+          </Button>
+        ) : (
+          <View className="mt-4">
+            <Text variant="body-sm">
+              This cannot be undone. Type DELETE to permanently erase the account and app data.
+            </Text>
+            <TextInput
+              accessibilityLabel="Type DELETE to confirm account deletion"
+              autoCapitalize="characters"
+              autoCorrect={false}
+              value={deletePhrase}
+              onChangeText={setDeletePhrase}
+              placeholder="DELETE"
+              placeholderTextColor="#64748B"
+              className="mt-3 rounded-xl border border-bearish px-4 py-3 text-text-primary"
+            />
+            {deletionError ? (
+              <Text variant="caption" className="mt-2 text-bearish">
+                {deletionError}
+              </Text>
+            ) : null}
+            <View className="mt-3 gap-3">
+              <Button
+                variant="danger"
+                disabled={deletePhrase !== 'DELETE'}
+                loading={isDeleting}
+                onPress={() => void handleDeleteAccount()}
+              >
+                Permanently Delete Account
+              </Button>
+              <Button
+                variant="ghost"
+                disabled={isDeleting}
+                onPress={() => {
+                  setShowDeleteConfirmation(false);
+                  setDeletePhrase('');
+                  setDeletionError(null);
+                }}
+              >
+                Keep Account
+              </Button>
+            </View>
+          </View>
+        )}
       </GlassCard>
 
       <View className="mt-8 gap-3">

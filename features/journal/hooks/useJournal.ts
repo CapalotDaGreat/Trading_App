@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Platform, Share } from 'react-native';
 
 import { useAuth } from '@/features/auth/hooks/useAuth';
-import { canUseFirestore } from '@/firebase/config';
+import { appendDecisionRecord } from '@/features/decision-log/services/decision-log.service';
 import { canAccessFeature } from '@/shared/constants/subscription';
 import { useSubscriptionStore } from '@/shared/stores/subscription.store';
 
@@ -29,7 +29,7 @@ export function useJournal() {
   const entriesQuery = useQuery({
     queryKey: journalQueryKey(uid),
     queryFn: () => getJournalEntries(uid!),
-    enabled: canUseFirestore(uid),
+    enabled: Boolean(uid),
   });
 
   const entries = entriesQuery.data ?? [];
@@ -37,8 +37,16 @@ export function useJournal() {
 
   const createMutation = useMutation({
     mutationFn: (input: CreateJournalEntryInput) => createJournalEntry(uid!, input),
-    onSuccess: () => {
+    onSuccess: (entry) => {
+      void appendDecisionRecord(uid, {
+        symbol: entry.symbol,
+        regime: 'journal',
+        action: 'journaled',
+        note: entry.notes,
+        eventKey: `journal:${entry.id}`,
+      });
       void queryClient.invalidateQueries({ queryKey: journalQueryKey(uid) });
+      void queryClient.invalidateQueries({ queryKey: ['decision-log'] });
     },
   });
 

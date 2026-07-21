@@ -6,14 +6,26 @@
   "primaryCategory": "FINANCE",
   "contentRating": "Everyone",
   "shortDescription": "Decision-first trading research and coaching — not buy/sell signals.",
-  "fullDescription": "TradeVision AI helps discretionary traders decide what deserves research time. Get a Today brief, setup radar, regime context, journal coaching, chart replay, and an Academy.\n\nFree includes core decision tools, a generous watchlist, and limited AI. Premium unlocks full radar depth, cloud AI coaching (fair-use daily allowance), portfolio intelligence, faster quote updates (polling — not exchange ticks), advanced charts, and data export.\n\nBilling: monthly ($9.99) or yearly ($71.99, ~$5.99/mo) with a 7-day free trial on yearly when available.\n\nFeatures:\n• Decision Brief and setup radar\n• AI coaching and analysis\n• Portfolio tracking and risk (Premium)\n• Price alerts and economic calendar\n• Trading Academy with practice links",
-  "keywords": ["trading", "stocks", "AI", "finance", "portfolio", "investing", "coaching"],
+  "fullDescription": "TradeVision AI helps discretionary traders decide what deserves research time. Use a Today brief, research-value queue, regime context, decision journal, replay, and Academy practice to build a more consistent process.\n\nScores measure research priority and decision-process quality; they do not predict price direction. TradeVision is not a broker, does not execute trades, and does not provide buy/sell signals.\n\nPremium adds deeper decision radar, portfolio context, faster quote polling, advanced charts, and data export. Monthly and yearly subscriptions renew automatically unless cancelled in Google Play subscription settings. Cancellation stops renewal while access continues through the store-reported paid-through date. The yearly plan includes a 7-day trial only when shown on the Google Play purchase sheet.\n\nFeatures:\n• Decision Brief and research-value queue\n• Rules-based decision coaching and explainability\n• Portfolio context and risk tools (Premium)\n• Price alerts and economic calendar\n• Trading Academy with practice links",
+  "keywords": [
+    "trading",
+    "stocks",
+    "decision journal",
+    "finance",
+    "portfolio",
+    "research",
+    "coaching"
+  ],
   "screenshots": {
     "phone": [],
     "tablet": [],
     "featureGraphic": null
   },
   "contactEmail": "support@tradevision.ai",
+  "supportUrl": "https://tradevision.ai/support",
+  "termsUrl": "https://tradevision.ai/terms",
   "privacyPolicyUrl": "https://tradevision.ai/privacy",
+  "accountDeletionUrl": "https://tradevision.ai/account-deletion",
+  "screenshotInventory": "store/screenshots/README.md",
   "website": "https://tradevision.ai"
 }

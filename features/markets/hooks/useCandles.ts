@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import type { CandleInterval, MarketType } from '@/shared/types/market';
 
 import { MARKET_DATA_POLICY } from '../constants/freshness';
-import { detectMarketType, fetchCandles } from '../services/market-data.service';
+import { detectMarketType, fetchCandlesWithMetadata } from '../services/market-data.service';
 
 export const candlesKeys = {
   all: ['candles'] as const,
@@ -31,7 +31,7 @@ export function useCandles({
   return useQuery({
     queryKey: candlesKeys.symbol(symbol, interval, marketType),
     queryFn: () =>
-      fetchCandles({
+      fetchCandlesWithMetadata({
         symbol,
         interval,
         marketType: marketType ?? detectMarketType(symbol),

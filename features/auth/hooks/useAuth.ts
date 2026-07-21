@@ -1,3 +1,4 @@
+import { useQueryClient } from '@tanstack/react-query';
 import {
   createContext,
   createElement,
@@ -9,11 +10,18 @@ import {
   type ReactNode,
 } from 'react';
 
+import { useAcademyProgressStore } from '@/features/academy/stores/academy-progress.store';
+import { useDecisionUiStore } from '@/features/decision/stores/decision-ui.store';
+import { useDecisionLabStore } from '@/features/decision-lab/stores/lab.store';
+import { subscriptionService } from '@/features/subscription/services/subscription.service';
 import { DEMO_USER_UID, isFirebaseConfigured } from '@/firebase/config';
+import { useSettingsStore } from '@/shared/stores/settings.store';
+import { useSubscriptionStore } from '@/shared/stores/subscription.store';
 
 import {
   buildMfaChallengeState,
   clearPendingMfaResolver,
+  deleteCurrentAccount,
   enrollTotpMfa,
   finalizeTotpEnrollment,
   getEnrolledMfaFactors,
@@ -62,6 +70,7 @@ interface AuthContextValue extends AuthState {
   signInWithGoogle: (idToken: string) => Promise<AuthActionResult>;
   signInWithAppleProvider: () => Promise<AuthActionResult>;
   signOut: () => Promise<void>;
+  deleteAccount: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   resendVerificationEmail: () => Promise<void>;
   refreshUser: () => Promise<AuthUser | null>;
@@ -90,6 +99,7 @@ function deriveStatus(user: AuthUser | null, mfaRequired: boolean): AuthState['s
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const firebaseReady = isFirebaseConfigured();
+  const queryClient = useQueryClient();
 
   const [state, setState] = useState<AuthState>(() =>
     firebaseReady
@@ -118,6 +128,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const pendingResolver = getPendingMfaResolver();
       const user = firebaseUser ? mapFirebaseUser(firebaseUser) : null;
       const mfaRequired = Boolean(pendingResolver);
+      if (useSubscriptionStore.getState().ownerUid !== user?.uid) {
+        useSubscriptionStore.getState().reset();
+      }
 
       setState({
         status: deriveStatus(user, mfaRequired),
@@ -131,38 +144,41 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return unsubscribe;
   }, [firebaseReady]);
 
-  const runAuthAction = useCallback(async (action: () => Promise<void>): Promise<AuthActionResult> => {
-    setState((prev) => ({ ...prev, status: 'loading', error: null }));
-    try {
-      await action();
-      setState((prev) => ({
-        ...prev,
-        status: deriveStatus(prev.user, Boolean(getPendingMfaResolver())),
-        error: null,
-      }));
-      return 'success';
-    } catch (error) {
-      const authError = mapAuthError(error);
-      const pendingResolver = getPendingMfaResolver();
-
-      if (authError.code === 'auth/multi-factor-auth-required' && pendingResolver) {
+  const runAuthAction = useCallback(
+    async (action: () => Promise<void>): Promise<AuthActionResult> => {
+      setState((prev) => ({ ...prev, status: 'loading', error: null }));
+      try {
+        await action();
         setState((prev) => ({
           ...prev,
-          status: 'mfa_required',
-          mfaChallenge: buildMfaChallengeState(pendingResolver),
+          status: deriveStatus(prev.user, Boolean(getPendingMfaResolver())),
           error: null,
         }));
-        return 'mfa_required';
-      }
+        return 'success';
+      } catch (error) {
+        const authError = mapAuthError(error);
+        const pendingResolver = getPendingMfaResolver();
 
-      setState((prev) => ({
-        ...prev,
-        status: deriveStatus(prev.user, false),
-        error: authError.message,
-      }));
-      throw error;
-    }
-  }, []);
+        if (authError.code === 'auth/multi-factor-auth-required' && pendingResolver) {
+          setState((prev) => ({
+            ...prev,
+            status: 'mfa_required',
+            mfaChallenge: buildMfaChallengeState(pendingResolver),
+            error: null,
+          }));
+          return 'mfa_required';
+        }
+
+        setState((prev) => ({
+          ...prev,
+          status: deriveStatus(prev.user, false),
+          error: authError.message,
+        }));
+        throw error;
+      }
+    },
+    [],
+  );
 
   const value = useMemo<AuthContextValue>(
     () => ({
@@ -220,6 +236,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }),
       signOut: async () => {
         clearPendingMfaResolver();
+        useSubscriptionStore.getState().reset();
         await signOutUser();
         if (!isFirebaseConfigured()) {
           setState({
@@ -229,6 +246,40 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             mfaChallenge: null,
             error: null,
           });
+        }
+      },
+      deleteAccount: async () => {
+        setState((prev) => ({ ...prev, error: null }));
+        try {
+          await deleteCurrentAccount();
+          await subscriptionService.configureForUser(null);
+          useSubscriptionStore.getState().reset();
+          useSettingsStore.getState().reset();
+          useAcademyProgressStore.getState().resetProgress();
+          useDecisionLabStore.getState().resetAccount();
+          useDecisionUiStore.setState({ dqsExplainerDismissed: false });
+          queryClient.clear();
+          setState(
+            isFirebaseConfigured()
+              ? {
+                  status: 'unauthenticated',
+                  user: null,
+                  firebaseUser: null,
+                  mfaChallenge: null,
+                  error: null,
+                }
+              : {
+                  status: 'authenticated',
+                  user: DEMO_GUEST_USER,
+                  firebaseUser: null,
+                  mfaChallenge: null,
+                  error: null,
+                },
+          );
+        } catch (error) {
+          const authError = mapAuthError(error);
+          setState((prev) => ({ ...prev, error: authError.message }));
+          throw error;
         }
       },
       resetPassword: async (email) => {
@@ -277,7 +328,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       enrolledMfaFactors: getEnrolledMfaFactors(),
       clearError: () => setState((prev) => ({ ...prev, error: null })),
     }),
-    [runAuthAction, state],
+    [queryClient, runAuthAction, state],
   );
 
   return createElement(AuthContext.Provider, { value }, children);

@@ -3,6 +3,7 @@ import { Pressable, View } from 'react-native';
 
 import { GlassCard } from '@/shared/components/ui/GlassCard';
 import { Text } from '@/shared/components/ui/Text';
+import { NON_PREDICTION_COPY, TRUST_LANGUAGE } from '@/shared/constants/trust-language';
 import { useTheme } from '@/shared/hooks/useTheme';
 
 import { useDecisionUiStore } from '../stores/decision-ui.store';
@@ -39,15 +40,15 @@ export function DecisionQualityExplainer() {
 
       <Text variant="body-sm" className="leading-relaxed text-text-secondary">
         <Text variant="body-sm" className="font-semibold text-text-primary">
-          Research Value (RVS)
+          {TRUST_LANGUAGE.rvs.name} ({TRUST_LANGUAGE.rvs.short})
         </Text>{' '}
         answers: “Is this worth my research time?” Regime fit, portfolio overlap, catalysts, and
         your Trading DNA all factor in.{' '}
         <Text variant="body-sm" className="font-semibold text-text-primary">
-          Decision Quality (DQS)
+          {TRUST_LANGUAGE.dqs.name} ({TRUST_LANGUAGE.dqs.short})
         </Text>{' '}
         grades your process checklist — trend, risk defined, timeframes, catalyst, confirmation.
-        Neither score predicts price direction. High RVS means “worth a closer look,” not “buy.”
+        {NON_PREDICTION_COPY} High RVS means “worth a closer look,” not an instruction to trade.
       </Text>
 
       <Pressable accessibilityRole="button" onPress={dismiss} className="mt-3 self-start">

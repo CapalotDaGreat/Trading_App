@@ -1,8 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
 
 import { useAuth } from '@/features/auth/hooks/useAuth';
-import { canUseFirestore } from '@/firebase/config';
 import { subscriptionService } from '@/features/subscription/services/subscription.service';
 import type {
   SubscriptionPlanId,
@@ -16,8 +15,25 @@ export function useSubscription() {
   const { user } = useAuth();
   const uid = user?.uid ?? null;
   const queryClient = useQueryClient();
-  const { setPremium, setLoading, isPremium, isLoading, tier, expirationDate, productId } =
-    useSubscriptionStore();
+  const {
+    setPremium,
+    setLoading,
+    reset,
+    ownerUid,
+    isPremium,
+    isLoading,
+    tier,
+    expirationDate,
+    productId,
+  } = useSubscriptionStore();
+
+  useEffect(() => {
+    if (ownerUid !== uid) {
+      reset();
+      queryClient.removeQueries({ queryKey: [SUBSCRIPTION_QUERY_KEY] });
+    }
+    void subscriptionService.configureForUser(uid);
+  }, [ownerUid, uid, reset, queryClient]);
 
   const subscriptionQuery = useQuery({
     queryKey: [SUBSCRIPTION_QUERY_KEY, uid],
@@ -28,14 +44,20 @@ export function useSubscription() {
         const record =
           (await subscriptionService.getSubscription(uid)) ??
           (await subscriptionService.syncFromRevenueCat(uid));
-        setPremium(record.isPremium, record.productId ?? undefined, record.expiresAt ?? undefined);
+        setPremium(
+          record.isPremium,
+          record.productId ?? undefined,
+          record.expiresAt ?? undefined,
+          uid,
+        );
         return record;
       } finally {
         setLoading(false);
       }
     },
-    enabled: canUseFirestore(uid),
-    staleTime: 60_000,
+    enabled: Boolean(uid),
+    staleTime: 15_000,
+    refetchInterval: 60_000,
   });
 
   const purchaseMutation = useMutation({
@@ -49,6 +71,7 @@ export function useSubscription() {
           result.subscription.isPremium,
           result.subscription.productId ?? undefined,
           result.subscription.expiresAt ?? undefined,
+          uid ?? undefined,
         );
       }
       void queryClient.invalidateQueries({ queryKey: [SUBSCRIPTION_QUERY_KEY, uid] });
@@ -61,7 +84,12 @@ export function useSubscription() {
       return subscriptionService.restorePurchases(uid);
     },
     onSuccess: (record) => {
-      setPremium(record.isPremium, record.productId ?? undefined, record.expiresAt ?? undefined);
+      setPremium(
+        record.isPremium,
+        record.productId ?? undefined,
+        record.expiresAt ?? undefined,
+        uid ?? undefined,
+      );
       void queryClient.invalidateQueries({ queryKey: [SUBSCRIPTION_QUERY_KEY, uid] });
     },
   });
@@ -71,19 +99,55 @@ export function useSubscription() {
     setLoading(true);
     try {
       const record = await subscriptionService.syncFromRevenueCat(uid);
-      setPremium(record.isPremium, record.productId ?? undefined, record.expiresAt ?? undefined);
+      setPremium(
+        record.isPremium,
+        record.productId ?? undefined,
+        record.expiresAt ?? undefined,
+        uid,
+      );
       await queryClient.invalidateQueries({ queryKey: [SUBSCRIPTION_QUERY_KEY, uid] });
     } finally {
       setLoading(false);
     }
   }, [uid, setPremium, setLoading, queryClient]);
 
+  const manage = useCallback(
+    () => subscriptionService.manageSubscription(subscriptionQuery.data ?? null),
+    [subscriptionQuery.data],
+  );
+
+  useEffect(() => {
+    const expiresAt = subscriptionQuery.data?.expiresAt;
+    if (!uid || !expiresAt) return;
+    const delay = Date.parse(expiresAt) - Date.now();
+    if (delay <= 0) {
+      setPremium(false, undefined, undefined, uid);
+      return;
+    }
+    if (delay > 2_147_483_647) return;
+
+    const timer = setTimeout(() => {
+      setPremium(false, undefined, undefined, uid);
+      queryClient.setQueryData<SubscriptionRecord | null>(
+        [SUBSCRIPTION_QUERY_KEY, uid],
+        (record) => (record ? { ...record, isPremium: false, tier: 'free' } : record),
+      );
+      void queryClient.invalidateQueries({ queryKey: [SUBSCRIPTION_QUERY_KEY, uid] });
+    }, delay);
+    return () => clearTimeout(timer);
+  }, [subscriptionQuery.data?.expiresAt, uid, setPremium, queryClient]);
+
+  const cachedPremium =
+    ownerUid === uid &&
+    isPremium &&
+    (!expirationDate || Date.parse(expirationDate) > Date.now());
+
   return {
     uid,
     plans: subscriptionService.getPlans(),
     subscription: subscriptionQuery.data,
-    isPremium: subscriptionQuery.data?.isPremium ?? isPremium,
-    tier: subscriptionQuery.data?.tier ?? tier,
+    isPremium: subscriptionQuery.data?.isPremium ?? cachedPremium,
+    tier: subscriptionQuery.data?.tier ?? (cachedPremium ? tier : 'free'),
     expirationDate: subscriptionQuery.data?.expiresAt ?? expirationDate,
     productId: subscriptionQuery.data?.productId ?? productId,
     isLoading: subscriptionQuery.isLoading || isLoading,
@@ -95,6 +159,8 @@ export function useSubscription() {
     restore: restoreMutation.mutateAsync,
     isRestoring: restoreMutation.isPending,
     restoreError: restoreMutation.error,
+    manage,
+    nativeBillingAvailable: subscriptionService.isNativeBillingAvailable(),
     refresh,
   };
 }

@@ -1,5 +1,6 @@
 import { apiRequest, ApiError } from '@/shared/services/api/api-client';
 import type { Asset, Candle, CandleInterval, MarketType, Quote } from '@/shared/types/market';
+import type { DataSourceKind } from '../constants/data-source';
 
 const FINNHUB_KEY = process.env.EXPO_PUBLIC_FINNHUB_API_KEY ?? '';
 const ALPHA_VANTAGE_KEY = process.env.EXPO_PUBLIC_ALPHA_VANTAGE_API_KEY ?? '';
@@ -42,6 +43,26 @@ export interface MarketDataRequest {
 export interface CandlesRequest extends MarketDataRequest {
   interval: CandleInterval;
   limit?: number;
+}
+
+export type MarketDataProvider =
+  | 'coingecko'
+  | 'exchange-rate-api'
+  | 'finnhub'
+  | 'alpha-vantage';
+
+export interface MarketDataMetadata {
+  provider: MarketDataProvider;
+  fetchedAt: number;
+  kind: DataSourceKind;
+}
+
+export interface QuoteResult extends MarketDataMetadata {
+  quote: Quote;
+}
+
+export interface CandleResult extends MarketDataMetadata {
+  candles: Candle[];
 }
 
 function parseCryptoSymbol(symbol: string): { base: string; quote: string } {
@@ -308,21 +329,53 @@ async function fetchStockQuote(symbol: string): Promise<Quote> {
   return fetchAlphaVantageQuote(symbol);
 }
 
-export async function fetchQuote(symbol: string, marketType?: MarketType): Promise<Quote> {
+export async function fetchQuoteWithMetadata(
+  symbol: string,
+  marketType?: MarketType,
+): Promise<QuoteResult> {
   const type = marketType ?? detectMarketType(symbol);
 
   switch (type) {
     case 'crypto':
-      return fetchCryptoQuote(symbol);
+      return {
+        quote: await fetchCryptoQuote(symbol),
+        provider: 'coingecko',
+        fetchedAt: Date.now(),
+        kind: 'delayed',
+      };
     case 'forex':
-      return fetchForexQuote(symbol);
+      return {
+        quote: await fetchForexQuote(symbol),
+        provider: 'exchange-rate-api',
+        fetchedAt: Date.now(),
+        kind: 'delayed',
+      };
     case 'stocks':
     case 'indices':
-    case 'commodities':
-      return fetchStockQuote(symbol);
+    case 'commodities': {
+      const finnhubQuote = await fetchFinnhubQuote(symbol);
+      if (finnhubQuote) {
+        return { quote: finnhubQuote, provider: 'finnhub', fetchedAt: Date.now(), kind: 'delayed' };
+      }
+      return {
+        quote: await fetchAlphaVantageQuote(symbol),
+        provider: 'alpha-vantage',
+        fetchedAt: Date.now(),
+        kind: 'delayed',
+      };
+    }
     default:
-      return fetchStockQuote(symbol);
+      return {
+        quote: await fetchStockQuote(symbol),
+        provider: FINNHUB_KEY ? 'finnhub' : 'alpha-vantage',
+        fetchedAt: Date.now(),
+        kind: 'delayed',
+      };
   }
+}
+
+export async function fetchQuote(symbol: string, marketType?: MarketType): Promise<Quote> {
+  return (await fetchQuoteWithMetadata(symbol, marketType)).quote;
 }
 
 async function fetchCryptoCandles(
@@ -510,25 +563,56 @@ async function fetchForexCandles(
   throw new ApiError(`Forex OHLC unavailable for ${symbol}. Configure Finnhub for real FX candles.`, 503);
 }
 
-export async function fetchCandles(request: CandlesRequest): Promise<Candle[]> {
+export async function fetchCandlesWithMetadata(request: CandlesRequest): Promise<CandleResult> {
   const { symbol, marketType, interval, limit = 100 } = request;
   const type = marketType ?? detectMarketType(symbol);
 
   switch (type) {
     case 'crypto':
-      return fetchCryptoCandles(symbol, interval, limit);
+      return {
+        candles: await fetchCryptoCandles(symbol, interval, limit),
+        provider: 'coingecko',
+        fetchedAt: Date.now(),
+        kind: 'approximate',
+      };
     case 'forex':
-      return fetchForexCandles(symbol, interval, limit);
+      return {
+        candles: await fetchForexCandles(symbol, interval, limit),
+        provider: 'finnhub',
+        fetchedAt: Date.now(),
+        kind: 'delayed',
+      };
     case 'stocks':
     case 'indices':
     case 'commodities': {
       const finnhubCandles = await fetchFinnhubCandles(symbol, interval, limit);
-      if (finnhubCandles?.length) return finnhubCandles;
-      return fetchAlphaVantageCandles(symbol, interval, limit);
+      if (finnhubCandles?.length) {
+        return {
+          candles: finnhubCandles,
+          provider: 'finnhub',
+          fetchedAt: Date.now(),
+          kind: 'delayed',
+        };
+      }
+      return {
+        candles: await fetchAlphaVantageCandles(symbol, interval, limit),
+        provider: 'alpha-vantage',
+        fetchedAt: Date.now(),
+        kind: 'delayed',
+      };
     }
     default:
-      return fetchAlphaVantageCandles(symbol, interval, limit);
+      return {
+        candles: await fetchAlphaVantageCandles(symbol, interval, limit),
+        provider: 'alpha-vantage',
+        fetchedAt: Date.now(),
+        kind: 'delayed',
+      };
   }
+}
+
+export async function fetchCandles(request: CandlesRequest): Promise<Candle[]> {
+  return (await fetchCandlesWithMetadata(request)).candles;
 }
 
 export async function fetchQuotes(symbols: string[]): Promise<Quote[]> {

@@ -1,6 +1,7 @@
 import { initializeApp, getApps, getApp, type FirebaseApp } from 'firebase/app';
 import { getAuth, initializeAuth, type Auth, type Persistence } from 'firebase/auth';
 import { getFirestore, type Firestore } from 'firebase/firestore';
+import { getFunctions, type Functions } from 'firebase/functions';
 import { getStorage, type FirebaseStorage } from 'firebase/storage';
 import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -58,12 +59,14 @@ function createFirebaseAuth(app: FirebaseApp): Auth {
 let firebaseApp: FirebaseApp | null = null;
 let auth: Auth | null = null;
 let db: Firestore | null = null;
+let functions: Functions | null = null;
 let storage: FirebaseStorage | null = null;
 
 if (isFirebaseConfigured()) {
   firebaseApp = createFirebaseApp();
   auth = createFirebaseAuth(firebaseApp);
   db = getFirestore(firebaseApp);
+  functions = getFunctions(firebaseApp);
   storage = getStorage(firebaseApp);
 }
 
@@ -85,4 +88,13 @@ export function requireDb(): Firestore {
   return db;
 }
 
-export { firebaseApp, auth, db, storage, firebaseConfig };
+export function requireFunctions(): Functions {
+  if (!functions) {
+    throw new Error(
+      'Firebase Functions is not configured. Add EXPO_PUBLIC_FIREBASE_* values to your .env file.',
+    );
+  }
+  return functions;
+}
+
+export { firebaseApp, auth, db, functions, storage, firebaseConfig };

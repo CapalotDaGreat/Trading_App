@@ -1,3 +1,4 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   addDoc,
   collection,
@@ -24,6 +25,7 @@ import type {
 
 const USERS_COLLECTION = 'users';
 const JOURNAL_SUBCOLLECTION = 'journal';
+const LOCAL_JOURNAL_KEY = 'tradevision-demo-journal';
 
 function journalCollection(uid: string) {
   return collection(requireDb(), USERS_COLLECTION, uid, JOURNAL_SUBCOLLECTION);
@@ -90,6 +92,46 @@ function toJournalEntry(id: string, data: DocumentData): JournalEntry {
   };
 }
 
+function toLocalJournalEntry(data: Partial<JournalEntry> & { id: string }): JournalEntry {
+  const createdAt =
+    typeof data.createdAt === 'number'
+      ? new Date(data.createdAt).toISOString()
+      : data.createdAt ?? new Date().toISOString();
+  return {
+    id: data.id,
+    symbol: data.symbol ?? '',
+    direction: data.direction ?? 'long',
+    entryPrice: data.entryPrice ?? 0,
+    exitPrice: data.exitPrice,
+    quantity: data.quantity ?? 1,
+    stopLoss: data.stopLoss,
+    takeProfit: data.takeProfit,
+    outcome: data.outcome ?? 'open',
+    pnl: data.pnl,
+    pnlPercent: data.pnlPercent,
+    strategy: data.strategy,
+    tags: data.tags ?? [],
+    emotion: data.emotion,
+    notes: data.notes ?? '',
+    lessonsLearned: data.lessonsLearned,
+    screenshotUrls: data.screenshotUrls,
+    tradedAt: data.tradedAt ?? createdAt,
+    closedAt: data.closedAt,
+    createdAt,
+    updatedAt: data.updatedAt ?? createdAt,
+  };
+}
+
+async function loadLocalJournal(): Promise<JournalEntry[]> {
+  const raw = await AsyncStorage.getItem(LOCAL_JOURNAL_KEY);
+  if (!raw) return [];
+  return (JSON.parse(raw) as (Partial<JournalEntry> & { id: string })[]).map(toLocalJournalEntry);
+}
+
+async function saveLocalJournal(entries: JournalEntry[]): Promise<void> {
+  await AsyncStorage.setItem(LOCAL_JOURNAL_KEY, JSON.stringify(entries));
+}
+
 export function calculateJournalStats(entries: JournalEntry[]): JournalStats {
   const closed = entries.filter((e) => e.outcome !== 'open' && e.pnl !== undefined);
   const wins = closed.filter((e) => e.outcome === 'win');
@@ -119,7 +161,7 @@ export function calculateJournalStats(entries: JournalEntry[]): JournalStats {
 
 export async function getJournalEntries(uid: string): Promise<JournalEntry[]> {
   if (!isFirebaseConfigured()) {
-    return [];
+    return loadLocalJournal();
   }
   const q = query(journalCollection(uid), orderBy('tradedAt', 'desc'));
   const snapshot = await getDocs(q);
@@ -166,6 +208,13 @@ export async function createJournalEntry(
     updatedAt: now,
   };
 
+  if (!isFirebaseConfigured()) {
+    const entry = { id: `local-${Date.now()}`, ...data };
+    const entries = await loadLocalJournal();
+    await saveLocalJournal([entry, ...entries]);
+    return entry;
+  }
+
   const ref = await addDoc(journalCollection(uid), {
     ...data,
     createdAt: serverTimestamp(),
@@ -181,6 +230,14 @@ export async function updateJournalEntry(
   entryId: string,
   updates: UpdateJournalEntryInput,
 ): Promise<void> {
+  if (!isFirebaseConfigured()) {
+    const entries = await loadLocalJournal();
+    const updatedAt = new Date().toISOString();
+    await saveLocalJournal(
+      entries.map((entry) => (entry.id === entryId ? { ...entry, ...updates, updatedAt } : entry)),
+    );
+    return;
+  }
   await updateDoc(journalDocRef(uid, entryId), {
     ...updates,
     updatedAt: serverTimestamp(),
@@ -188,6 +245,11 @@ export async function updateJournalEntry(
 }
 
 export async function deleteJournalEntry(uid: string, entryId: string): Promise<void> {
+  if (!isFirebaseConfigured()) {
+    const entries = await loadLocalJournal();
+    await saveLocalJournal(entries.filter((entry) => entry.id !== entryId));
+    return;
+  }
   await deleteDoc(journalDocRef(uid, entryId));
 }
 

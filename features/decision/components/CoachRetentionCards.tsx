@@ -1,6 +1,11 @@
-import { View } from 'react-native';
+import { Pressable, View } from 'react-native';
 
-import type { DisciplineStreak, WeeklyReviewInsight, WhyNotInsight } from '@/features/decision/types/decision.types';
+import { useAppendDecisionRecord } from '@/features/decision-log/hooks/useDecisionLog';
+import type {
+  DisciplineStreak,
+  WeeklyReviewInsight,
+  WhyNotInsight,
+} from '@/features/decision/types/decision.types';
 import { GlassCard } from '@/shared/components/ui/GlassCard';
 import { Text } from '@/shared/components/ui/Text';
 
@@ -80,8 +85,19 @@ export function WeeklyReviewCard({ review }: { review: WeeklyReviewInsight }) {
   );
 }
 
-export function WhyNotCard({ items }: { items: WhyNotInsight[] }) {
+export function WhyNotCard({ items, regime }: { items: WhyNotInsight[]; regime: string }) {
+  const appendDecision = useAppendDecisionRecord();
   if (!items.length) return null;
+
+  const recordOutcome = (item: WhyNotInsight, action: 'skipped' | 'ignored') => {
+    appendDecision.mutate({
+      symbol: item.symbol,
+      regime,
+      action,
+      note: `Why not · ${item.summary} · saved ~${item.savedMinutes}m`,
+      eventKey: `why-not-outcome:${item.symbol.toUpperCase()}:${action}:${new Date().toISOString().slice(0, 10)}`,
+    });
+  };
 
   return (
     <GlassCard className="p-4">
@@ -104,6 +120,26 @@ export function WhyNotCard({ items }: { items: WhyNotInsight[] }) {
               ⚠ {r}
             </Text>
           ))}
+          <View className="mt-2 flex-row gap-2">
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => recordOutcome(item, 'skipped')}
+              className="rounded-full bg-accent-muted px-3 py-1.5"
+            >
+              <Text variant="caption" className="font-semibold text-accent">
+                Skip
+              </Text>
+            </Pressable>
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => recordOutcome(item, 'ignored')}
+              className="rounded-full bg-surface px-3 py-1.5"
+            >
+              <Text variant="caption" className="text-text-secondary">
+                Ignore
+              </Text>
+            </Pressable>
+          </View>
         </View>
       ))}
     </GlassCard>

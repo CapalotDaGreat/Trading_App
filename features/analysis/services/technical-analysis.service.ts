@@ -25,6 +25,7 @@ export interface TechnicalAnalysis {
   trend: 'uptrend' | 'downtrend' | 'sideways';
   summary: string;
   updatedAt: number;
+  source: 'remote' | 'derived' | 'mock';
 }
 
 function computeRsi(closes: number[], period = 14): number {
@@ -83,7 +84,11 @@ function aggregateSignal(signals: TechnicalSignal[]): TechnicalSignal {
   return 'neutral';
 }
 
-function buildFromCandles(symbol: string, candles: Candle[]): TechnicalAnalysis {
+function buildFromCandles(
+  symbol: string,
+  candles: Candle[],
+  source: TechnicalAnalysis['source'] = 'derived',
+): TechnicalAnalysis {
   const closes = candles.map((c) => c.close);
   const price = closes[closes.length - 1] ?? 0;
   const rsi = computeRsi(closes);
@@ -137,8 +142,9 @@ function buildFromCandles(symbol: string, candles: Candle[]): TechnicalAnalysis 
       { level: sma50, type: price > sma50 ? 'support' : 'resistance', strength: 'strong' },
     ],
     trend,
-    summary: `${symbol} is in a ${trend} with RSI at ${rsi.toFixed(1)}. Overall technical signal: ${overallSignal.replace('_', ' ')}.`,
+    summary: `${symbol} is in a ${trend} with RSI at ${rsi.toFixed(1)}. The technical bias is ${signalToLabel(overallSignal).toLowerCase()}; this describes current indicators, not expected returns.`,
     updatedAt: Date.now(),
+    source,
   };
 }
 
@@ -154,14 +160,15 @@ function buildMockAnalysis(symbol: string): TechnicalAnalysis {
       volume: 1_000_000 + Math.random() * 500_000,
     };
   });
-  return buildFromCandles(symbol, candles);
+  return buildFromCandles(symbol, candles, 'mock');
 }
 
 export async function getTechnicalAnalysis(symbol: string): Promise<TechnicalAnalysis> {
   try {
-    return await apiClient.get<TechnicalAnalysis>(`/analysis/technical/${encodeURIComponent(symbol)}`, {
+    const analysis = await apiClient.get<TechnicalAnalysis>(`/analysis/technical/${encodeURIComponent(symbol)}`, {
       rateLimitKey: 'analysis',
     });
+    return { ...analysis, source: 'remote' };
   } catch {
     try {
       const candles = await apiClient.get<Candle[]>(`/markets/${encodeURIComponent(symbol)}/candles`, {
@@ -190,5 +197,16 @@ export function signalToColor(signal: TechnicalSignal): string {
 }
 
 export function signalToLabel(signal: TechnicalSignal): string {
-  return signal.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+  switch (signal) {
+    case 'strong_buy':
+      return 'Strong upward bias';
+    case 'buy':
+      return 'Upward bias';
+    case 'strong_sell':
+      return 'Strong downward bias';
+    case 'sell':
+      return 'Downward bias';
+    default:
+      return 'Neutral bias';
+  }
 }

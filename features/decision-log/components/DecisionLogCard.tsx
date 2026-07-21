@@ -21,7 +21,7 @@ export function DecisionLogCard({ summary, className }: DecisionLogCardProps) {
       </View>
       <Text variant="caption" className="text-text-secondary">
         Last 7 days · {summary.researched} researched · {summary.skipped} skipped ·{' '}
-        {summary.journaled} journaled
+        {summary.ignored} ignored · {summary.journaled} journaled
       </Text>
       {summary.insight ? (
         <Text variant="body-sm" className="mt-2">

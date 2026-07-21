@@ -226,9 +226,10 @@ export async function markDisciplineAction(
 
 export function buildWeeklyReview(summary: DecisionLogSummary): WeeklyReviewInsight {
   const isSunday = new Date().getDay() === 0;
+  const passed = summary.skipped + summary.ignored;
   const bestDecision =
-    summary.skipped >= 2
-      ? `Skipped ${summary.skipped} low-quality ideas — discipline`
+    passed >= 2
+      ? `Passed on ${passed} low-quality ideas — discipline`
       : summary.journaled >= 1
         ? 'Journaled decisions for later coaching'
         : 'Opened the brief and stayed selective';
@@ -236,7 +237,7 @@ export function buildWeeklyReview(summary: DecisionLogSummary): WeeklyReviewInsi
   const biggestMistake =
     summary.researched > 8 && summary.journaled === 0
       ? 'Researched many names without journaling outcomes'
-      : summary.skipped === 0 && summary.total >= 5
+      : passed === 0 && summary.total >= 5
         ? 'Rarely skipped — may be over-engaging every idea'
         : 'None clear — keep logging';
 
@@ -247,11 +248,11 @@ export function buildWeeklyReview(summary: DecisionLogSummary): WeeklyReviewInsi
     bestDecision,
     biggestMistake,
     aiLesson:
-      summary.skipped >= 3
-        ? 'Skipping is a decision. Keep filtering with Why-Not reasons.'
+      passed >= 3
+        ? 'Skipping or ignoring is a decision. Keep filtering with Why-Not reasons.'
         : 'Define invalidation before deep research — it raises decision quality.',
     researched: summary.researched,
-    skipped: summary.skipped,
+    skipped: passed,
     marketsStudied: [],
     researchHoursEstimate,
     decisionQualityTrend: summary.processScore,
@@ -262,7 +263,7 @@ export function buildWeeklyReview(summary: DecisionLogSummary): WeeklyReviewInsi
           ? 'Strong journaling cadence'
           : 'Light journaling — aim for one note per researched idea',
     mostImprovedSkill:
-      summary.skipped >= summary.researched
+      passed >= summary.researched
         ? 'Selectivity / opportunity cost'
         : 'Research follow-through',
     recommendedFocus:
@@ -270,8 +271,8 @@ export function buildWeeklyReview(summary: DecisionLogSummary): WeeklyReviewInsi
         ? 'Journal every researched or skipped idea this week'
         : 'Pair Chart Replay with one Academy decision lesson',
     celebrateDiscipline:
-      summary.skipped >= 2
-        ? 'You protected attention by skipping — that is elite process.'
+      passed >= 2
+        ? 'You protected attention by passing — that is elite process.'
         : 'Showing up to the brief counts. Keep the streak.',
     isSundayReview: isSunday,
   };

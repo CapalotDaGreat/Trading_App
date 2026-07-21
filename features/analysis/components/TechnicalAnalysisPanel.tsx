@@ -1,6 +1,7 @@
 import { View } from 'react-native';
 
 import { AiExplainButton } from '@/features/ai/components/AiExplainButton';
+import { DataSourceBadge } from '@/features/markets/components/DataSourceBadge';
 import { Badge } from '@/shared/components/ui/Badge';
 import { GlassCard } from '@/shared/components/ui/GlassCard';
 import { Skeleton, SkeletonGroup } from '@/shared/components/ui/Skeleton';
@@ -32,9 +33,10 @@ export function TechnicalAnalysisPanel({ symbol, data, isLoading }: TechnicalAna
   return (
     <GlassCard className="p-4">
       <View className="mb-3 flex-row items-center justify-between">
-        <Text variant="h3">Technical</Text>
+        <Text variant="h3">Technical bias</Text>
         <View className="flex-row items-center gap-2">
           <AiExplainButton symbol={symbol} />
+          <DataSourceBadge kind={data.source === 'mock' ? 'mock' : data.source === 'remote' ? 'delayed' : 'approximate'} />
           <Badge label={signalToLabel(data.overallSignal)} variant="accent" size="sm" />
         </View>
       </View>
@@ -47,7 +49,7 @@ export function TechnicalAnalysisPanel({ symbol, data, isLoading }: TechnicalAna
           </Text>
         </View>
         <View className="items-end">
-          <Text variant="caption">Score</Text>
+          <Text variant="caption">Bias strength</Text>
           <Text variant="price" className={signalToColor(data.overallSignal)}>
             {data.score}/100
           </Text>
@@ -100,6 +102,9 @@ export function TechnicalAnalysisPanel({ symbol, data, isLoading }: TechnicalAna
 
       <Text variant="body-sm" className="mt-3 leading-relaxed">
         {data.summary}
+      </Text>
+      <Text variant="caption" className="mt-2 text-text-tertiary">
+        Technical bias summarizes indicator state. It is not a buy/sell instruction or price forecast.
       </Text>
     </GlassCard>
   );

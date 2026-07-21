@@ -45,23 +45,50 @@ service cloud.firestore {
         && data.symbols.size() <= 100;
     }
 
-    function isValidPortfolioPosition() {
+    function isValidHolding() {
       let data = request.resource.data;
-      return data.keys().hasAll(['symbol', 'quantity', 'createdAt', 'updatedAt'])
+      return data.keys().hasAll([
+          'symbol', 'name', 'marketType', 'assetClass', 'quantity',
+          'averageCost', 'currentPrice', 'currency', 'side', 'createdAt', 'updatedAt'
+        ])
         && data.symbol is string
         && data.symbol.size() >= 1
         && data.symbol.size() <= 20
-        && data.quantity is number;
+        && data.name is string
+        && data.marketType in ['stocks', 'forex', 'crypto', 'commodities', 'indices', 'options']
+        && data.assetClass in [
+          'equity', 'etf', 'crypto', 'forex', 'commodity',
+          'index', 'option', 'bond', 'futures'
+        ]
+        && data.quantity is number
+        && data.quantity > 0
+        && data.averageCost is number
+        && data.currentPrice is number
+        && data.currency is string
+        && data.currency.size() == 3
+        && data.side in ['long', 'short'];
     }
 
     function isValidJournalEntry() {
       let data = request.resource.data;
-      return data.keys().hasAll(['title', 'content', 'createdAt', 'updatedAt'])
-        && data.title is string
-        && data.title.size() >= 1
-        && data.title.size() <= 200
-        && data.content is string
-        && data.content.size() <= 10000;
+      return data.keys().hasAll([
+          'symbol', 'direction', 'entryPrice', 'quantity', 'outcome',
+          'tags', 'notes', 'tradedAt', 'createdAt', 'updatedAt'
+        ])
+        && data.symbol is string
+        && data.symbol.size() >= 1
+        && data.symbol.size() <= 20
+        && data.direction in ['long', 'short']
+        && data.entryPrice is number
+        && data.entryPrice >= 0
+        && data.quantity is number
+        && data.quantity > 0
+        && data.outcome in ['win', 'loss', 'breakeven', 'open']
+        && data.tags is list
+        && data.tags.size() <= 20
+        && data.notes is string
+        && data.notes.size() <= 10000
+        && data.tradedAt is string;
     }
 
     function isValidAlert() {
@@ -74,6 +101,31 @@ service cloud.firestore {
         && data.targetPrice is number
         && data.targetPrice > 0
         && data.isActive is bool;
+    }
+
+    function isValidDecisionRecord() {
+      let data = request.resource.data;
+      return data.keys().hasAll(['symbol', 'regime', 'action', 'createdAt'])
+        && data.symbol is string
+        && data.symbol.size() >= 1
+        && data.symbol.size() <= 20
+        && data.regime is string
+        && data.regime.size() <= 100
+        && data.action in [
+          'researched', 'skipped', 'journaled', 'opened', 'viewed', 'ignored',
+          'invalidated', 'completed', 'brief_opened', 'alert_triggered',
+          'portfolio_reviewed', 'ai_opened', 'replay_completed',
+          'checklist_done', 'lab_opened', 'lab_closed'
+        ]
+        && data.createdAt is timestamp
+        && (!('note' in data) || (data.note is string && data.note.size() <= 2000));
+    }
+
+    function isValidUserSettings() {
+      let data = request.resource.data;
+      return data.keys().hasAll(['theme', 'updatedAt'])
+        && data.theme in ['light', 'dark', 'system']
+        && data.updatedAt is timestamp;
     }
 
     match /users/{userId} {
@@ -89,10 +141,10 @@ service cloud.firestore {
         allow delete: if isOwner(userId) && isVerifiedUser();
       }
 
-      match /portfolio/{positionId} {
+      match /holdings/{positionId} {
         allow read: if isOwner(userId);
-        allow create: if isOwner(userId) && isVerifiedUser() && isValidPortfolioPosition() && hasValidTimestamps();
-        allow update: if isOwner(userId) && isVerifiedUser() && isValidPortfolioPosition();
+        allow create: if isOwner(userId) && isVerifiedUser() && isValidHolding() && hasValidTimestamps();
+        allow update: if isOwner(userId) && isVerifiedUser() && isValidHolding();
         allow delete: if isOwner(userId) && isVerifiedUser();
       }
 
@@ -109,6 +161,33 @@ service cloud.firestore {
         allow update: if isOwner(userId) && isVerifiedUser() && isValidAlert();
         allow delete: if isOwner(userId) && isVerifiedUser();
       }
+
+      match /decisionLog/{recordId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) && isVerifiedUser() && isValidDecisionRecord();
+        allow update, delete: if false;
+      }
+    }
+
+    match /subscriptions/{userId} {
+      allow read: if isOwner(userId);
+      allow write: if false;
+    }
+
+    match /userSettings/{userId} {
+      allow read: if isOwner(userId);
+      allow create, update: if isOwner(userId) && isVerifiedUser() && isValidUserSettings();
+      allow delete: if isOwner(userId) && isVerifiedUser();
+    }
+
+    match /academy_lessons/{lessonId} {
+      allow read: if isSignedIn();
+      allow write: if false;
+    }
+
+    match /academy_checklists/{checklistId} {
+      allow read: if isSignedIn();
+      allow write: if false;
     }
 
     match /{document=**} {

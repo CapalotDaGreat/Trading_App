@@ -86,6 +86,7 @@ export async function createAlert(
     note: input.note ?? '',
     isActive: true,
     createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
   };
 
   const ref = await addDoc(alertsCollection(uid), data);
@@ -108,6 +109,7 @@ export async function updateAlert(
 ): Promise<void> {
   await updateDoc(alertDocRef(uid, alertId), {
     ...updates,
+    updatedAt: serverTimestamp(),
   } as Record<string, unknown>);
 }
 
@@ -127,5 +129,6 @@ export async function markAlertTriggered(uid: string, alertId: string): Promise<
   await updateDoc(alertDocRef(uid, alertId), {
     triggeredAt: serverTimestamp(),
     isActive: false,
+    updatedAt: serverTimestamp(),
   });
 }

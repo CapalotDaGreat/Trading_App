@@ -20,6 +20,7 @@ export interface SentimentAnalysis {
   fearGreedContribution: number;
   summary: string;
   updatedAt: number;
+  source: 'remote' | 'mock';
 }
 
 function scoreToLevel(score: number): SentimentLevel {
@@ -46,17 +47,19 @@ function buildMockSentiment(symbol: string): SentimentAnalysis {
     socialSentiment: 'bullish',
     analystSentiment: 'bullish',
     fearGreedContribution: 52,
-    summary: `Sentiment for ${symbol} is moderately bullish. Social and analyst signals are positive while news remains neutral.`,
+    summary: `Demo sentiment for ${symbol} is moderately bullish. Sample social and analyst inputs lean positive while sample news is neutral.`,
     updatedAt: Date.now(),
+    source: 'mock',
   };
 }
 
 export async function getSentimentAnalysis(symbol: string): Promise<SentimentAnalysis> {
   try {
-    return await apiClient.get<SentimentAnalysis>(
+    const analysis = await apiClient.get<SentimentAnalysis>(
       `/analysis/sentiment/${encodeURIComponent(symbol)}`,
       { rateLimitKey: 'analysis' },
     );
+    return { ...analysis, source: 'remote' };
   } catch {
     return buildMockSentiment(symbol);
   }

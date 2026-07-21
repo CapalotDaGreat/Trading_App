@@ -1,10 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-import { secureStorageService, SecureStorageKeys } from '@/shared/services/storage/secure-storage.service';
-import {
-  aiRateLimiter,
-  waitForRateLimit,
-} from '@/shared/services/rate-limit/rate-limiter';
 import {
   getTierLimits,
   hasReachedLimit,
@@ -24,12 +19,6 @@ import type {
 } from '../types/ai.types';
 import { enrichRequestContext } from './ai-context.service';
 import { generateEngineAnalysis, generateEngineChatResponse } from './ai-engine.service';
-import { fetchCloudAiBrief } from './cloud-ai.service';
-
-const AI_API_URL =
-  process.env.EXPO_PUBLIC_AI_API_URL ??
-  process.env.EXPO_PUBLIC_FIREBASE_FUNCTIONS_URL ??
-  'https://us-central1-tradevision-ai.cloudfunctions.net/ai';
 
 const AI_USAGE_KEY = 'tradevision-ai-usage';
 
@@ -113,69 +102,6 @@ export function checkAiAccess(
   return null;
 }
 
-async function getAuthHeaders(): Promise<Record<string, string>> {
-  const token = await secureStorageService.getItem(SecureStorageKeys.AUTH_TOKEN);
-  const headers: Record<string, string> = {
-    Accept: 'application/json',
-    'Content-Type': 'application/json',
-  };
-  if (token) {
-    headers.Authorization = `Bearer ${token}`;
-  }
-  return headers;
-}
-
-function isAiConfigured(): boolean {
-  return Boolean(process.env.EXPO_PUBLIC_AI_API_URL ?? process.env.EXPO_PUBLIC_FIREBASE_FUNCTIONS_URL);
-}
-
-async function aiFetch<T>(
-  endpoint: string,
-  body: unknown,
-  tier: SubscriptionTier,
-  options?: { requiresPremium?: boolean; skipUsageIncrement?: boolean },
-): Promise<T> {
-  const usage = await getStoredUsage();
-  const accessError = checkAiAccess(tier, usage.count, options?.requiresPremium);
-  if (accessError) throw accessError;
-
-  const rateLimit = aiRateLimiter.check(`ai-${endpoint}`);
-  if (!rateLimit.allowed) {
-    await waitForRateLimit(rateLimit.retryAfterMs);
-  }
-
-  const url = endpoint.startsWith('http') ? endpoint : `${AI_API_URL}${endpoint}`;
-
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: await getAuthHeaders(),
-    body: JSON.stringify(body),
-  });
-
-  if (response.status === 429) {
-    const retryAfter = Number(response.headers.get('Retry-After')) * 1000 || 5000;
-    throw createAiError('RATE_LIMITED', 'AI service rate limit reached. Please wait.', retryAfter);
-  }
-
-  if (!response.ok) {
-    let message = `AI request failed (${response.status})`;
-    try {
-      const errorBody = (await response.json()) as { message?: string };
-      if (errorBody.message) message = errorBody.message;
-    } catch {
-      // use default message
-    }
-    throw createAiError('API_ERROR', message);
-  }
-
-  if (!options?.skipUsageIncrement) {
-    await incrementUsage();
-  }
-
-  const result = (await response.json()) as T;
-  return result;
-}
-
 function generateId(): string {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
 }
@@ -189,20 +115,6 @@ function isAiServiceError(error: unknown): error is AiServiceError {
   );
 }
 
-function tagCloudResult(result: AiAnalysisResult): AiAnalysisResult {
-  return {
-    ...result,
-    metadata: {
-      ...result.metadata,
-      source: 'cloud',
-      confidence: result.metadata?.confidence ?? 85,
-      dataAsOf: result.metadata?.dataAsOf ?? Date.now(),
-      citations: result.metadata?.citations ?? [],
-      modelVersion: result.metadata?.modelVersion ?? 'cloud',
-    },
-  };
-}
-
 async function requestAnalysis(
   type: AiAnalysisType,
   context: AiRequestContext,
@@ -210,30 +122,9 @@ async function requestAnalysis(
   requiresPremium = false,
 ): Promise<AiAnalysisResult> {
   const enrichedContext = await enrichRequestContext(context);
-
-  if (isAiConfigured()) {
-    try {
-      const cloudResult = await aiFetch<AiAnalysisResult>(
-        '/analyze',
-        { type, context: enrichedContext },
-        tier,
-        { requiresPremium },
-      );
-      return tagCloudResult(cloudResult);
-    } catch (error) {
-      if (isAiServiceError(error) && error.code !== 'API_ERROR') throw error;
-    }
-  }
-
-  if (
-    process.env.EXPO_PUBLIC_AI_API_URL &&
-    type === 'trade_suggestion' &&
-    enrichedContext.enriched
-  ) {
-    const cloudBrief = await fetchCloudAiBrief(enrichedContext.enriched, 'trade_suggestion');
-    await incrementUsage();
-    return cloudBrief;
-  }
+  const usage = await getStoredUsage();
+  const accessError = checkAiAccess(tier, usage.count, requiresPremium);
+  if (accessError) throw accessError;
 
   const engineResult = await generateEngineAnalysis(type, enrichedContext);
   await incrementUsage();
@@ -281,18 +172,9 @@ export const aiService = {
 
   chat: async (request: AiChatRequest, tier: SubscriptionTier): Promise<AiChatResponse> => {
     const enrichedContext = await enrichRequestContext(request.context ?? {});
-
-    if (isAiConfigured()) {
-      try {
-        return await aiFetch<AiChatResponse>(
-          '/chat',
-          { ...request, context: enrichedContext },
-          tier,
-        );
-      } catch (error) {
-        if (isAiServiceError(error) && error.code !== 'API_ERROR') throw error;
-      }
-    }
+    const usage = await getStoredUsage();
+    const accessError = checkAiAccess(tier, usage.count);
+    if (accessError) throw accessError;
 
     const engineResponse = generateEngineChatResponse(request.message, enrichedContext);
     const message: AiMessage = {

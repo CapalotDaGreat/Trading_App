@@ -4,7 +4,12 @@ module.exports = {
     'node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|nativewind|firebase|@firebase/.*)',
   ],
   setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
-  testPathIgnorePatterns: ['/node_modules/', '/e2e/'],
+  testPathIgnorePatterns: [
+    '/node_modules/',
+    '/e2e/',
+    '/tests/firestore/',
+    '/functions/test/',
+  ],
   collectCoverageFrom: [
     'features/**/*.{ts,tsx}',
     'shared/**/*.{ts,tsx}',
