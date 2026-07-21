@@ -4,11 +4,14 @@ import { useState } from 'react';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { useProfile } from '@/features/profile/hooks/useProfile';
+
 import { useAuth } from '../hooks/useAuth';
 
 export function VerifyEmailScreen() {
   const { user, resendVerificationEmail, refreshUser, signOut, isLoading, error, clearError } =
     useAuth();
+  const { upsertProfile } = useProfile();
   const [checking, setChecking] = useState(false);
   const [resent, setResent] = useState(false);
 
@@ -26,7 +29,12 @@ export function VerifyEmailScreen() {
     setChecking(true);
     try {
       const refreshedUser = await refreshUser();
-      if (refreshedUser?.emailVerified) {
+      if (refreshedUser?.emailVerified && refreshedUser.email) {
+        await upsertProfile({
+          uid: refreshedUser.uid,
+          email: refreshedUser.email,
+          displayName: refreshedUser.displayName ?? 'Trader',
+        });
         router.replace('/(tabs)');
       }
     } finally {
@@ -62,7 +70,9 @@ export function VerifyEmailScreen() {
 
           {resent ? (
             <View className="mt-6 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3">
-              <Text className="text-sm text-emerald-300">Verification email resent successfully.</Text>
+              <Text className="text-sm text-emerald-300">
+                Verification email resent successfully.
+              </Text>
             </View>
           ) : null}
 
@@ -75,7 +85,9 @@ export function VerifyEmailScreen() {
               {checking ? (
                 <ActivityIndicator color="#022C22" />
               ) : (
-                <Text className="text-base font-bold text-slate-950">I&apos;ve Verified My Email</Text>
+                <Text className="text-base font-bold text-slate-950">
+                  I&apos;ve Verified My Email
+                </Text>
               )}
             </Pressable>
 

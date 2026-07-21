@@ -13,6 +13,8 @@ import Animated, { FadeInUp, FadeOutUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Text } from '@/shared/components/ui/Text';
+import { useReducedMotion } from '@/shared/hooks/useReducedMotion';
+import { announceForAccessibility } from '@/shared/utils/accessibility';
 import { cn } from '@/shared/utils/cn';
 
 type ToastType = 'info' | 'success' | 'error' | 'warning';
@@ -53,6 +55,7 @@ export function ToastProvider({ children }: ToastProviderProps) {
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
   const timersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
   const insets = useSafeAreaInsets();
+  const reduceMotion = useReducedMotion();
 
   const dismiss = useCallback((id: string) => {
     setToasts((prev) => prev.filter((t) => t.id !== id));
@@ -69,6 +72,7 @@ export function ToastProvider({ children }: ToastProviderProps) {
       const entry: ToastMessage = { ...toast, id };
 
       setToasts((prev) => [...prev.slice(-2), entry]);
+      announceForAccessibility(toast.message ? `${toast.title}. ${toast.message}` : toast.title);
 
       const timer = setTimeout(() => dismiss(id), toast.duration ?? DEFAULT_DURATION);
       timersRef.current.set(id, timer);
@@ -101,19 +105,22 @@ export function ToastProvider({ children }: ToastProviderProps) {
       {children}
       <View
         pointerEvents="box-none"
+        accessibilityLiveRegion="polite"
         className="absolute left-0 right-0 z-50 px-4"
         style={{ top: insets.top + 8 }}
       >
         {toasts.map((toast) => (
           <Animated.View
             key={toast.id}
-            entering={FadeInUp.springify()}
-            exiting={FadeOutUp}
+            entering={reduceMotion ? undefined : FadeInUp.springify()}
+            exiting={reduceMotion ? undefined : FadeOutUp}
             className="mb-2"
           >
             <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={`${toast.title}${toast.message ? `. ${toast.message}` : ''}`}
               onPress={() => dismiss(toast.id)}
-              className={cn('rounded-xl border px-4 py-3', typeStyles[toast.type])}
+              className={cn('min-h-11 rounded-xl border px-4 py-3', typeStyles[toast.type])}
             >
               <Text variant="label" className="text-text-primary">
                 {toast.title}

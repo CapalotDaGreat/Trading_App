@@ -5,7 +5,7 @@
   "sku": "tradevision-ai-ios-001",
   "primaryCategory": "FINANCE",
   "secondaryCategory": "PRODUCTIVITY",
-  "contentRating": "4+",
+  "contentRating": "17+",
   "version": "1.0.0",
   "buildNumber": "1",
   "keywords": [
@@ -28,9 +28,18 @@
   },
   "supportUrl": "https://tradevision.ai/support",
   "termsUrl": "https://tradevision.ai/terms",
+  "riskDisclaimerUrl": "https://tradevision.ai/risk",
+  "securityNoticeUrl": "https://tradevision.ai/security",
   "accountDeletionUrl": "https://tradevision.ai/account-deletion",
   "marketingUrl": "https://tradevision.ai",
   "privacyPolicyUrl": "https://tradevision.ai/privacy",
+  "privacyDisclosure": {
+    "crashDiagnostics": "Optional; disabled by default and sent to Sentry only after explicit consent",
+    "usageAnalytics": false,
+    "tracking": false,
+    "ageRestriction": "18+",
+    "jurisdictions": ["CH", "EU", "US"]
+  },
   "screenshotInventory": "store/screenshots/README.md",
   "copyright": "© 2026 TradeVision AI"
 }

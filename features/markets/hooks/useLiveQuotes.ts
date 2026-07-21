@@ -20,7 +20,8 @@ export function useLiveQuotes(symbols: string[], enabled = true) {
     enabled: enabled && unique.length > 0,
     staleTime: MARKET_DATA_POLICY.quoteStaleMs,
     refetchInterval: MARKET_DATA_POLICY.quoteBatchRefetchMs,
-    refetchOnReconnect: true,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
   });
 }
 

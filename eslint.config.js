@@ -11,6 +11,8 @@ module.exports = defineConfig([
       'node_modules/',
       '.expo/',
       '.expo-export-test/',
+      '.expo-export-p1-validation/',
+      '.expo-export-ci/',
       'dist/',
       'build/',
       'coverage/',

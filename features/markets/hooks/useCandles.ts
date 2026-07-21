@@ -40,6 +40,7 @@ export function useCandles({
     enabled: enabled && symbol.length > 0,
     staleTime: MARKET_DATA_POLICY.candleStaleMs,
     refetchInterval,
-    refetchOnReconnect: true,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
   });
 }

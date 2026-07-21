@@ -1,7 +1,6 @@
-import * as AppleAuthentication from 'expo-apple-authentication';
 import { Ionicons } from '@expo/vector-icons';
+import * as AppleAuthentication from 'expo-apple-authentication';
 import * as Google from 'expo-auth-session/providers/google';
-import * as WebBrowser from 'expo-web-browser';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Platform, Pressable, Text, View } from 'react-native';
 
@@ -9,12 +8,18 @@ interface SocialAuthButtonsProps {
   onGoogleSuccess: (idToken: string) => Promise<void>;
   onAppleSuccess: () => Promise<void>;
   disabled?: boolean;
+  showGoogle?: boolean;
+  showApple?: boolean;
+  actionLabel?: string;
 }
 
 export function SocialAuthButtons({
   onGoogleSuccess,
   onAppleSuccess,
   disabled = false,
+  showGoogle = true,
+  showApple = true,
+  actionLabel = 'Continue',
 }: SocialAuthButtonsProps) {
   const [isAppleLoading, setIsAppleLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
@@ -63,22 +68,26 @@ export function SocialAuthButtons({
 
   return (
     <View className="gap-3">
-      <Pressable
-        onPress={handleGooglePress}
-        disabled={disabled || !request || isGoogleLoading}
-        className="flex-row items-center justify-center rounded-2xl border border-slate-700/80 bg-slate-900/60 px-4 py-4 active:opacity-80"
-      >
-        {isGoogleLoading ? (
-          <ActivityIndicator color="#E2E8F0" />
-        ) : (
-          <>
-            <Ionicons name="logo-google" size={20} color="#E2E8F0" />
-            <Text className="ml-3 text-base font-semibold text-slate-100">Continue with Google</Text>
-          </>
-        )}
-      </Pressable>
+      {showGoogle ? (
+        <Pressable
+          onPress={handleGooglePress}
+          disabled={disabled || !request || isGoogleLoading}
+          className="flex-row items-center justify-center rounded-2xl border border-slate-700/80 bg-slate-900/60 px-4 py-4 active:opacity-80"
+        >
+          {isGoogleLoading ? (
+            <ActivityIndicator color="#E2E8F0" />
+          ) : (
+            <>
+              <Ionicons name="logo-google" size={20} color="#E2E8F0" />
+              <Text className="ml-3 text-base font-semibold text-slate-100">
+                {actionLabel} with Google
+              </Text>
+            </>
+          )}
+        </Pressable>
+      ) : null}
 
-      {appleAvailable ? (
+      {showApple && appleAvailable ? (
         <Pressable
           onPress={handleApplePress}
           disabled={disabled || isAppleLoading}
@@ -89,7 +98,9 @@ export function SocialAuthButtons({
           ) : (
             <>
               <Ionicons name="logo-apple" size={22} color="#FFFFFF" />
-              <Text className="ml-3 text-base font-semibold text-white">Continue with Apple</Text>
+              <Text className="ml-3 text-base font-semibold text-white">
+                {actionLabel} with Apple
+              </Text>
             </>
           )}
         </Pressable>

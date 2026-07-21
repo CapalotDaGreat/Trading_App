@@ -1,7 +1,8 @@
 import { useFonts } from 'expo-font';
-import { Stack, useRouter, useSegments } from 'expo-router';
+import { Stack, useRouter, useSegments, type ErrorBoundaryProps } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect, useState } from 'react';
+import { View } from 'react-native';
 import 'react-native-reanimated';
 import '../global.css';
 
@@ -14,16 +15,42 @@ import { reconcileOnboarding } from '@/features/onboarding/services/onboarding-r
 import { resolveRootRedirect } from '@/features/onboarding/services/onboarding-routing.service';
 import type { OnboardingResolution } from '@/features/onboarding/types/onboarding.types';
 import { DEMO_USER_UID, isFirebaseConfigured } from '@/firebase/config';
+import { Button } from '@/shared/components/ui/Button';
+import { Text } from '@/shared/components/ui/Text';
 import { AppProviders } from '@/shared/providers/AppProviders';
+import {
+  addBreadcrumb,
+  captureException,
+  setObservabilityRoute,
+} from '@/shared/services/observability';
+import { logger } from '@/shared/services/observability/logger';
+import { performanceDiagnostics } from '@/shared/services/performance';
 import { useSettingsStore } from '@/shared/stores/settings.store';
 
-export { ErrorBoundary } from 'expo-router';
+export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
+  useEffect(() => {
+    captureException(error, { boundary: 'expo-router' });
+  }, [error]);
+
+  return (
+    <View className="flex-1 items-center justify-center bg-background px-6">
+      <Text variant="h3" className="mb-2 text-center">
+        Something went wrong
+      </Text>
+      <Text variant="body-sm" className="mb-6 text-center">
+        This error is not sent off-device unless you enabled crash reporting.
+      </Text>
+      <Button onPress={retry}>Try Again</Button>
+    </View>
+  );
+}
 
 export const unstable_settings = {
   initialRouteName: isFirebaseConfigured() ? '(auth)/welcome' : '(tabs)',
 };
 
 SplashScreen.preventAutoHideAsync();
+performanceDiagnostics.mark('startup.begin');
 
 export default function RootLayout() {
   const [loaded, error] = useFonts({
@@ -36,6 +63,7 @@ export default function RootLayout() {
 
   useEffect(() => {
     if (loaded) {
+      performanceDiagnostics.mark('startup.ready');
       SplashScreen.hideAsync();
     }
   }, [loaded]);
@@ -61,6 +89,12 @@ function RootLayoutNav() {
   usePushNotificationHandler();
 
   useEffect(() => {
+    const route = `/${segments.join('/')}`;
+    setObservabilityRoute(route);
+    addBreadcrumb('navigation.route_changed', { route });
+  }, [segments]);
+
+  useEffect(() => {
     let cancelled = false;
     if (status !== 'authenticated' || !user?.uid) {
       setOnboarding(null);
@@ -74,8 +108,9 @@ function RootLayoutNav() {
         const resolution = await reconcileOnboarding(user.uid);
         if (!cancelled) setOnboarding(resolution);
       })
-      .catch(() => {
+      .catch((error) => {
         if (cancelled) return;
+        logger.warn('onboarding.reconciliation_fallback', { error });
         const completed = useSettingsStore.getState().hasCompletedOnboarding;
         setOnboarding({
           completed,
@@ -105,8 +140,10 @@ function RootLayoutNav() {
   }, [status, segments, onboarding, router]);
 
   useEffect(() => {
-    if (status === 'authenticated' && user?.uid) {
-      void initializePushNotifications(user.uid);
+    if (status === 'authenticated' && user?.uid && user.uid !== DEMO_USER_UID) {
+      void initializePushNotifications(user.uid).catch((error) => {
+        logger.error('push.initialization_failed', error);
+      });
     }
   }, [status, user?.uid]);
 

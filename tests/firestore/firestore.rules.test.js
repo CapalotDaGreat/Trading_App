@@ -6,7 +6,7 @@ const {
   assertSucceeds,
   initializeTestEnvironment,
 } = require('@firebase/rules-unit-testing');
-const { doc, getDoc, setDoc, Timestamp } = require('firebase/firestore');
+const { deleteDoc, doc, getDoc, setDoc, Timestamp } = require('firebase/firestore');
 
 let testEnv;
 
@@ -31,10 +31,21 @@ afterAll(async () => {
 });
 
 function ownerDb(uid = 'owner') {
-  return testEnv.authenticatedContext(uid, {
-    email_verified: true,
-    firebase: { sign_in_provider: 'password' },
-  }).firestore();
+  return testEnv
+    .authenticatedContext(uid, {
+      email_verified: true,
+      firebase: { sign_in_provider: 'password' },
+    })
+    .firestore();
+}
+
+function userDb(uid, emailVerified, provider = 'password') {
+  return testEnv
+    .authenticatedContext(uid, {
+      email_verified: emailVerified,
+      firebase: { sign_in_provider: provider },
+    })
+    .firestore();
 }
 
 const timestamps = () => ({
@@ -173,4 +184,54 @@ test('keeps subscription documents server-owned and owner-readable', async () =>
   });
   await assertSucceeds(getDoc(ref));
   await assertFails(getDoc(doc(otherDb, 'subscriptions/owner')));
+});
+
+test('allows verified writes while denying anonymous and unverified writes', async () => {
+  const anonymous = userDb('anonymous-user', false, 'anonymous');
+  const unverified = userDb('unverified', false);
+  const verified = ownerDb('verified');
+  const profile = (email, displayName) => ({
+    email,
+    displayName,
+    ...timestamps(),
+  });
+
+  await assertFails(
+    setDoc(doc(anonymous, 'users/anonymous-user'), profile('anonymous@example.com', 'Anonymous')),
+  );
+  await assertFails(
+    setDoc(doc(unverified, 'users/unverified'), profile('unverified@example.com', 'Unverified')),
+  );
+  await assertSucceeds(
+    setDoc(doc(verified, 'users/verified'), profile('verified@example.com', 'Verified')),
+  );
+  await assertFails(
+    setDoc(doc(verified, 'users/verified'), {
+      ...profile('verified@example.com', 'Verified'),
+      fcmTokens: ['unbounded-token'],
+    }),
+  );
+});
+
+test('validates owner-scoped device documents and real deletion', async () => {
+  const owner = ownerDb();
+  const other = ownerDb('other');
+  const deviceId = 'device-identifier-1234';
+  const device = {
+    deviceId,
+    token: 'ExponentPushToken[valid-token]',
+    platform: 'android',
+    deviceName: 'Test device',
+    updatedAt: Timestamp.now(),
+  };
+
+  await assertSucceeds(setDoc(doc(owner, `users/owner/devices/${deviceId}`), device));
+  await assertFails(setDoc(doc(other, `users/owner/devices/${deviceId}`), device));
+  await assertFails(
+    setDoc(doc(owner, 'users/owner/devices/short'), {
+      ...device,
+      deviceId: 'short',
+    }),
+  );
+  await assertSucceeds(deleteDoc(doc(owner, `users/owner/devices/${deviceId}`)));
 });

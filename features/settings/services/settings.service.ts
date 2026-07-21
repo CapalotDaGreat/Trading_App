@@ -1,7 +1,7 @@
 import { doc, getDoc, serverTimestamp, setDoc } from 'firebase/firestore';
 
 import { canUseFirestore, requireDb } from '@/firebase/config';
-import { useSettingsStore } from '@/shared/stores/settings.store';
+import { CRASH_REPORTING_CONSENT_VERSION, useSettingsStore } from '@/shared/stores/settings.store';
 import { useThemeStore } from '@/shared/stores/theme.store';
 import { DEFAULT_USER_PREFERENCES } from '@/shared/types/user';
 
@@ -23,10 +23,9 @@ const DEFAULT_NOTIFICATIONS: NotificationSettings = {
 };
 
 const DEFAULT_PRIVACY: PrivacySettings = {
-  analyticsEnabled: true,
-  crashReportingEnabled: true,
-  personalizedAds: false,
-  shareUsageData: false,
+  crashReportingEnabled: false,
+  crashReportingConsentVersion: CRASH_REPORTING_CONSENT_VERSION,
+  crashReportingConsentUpdatedAt: null,
 };
 
 function getStoreState() {
@@ -46,7 +45,6 @@ class SettingsServiceImpl implements SettingsService {
     return {
       theme: theme.mode,
       hapticsEnabled: settings.hapticsEnabled,
-      analyticsEnabled: settings.analyticsEnabled,
       biometricAuthEnabled: settings.preferences.biometricAuthEnabled,
       hasCompletedOnboarding: settings.hasCompletedOnboarding,
       preferences: settings.preferences,
@@ -64,10 +62,6 @@ class SettingsServiceImpl implements SettingsService {
 
     if (updates.hapticsEnabled !== undefined) {
       settingsStore.setHapticsEnabled(updates.hapticsEnabled);
-    }
-
-    if (updates.analyticsEnabled !== undefined) {
-      settingsStore.setAnalyticsEnabled(updates.analyticsEnabled);
     }
 
     if (updates.preferences !== undefined) {
@@ -114,27 +108,17 @@ class SettingsServiceImpl implements SettingsService {
     const { settings } = getStoreState();
 
     return {
-      analyticsEnabled: settings.analyticsEnabled,
       crashReportingEnabled: settings.crashReportingEnabled,
-      personalizedAds: settings.personalizedAds,
-      shareUsageData: settings.shareUsageData,
+      crashReportingConsentVersion: settings.crashReportingConsentVersion,
+      crashReportingConsentUpdatedAt: settings.crashReportingConsentUpdatedAt,
     };
   }
 
   async updatePrivacySettings(updates: Partial<PrivacySettings>): Promise<PrivacySettings> {
     const settingsStore = useSettingsStore.getState();
 
-    if (updates.analyticsEnabled !== undefined) {
-      settingsStore.setAnalyticsEnabled(updates.analyticsEnabled);
-    }
     if (updates.crashReportingEnabled !== undefined) {
       settingsStore.setCrashReportingEnabled(updates.crashReportingEnabled);
-    }
-    if (updates.personalizedAds !== undefined) {
-      settingsStore.setPersonalizedAds(updates.personalizedAds);
-    }
-    if (updates.shareUsageData !== undefined) {
-      settingsStore.setShareUsageData(updates.shareUsageData);
     }
 
     settingsStore.setLastSyncAt(Date.now());
@@ -162,7 +146,6 @@ class SettingsServiceImpl implements SettingsService {
       {
         theme: settings.theme,
         hapticsEnabled: settings.hapticsEnabled,
-        analyticsEnabled: settings.analyticsEnabled,
         preferences: settings.preferences,
         notifications,
         privacy,

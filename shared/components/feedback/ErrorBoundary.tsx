@@ -4,6 +4,7 @@ import { View } from 'react-native';
 import { Button } from '@/shared/components/ui/Button';
 import { GlassCard } from '@/shared/components/ui/GlassCard';
 import { Text } from '@/shared/components/ui/Text';
+import { captureException } from '@/shared/services/observability';
 
 interface ErrorBoundaryProps {
   children: ReactNode;
@@ -27,6 +28,10 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
+    captureException(error, {
+      boundary: 'component',
+      componentStack: errorInfo.componentStack,
+    });
     this.props.onError?.(error, errorInfo);
   }
 

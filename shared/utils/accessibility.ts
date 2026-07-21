@@ -57,3 +57,20 @@ export function formatForScreenReader(text: string): string {
     .replace(/\s+/g, ' ')
     .trim();
 }
+
+export function getChartAccessibilityLabel(
+  symbol: string,
+  candles: { open: number; high: number; low: number; close: number }[],
+): string {
+  if (!candles.length) return `${symbol} chart, no data`;
+  const first = candles[0]!;
+  const last = candles[candles.length - 1]!;
+  const changePercent = first.open === 0 ? 0 : ((last.close - first.open) / first.open) * 100;
+  const direction = changePercent > 0 ? 'up' : changePercent < 0 ? 'down' : 'unchanged';
+  return `${symbol} chart, ${candles.length} candles, last close ${last.close.toFixed(2)}, ${direction} ${Math.abs(changePercent).toFixed(2)} percent from first open`;
+}
+
+export function getMinTouchTargetStyle(): { minWidth: number; minHeight: number } {
+  const size = getMinTouchTargetSize();
+  return { minWidth: size, minHeight: size };
+}

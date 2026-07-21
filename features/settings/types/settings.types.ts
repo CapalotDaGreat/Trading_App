@@ -4,7 +4,6 @@ import type { UserPreferences } from '@/shared/types/user';
 export interface AppSettings {
   theme: ThemeMode;
   hapticsEnabled: boolean;
-  analyticsEnabled: boolean;
   biometricAuthEnabled: boolean;
   hasCompletedOnboarding: boolean;
   preferences: UserPreferences;
@@ -21,10 +20,9 @@ export interface NotificationSettings {
 }
 
 export interface PrivacySettings {
-  analyticsEnabled: boolean;
   crashReportingEnabled: boolean;
-  personalizedAds: boolean;
-  shareUsageData: boolean;
+  crashReportingConsentVersion: number;
+  crashReportingConsentUpdatedAt: string | null;
 }
 
 export interface ProfileSettings {
@@ -39,7 +37,6 @@ export interface ProfileSettings {
 export interface SettingsUpdatePayload {
   theme?: ThemeMode;
   hapticsEnabled?: boolean;
-  analyticsEnabled?: boolean;
   biometricAuthEnabled?: boolean;
   preferences?: Partial<UserPreferences>;
   notifications?: Partial<NotificationSettings>;

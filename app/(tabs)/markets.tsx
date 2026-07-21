@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { Pressable, View } from 'react-native';
 
 import { DataFreshnessBadge } from '@/features/decision/components/DataFreshnessBadge';
@@ -8,6 +8,7 @@ import { MarketHeatmap } from '@/features/markets/components/MarketHeatmap';
 import { MarketSearchBar } from '@/features/markets/components/MarketSearchBar';
 import { QuoteRow } from '@/features/markets/components/QuoteRow';
 import { useLiveQuotes } from '@/features/markets/hooks/useLiveQuotes';
+import type { LiveQuote } from '@/features/markets/constants/freshness';
 import { buildAssetFromSymbol } from '@/features/markets/services/market-data.service';
 import type { SearchResult } from '@/features/markets/services/market-search.service';
 import { WatchlistCard } from '@/features/watchlists/components/WatchlistCard';
@@ -58,6 +59,13 @@ export default function MarketsScreen() {
   );
   const popularSymbols = popularAssets.slice(0, 6).map((a) => a.symbol);
   const livePopular = useLiveQuotes(popularSymbols);
+  const quoteBySymbol = useMemo(() => {
+    const map = new Map<string, LiveQuote>();
+    for (const quote of livePopular.data ?? []) {
+      map.set(quote.symbol.toUpperCase(), quote);
+    }
+    return map;
+  }, [livePopular.data]);
 
   return (
     <Screen scrollable safeTop={false}>
@@ -94,15 +102,16 @@ export default function MarketsScreen() {
         )}
       </View>
 
-      <View className="mb-4 flex-row gap-2">
+      <View className="mb-4 flex-row gap-2" accessibilityRole="tablist">
         {MARKET_TABS.map((tab) => (
           <Pressable
             key={tab.type}
             onPress={() => setActiveTab(tab.type)}
-            className={`flex-1 rounded-full py-2.5 ${
-              activeTab === tab.type
-                ? 'bg-accent-muted'
-                : 'bg-surface'
+            accessibilityRole="tab"
+            accessibilityState={{ selected: activeTab === tab.type }}
+            accessibilityLabel={`${tab.label} market`}
+            className={`min-h-11 flex-1 justify-center rounded-full py-2.5 ${
+              activeTab === tab.type ? 'bg-accent-muted' : 'bg-surface'
             }`}
           >
             <Text
@@ -129,6 +138,7 @@ export default function MarketsScreen() {
             <QuoteRow
               key={asset.symbol}
               asset={asset}
+              quote={quoteBySymbol.get(asset.symbol.toUpperCase())}
               onPress={() => handleSymbolPress(asset.symbol)}
             />
           ))}
@@ -137,7 +147,9 @@ export default function MarketsScreen() {
 
       <Pressable
         onPress={() => setShowOverview((v) => !v)}
-        className="mb-3 flex-row items-center justify-between rounded-2xl bg-surface px-4 py-3.5"
+        accessibilityRole="button"
+        accessibilityState={{ expanded: showOverview }}
+        className="mb-3 min-h-11 flex-row items-center justify-between rounded-2xl bg-surface px-4 py-3.5"
       >
         <View>
           <Text variant="label">Market overview</Text>
@@ -153,7 +165,9 @@ export default function MarketsScreen() {
       {showOverview ? (
         <View className="mb-8 gap-4">
           <MarketHeatmap
-            symbols={POPULAR_SYMBOLS[activeTab].slice(0, 6)}
+            symbols={popularSymbols}
+            quotes={livePopular.data}
+            isLoading={livePopular.isLoading}
             onPress={handleSymbolPress}
           />
           {activeTab === 'crypto' ? <FearGreedGauge /> : null}

@@ -65,7 +65,8 @@ export function useDecisionBrief(timeBudgetMinutes = 20, preferredSymbols?: stri
       }),
     staleTime: MARKET_DATA_POLICY.briefStaleMs,
     refetchInterval: MARKET_DATA_POLICY.briefRefetchMs,
-    refetchOnReconnect: true,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
   });
 
   return {
@@ -84,7 +85,8 @@ export function useSetupRadar(symbols?: string[]) {
     queryFn: async (): Promise<SetupCardData[]> => buildSetupRadar(list),
     staleTime: MARKET_DATA_POLICY.briefStaleMs,
     refetchInterval: MARKET_DATA_POLICY.briefRefetchMs,
-    refetchOnReconnect: true,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
   });
 
   return {
@@ -93,24 +95,27 @@ export function useSetupRadar(symbols?: string[]) {
   };
 }
 
-export function useRegime() {
+export function useRegime(options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: ['decision', 'regime'] as const,
     queryFn: async (): Promise<RegimeSnapshot> => detectRegime(),
+    enabled: options?.enabled ?? true,
     staleTime: MARKET_DATA_POLICY.dashboardStaleMs,
     refetchInterval: MARKET_DATA_POLICY.dashboardRefetchMs,
-    refetchOnReconnect: true,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
   });
 }
 
-export function useMtfConsensus(symbol: string) {
+export function useMtfConsensus(symbol: string, options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: ['decision', 'mtf', symbol] as const,
     queryFn: async (): Promise<MtfConsensus> => buildMtfConsensus(symbol),
-    enabled: Boolean(symbol),
+    enabled: Boolean(symbol) && (options?.enabled ?? true),
     staleTime: MARKET_DATA_POLICY.candleStaleMs,
     refetchInterval: MARKET_DATA_POLICY.candleRefetchMs,
-    refetchOnReconnect: true,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
   });
 }
 

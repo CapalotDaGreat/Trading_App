@@ -1,8 +1,10 @@
+import { memo } from 'react';
 import { Pressable, View } from 'react-native';
 
 import { Skeleton } from '@/shared/components/ui/Skeleton';
 import { Text } from '@/shared/components/ui/Text';
 import type { Asset, Quote } from '@/shared/types/market';
+import { getPriceAccessibilityLabel } from '@/shared/utils/accessibility';
 import { formatPercent, formatPrice, formatVolume, getPriceColorClass } from '@/shared/utils/format';
 import { cn } from '@/shared/utils/cn';
 
@@ -16,7 +18,7 @@ interface QuoteRowProps {
   className?: string;
 }
 
-export function QuoteRow({
+function QuoteRowComponent({
   asset,
   quote: quoteProp,
   onPress,
@@ -31,9 +33,12 @@ export function QuoteRow({
 
   const quote = quoteProp ?? fetchedQuote;
   const changeClass = quote ? getPriceColorClass(quote.change) : 'text-text-secondary';
+  const accessibilityLabel = quote
+    ? getPriceAccessibilityLabel(asset.symbol, quote.price, quote.changePercent)
+    : `${asset.symbol}, ${asset.name}`;
 
   const content = (
-    <View className={cn('flex-row items-center border-b border-border py-3', className)}>
+    <View className={cn('min-h-11 flex-row items-center border-b border-border py-3', className)}>
       <View className="flex-1">
         <Text variant="body" className="font-semibold">
           {asset.symbol}
@@ -73,7 +78,11 @@ export function QuoteRow({
 
   if (onPress) {
     return (
-      <Pressable onPress={() => onPress(asset)} accessibilityRole="button">
+      <Pressable
+        onPress={() => onPress(asset)}
+        accessibilityRole="button"
+        accessibilityLabel={accessibilityLabel}
+      >
         {content}
       </Pressable>
     );
@@ -81,3 +90,5 @@ export function QuoteRow({
 
   return content;
 }
+
+export const QuoteRow = memo(QuoteRowComponent);

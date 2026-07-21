@@ -1,0 +1,21 @@
+appId: ai.tradevision.app
+---
+- launchApp
+- tapOn:
+    id: "today-see-all-setups"
+    optional: true
+- tapOn:
+    text: "Markets"
+    optional: true
+- tapOn:
+    text: "Popular"
+    optional: true
+- assertVisible:
+    text: "Decision"
+    optional: true
+- tapOn:
+    id: "asset-tab-chart"
+    optional: true
+- assertVisible:
+    id: "asset-tab-chart"
+    optional: true

@@ -10,6 +10,7 @@ import { Screen } from '@/shared/components/layout/Screen';
 import { Button } from '@/shared/components/ui/Button';
 import { Text } from '@/shared/components/ui/Text';
 import { SUBSCRIPTION_TIERS } from '@/shared/constants/subscription';
+import { useResponsiveLayout } from '@/shared/hooks/useResponsiveLayout';
 import { useTheme } from '@/shared/hooks/useTheme';
 import { cn } from '@/shared/utils/cn';
 
@@ -29,6 +30,7 @@ const PREMIUM_FEATURES = [
 export function PaywallScreen() {
   const router = useRouter();
   const { colors } = useTheme();
+  const layout = useResponsiveLayout();
   const {
     plans,
     isPremium,
@@ -149,89 +151,100 @@ export function PaywallScreen() {
         </Text>
       ) : null}
 
-      {/* Billing period toggle */}
-      <View className="mb-5 flex-row rounded-2xl bg-surface p-1">
-        {plans.map((plan) => {
-          const active = selectedPlan === plan.id;
-          return (
-            <Pressable
-              key={plan.id}
-              accessibilityRole="radio"
-              accessibilityState={{ selected: active }}
-              onPress={() => setSelectedPlan(plan.id)}
-              className={cn(
-                'flex-1 items-center rounded-xl px-2 py-3',
-                active && 'bg-background-elevated',
-              )}
-            >
-              <Text
-                variant="body-sm"
-                className={cn('font-semibold', active ? 'text-text-primary' : 'text-text-secondary')}
-              >
-                {plan.title}
-              </Text>
-              {plan.badge ? (
-                <Text variant="caption" className={active ? 'text-accent' : 'text-text-tertiary'}>
-                  {plan.badge}
-                </Text>
-              ) : plan.trialLabel ? (
-                <Text variant="caption" className={active ? 'text-accent' : 'text-text-tertiary'}>
-                  {plan.trialLabel}
-                </Text>
-              ) : (
-                <Text variant="caption" className="text-text-tertiary">
-                  Flexible
-                </Text>
-              )}
-            </Pressable>
-          );
-        })}
-      </View>
-
-      {/* Selected plan price card */}
-      <View className="mb-5 rounded-2xl bg-background-elevated p-5">
-        <View className="flex-row items-end justify-between">
-          <View className="flex-1 pr-3">
-            <Text variant="h3">{selected?.title} Premium</Text>
-            <Text variant="body-sm" className="mt-1 text-text-secondary">
-              {selected?.description}
-            </Text>
-            {selected?.trialLabel ? (
-              <Text variant="caption" className="mt-2 text-accent">
-                Includes {selected.trialLabel} — cancel anytime before it ends
-              </Text>
-            ) : null}
-            {selected?.savingsPercent && !selected.trialLabel ? (
-              <Text variant="caption" className="mt-2 text-accent">
-                Save {selected.savingsPercent}% vs monthly
-              </Text>
-            ) : null}
+      {/* Billing period toggle + features */}
+      <View className={cn(layout.columns === 2 && 'flex-row items-start gap-4')}>
+        <View className={cn(layout.columns === 2 && 'flex-1')}>
+          <View className="mb-5 flex-row rounded-2xl bg-surface p-1">
+            {plans.map((plan) => {
+              const active = selectedPlan === plan.id;
+              return (
+                <Pressable
+                  key={plan.id}
+                  accessibilityRole="radio"
+                  accessibilityState={{ selected: active }}
+                  onPress={() => setSelectedPlan(plan.id)}
+                  className={cn(
+                    'min-h-11 flex-1 items-center justify-center rounded-xl px-2 py-3',
+                    active && 'bg-background-elevated',
+                  )}
+                >
+                  <Text
+                    variant="body-sm"
+                    className={cn(
+                      'font-semibold',
+                      active ? 'text-text-primary' : 'text-text-secondary',
+                    )}
+                  >
+                    {plan.title}
+                  </Text>
+                  {plan.badge ? (
+                    <Text variant="caption" className={active ? 'text-accent' : 'text-text-tertiary'}>
+                      {plan.badge}
+                    </Text>
+                  ) : plan.trialLabel ? (
+                    <Text variant="caption" className={active ? 'text-accent' : 'text-text-tertiary'}>
+                      {plan.trialLabel}
+                    </Text>
+                  ) : (
+                    <Text variant="caption" className="text-text-tertiary">
+                      Flexible
+                    </Text>
+                  )}
+                </Pressable>
+              );
+            })}
           </View>
-          <View className="items-end">
-            <Text variant="price">{selected?.price}</Text>
-            {selected?.pricePerMonth ? (
-              <Text variant="caption" className="mt-0.5 text-text-secondary">
-                {selected.pricePerMonth}
-              </Text>
-            ) : null}
+
+          <View className="mb-5 rounded-2xl bg-background-elevated p-5">
+            <View className="flex-row items-end justify-between">
+              <View className="flex-1 pr-3">
+                <Text variant="h3">{selected?.title} Premium</Text>
+                <Text variant="body-sm" className="mt-1 text-text-secondary">
+                  {selected?.description}
+                </Text>
+                {selected?.trialLabel ? (
+                  <Text variant="caption" className="mt-2 text-accent">
+                    Includes {selected.trialLabel} — cancel anytime before it ends
+                  </Text>
+                ) : null}
+                {selected?.savingsPercent && !selected.trialLabel ? (
+                  <Text variant="caption" className="mt-2 text-accent">
+                    Save {selected.savingsPercent}% vs monthly
+                  </Text>
+                ) : null}
+              </View>
+              <View className="items-end">
+                <Text variant="price">{selected?.price}</Text>
+                {selected?.pricePerMonth ? (
+                  <Text variant="caption" className="mt-0.5 text-text-secondary">
+                    {selected.pricePerMonth}
+                  </Text>
+                ) : null}
+              </View>
+            </View>
           </View>
         </View>
-      </View>
 
-      <View className="mb-6 rounded-2xl bg-background-elevated p-4">
-        <Text variant="label" className="mb-3 text-text-tertiary">
-          EVERYTHING IN PREMIUM
-        </Text>
-        {PREMIUM_FEATURES.map((feature) => (
-          <View key={feature.label} className="mb-3 flex-row items-center last:mb-0">
-            <View className="mr-3 h-8 w-8 items-center justify-center rounded-full bg-accent-muted">
-              <Ionicons name={feature.icon} size={16} color={colors.accent.primary} />
+        <View
+          className={cn(
+            'mb-6 rounded-2xl bg-background-elevated p-4',
+            layout.columns === 2 && 'mb-5 flex-1',
+          )}
+        >
+          <Text variant="label" className="mb-3 text-text-tertiary">
+            EVERYTHING IN PREMIUM
+          </Text>
+          {PREMIUM_FEATURES.map((feature) => (
+            <View key={feature.label} className="mb-3 flex-row items-center last:mb-0">
+              <View className="mr-3 h-8 w-8 items-center justify-center rounded-full bg-accent-muted">
+                <Ionicons name={feature.icon} size={16} color={colors.accent.primary} />
+              </View>
+              <Text variant="body" className="flex-1">
+                {feature.label}
+              </Text>
             </View>
-            <Text variant="body" className="flex-1">
-              {feature.label}
-            </Text>
-          </View>
-        ))}
+          ))}
+        </View>
       </View>
 
       <Button

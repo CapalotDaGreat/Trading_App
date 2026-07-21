@@ -59,6 +59,8 @@ prompted, sign out and sign back in before retrying. Deletion removes the Auth
 account, the user's Firestore document tree, settings, subscription-access
 record, user Storage prefix, and local app data.
 
-Terms, Privacy, Support, and account-deletion information are linked in
-Settings. Public URLs must be verified in the submission consoles before
-review; no reviewer credential is stored in this repository.
+Terms, Privacy, Risk Disclaimer, Security Notice, Support, and account-deletion
+information are linked in Settings (in-app copies plus hosted URLs). Public URLs
+must return HTTP 200 in the submission consoles before review; no reviewer
+credential is stored in this repository. Legal markdown sources are in
+`store/legal/` and must be counsel-reviewed for the production entity.

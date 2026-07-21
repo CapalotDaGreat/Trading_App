@@ -158,6 +158,8 @@ export interface DecisionBrief {
   generatedAt: number;
   regime: MarketRegime;
   regimeLabel: string;
+  /** Full regime snapshot from the same brief build (avoids a second regime poll). */
+  regimeSnapshot?: RegimeSnapshot;
   portfolioChangePercent?: number;
   highImpactEvents: { id: string; title: string; at: number; impact: ImpactLevel }[];
   setupCount: number;

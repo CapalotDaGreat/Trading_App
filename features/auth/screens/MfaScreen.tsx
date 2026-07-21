@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { usePreventScreenCapture } from 'expo-screen-capture';
+import { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -23,6 +24,7 @@ interface MfaScreenProps {
 }
 
 export function MfaScreen({ mode = 'verify' }: MfaScreenProps) {
+  usePreventScreenCapture('tradevision-mfa');
   const {
     mfaChallenge,
     startMfaEnrollment,
@@ -31,11 +33,14 @@ export function MfaScreen({ mode = 'verify' }: MfaScreenProps) {
     isLoading,
     error,
     clearError,
+    mfaIsReauthentication,
   } = useAuth();
 
   const [submitting, setSubmitting] = useState(false);
   const [enrollmentSecret, setEnrollmentSecret] = useState<string | null>(null);
   const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null);
+  const [showSetupSecret, setShowSetupSecret] = useState(false);
+  const hasStartedEnrollment = useRef(false);
   const isEnrollMode = mode === 'enroll';
 
   const {
@@ -50,9 +55,10 @@ export function MfaScreen({ mode = 'verify' }: MfaScreenProps) {
   const verificationCode = watch('verificationCode');
 
   useEffect(() => {
-    if (!isEnrollMode) {
+    if (!isEnrollMode || hasStartedEnrollment.current) {
       return;
     }
+    hasStartedEnrollment.current = true;
 
     void startMfaEnrollment()
       .then((result) => {
@@ -76,7 +82,7 @@ export function MfaScreen({ mode = 'verify' }: MfaScreenProps) {
 
       const result = await verifyMfa({ verificationCode: values.verificationCode });
       if (result === 'success') {
-        router.replace('/(tabs)');
+        router.replace((mfaIsReauthentication ? '/settings/mfa' : '/(tabs)') as never);
       }
     } catch {
       // Error handled by auth context
@@ -121,13 +127,35 @@ export function MfaScreen({ mode = 'verify' }: MfaScreenProps) {
 
             {isEnrollMode && enrollmentSecret ? (
               <View className="mt-6 rounded-2xl border border-slate-700/80 bg-slate-900/60 p-4">
-                <Text className="mb-2 text-xs font-semibold uppercase tracking-widest text-slate-500">
-                  Setup key
+                <Text className="text-sm leading-5 text-amber-300">
+                  The setup key grants access to your second factor. Do not screenshot, share, or
+                  store it in plain text.
                 </Text>
-                <Text className="font-mono text-sm text-emerald-300">{enrollmentSecret}</Text>
-                {qrCodeUrl ? (
-                  <Text className="mt-3 text-xs text-slate-500">QR URL: {qrCodeUrl}</Text>
-                ) : null}
+                {!showSetupSecret ? (
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel="Reveal authenticator setup secret"
+                    onPress={() => setShowSetupSecret(true)}
+                    className="mt-4 items-center rounded-xl border border-amber-400/40 px-4 py-3"
+                  >
+                    <Text className="font-semibold text-amber-200">Reveal setup details</Text>
+                  </Pressable>
+                ) : (
+                  <View className="mt-4">
+                    <Text className="mb-2 text-xs font-semibold uppercase tracking-widest text-slate-500">
+                      Manual setup key
+                    </Text>
+                    <Text className="font-mono text-sm text-emerald-300">{enrollmentSecret}</Text>
+                    {qrCodeUrl ? (
+                      <Text className="mt-3 text-xs text-slate-500">QR URL: {qrCodeUrl}</Text>
+                    ) : null}
+                    <Pressable onPress={() => setShowSetupSecret(false)} className="mt-3 py-2">
+                      <Text className="text-sm font-semibold text-slate-300">
+                        Hide setup details
+                      </Text>
+                    </Pressable>
+                  </View>
+                )}
               </View>
             ) : null}
 
@@ -141,7 +169,9 @@ export function MfaScreen({ mode = 'verify' }: MfaScreenProps) {
               <AuthInput
                 label="Verification Code"
                 value={verificationCode}
-                onChangeText={(text) => setValue('verificationCode', text, { shouldValidate: true })}
+                onChangeText={(text) =>
+                  setValue('verificationCode', text, { shouldValidate: true })
+                }
                 placeholder="000000"
                 keyboardType="number-pad"
                 maxLength={8}

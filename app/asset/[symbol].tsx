@@ -27,6 +27,7 @@ import { GlassCard } from '@/shared/components/ui/GlassCard';
 import { Skeleton } from '@/shared/components/ui/Skeleton';
 import { Text } from '@/shared/components/ui/Text';
 import type { CandleInterval, MarketType } from '@/shared/types/market';
+import { useResponsiveLayout } from '@/shared/hooks/useResponsiveLayout';
 import { cn } from '@/shared/utils/cn';
 import {
   formatChange,
@@ -35,11 +36,13 @@ import {
   formatVolume,
   getPriceColorClass,
 } from '@/shared/utils/format';
+import { getPriceAccessibilityLabel } from '@/shared/utils/accessibility';
 
 type DetailTab = 'decision' | 'chart' | 'indicators' | 'analysis';
 
 export default function AssetDetailScreen() {
   const router = useRouter();
+  const layout = useResponsiveLayout();
   const params = useLocalSearchParams<{ symbol: string; marketType?: string; tab?: string }>();
   const symbol = decodeURIComponent(params.symbol ?? '');
   const marketType = (params.marketType as MarketType) ?? undefined;
@@ -59,6 +62,14 @@ export default function AssetDetailScreen() {
 
   const asset = useMemo(() => buildAssetFromSymbol(symbol, marketType), [symbol, marketType]);
 
+  const needsChartWork =
+    activeTab === 'decision' ||
+    activeTab === 'chart' ||
+    activeTab === 'indicators' ||
+    activeTab === 'analysis';
+  const needsMtf = activeTab === 'decision' || activeTab === 'analysis';
+  const needsRegime = activeTab === 'decision';
+
   const { data: quote, isLoading: quoteLoading } = useMarketQuote({
     symbol,
     marketType: asset.marketType,
@@ -75,9 +86,10 @@ export default function AssetDetailScreen() {
     interval,
     marketType: asset.marketType,
     indicators: activeIndicators,
+    enabled: needsChartWork,
   });
-  const mtfQuery = useMtfConsensus(symbol);
-  const regimeQuery = useRegime();
+  const mtfQuery = useMtfConsensus(symbol, { enabled: needsMtf });
+  const regimeQuery = useRegime({ enabled: needsRegime });
   const appendDecision = useAppendDecisionRecord();
   const loggedRef = useRef(false);
   const [decisionOutcome, setDecisionOutcome] = useState<DecisionAction | null>(null);
@@ -153,7 +165,15 @@ export default function AssetDetailScreen() {
           <Skeleton height={48} />
         ) : quote ? (
           <View>
-            <Text variant="price-lg" className={changeClass}>
+            <Text
+              variant="price-lg"
+              className={changeClass}
+              accessibilityLabel={getPriceAccessibilityLabel(
+                asset.symbol,
+                quote.price,
+                quote.changePercent,
+              )}
+            >
               {formatPrice(quote.price, quote.currency)}
             </Text>
             <View className="mt-1 flex-row items-center gap-3">
@@ -355,7 +375,8 @@ export default function AssetDetailScreen() {
             candles={candles}
             isLoading={chartLoading}
             currency={quote?.currency}
-            height={300}
+            height={layout.isLandscape ? 360 : 300}
+            symbol={asset.symbol}
           />
         </GlassCard>
       ) : null}

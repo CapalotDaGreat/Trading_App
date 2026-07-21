@@ -1,4 +1,4 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
+﻿import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, View } from 'react-native';
@@ -17,11 +17,14 @@ import { EmptyState } from '@/shared/components/feedback/EmptyState';
 import { Header } from '@/shared/components/layout/Header';
 import { Screen } from '@/shared/components/layout/Screen';
 import { Text } from '@/shared/components/ui/Text';
+import { useResponsiveLayout } from '@/shared/hooks/useResponsiveLayout';
 import { useTheme } from '@/shared/hooks/useTheme';
+import { cn } from '@/shared/utils/cn';
 
 export default function PortfolioScreen() {
   const router = useRouter();
   const { colors } = useTheme();
+  const layout = useResponsiveLayout();
   const [showSizer, setShowSizer] = useState(false);
   const [showHoldingForm, setShowHoldingForm] = useState(false);
   const [editingHolding, setEditingHolding] = useState<Holding | null>(null);
@@ -85,97 +88,105 @@ export default function PortfolioScreen() {
     <Screen scrollable contentClassName="pb-8">
       <Header title="Portfolio" subtitle="Holdings, P&L, then risk" transparent />
 
-      <View className="mt-4 gap-4">
-        <PortfolioSummary summary={summary} />
+      <View className={cn('mt-4 gap-4', layout.columns === 2 && 'flex-row items-start')}>
+        <View className={cn('gap-4', layout.columns === 2 && 'flex-1')}>
+          <PortfolioSummary summary={summary} />
 
-        <EmbeddedAiInsight
-          title="Risk check"
-          body={
-            riskQuery.data?.concentrationWarning
-              ? `${riskQuery.data.concentrationWarning}. ${riskQuery.data.recommendation}`
-              : (riskQuery.data?.recommendation ??
-                'Add holdings to see concentration and correlation risk.')
-          }
-          confidence={riskQuery.data ? Math.max(20, 100 - riskQuery.data.riskScore) : undefined}
-          onExplain={() => router.push('/decision/risk' as never)}
-          explainLabel="Open risk details"
-        />
-
-        {performance ? (
-          <PerformanceChart
-            performance={performance}
-            currency={summary.currency}
-            onPeriodChange={setPerformancePeriod}
+          <EmbeddedAiInsight
+            title="Risk check"
+            body={
+              riskQuery.data?.concentrationWarning
+                ? `${riskQuery.data.concentrationWarning}. ${riskQuery.data.recommendation}`
+                : (riskQuery.data?.recommendation ??
+                  'Add holdings to see concentration and correlation risk.')
+            }
+            confidence={riskQuery.data ? Math.max(20, 100 - riskQuery.data.riskScore) : undefined}
+            onExplain={() => router.push('/decision/risk' as never)}
+            explainLabel="Open risk details"
           />
-        ) : null}
 
-        <View>
-          <View className="mb-2 flex-row items-center justify-between">
-            <View>
-              <Text variant="h3">Holdings</Text>
-              <Text variant="caption" className="text-text-secondary">
-                Tap a row to edit
-              </Text>
-            </View>
-            <Pressable
-              onPress={() => {
-                setEditingHolding(null);
-                setShowHoldingForm(true);
-              }}
-              className="rounded-full bg-accent px-4 py-2"
-            >
-              <Text variant="label" className="text-text-inverse">
-                Add
-              </Text>
-            </Pressable>
-          </View>
-          {showHoldingForm ? (
-            <HoldingForm
-              holding={editingHolding}
-              isSaving={isCreating || isUpdating}
-              isDeleting={isDeleting}
-              onCreate={createHolding}
-              onUpdate={(holdingId, updates) => updateHolding({ holdingId, updates })}
-              onDelete={deleteHolding}
-              onClose={() => {
-                setShowHoldingForm(false);
-                setEditingHolding(null);
-              }}
+          {performance ? (
+            <PerformanceChart
+              performance={performance}
+              currency={summary.currency}
+              onPeriodChange={setPerformancePeriod}
             />
           ) : null}
-          {holdings.length === 0 ? (
-            <EmptyState
-              title="No holdings yet"
-              description="Add positions to track portfolio performance."
-            />
-          ) : (
-            holdings.map((holding) => (
-              <HoldingRow
-                key={holding.id}
-                holding={holding}
-                pnl={pnlMap.get(holding.id)!}
-                onPress={() => {
-                  setEditingHolding(holding);
-                  setShowHoldingForm(true);
-                }}
-              />
-            ))
-          )}
         </View>
 
-        <Pressable
-          onPress={() => setShowSizer((v) => !v)}
-          className="rounded-2xl bg-surface px-4 py-3.5"
-        >
-          <Text variant="label">
-            {showSizer ? 'Hide position size tool' : 'Position size tool'}
-          </Text>
-          <Text variant="caption" className="mt-0.5 text-text-secondary">
-            How many shares/contracts for your risk %
-          </Text>
-        </Pressable>
+        <View className={cn('gap-4', layout.columns === 2 && 'flex-1')}>
+          <View>
+            <View className="mb-2 flex-row items-center justify-between">
+              <View>
+                <Text variant="h3">Holdings</Text>
+                <Text variant="caption" className="text-text-secondary">
+                  Tap a row to edit
+                </Text>
+              </View>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Add holding"
+                onPress={() => {
+                  setEditingHolding(null);
+                  setShowHoldingForm(true);
+                }}
+                className="min-h-11 items-center justify-center rounded-full bg-accent px-4 py-2"
+              >
+                <Text variant="label" className="text-text-inverse">
+                  Add
+                </Text>
+              </Pressable>
+            </View>
+            {showHoldingForm ? (
+              <HoldingForm
+                holding={editingHolding}
+                isSaving={isCreating || isUpdating}
+                isDeleting={isDeleting}
+                onCreate={createHolding}
+                onUpdate={(holdingId, updates) => updateHolding({ holdingId, updates })}
+                onDelete={deleteHolding}
+                onClose={() => {
+                  setShowHoldingForm(false);
+                  setEditingHolding(null);
+                }}
+              />
+            ) : null}
+            {holdings.length === 0 ? (
+              <EmptyState
+                title="No holdings yet"
+                description="Add positions to track portfolio performance."
+              />
+            ) : (
+              holdings.map((holding) => (
+                <HoldingRow
+                  key={holding.id}
+                  holding={holding}
+                  pnl={pnlMap.get(holding.id)!}
+                  onPress={() => {
+                    setEditingHolding(holding);
+                    setShowHoldingForm(true);
+                  }}
+                />
+              ))
+            )}
+          </View>
 
-        {showSizer ? <RiskCalculatorForm currency={summary.currency} /> : null}
+          <Pressable
+            accessibilityRole="button"
+            accessibilityState={{ expanded: showSizer }}
+            onPress={() => setShowSizer((v) => !v)}
+            className="min-h-11 rounded-2xl bg-surface px-4 py-3.5"
+          >
+            <Text variant="label">
+              {showSizer ? 'Hide position size tool' : 'Position size tool'}
+            </Text>
+            <Text variant="caption" className="mt-0.5 text-text-secondary">
+              How many shares/contracts for your risk %
+            </Text>
+          </Pressable>
+
+          {showSizer ? <RiskCalculatorForm currency={summary.currency} /> : null}
+        </View>
       </View>
     </Screen>
   );

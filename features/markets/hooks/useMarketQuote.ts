@@ -39,6 +39,7 @@ export function useMarketQuote({
     enabled: enabled && symbol.length > 0,
     refetchInterval,
     staleTime: MARKET_DATA_POLICY.quoteStaleMs,
-    refetchOnReconnect: true,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
   });
 }

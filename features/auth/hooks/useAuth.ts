@@ -10,11 +10,11 @@ import {
   type ReactNode,
 } from 'react';
 
-import { useAcademyProgressStore } from '@/features/academy/stores/academy-progress.store';
-import { useDecisionUiStore } from '@/features/decision/stores/decision-ui.store';
-import { useDecisionLabStore } from '@/features/decision-lab/stores/lab.store';
+import { notificationService } from '@/features/notifications/services/notification.service';
 import { subscriptionService } from '@/features/subscription/services/subscription.service';
 import { DEMO_USER_UID, isFirebaseConfigured } from '@/firebase/config';
+import { logger } from '@/shared/services/observability/logger';
+import { clearAllUserLocalState } from '@/shared/services/user-data/clear-all-user-local-state';
 import { useSubscriptionStore } from '@/shared/stores/subscription.store';
 
 import {
@@ -25,11 +25,15 @@ import {
   finalizeTotpEnrollment,
   getEnrolledMfaFactors,
   getPendingMfaResolver,
+  hasSensitiveActionAuthorization,
+  isPendingMfaReauthentication,
   mapAuthError,
+  reauthenticateWithApple,
+  reauthenticateWithGoogleIdToken,
+  reauthenticateWithPassword,
   reloadCurrentUser,
   sendPasswordReset,
   sendVerificationEmail,
-  signInAnonymouslyUser,
   signInWithApple,
   signInWithEmail,
   signInWithGoogleIdToken,
@@ -77,7 +81,12 @@ interface AuthContextValue extends AuthState {
   completeMfaEnrollment: (verificationCode: string) => Promise<AuthActionResult>;
   verifyMfa: (params: MfaVerifyParams) => Promise<AuthActionResult>;
   removeMfaFactor: (factorUid: string) => Promise<AuthActionResult>;
+  reauthenticatePassword: (password: string) => Promise<AuthActionResult>;
+  reauthenticateGoogle: (idToken: string) => Promise<AuthActionResult>;
+  reauthenticateApple: () => Promise<AuthActionResult>;
   enrolledMfaFactors: ReturnType<typeof getEnrolledMfaFactors>;
+  hasRecentSensitiveAuthorization: boolean;
+  mfaIsReauthentication: boolean;
   clearError: () => void;
 }
 
@@ -185,17 +194,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isLoading: state.status === 'loading',
       signInAnonymously: () =>
         runAuthAction(async () => {
-          if (!isFirebaseConfigured()) {
-            setState({
-              status: 'authenticated',
-              user: DEMO_GUEST_USER,
-              firebaseUser: null,
-              mfaChallenge: null,
-              error: null,
-            });
-            return;
-          }
-          await signInAnonymouslyUser();
+          setState({
+            status: 'authenticated',
+            user: DEMO_GUEST_USER,
+            firebaseUser: null,
+            mfaChallenge: null,
+            error: null,
+          });
         }),
       signUp: (params) =>
         runAuthAction(async () => {
@@ -236,6 +241,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       signOut: async () => {
         clearPendingMfaResolver();
         useSubscriptionStore.getState().reset();
+        const signingOutUid = state.user?.uid;
+        if (signingOutUid && signingOutUid !== DEMO_USER_UID) {
+          const token = await notificationService.getExpoPushToken();
+          await notificationService
+            .removeTokenFromFirestore(signingOutUid, token ?? '')
+            .catch((error) => logger.warn('signout.push_token_cleanup_failed', { error }));
+        }
         await signOutUser();
         if (!isFirebaseConfigured()) {
           setState({
@@ -249,14 +261,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       },
       deleteAccount: async () => {
         setState((prev) => ({ ...prev, error: null }));
+        const deletingUid = state.user?.uid ?? DEMO_USER_UID;
         try {
           await deleteCurrentAccount();
           await subscriptionService.configureForUser(null);
-          useSubscriptionStore.getState().reset();
-          useAcademyProgressStore.getState().resetProgress();
-          useDecisionLabStore.getState().resetAccount();
-          useDecisionUiStore.setState({ dqsExplainerDismissed: false });
-          queryClient.clear();
+          try {
+            await clearAllUserLocalState(deletingUid, queryClient);
+          } catch (error) {
+            logger.error('account.local_wipe_failed', error);
+          }
           setState(
             isFirebaseConfigured()
               ? {
@@ -275,6 +288,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 },
           );
         } catch (error) {
+          logger.error('account.deletion_failed', error);
           const authError = mapAuthError(error);
           setState((prev) => ({ ...prev, error: authError.message }));
           throw error;
@@ -323,7 +337,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         runAuthAction(async () => {
           await unenrollMfa(factorUid);
         }),
+      reauthenticatePassword: (password) =>
+        runAuthAction(async () => {
+          await reauthenticateWithPassword(password);
+        }),
+      reauthenticateGoogle: (idToken) =>
+        runAuthAction(async () => {
+          await reauthenticateWithGoogleIdToken(idToken);
+        }),
+      reauthenticateApple: () =>
+        runAuthAction(async () => {
+          await reauthenticateWithApple();
+        }),
       enrolledMfaFactors: getEnrolledMfaFactors(),
+      hasRecentSensitiveAuthorization: hasSensitiveActionAuthorization(),
+      mfaIsReauthentication: isPendingMfaReauthentication(),
       clearError: () => setState((prev) => ({ ...prev, error: null })),
     }),
     [queryClient, runAuthAction, state],

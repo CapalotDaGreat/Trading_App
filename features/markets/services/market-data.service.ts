@@ -1,6 +1,9 @@
 import { apiRequest, ApiError } from '@/shared/services/api/api-client';
+import { marketDataScheduler } from '@/shared/services/market-data/market-data-scheduler';
 import type { Asset, Candle, CandleInterval, MarketType, Quote } from '@/shared/types/market';
+
 import type { DataSourceKind } from '../constants/data-source';
+import { MARKET_DATA_POLICY } from '../constants/freshness';
 
 const FINNHUB_KEY = process.env.EXPO_PUBLIC_FINNHUB_API_KEY ?? '';
 const ALPHA_VANTAGE_KEY = process.env.EXPO_PUBLIC_ALPHA_VANTAGE_API_KEY ?? '';
@@ -9,6 +12,7 @@ const COINGECKO_BASE = 'https://api.coingecko.com/api/v3';
 const EXCHANGE_RATE_BASE = 'https://api.open.er-api.com/v6/latest';
 const FINNHUB_BASE = 'https://finnhub.io/api/v1';
 const ALPHA_VANTAGE_BASE = 'https://www.alphavantage.co/query';
+export const USE_DIRECT_MARKET_DATA = process.env.EXPO_PUBLIC_MARKET_DATA_DIRECT === 'true';
 
 const CRYPTO_ID_MAP: Record<string, string> = {
   BTC: 'bitcoin',
@@ -45,11 +49,7 @@ export interface CandlesRequest extends MarketDataRequest {
   limit?: number;
 }
 
-export type MarketDataProvider =
-  | 'coingecko'
-  | 'exchange-rate-api'
-  | 'finnhub'
-  | 'alpha-vantage';
+export type MarketDataProvider = 'coingecko' | 'exchange-rate-api' | 'finnhub' | 'alpha-vantage';
 
 export interface MarketDataMetadata {
   provider: MarketDataProvider;
@@ -329,7 +329,7 @@ async function fetchStockQuote(symbol: string): Promise<Quote> {
   return fetchAlphaVantageQuote(symbol);
 }
 
-export async function fetchQuoteWithMetadata(
+export async function fetchQuoteWithMetadataDirect(
   symbol: string,
   marketType?: MarketType,
 ): Promise<QuoteResult> {
@@ -372,6 +372,18 @@ export async function fetchQuoteWithMetadata(
         kind: 'delayed',
       };
   }
+}
+
+export async function fetchQuoteWithMetadata(
+  symbol: string,
+  marketType?: MarketType,
+): Promise<QuoteResult> {
+  const type = marketType ?? detectMarketType(symbol);
+  return marketDataScheduler.quote(
+    { symbol, marketType: type },
+    () => fetchQuoteWithMetadataDirect(symbol, type),
+    { ttlMs: MARKET_DATA_POLICY.quoteStaleMs, direct: USE_DIRECT_MARKET_DATA },
+  );
 }
 
 export async function fetchQuote(symbol: string, marketType?: MarketType): Promise<Quote> {
@@ -448,14 +460,16 @@ async function fetchFinnhubCandles(
 
   if (data.s !== 'ok' || !data.t?.length) return null;
 
-  return data.t.map((timestamp, i) => ({
-    timestamp: timestamp * 1000,
-    open: data.o![i],
-    high: data.h![i],
-    low: data.l![i],
-    close: data.c![i],
-    volume: data.v![i] ?? 0,
-  })).slice(-limit);
+  return data.t
+    .map((timestamp, i) => ({
+      timestamp: timestamp * 1000,
+      open: data.o![i],
+      high: data.h![i],
+      low: data.l![i],
+      close: data.c![i],
+      volume: data.v![i] ?? 0,
+    }))
+    .slice(-limit);
 }
 
 async function fetchAlphaVantageCandles(
@@ -542,14 +556,16 @@ async function fetchFinnhubForexCandles(
 
   if (data.s !== 'ok' || !data.t?.length) return null;
 
-  return data.t.map((timestamp, i) => ({
-    timestamp: timestamp * 1000,
-    open: data.o![i],
-    high: data.h![i],
-    low: data.l![i],
-    close: data.c![i],
-    volume: data.v?.[i] ?? 0,
-  })).slice(-limit);
+  return data.t
+    .map((timestamp, i) => ({
+      timestamp: timestamp * 1000,
+      open: data.o![i],
+      high: data.h![i],
+      low: data.l![i],
+      close: data.c![i],
+      volume: data.v?.[i] ?? 0,
+    }))
+    .slice(-limit);
 }
 
 async function fetchForexCandles(
@@ -560,10 +576,15 @@ async function fetchForexCandles(
   const finnhub = await fetchFinnhubForexCandles(symbol, interval, limit);
   if (finnhub?.length) return finnhub;
 
-  throw new ApiError(`Forex OHLC unavailable for ${symbol}. Configure Finnhub for real FX candles.`, 503);
+  throw new ApiError(
+    `Forex OHLC unavailable for ${symbol}. Configure Finnhub for real FX candles.`,
+    503,
+  );
 }
 
-export async function fetchCandlesWithMetadata(request: CandlesRequest): Promise<CandleResult> {
+export async function fetchCandlesWithMetadataDirect(
+  request: CandlesRequest,
+): Promise<CandleResult> {
   const { symbol, marketType, interval, limit = 100 } = request;
   const type = marketType ?? detectMarketType(symbol);
 
@@ -611,14 +632,24 @@ export async function fetchCandlesWithMetadata(request: CandlesRequest): Promise
   }
 }
 
+export async function fetchCandlesWithMetadata(request: CandlesRequest): Promise<CandleResult> {
+  const normalizedRequest = {
+    ...request,
+    marketType: request.marketType ?? detectMarketType(request.symbol),
+  };
+  return marketDataScheduler.candles(
+    normalizedRequest,
+    () => fetchCandlesWithMetadataDirect(normalizedRequest),
+    { ttlMs: MARKET_DATA_POLICY.candleStaleMs, direct: USE_DIRECT_MARKET_DATA },
+  );
+}
+
 export async function fetchCandles(request: CandlesRequest): Promise<Candle[]> {
   return (await fetchCandlesWithMetadata(request)).candles;
 }
 
 export async function fetchQuotes(symbols: string[]): Promise<Quote[]> {
-  const results = await Promise.allSettled(
-    symbols.map((symbol) => fetchQuote(symbol)),
-  );
+  const results = await Promise.allSettled(symbols.map((symbol) => fetchQuote(symbol)));
 
   return results
     .filter((r): r is PromiseFulfilledResult<Quote> => r.status === 'fulfilled')

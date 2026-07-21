@@ -5,11 +5,18 @@ on:
   push:
     branches: [master, main]
 
+permissions:
+  contents: read
+
 jobs:
   verify:
     runs-on: ubuntu-latest
     steps:
+      # Official major tags are retained until their commit SHAs are verified from the action refs.
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      # Official major tag retained under the same verified-SHA policy above.
       - uses: actions/setup-node@v4
         with:
           node-version: 20
@@ -24,3 +31,7 @@ jobs:
       - run: npm run functions:test
       - run: npm run test:rules
       - run: git diff --check
+      # Bundle export proves all platforms resolve; signed Maestro/tablet evidence stays a device gate.
+      - run: npx expo export --platform all --output-dir .expo-export-ci
+        env:
+          EXPO_NO_TELEMETRY: 1

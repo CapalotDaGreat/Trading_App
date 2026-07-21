@@ -10,7 +10,7 @@ import { DecisionBriefHeader } from '@/features/decision/components/DecisionBrie
 import { RegimeCard } from '@/features/decision/components/RegimeCard';
 import { ResearchQueueCard } from '@/features/decision/components/ResearchQueueCard';
 import { StartHereCard } from '@/features/decision/components/StartHereCard';
-import { useDecisionBrief, useRegime } from '@/features/decision/hooks/useDecision';
+import { useDecisionBrief } from '@/features/decision/hooks/useDecision';
 import {
   loadDisciplineStreak,
   markDisciplineAction,
@@ -32,9 +32,11 @@ import { Screen } from '@/shared/components/layout/Screen';
 import { GlassCard } from '@/shared/components/ui/GlassCard';
 import { Skeleton } from '@/shared/components/ui/Skeleton';
 import { Text } from '@/shared/components/ui/Text';
+import { useResponsiveLayout } from '@/shared/hooks/useResponsiveLayout';
 import { useTheme } from '@/shared/hooks/useTheme';
 import { useSettingsStore } from '@/shared/stores/settings.store';
 import { useSubscriptionStore } from '@/shared/stores/subscription.store';
+import { cn } from '@/shared/utils/cn';
 
 const EMPTY_BRIEF: DecisionBrief = {
   greeting: 'Loading',
@@ -149,11 +151,11 @@ function CloseLoopCard({
 export default function DecisionBriefScreen() {
   const router = useRouter();
   const { colors } = useTheme();
+  const layout = useResponsiveLayout();
   const [streak, setStreak] = useState<DisciplineStreak | null>(null);
   const timeBudgetMinutes = useSettingsStore(selectTodayTimeBudget);
   const tier = useSubscriptionStore((state) => state.tier);
   const briefQuery = useDecisionBrief(timeBudgetMinutes);
-  const regimeQuery = useRegime();
   const { summary: logSummary } = useDecisionLog();
   const { mutateAsync: appendDecision } = useAppendDecisionRecord();
 
@@ -189,7 +191,7 @@ export default function DecisionBriefScreen() {
   const startHereQueueItem = brief?.researchQueue?.find(
     (item) => item.symbol.toUpperCase() === startHereSymbol?.toUpperCase(),
   );
-  const refreshing = briefQuery.isRefetching || regimeQuery.isRefetching;
+  const refreshing = briefQuery.isRefetching;
 
   return (
     <Screen
@@ -198,7 +200,7 @@ export default function DecisionBriefScreen() {
         refreshControl: (
           <RefreshControl
             refreshing={refreshing}
-            onRefresh={() => void Promise.all([briefQuery.refetch(), regimeQuery.refetch()])}
+            onRefresh={() => void briefQuery.refetch()}
             tintColor={colors.accent.primary}
           />
         ),
@@ -207,87 +209,93 @@ export default function DecisionBriefScreen() {
       <View className="gap-4 pb-8 pt-4">
         <TodayHeader streak={streak} onAskAi={() => router.push('/ai' as never)} />
 
-        <View testID="today-section-morning-brief">
-          {briefQuery.isLoading && !brief ? (
-            <DecisionBriefHeader brief={EMPTY_BRIEF} isLoading />
-          ) : brief ? (
-            <DecisionBriefHeader brief={brief} />
-          ) : (
-            <GlassCard className="p-4">
-              <Text variant="h3">Couldn’t load today’s brief</Text>
-              <Text variant="body-sm" className="mt-2 text-text-secondary">
-                Pull to refresh. Market data keys can be configured in Settings.
-              </Text>
-            </GlassCard>
-          )}
-        </View>
+        <View className={cn(layout.columns === 2 && 'flex-row gap-4')}>
+          <View className={cn('gap-4', layout.columns === 2 && 'flex-1')}>
+            <View testID="today-section-morning-brief">
+              {briefQuery.isLoading && !brief ? (
+                <DecisionBriefHeader brief={EMPTY_BRIEF} isLoading />
+              ) : brief ? (
+                <DecisionBriefHeader brief={brief} />
+              ) : (
+                <GlassCard className="p-4">
+                  <Text variant="h3">Couldn’t load today’s brief</Text>
+                  <Text variant="body-sm" className="mt-2 text-text-secondary">
+                    Pull to refresh. Market data keys can be configured in Settings.
+                  </Text>
+                </GlassCard>
+              )}
+            </View>
 
-        {brief && startHereSymbol ? (
-          <StartHereCard
-            symbol={startHereSymbol}
-            setup={startHereSetup}
-            queueItem={startHereQueueItem}
-            regime={brief.regimeLabel}
-            onOutcome={(action) => {
-              void markDisciplineAction('researchPlan').then(setStreak);
-              if (action === 'skipped') void toggleQueueSymbol(startHereSymbol);
-            }}
-          />
-        ) : null}
-
-        <View testID="today-section-research-queue">
-          {brief?.researchQueue?.length ? (
-            <>
-              <ResearchQueueCard
-                queue={brief.researchQueue}
+            {brief && startHereSymbol ? (
+              <StartHereCard
+                symbol={startHereSymbol}
+                setup={startHereSetup}
+                queueItem={startHereQueueItem}
                 regime={brief.regimeLabel}
-                freeItemLimit={3}
-                onOutcome={() => void markDisciplineAction('researchPlan').then(setStreak)}
+                onOutcome={(action) => {
+                  void markDisciplineAction('researchPlan').then(setStreak);
+                  if (action === 'skipped') void toggleQueueSymbol(startHereSymbol);
+                }}
               />
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel="See all setups in Radar"
-                testID="today-see-all-setups"
-                onPress={() => router.push('/decision/radar' as never)}
-                className="mt-2 min-h-11 items-center justify-center rounded-xl bg-surface px-4"
-              >
-                <Text variant="label" className="text-accent">
-                  See all setups in Radar
-                </Text>
-              </Pressable>
-            </>
-          ) : briefQuery.isLoading ? (
-            <Skeleton height={110} rounded="lg" />
-          ) : null}
+            ) : null}
+
+            <View testID="today-section-research-queue">
+              {brief?.researchQueue?.length ? (
+                <>
+                  <ResearchQueueCard
+                    queue={brief.researchQueue}
+                    regime={brief.regimeLabel}
+                    freeItemLimit={3}
+                    onOutcome={() => void markDisciplineAction('researchPlan').then(setStreak)}
+                  />
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel="See all setups in Radar"
+                    testID="today-see-all-setups"
+                    onPress={() => router.push('/decision/radar' as never)}
+                    className="mt-2 min-h-11 items-center justify-center rounded-xl bg-surface px-4"
+                  >
+                    <Text variant="label" className="text-accent">
+                      See all setups in Radar
+                    </Text>
+                  </Pressable>
+                </>
+              ) : briefQuery.isLoading ? (
+                <Skeleton height={110} rounded="lg" />
+              ) : null}
+            </View>
+          </View>
+
+          <View className={cn('gap-4', layout.columns === 2 && 'flex-1')}>
+            {brief?.skipSuggestions?.length ? (
+              <View testID="today-section-why-not">
+                <WhyNotCard items={brief.skipSuggestions} regime={brief.regimeLabel} />
+              </View>
+            ) : null}
+
+            {logSummary ? (
+              <View testID="today-section-decision-log">
+                <DecisionLogCard summary={logSummary} />
+              </View>
+            ) : null}
+
+            {brief?.regimeSnapshot ? (
+              <View testID="today-section-regime">
+                <RegimeCard regime={brief.regimeSnapshot} />
+              </View>
+            ) : null}
+
+            <CloseLoopCard
+              tier={tier}
+              onJournal={() => {
+                void markDisciplineAction('journal').then(setStreak);
+                useAcademyProgressStore.getState().markDisciplineAction('journal');
+                router.push('/journal' as never);
+              }}
+              onReview={() => router.push('/decision/decision-replay' as never)}
+            />
+          </View>
         </View>
-
-        {brief?.skipSuggestions?.length ? (
-          <View testID="today-section-why-not">
-            <WhyNotCard items={brief.skipSuggestions} regime={brief.regimeLabel} />
-          </View>
-        ) : null}
-
-        {logSummary ? (
-          <View testID="today-section-decision-log">
-            <DecisionLogCard summary={logSummary} />
-          </View>
-        ) : null}
-
-        {regimeQuery.data ? (
-          <View testID="today-section-regime">
-            <RegimeCard regime={regimeQuery.data} />
-          </View>
-        ) : null}
-
-        <CloseLoopCard
-          tier={tier}
-          onJournal={() => {
-            void markDisciplineAction('journal').then(setStreak);
-            useAcademyProgressStore.getState().markDisciplineAction('journal');
-            router.push('/journal' as never);
-          }}
-          onReview={() => router.push('/decision/decision-replay' as never)}
-        />
       </View>
     </Screen>
   );

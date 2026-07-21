@@ -7,7 +7,9 @@ import Animated, {
   withSpring,
 } from 'react-native-reanimated';
 
+import { useReducedMotion } from '@/shared/hooks/useReducedMotion';
 import { useSettingsStore } from '@/shared/stores/settings.store';
+import { getMinTouchTargetSize } from '@/shared/utils/accessibility';
 import { cn } from '@/shared/utils/cn';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
@@ -30,8 +32,8 @@ const variantStyles: Record<IconButtonVariant, string> = {
 };
 
 const sizeStyles: Record<IconButtonSize, string> = {
-  sm: 'h-8 w-8 rounded-full',
-  md: 'h-10 w-10 rounded-full',
+  sm: 'h-11 w-11 rounded-full',
+  md: 'h-11 w-11 rounded-full',
   lg: 'h-12 w-12 rounded-full',
 };
 
@@ -49,7 +51,9 @@ export function IconButton({
   ...props
 }: IconButtonProps) {
   const hapticsEnabled = useSettingsStore((s) => s.hapticsEnabled);
+  const reduceMotion = useReducedMotion();
   const scale = useSharedValue(1);
+  const minTouch = getMinTouchTargetSize();
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
@@ -67,14 +71,18 @@ export function IconButton({
         onPress?.(e);
       }}
       onPressIn={(e) => {
-        scale.value = withSpring(0.92, { damping: 15, stiffness: 400 });
+        if (!reduceMotion) {
+          scale.value = withSpring(0.92, { damping: 15, stiffness: 400 });
+        }
         onPressIn?.(e);
       }}
       onPressOut={(e) => {
-        scale.value = withSpring(1, { damping: 15, stiffness: 400 });
+        if (!reduceMotion) {
+          scale.value = withSpring(1, { damping: 15, stiffness: 400 });
+        }
         onPressOut?.(e);
       }}
-      style={animatedStyle}
+      style={[animatedStyle, { minWidth: minTouch, minHeight: minTouch }]}
       className={cn(
         'items-center justify-center',
         variantStyles[variant],

@@ -17,7 +17,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   name: 'TradeVision AI',
   slug: 'tradevision-ai',
   version: '1.0.0',
-  orientation: 'portrait',
+  orientation: 'default',
   icon: './assets/images/icon.png',
   scheme: APP_SCHEME,
   userInterfaceStyle: 'automatic',
@@ -33,7 +33,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     buildNumber: '1',
     associatedDomains: ['applinks:tradevision.ai', 'applinks:www.tradevision.ai'],
     infoPlist: {
-      UIBackgroundModes: ['remote-notification', 'fetch'],
+      UIBackgroundModes: ['remote-notification'],
       CFBundleURLTypes: [
         {
           CFBundleURLSchemes: [APP_SCHEME],
@@ -77,11 +77,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         category: ['BROWSABLE', 'DEFAULT'],
       },
     ],
-    permissions: [
-      'android.permission.INTERNET',
-      'android.permission.VIBRATE',
-      'android.permission.RECEIVE_BOOT_COMPLETED',
-    ],
+    permissions: ['android.permission.VIBRATE'],
   },
   web: {
     bundler: 'metro',
@@ -90,6 +86,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   },
   plugins: [
     'expo-router',
+    '@sentry/react-native',
     'expo-secure-store',
     [
       'expo-splash-screen',

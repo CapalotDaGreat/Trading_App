@@ -25,6 +25,15 @@
   "supportUrl": "https://tradevision.ai/support",
   "termsUrl": "https://tradevision.ai/terms",
   "privacyPolicyUrl": "https://tradevision.ai/privacy",
+  "riskDisclaimerUrl": "https://tradevision.ai/risk",
+  "securityNoticeUrl": "https://tradevision.ai/security",
+  "dataSafetyDisclosure": {
+    "crashDiagnostics": "Optional; disabled by default and sent to Sentry only after explicit consent",
+    "usageAnalytics": false,
+    "advertisingOrTracking": false,
+    "ageRestriction": "18+",
+    "jurisdictions": ["CH", "EU", "US"]
+  },
   "accountDeletionUrl": "https://tradevision.ai/account-deletion",
   "screenshotInventory": "store/screenshots/README.md",
   "website": "https://tradevision.ai"

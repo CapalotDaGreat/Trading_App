@@ -119,11 +119,23 @@ For both the iOS sandbox candidate and Android license-test candidate, attach:
 5. Re-authenticated deletion evidence for Auth, Firestore subcollections,
    settings, subscription cache, Storage, and local state.
 6. VoiceOver/TalkBack results for registration, decision loop, paywall,
-   subscription management, and deletion.
+   subscription management, and deletion — plus Reduce Motion and 1.3× text checks.
 7. HTTP 200 proof for all legal/support URLs and confirmation that the active
    EAS configuration contains the real project ID and owner.
+8. Tablet landscape screenshots for Today, Asset, Portfolio, and Paywall, plus
+   Maestro tablet/asset-chart flow notes when executed on device.
+9. Performance baseline table from `docs/QA.md` for phone and tablet, with build
+   IDs. Record Sentry consent on/off behavior on a signed preview build.
 
 After those records exist, rerun the complete gate on the exact candidate
 commit. Submission remains blocked until every item passes and the native
 cancellation test proves access remains active before the provider expiry
 instant and becomes Free at that instant.
+
+## P2 repository gates
+
+Repository automation for P2 covers scheduler/performance unit tests, consent
+and redaction suites, chart windowing bounds, responsive breakpoint helpers,
+accessibility label helpers, Storage rules emulator coverage, and Expo
+all-platform export in CI. Native profilers, Sentry delivery, VoiceOver/TalkBack,
+and Maestro tablet screenshots remain signed-preview device gates.

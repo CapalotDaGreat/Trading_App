@@ -42,3 +42,16 @@ Cloud environment; do not commit it.
 
 > **Note:** In-app advertising (AdMob) is intentionally out of scope for launch. Do not add
 > `react-native-google-mobile-ads` unless product direction changes.
+
+## Tablet, orientation, and accessibility
+
+EAS development builds allow rotation (`orientation: default`). Validate portrait and
+landscape on an iPad / 10-inch Android class device: Today and Portfolio use two columns
+above the medium breakpoint; charts and Screen content constrain to a readable max width.
+
+When signing a preview build for accessibility evidence:
+
+1. Toggle Reduce Motion and confirm loading skeletons stop pulsing.
+2. Run VoiceOver (iOS) / TalkBack (Android) through Demo Activation → Start Here →
+   Research/Skip → Journal → Review, and through the Asset Chart tab summary.
+3. Capture Maestro flows from `.maestro/` on the same build; CI does not execute them.

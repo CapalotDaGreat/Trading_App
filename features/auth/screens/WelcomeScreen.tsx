@@ -30,19 +30,21 @@ export function WelcomeScreen() {
 
         <View className="flex-1 justify-center">
           <Text className="text-4xl font-bold leading-tight text-white">
-            Trade smarter with{'\n'}
-            <Text className="text-emerald-400">AI-powered</Text> insights
+            Decide what deserves{'\n'}
+            <Text className="text-emerald-400">your research time</Text>
           </Text>
           <Text className="mt-4 text-base leading-6 text-slate-400">
             Research-value briefs, honest source labels, and a decision journal — built to improve
-            process, not predict price direction.
+            process, not predict price direction. Not a broker. Not investment advice.
           </Text>
 
           <BlurView intensity={30} tint="dark" className="mt-10 overflow-hidden rounded-3xl border border-slate-700/50">
             <View className="p-5">
               <View className="mb-4 flex-row items-center">
                 <Ionicons name="shield-checkmark" size={18} color="#34D399" />
-                <Text className="ml-2 text-sm text-slate-300">Bank-grade security with MFA support</Text>
+                <Text className="ml-2 text-sm text-slate-300">
+                  MFA, verified-cloud writes, and privacy-first diagnostics
+                </Text>
               </View>
               <View className="flex-row items-center">
                 <Ionicons name="flash" size={18} color="#60A5FA" />
@@ -81,6 +83,10 @@ export function WelcomeScreen() {
               <Text className="text-sm font-medium text-slate-400">Continue as Guest</Text>
             )}
           </Pressable>
+          <Text className="mt-2 px-2 text-center text-xs leading-4 text-slate-500">
+            Guest mode is local demo use. By continuing you acknowledge the Risk Disclaimer: scores
+            do not predict prices and TradeVision does not provide investment advice.
+          </Text>
         </View>
       </SafeAreaView>
     </View>

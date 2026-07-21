@@ -7,6 +7,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 
+import { useReducedMotion } from '@/shared/hooks/useReducedMotion';
 import { cn } from '@/shared/utils/cn';
 
 interface SkeletonProps extends ViewProps {
@@ -29,13 +30,19 @@ export function Skeleton({
   rounded = 'md',
   className,
   style,
+  accessibilityLabel = 'Loading',
   ...props
 }: SkeletonProps) {
+  const reduceMotion = useReducedMotion();
   const opacity = useSharedValue(0.4);
 
   useEffect(() => {
+    if (reduceMotion) {
+      opacity.value = 0.55;
+      return;
+    }
     opacity.value = withRepeat(withTiming(0.8, { duration: 900 }), -1, true);
-  }, [opacity]);
+  }, [opacity, reduceMotion]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     opacity: opacity.value,
@@ -43,6 +50,8 @@ export function Skeleton({
 
   return (
     <Animated.View
+      accessibilityLabel={accessibilityLabel}
+      accessibilityRole="progressbar"
       className={cn('bg-surface-active', roundedStyles[rounded], className)}
       style={[{ width, height }, animatedStyle, style]}
       {...props}

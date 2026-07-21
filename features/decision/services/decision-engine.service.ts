@@ -1,5 +1,10 @@
-import { analyzeChart } from '@/features/charts/services/chart-analysis.service';
 import { fetchEconomicCalendar } from '@/features/calendar/services/economic-calendar.service';
+import { analyzeChart } from '@/features/charts/services/chart-analysis.service';
+import {
+  countExplicitDecisionOutcomes,
+  getDecisionRecords,
+  summarizeDecisionLog,
+} from '@/features/decision-log/services/decision-log.service';
 import {
   CORE_BENCHMARKS,
   MARKET_DATA_POLICY,
@@ -10,35 +15,12 @@ import {
   buildAssetFromSymbol,
   fetchCandles,
   fetchFearGreedIndex,
-  fetchQuotes,
+  fetchQuoteWithMetadata,
 } from '@/features/markets/services/market-data.service';
 import { fetchFinancialNews } from '@/features/news/services/news.service';
+import { performanceDiagnostics } from '@/shared/services/performance';
 import type { Candle, Quote } from '@/shared/types/market';
 
-import {
-  countExplicitDecisionOutcomes,
-  getDecisionRecords,
-  summarizeDecisionLog,
-} from '@/features/decision-log/services/decision-log.service';
-
-import { biasFromScore, buildExplainability, buildCounterfactuals } from './explainability.service';
-import { prioritizeResearch } from './research-prioritizer.service';
-import { buildResearchQueue, buildTradingDayPlan } from './coaching-loop.service';
-import { applyLifecycleToSetups } from './setup-lifecycle.service';
-import { buildSetupResearchChecklist, historyNoteForSetup } from './setup-enrichment.service';
-import { loadTraderMemory } from './trader-intelligence.service';
-import { buildSkipSuggestions, buildWhyNot } from './why-not.service';
-import {
-  buildResearchBalance,
-  computeDecisionQualityScore,
-  computeResearchValueScore,
-} from './research-value.service';
-import {
-  buildDecisionDebt,
-  buildDecisionFatigue,
-  buildDecisionIntelligenceContext,
-} from './decision-os.service';
-import { recordConvictionPoint } from './conviction-drift.service';
 import type {
   DecisionBias,
   DecisionBrief,
@@ -49,6 +31,25 @@ import type {
   RegimeSnapshot,
   SetupCardData,
 } from '../types/decision.types';
+
+import { buildResearchQueue, buildTradingDayPlan } from './coaching-loop.service';
+import { recordConvictionPoint } from './conviction-drift.service';
+import {
+  buildDecisionDebt,
+  buildDecisionFatigue,
+  buildDecisionIntelligenceContext,
+} from './decision-os.service';
+import { biasFromScore, buildExplainability, buildCounterfactuals } from './explainability.service';
+import { prioritizeResearch } from './research-prioritizer.service';
+import {
+  buildResearchBalance,
+  computeDecisionQualityScore,
+  computeResearchValueScore,
+} from './research-value.service';
+import { buildSetupResearchChecklist, historyNoteForSetup } from './setup-enrichment.service';
+import { applyLifecycleToSetups } from './setup-lifecycle.service';
+import { loadTraderMemory } from './trader-intelligence.service';
+import { buildSkipSuggestions, buildWhyNot } from './why-not.service';
 
 function greetingForNow(): string {
   const hour = new Date().getHours();
@@ -63,8 +64,18 @@ function round(n: number, d = 2): number {
 }
 
 async function safeQuotes(symbols: string[]): Promise<LiveQuote[]> {
-  const quotes = await fetchQuotes([...symbols]);
-  return quotes.map((q) => withFetchedAt(q, buildAssetFromSymbol(q.symbol).marketType));
+  const results = await Promise.allSettled(symbols.map((symbol) => fetchQuoteWithMetadata(symbol)));
+  return results
+    .filter(
+      (
+        result,
+      ): result is PromiseFulfilledResult<Awaited<ReturnType<typeof fetchQuoteWithMetadata>>> =>
+        result.status === 'fulfilled',
+    )
+    .map(({ value }) => ({
+      ...withFetchedAt(value.quote, buildAssetFromSymbol(value.quote.symbol).marketType),
+      fetchedAt: value.fetchedAt,
+    }));
 }
 
 function avgChange(quotes: Quote[]): number {
@@ -72,9 +83,17 @@ function avgChange(quotes: Quote[]): number {
   return quotes.reduce((s, q) => s + q.changePercent, 0) / quotes.length;
 }
 
-export async function detectRegime(): Promise<RegimeSnapshot> {
+function quotesForBenchmarks(quotes: LiveQuote[]): LiveQuote[] {
+  const wanted = new Set(CORE_BENCHMARKS.map((symbol) => symbol.toUpperCase()));
+  return quotes.filter((quote) => wanted.has(quote.symbol.toUpperCase()));
+}
+
+export async function detectRegime(prefetchedQuotes?: LiveQuote[]): Promise<RegimeSnapshot> {
+  const benchmarkQuotes = prefetchedQuotes?.length
+    ? quotesForBenchmarks(prefetchedQuotes)
+    : undefined;
   const [quotes, fearGreed] = await Promise.all([
-    safeQuotes([...CORE_BENCHMARKS]),
+    benchmarkQuotes?.length ? Promise.resolve(benchmarkQuotes) : safeQuotes([...CORE_BENCHMARKS]),
     fetchFearGreedIndex().catch(() => null),
   ]);
 
@@ -163,7 +182,7 @@ export async function detectRegime(): Promise<RegimeSnapshot> {
 async function analyzeSymbolSetup(
   symbol: string,
   quote?: LiveQuote,
-): Promise<SetupCardData | null> {
+): Promise<{ setup: SetupCardData; lastCandle: Candle } | null> {
   try {
     const marketType = buildAssetFromSymbol(symbol).marketType;
     const candles = await fetchCandles({ symbol, marketType, interval: '1d', limit: 90 });
@@ -250,57 +269,62 @@ async function analyzeSymbolSetup(
     };
 
     return {
-      ...setup,
-      setupTypeLabel:
-        bias === 'neutral'
-          ? 'Wait / range'
-          : pattern
-            ? `${bias === 'bullish' ? 'Bullish' : 'Bearish'} ${pattern}`
-            : 'Trend continuation',
-      researchChecklist: buildSetupResearchChecklist(setup),
-      explainability: {
-        ...setup.explainability,
-        counterfactuals: buildCounterfactuals({
-          confidence: setup.confidence,
-          factors: setup.explainability.factors,
-          rsiSignal: analysis.summary.rsiSignal,
-        }),
+      setup: {
+        ...setup,
+        setupTypeLabel:
+          bias === 'neutral'
+            ? 'Wait / range'
+            : pattern
+              ? `${bias === 'bullish' ? 'Bullish' : 'Bearish'} ${pattern}`
+              : 'Trend continuation',
+        researchChecklist: buildSetupResearchChecklist(setup),
+        explainability: {
+          ...setup.explainability,
+          counterfactuals: buildCounterfactuals({
+            confidence: setup.confidence,
+            factors: setup.explainability.factors,
+            rsiSignal: analysis.summary.rsiSignal,
+          }),
+        },
       },
+      lastCandle: last,
     };
   } catch {
     return null;
   }
 }
 
-export async function buildSetupRadar(symbols: string[]): Promise<SetupCardData[]> {
+export async function buildSetupRadar(
+  symbols: string[],
+  prefetchedQuotes?: LiveQuote[],
+): Promise<SetupCardData[]> {
   const unique = [...new Set(symbols)].slice(0, 12);
-  const quotes = await safeQuotes(unique);
-  const quoteMap = new Map(quotes.map((q) => [q.symbol.toUpperCase(), q]));
+  const quoteMap = new Map(
+    (prefetchedQuotes ?? []).map((quote) => [quote.symbol.toUpperCase(), quote] as const),
+  );
+  const missing = unique.filter((symbol) => !quoteMap.has(symbol.toUpperCase()));
+  if (missing.length) {
+    const fetched = await safeQuotes(missing);
+    for (const quote of fetched) {
+      quoteMap.set(quote.symbol.toUpperCase(), quote);
+    }
+  }
 
-  const setups = await Promise.all(
+  const analyzed = await Promise.all(
     unique.map((symbol) =>
       analyzeSymbolSetup(symbol, quoteMap.get(symbol.toUpperCase()) ?? quoteMap.get(symbol)),
     ),
   );
 
   const candleMap = new Map<string, Candle>();
-  await Promise.all(
-    unique.map(async (symbol) => {
-      try {
-        const marketType = buildAssetFromSymbol(symbol).marketType;
-        const candles = await fetchCandles({ symbol, marketType, interval: '1d', limit: 2 });
-        const last = candles[candles.length - 1];
-        if (last) candleMap.set(symbol.toUpperCase(), last);
-      } catch {
-        // lifecycle skip if candles unavailable
-      }
-    }),
-  );
+  const setups: SetupCardData[] = [];
+  for (const result of analyzed) {
+    if (!result) continue;
+    setups.push(result.setup);
+    candleMap.set(result.setup.symbol.toUpperCase(), result.lastCandle);
+  }
 
-  return applyLifecycleToSetups(
-    setups.filter((s): s is SetupCardData => Boolean(s)),
-    candleMap,
-  )
+  return applyLifecycleToSetups(setups, candleMap)
     .map((setup) => ({
       ...setup,
       researchChecklist: setup.researchChecklist ?? buildSetupResearchChecklist(setup),
@@ -308,7 +332,7 @@ export async function buildSetupRadar(symbols: string[]): Promise<SetupCardData[
     .sort((a, b) => b.confidence - a.confidence);
 }
 
-export async function buildDecisionBrief(input?: {
+async function buildDecisionBriefInternal(input?: {
   watchlistSymbols?: string[];
   portfolioChangePercent?: number;
   portfolioSymbols?: string[];
@@ -328,9 +352,10 @@ export async function buildDecisionBrief(input?: {
       );
 
   const now = Date.now();
-  const [regime, quotes, calendarEvents, news, setups, logRecords] = await Promise.all([
-    detectRegime(),
-    safeQuotes([...CORE_BENCHMARKS, ...watch.slice(0, 5)]),
+  // One shared quote batch feeds regime + radar; candle lifecycle reuses radar series.
+  const quotes = await safeQuotes([...CORE_BENCHMARKS, ...watch.slice(0, 8)]);
+  const [regime, calendarEvents, news, setups, logRecords] = await Promise.all([
+    detectRegime(quotes),
     fetchEconomicCalendar({
       from: now - 12 * 60 * 60 * 1000,
       to: now + 48 * 60 * 60 * 1000,
@@ -341,7 +366,7 @@ export async function buildDecisionBrief(input?: {
       totalResults: 0,
       source: 'rss' as const,
     })),
-    buildSetupRadar(watch),
+    buildSetupRadar(watch, quotes),
     getDecisionRecords(input?.uid).catch(() => []),
   ]);
 
@@ -492,6 +517,7 @@ export async function buildDecisionBrief(input?: {
     generatedAt: now,
     regime: regime.regime,
     regimeLabel: regime.label,
+    regimeSnapshot: regime,
     portfolioChangePercent: input?.portfolioChangePercent,
     highImpactEvents: events,
     setupCount: enrichedSetups.length,
@@ -528,6 +554,18 @@ export async function buildDecisionBrief(input?: {
     ...draftBrief,
     tradingDayPlan: buildTradingDayPlan(draftBrief),
   };
+}
+
+export function buildDecisionBrief(input?: {
+  watchlistSymbols?: string[];
+  portfolioChangePercent?: number;
+  portfolioSymbols?: string[];
+  uid?: string | null;
+  timeBudgetMinutes?: number;
+}): Promise<DecisionBrief> {
+  return performanceDiagnostics.measureAsync('brief.build', () =>
+    buildDecisionBriefInternal(input),
+  );
 }
 
 function enrichedAlternatives(setups: SetupCardData[], symbol: string): string[] {

@@ -7,8 +7,10 @@ import Animated, {
   withSpring,
 } from 'react-native-reanimated';
 
+import { useReducedMotion } from '@/shared/hooks/useReducedMotion';
 import { useTheme } from '@/shared/hooks/useTheme';
 import { useSettingsStore } from '@/shared/stores/settings.store';
+import { getMinTouchTargetSize } from '@/shared/utils/accessibility';
 import { cn } from '@/shared/utils/cn';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
@@ -38,9 +40,9 @@ const variantStyles: Record<ButtonVariant, string> = {
 };
 
 const sizeStyles: Record<ButtonSize, string> = {
-  sm: 'h-9 px-3.5 rounded-full',
-  md: 'h-11 px-5 rounded-full',
-  lg: 'h-13 px-6 rounded-full',
+  sm: 'min-h-11 px-3.5 rounded-full',
+  md: 'min-h-11 px-5 rounded-full',
+  lg: 'min-h-13 px-6 rounded-full',
 };
 
 const textVariantStyles: Record<ButtonVariant, string> = {
@@ -76,20 +78,26 @@ export function Button({
 }: ButtonProps) {
   const { colors } = useTheme();
   const hapticsEnabled = useSettingsStore((s) => s.hapticsEnabled);
+  const reduceMotion = useReducedMotion();
   const scale = useSharedValue(1);
   const isDisabled = disabled || loading;
+  const minTouch = getMinTouchTargetSize();
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
   }));
 
   const handlePressIn: PressableProps['onPressIn'] = (event) => {
-    scale.value = withSpring(0.97, { damping: 15, stiffness: 400 });
+    if (!reduceMotion) {
+      scale.value = withSpring(0.97, { damping: 15, stiffness: 400 });
+    }
     onPressIn?.(event);
   };
 
   const handlePressOut: PressableProps['onPressOut'] = (event) => {
-    scale.value = withSpring(1, { damping: 15, stiffness: 400 });
+    if (!reduceMotion) {
+      scale.value = withSpring(1, { damping: 15, stiffness: 400 });
+    }
     onPressOut?.(event);
   };
 
@@ -107,7 +115,7 @@ export function Button({
       onPress={handlePress}
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
-      style={animatedStyle}
+      style={[animatedStyle, { minHeight: minTouch }]}
       className={cn(
         'flex-row items-center justify-center',
         variantStyles[variant],

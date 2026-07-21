@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 
 import { useCandles } from '@/features/markets/hooks/useCandles';
+import { performanceDiagnostics } from '@/shared/services/performance';
 import type { CandleInterval, MarketType } from '@/shared/types/market';
 
 import { analyzeChart } from '../services/chart-analysis.service';
@@ -12,6 +13,7 @@ interface UseChartDataOptions {
   marketType?: MarketType;
   limit?: number;
   indicators?: IndicatorType[];
+  enabled?: boolean;
 }
 
 export function useChartData({
@@ -20,13 +22,16 @@ export function useChartData({
   marketType,
   limit = 100,
   indicators = ['rsi', 'macd', 'bollinger'],
+  enabled = true,
 }: UseChartDataOptions) {
-  const candlesQuery = useCandles({ symbol, interval, marketType, limit });
+  const candlesQuery = useCandles({ symbol, interval, marketType, limit, enabled });
 
   const analysis = useMemo(() => {
-    if (!candlesQuery.data?.candles.length) return null;
-    return analyzeChart(candlesQuery.data.candles, indicators);
-  }, [candlesQuery.data, indicators]);
+    if (!enabled || !candlesQuery.data?.candles.length) return null;
+    return performanceDiagnostics.measure('chart.work', () =>
+      analyzeChart(candlesQuery.data!.candles, indicators),
+    );
+  }, [candlesQuery.data, enabled, indicators]);
 
   return {
     candles: candlesQuery.data?.candles ?? [],

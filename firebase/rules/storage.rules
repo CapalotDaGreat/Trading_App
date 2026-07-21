@@ -12,13 +12,13 @@ service firebase.storage {
 
     function isVerifiedUser() {
       return isSignedIn()
-        && (request.auth.token.email_verified == true || request.auth.token.firebase.sign_in_provider == 'anonymous');
+        && request.auth.token.email_verified == true;
     }
 
     function isValidImage() {
       return request.resource != null
-        && request.resource.size < 5 * 1024 * 1024
-        && request.resource.contentType.matches('image/(jpeg|jpg|png|webp)');
+        && request.resource.size <= 5 * 1024 * 1024
+        && request.resource.contentType.matches('image/(jpeg|png|webp)');
     }
 
     match /users/{userId}/avatar/{fileName} {

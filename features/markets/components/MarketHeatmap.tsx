@@ -4,11 +4,9 @@ import { Pressable, View } from 'react-native';
 import { GlassCard } from '@/shared/components/ui/GlassCard';
 import { Skeleton } from '@/shared/components/ui/Skeleton';
 import { Text } from '@/shared/components/ui/Text';
-import { buildAssetFromSymbol } from '@/features/markets/services/market-data.service';
+import type { Quote } from '@/shared/types/market';
 import { formatPercent } from '@/shared/utils/format';
 import { cn } from '@/shared/utils/cn';
-
-import { useMarketQuote } from '../hooks/useMarketQuote';
 
 interface HeatmapCell {
   symbol: string;
@@ -18,25 +16,24 @@ interface HeatmapCell {
 
 interface MarketHeatmapProps {
   symbols: string[];
+  /** Prefetched quotes — when provided, cells do not mount per-symbol polls. */
+  quotes?: Quote[];
   columns?: number;
   onPress?: (symbol: string) => void;
   className?: string;
+  isLoading?: boolean;
 }
 
 function HeatmapCellItem({
   cell,
+  isLoading,
   onPress,
 }: {
   cell: HeatmapCell;
+  isLoading?: boolean;
   onPress?: (symbol: string) => void;
 }) {
-  const asset = buildAssetFromSymbol(cell.symbol);
-  const { data: quote, isLoading } = useMarketQuote({
-    symbol: cell.symbol,
-    marketType: asset.marketType,
-  });
-
-  const changePercent = quote?.changePercent ?? cell.changePercent;
+  const changePercent = cell.changePercent;
   const intensity = Math.min(Math.abs(changePercent) / 5, 1);
 
   const bgColor =
@@ -49,6 +46,8 @@ function HeatmapCellItem({
   return (
     <Pressable
       onPress={() => onPress?.(cell.symbol)}
+      accessibilityRole="button"
+      accessibilityLabel={`${cell.label} ${formatPercent(changePercent)}`}
       style={{ backgroundColor: bgColor }}
       className="min-h-[72px] flex-1 items-center justify-center rounded-lg border border-border p-2"
     >
@@ -63,7 +62,11 @@ function HeatmapCellItem({
             variant="caption"
             className={cn(
               'mt-1 font-semibold',
-              changePercent > 0 ? 'text-bullish' : changePercent < 0 ? 'text-bearish' : 'text-text-secondary',
+              changePercent > 0
+                ? 'text-bullish'
+                : changePercent < 0
+                  ? 'text-bearish'
+                  : 'text-text-secondary',
             )}
           >
             {formatPercent(changePercent)}
@@ -74,15 +77,33 @@ function HeatmapCellItem({
   );
 }
 
-export function MarketHeatmap({ symbols, columns = 3, onPress, className }: MarketHeatmapProps) {
+export function MarketHeatmap({
+  symbols,
+  quotes,
+  columns = 3,
+  onPress,
+  className,
+  isLoading = false,
+}: MarketHeatmapProps) {
+  const quoteMap = useMemo(() => {
+    const map = new Map<string, Quote>();
+    for (const quote of quotes ?? []) {
+      map.set(quote.symbol.toUpperCase(), quote);
+    }
+    return map;
+  }, [quotes]);
+
   const cells = useMemo<HeatmapCell[]>(
     () =>
-      symbols.map((symbol) => ({
-        symbol,
-        label: symbol.split('/')[0].replace('^', '').slice(0, 5),
-        changePercent: 0,
-      })),
-    [symbols],
+      symbols.map((symbol) => {
+        const quote = quoteMap.get(symbol.toUpperCase());
+        return {
+          symbol,
+          label: symbol.split('/')[0].replace('^', '').slice(0, 5),
+          changePercent: quote?.changePercent ?? 0,
+        };
+      }),
+    [quoteMap, symbols],
   );
 
   const rows: HeatmapCell[][] = [];
@@ -99,7 +120,12 @@ export function MarketHeatmap({ symbols, columns = 3, onPress, className }: Mark
         {rows.map((row, rowIndex) => (
           <View key={rowIndex} className="flex-row gap-2">
             {row.map((cell) => (
-              <HeatmapCellItem key={cell.symbol} cell={cell} onPress={onPress} />
+              <HeatmapCellItem
+                key={cell.symbol}
+                cell={cell}
+                isLoading={isLoading && !quoteMap.has(cell.symbol.toUpperCase())}
+                onPress={onPress}
+              />
             ))}
             {row.length < columns
               ? Array.from({ length: columns - row.length }).map((_, i) => (

@@ -2,6 +2,8 @@ import * as Notifications from 'expo-notifications';
 import { useRouter } from 'expo-router';
 import { useEffect, useRef } from 'react';
 
+import { logger } from '@/shared/services/observability/logger';
+
 import { notificationService } from './notification.service';
 
 type NotificationData = {
@@ -52,11 +54,13 @@ export function usePushNotificationHandler(): void {
       handleNotificationNavigation(data, router);
     });
 
-    void Notifications.getLastNotificationResponseAsync().then((response) => {
-      if (!response) return;
-      const data = response.notification.request.content.data as NotificationData | undefined;
-      handleNotificationNavigation(data, router);
-    });
+    void Notifications.getLastNotificationResponseAsync()
+      .then((response) => {
+        if (!response) return;
+        const data = response.notification.request.content.data as NotificationData | undefined;
+        handleNotificationNavigation(data, router);
+      })
+      .catch((error) => logger.error('push.response_read_failed', error));
 
     return () => {
       receivedListener.current?.remove();

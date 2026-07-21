@@ -140,25 +140,37 @@ export function SettingsScreen() {
           icon="document-text-outline"
           label="Terms of Service"
           showChevron
-          onPress={() => void Linking.openURL(LEGAL_URLS.terms)}
+          onPress={() => router.push('/settings/legal/terms' as never)}
         />
         <SettingsRow
           icon="lock-closed-outline"
           label="Privacy Policy"
           showChevron
-          onPress={() => void Linking.openURL(LEGAL_URLS.privacy)}
+          onPress={() => router.push('/settings/legal/privacy' as never)}
+        />
+        <SettingsRow
+          icon="warning-outline"
+          label="Risk & Investment Disclaimer"
+          showChevron
+          onPress={() => router.push('/settings/legal/risk' as never)}
+        />
+        <SettingsRow
+          icon="shield-outline"
+          label="Security & Cybersecurity"
+          showChevron
+          onPress={() => router.push('/settings/legal/security' as never)}
+        />
+        <SettingsRow
+          icon="information-circle-outline"
+          label="Account deletion information"
+          showChevron
+          onPress={() => router.push('/settings/legal/accountDeletion' as never)}
         />
         <SettingsRow
           icon="help-circle-outline"
           label="Support"
           showChevron
           onPress={() => void Linking.openURL(LEGAL_URLS.support)}
-        />
-        <SettingsRow
-          icon="information-circle-outline"
-          label="Account deletion information"
-          showChevron
-          onPress={() => void Linking.openURL(LEGAL_URLS.accountDeletion)}
         />
       </GlassCard>
 

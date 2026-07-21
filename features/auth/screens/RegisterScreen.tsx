@@ -13,20 +13,17 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { useProfile } from '@/features/profile/hooks/useProfile';
-import { LEGAL_URLS } from '@/shared/constants/legal';
+import { LEGAL_ACCEPTANCE_VERSION, LEGAL_URLS } from '@/shared/constants/legal';
 
 import { AuthDivider } from '../components/AuthDivider';
 import { AuthInput } from '../components/AuthInput';
 import { SocialAuthButtons } from '../components/SocialAuthButtons';
 import { useAuth } from '../hooks/useAuth';
 import { useRegisterForm } from '../hooks/useAuthForm';
-import { requireAuth } from '@/firebase/config';
 
 export function RegisterScreen() {
   const { signUp, signInWithGoogle, signInWithAppleProvider, isLoading, error, clearError } =
     useAuth();
-  const { upsertProfile } = useProfile();
   const [submitting, setSubmitting] = useState(false);
   const [acceptedLegal, setAcceptedLegal] = useState(false);
 
@@ -59,15 +56,6 @@ export function RegisterScreen() {
         password: values.password,
         displayName: values.displayName,
       });
-
-      const currentUser = requireAuth().currentUser;
-      if (currentUser) {
-        await upsertProfile({
-          uid: currentUser.uid,
-          email: values.email,
-          displayName: values.displayName,
-        });
-      }
 
       router.replace('/(auth)/verify-email');
     } catch {
@@ -161,9 +149,9 @@ export function RegisterScreen() {
                 <Pressable
                   accessibilityRole="checkbox"
                   accessibilityState={{ checked: acceptedLegal }}
-                  accessibilityLabel="Accept Terms of Service and Privacy Policy"
+                  accessibilityLabel="Accept Terms of Service, Privacy Policy, and Risk Disclaimer"
                   onPress={() => setAcceptedLegal((value) => !value)}
-                  className="mr-3 mt-0.5"
+                  className="mr-3 mt-0.5 min-h-11 min-w-11 items-center justify-center"
                 >
                   <Ionicons
                     name={acceptedLegal ? 'checkbox' : 'square-outline'}
@@ -172,18 +160,21 @@ export function RegisterScreen() {
                   />
                 </Pressable>
                 <View className="flex-1">
-                  <Text className="text-sm text-slate-400">I have read and agree to the</Text>
-                  <View className="mt-1 flex-row flex-wrap">
+                  <Text className="text-sm text-slate-400">
+                    I am 18+, and I have read and agree to the Terms of Service, Privacy Policy, and
+                    Risk & Investment Disclaimer (v{LEGAL_ACCEPTANCE_VERSION}). TradeVision is not a
+                    broker and does not provide investment advice or buy/sell signals.
+                  </Text>
+                  <View className="mt-2 flex-row flex-wrap gap-x-2 gap-y-1">
                     <Pressable onPress={() => void Linking.openURL(LEGAL_URLS.terms)}>
-                      <Text className="text-sm font-semibold text-emerald-400">
-                        Terms of Service
-                      </Text>
+                      <Text className="text-sm font-semibold text-emerald-400">Terms</Text>
                     </Pressable>
-                    <Text className="text-sm text-slate-400"> and </Text>
                     <Pressable onPress={() => void Linking.openURL(LEGAL_URLS.privacy)}>
-                      <Text className="text-sm font-semibold text-emerald-400">Privacy Policy</Text>
+                      <Text className="text-sm font-semibold text-emerald-400">Privacy</Text>
                     </Pressable>
-                    <Text className="text-sm text-slate-400">.</Text>
+                    <Pressable onPress={() => void Linking.openURL(LEGAL_URLS.risk)}>
+                      <Text className="text-sm font-semibold text-emerald-400">Risk disclaimer</Text>
+                    </Pressable>
                   </View>
                 </View>
               </View>

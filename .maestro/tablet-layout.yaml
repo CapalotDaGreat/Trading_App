@@ -1,0 +1,20 @@
+appId: ai.tradevision.app
+---
+# Tablet / landscape smoke — run on an iPad or 10" Android emulator.
+# Presence is not evidence of execution; capture screenshots in the release ticket.
+- launchApp
+- assertVisible:
+    text: "Today"
+    optional: true
+- tapOn:
+    id: "today-section-morning-brief"
+    optional: true
+- assertVisible:
+    id: "today-section-research-queue"
+    optional: true
+- tapOn:
+    text: "Portfolio"
+    optional: true
+- assertVisible:
+    text: "Holdings"
+    optional: true

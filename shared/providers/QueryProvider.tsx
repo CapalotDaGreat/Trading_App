@@ -13,8 +13,8 @@ function createQueryClient(): QueryClient {
         staleTime: MARKET_DATA_POLICY.quoteStaleMs,
         gcTime: GC_TIME,
         retry: 2,
-        refetchOnWindowFocus: true,
-        refetchOnReconnect: true,
+        refetchOnWindowFocus: false,
+        refetchOnReconnect: false,
       },
       mutations: {
         retry: 1,

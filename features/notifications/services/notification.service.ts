@@ -1,24 +1,26 @@
+import * as Device from 'expo-device';
+import * as Notifications from 'expo-notifications';
+import * as SecureStore from 'expo-secure-store';
 import {
-  arrayUnion,
+  deleteDoc,
+  deleteField,
   doc,
   serverTimestamp,
   setDoc,
   updateDoc,
-  type DocumentData,
 } from 'firebase/firestore';
-import * as Device from 'expo-device';
-import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 
 import { requireDb, isFirebaseConfigured } from '@/firebase/config';
+import { logger } from '@/shared/services/observability/logger';
 
 export type NotificationPermissionStatus = 'granted' | 'denied' | 'undetermined';
 
 export interface PushTokenRecord {
+  deviceId: string;
   token: string;
   platform: 'ios' | 'android' | 'web';
   deviceName: string | null;
-  updatedAt: string;
 }
 
 export interface NotificationPreferences {
@@ -47,15 +49,33 @@ export interface NotificationService {
 }
 
 const USERS_COLLECTION = 'users';
-const FCM_TOKENS_FIELD = 'fcmTokens';
+const DEVICES_COLLECTION = 'devices';
+const DEVICE_ID_STORAGE_KEY = 'tradevision-push-device-id';
+
+function deviceDocRef(uid: string, deviceId: string) {
+  return doc(requireDb(), USERS_COLLECTION, uid, DEVICES_COLLECTION, deviceId);
+}
 
 function userDocRef(uid: string) {
   return doc(requireDb(), USERS_COLLECTION, uid);
 }
 
-function mapPermissionStatus(
-  status: Notifications.PermissionStatus,
-): NotificationPermissionStatus {
+function createDeviceId(): string {
+  return `device-${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}-${Math.random()
+    .toString(36)
+    .slice(2)}`;
+}
+
+async function getOrCreateDeviceId(): Promise<string> {
+  const existing = await SecureStore.getItemAsync(DEVICE_ID_STORAGE_KEY);
+  if (existing) return existing;
+
+  const deviceId = createDeviceId();
+  await SecureStore.setItemAsync(DEVICE_ID_STORAGE_KEY, deviceId);
+  return deviceId;
+}
+
+function mapPermissionStatus(status: Notifications.PermissionStatus): NotificationPermissionStatus {
   if (status === Notifications.PermissionStatus.GRANTED) return 'granted';
   if (status === Notifications.PermissionStatus.DENIED) return 'denied';
   return 'undetermined';
@@ -95,15 +115,15 @@ class NotificationServiceImpl implements NotificationService {
     if (!Device.isDevice) return null;
 
     const projectId =
-      process.env.EXPO_PUBLIC_EAS_PROJECT_ID ??
-      process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID;
+      process.env.EXPO_PUBLIC_EAS_PROJECT_ID ?? process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID;
 
     try {
       const token = await Notifications.getExpoPushTokenAsync(
         projectId ? { projectId } : undefined,
       );
       return token.data;
-    } catch {
+    } catch (error) {
+      logger.warn('push.token_unavailable', { error });
       return null;
     }
   }
@@ -134,39 +154,29 @@ class NotificationServiceImpl implements NotificationService {
     if (!isFirebaseConfigured()) return;
 
     const record: PushTokenRecord = {
+      deviceId: await getOrCreateDeviceId(),
       token,
       platform: Platform.OS === 'ios' ? 'ios' : Platform.OS === 'android' ? 'android' : 'web',
       deviceName: Device.deviceName,
-      updatedAt: new Date().toISOString(),
     };
 
-    const ref = userDocRef(uid);
-    try {
-      await updateDoc(ref, {
-        [FCM_TOKENS_FIELD]: arrayUnion(record),
-        pushTokenUpdatedAt: serverTimestamp(),
-      });
-    } catch {
-      await setDoc(
-        ref,
-        {
-          [FCM_TOKENS_FIELD]: [record],
-          pushTokenUpdatedAt: serverTimestamp(),
-        },
-        { merge: true },
-      );
-    }
+    await setDoc(deviceDocRef(uid, record.deviceId), {
+      ...record,
+      updatedAt: serverTimestamp(),
+    });
+    await updateDoc(userDocRef(uid), {
+      fcmTokens: deleteField(),
+      removedPushToken: deleteField(),
+      pushTokenUpdatedAt: deleteField(),
+    }).catch((error) => logger.warn('push.legacy_token_cleanup_failed', { error }));
   }
 
-  async removeTokenFromFirestore(uid: string, token: string): Promise<void> {
+  async removeTokenFromFirestore(uid: string, _token: string): Promise<void> {
     if (!isFirebaseConfigured()) return;
 
-    // Firestore arrayRemove needs exact object match; store tokens in a map in production.
-    // For Expo Go, we mark removal via a dedicated field.
-    await updateDoc(userDocRef(uid), {
-      removedPushToken: token,
-      pushTokenUpdatedAt: serverTimestamp(),
-    } as DocumentData);
+    const deviceId = await SecureStore.getItemAsync(DEVICE_ID_STORAGE_KEY);
+    if (!deviceId) return;
+    await deleteDoc(deviceDocRef(uid, deviceId));
   }
 
   async scheduleLocalNotification(
@@ -177,7 +187,10 @@ class NotificationServiceImpl implements NotificationService {
   ): Promise<string> {
     return Notifications.scheduleNotificationAsync({
       content: { title, body, data, sound: true },
-      trigger: { type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL, seconds: triggerSeconds },
+      trigger: {
+        type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
+        seconds: triggerSeconds,
+      },
     });
   }
 

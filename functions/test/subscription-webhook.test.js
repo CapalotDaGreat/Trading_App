@@ -3,7 +3,9 @@ const test = require('node:test');
 
 const {
   accountDeletionPaths,
+  deletionRetryAllowed,
   hasRecentLogin,
+  hasRequiredPremiumEntitlement,
   isValidWebhookAuthorization,
   mapRevenueCatEvent,
 } = require('../lib/index.js');
@@ -52,6 +54,36 @@ test('verifies exact raw or bearer webhook authorization', () => {
   assert.equal(isValidWebhookAuthorization(undefined, 'webhook-secret'), false);
 });
 
+test('requires the configured premium entitlement and fails closed without expiry', () => {
+  assert.equal(hasRequiredPremiumEntitlement(baseEvent), true);
+  assert.equal(hasRequiredPremiumEntitlement({ ...baseEvent, entitlement_ids: undefined }), false);
+  assert.equal(
+    mapRevenueCatEvent({
+      ...baseEvent,
+      type: 'INITIAL_PURCHASE',
+      entitlement_ids: undefined,
+    }),
+    null,
+  );
+
+  const noExpiry = mapRevenueCatEvent({
+    ...baseEvent,
+    type: 'RENEWAL',
+    expiration_at_ms: null,
+  });
+  assert.equal(noExpiry.isPremium, false);
+  assert.equal(noExpiry.status, 'expired');
+
+  const promotional = mapRevenueCatEvent({
+    ...baseEvent,
+    type: 'INITIAL_PURCHASE',
+    store: 'PROMOTIONAL',
+    expiration_at_ms: null,
+  });
+  assert.equal(promotional.isPremium, true);
+  assert.equal(promotional.status, 'active');
+});
+
 test('requires an authenticated session no older than five minutes for deletion', () => {
   const now = 2_000_000_000;
   assert.equal(hasRecentLogin(now, now), true);
@@ -66,6 +98,14 @@ test('scopes account deletion to the authenticated uid', () => {
     userDocument: 'users/firebase-uid',
     userSettingsDocument: 'userSettings/firebase-uid',
     subscriptionDocument: 'subscriptions/firebase-uid',
+    revenueCatEventsCollection: 'revenuecatWebhookEvents',
     storagePrefix: 'users/firebase-uid/',
   });
+});
+
+test('rate guards repeated deletion attempts per uid', () => {
+  const now = 2_000_000_000_000;
+  assert.equal(deletionRetryAllowed(undefined, now), true);
+  assert.equal(deletionRetryAllowed(now - 59_999, now), false);
+  assert.equal(deletionRetryAllowed(now - 60_000, now), true);
 });

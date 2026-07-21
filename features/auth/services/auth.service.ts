@@ -14,26 +14,20 @@ import {
   onAuthStateChanged,
   sendEmailVerification,
   sendPasswordResetEmail,
-  signInAnonymously,
+  reauthenticateWithCredential,
   signInWithCredential,
   signInWithEmailAndPassword,
   signOut,
   unlink,
   updateProfile,
   type MultiFactorResolver,
+  type AuthCredential,
   type Auth,
 } from 'firebase/auth';
 import { httpsCallable } from 'firebase/functions';
 import { Platform } from 'react-native';
 
-import {
-  auth,
-  DEMO_USER_UID,
-  isFirebaseConfigured,
-  requireAuth,
-  requireFunctions,
-} from '@/firebase/config';
-import { getLocalUserRepository } from '@/shared/services/user-data';
+import { auth, isFirebaseConfigured, requireAuth, requireFunctions } from '@/firebase/config';
 
 import type {
   AuthServiceError,
@@ -47,7 +41,10 @@ import type {
 WebBrowser.maybeCompleteAuthSession();
 
 let pendingMfaResolver: MultiFactorResolver | null = null;
+let pendingMfaPurpose: 'sign-in' | 'reauthenticate' | null = null;
 let pendingTotpSecret: TotpSecret | null = null;
+let sensitiveActionAuthorizedAt = 0;
+let sensitiveActionAuthorizedUid: string | null = null;
 
 export function getPendingMfaResolver(): MultiFactorResolver | null {
   return pendingMfaResolver;
@@ -55,6 +52,11 @@ export function getPendingMfaResolver(): MultiFactorResolver | null {
 
 export function clearPendingMfaResolver(): void {
   pendingMfaResolver = null;
+  pendingMfaPurpose = null;
+}
+
+export function isPendingMfaReauthentication(): boolean {
+  return pendingMfaPurpose === 'reauthenticate';
 }
 
 export function mapAuthError(error: unknown): AuthServiceError {
@@ -75,8 +77,7 @@ export function mapAuthError(error: unknown): AuthServiceError {
     'auth/multi-factor-auth-required': 'Multi-factor authentication is required.',
     'auth/invalid-verification-code': 'Invalid verification code.',
     'auth/missing-multi-factor-info': 'No MFA factor found for this account.',
-    'auth/requires-recent-login':
-      'Recent sign-in required. Sign out, sign back in, and try account deletion again.',
+    'auth/requires-recent-login': 'Recent sign-in required. Reauthenticate and try again.',
     'auth/popup-closed-by-user': 'Sign-in was cancelled.',
     'auth/cancelled-popup-request': 'Sign-in was cancelled.',
   };
@@ -97,11 +98,6 @@ export function subscribeToAuthState(callback: (user: User | null) => void): () 
 
 function getAuthOrThrow(): Auth {
   return requireAuth();
-}
-
-export async function signInAnonymouslyUser(): Promise<User> {
-  const result = await signInAnonymously(getAuthOrThrow());
-  return result.user;
 }
 
 export async function signUpWithEmail({
@@ -128,6 +124,7 @@ export async function signInWithEmail({ email, password }: SignInParams): Promis
     if (authError.code === 'auth/multi-factor-auth-required') {
       const resolver = getMultiFactorResolver(getAuthOrThrow(), error as never);
       pendingMfaResolver = resolver;
+      pendingMfaPurpose = 'sign-in';
       throw error;
     }
     throw error;
@@ -136,6 +133,8 @@ export async function signInWithEmail({ email, password }: SignInParams): Promis
 
 export async function signOutUser(): Promise<void> {
   clearPendingMfaResolver();
+  sensitiveActionAuthorizedAt = 0;
+  sensitiveActionAuthorizedUid = null;
   if (!isFirebaseConfigured() || !auth) {
     return;
   }
@@ -144,7 +143,6 @@ export async function signOutUser(): Promise<void> {
 
 export async function deleteCurrentAccount(): Promise<void> {
   if (!isFirebaseConfigured()) {
-    await getLocalUserRepository(DEMO_USER_UID).reset();
     return;
   }
 
@@ -154,11 +152,9 @@ export async function deleteCurrentAccount(): Promise<void> {
   }
 
   const deleteAccount = httpsCallable(requireFunctions(), 'deleteAccount');
-  const uid = user.uid;
   try {
     await deleteAccount();
     await signOut(getAuthOrThrow());
-    await getLocalUserRepository(uid).reset();
   } catch (error) {
     const callableError = error as { code?: string };
     if (callableError.code === 'functions/failed-precondition') {
@@ -197,11 +193,10 @@ export async function reloadCurrentUser(): Promise<User | null> {
 
 export async function signInWithGoogleIdToken(idToken: string): Promise<User> {
   const credential = GoogleAuthProvider.credential(idToken);
-  const result = await signInWithCredential(getAuthOrThrow(), credential);
-  return result.user;
+  return signInWithCredentialAndMfa(credential);
 }
 
-export async function signInWithApple(): Promise<User> {
+async function requestAppleCredential() {
   if (Platform.OS !== 'ios') {
     throw new Error('Apple Sign-In is only available on iOS.');
   }
@@ -222,18 +217,21 @@ export async function signInWithApple(): Promise<User> {
     idToken: appleCredential.identityToken,
   });
 
-  const result = await signInWithCredential(getAuthOrThrow(), credential);
+  return { credential, fullName: appleCredential.fullName };
+}
 
-  if (appleCredential.fullName?.givenName && !result.user.displayName) {
-    const displayName = [appleCredential.fullName.givenName, appleCredential.fullName.familyName]
-      .filter(Boolean)
-      .join(' ');
+export async function signInWithApple(): Promise<User> {
+  const { credential, fullName } = await requestAppleCredential();
+  const resultUser = await signInWithCredentialAndMfa(credential);
+
+  if (fullName?.givenName && !resultUser.displayName) {
+    const displayName = [fullName.givenName, fullName.familyName].filter(Boolean).join(' ');
     if (displayName) {
-      await updateProfile(result.user, { displayName });
+      await updateProfile(resultUser, { displayName });
     }
   }
 
-  return result.user;
+  return resultUser;
 }
 
 export function isAppleSignInAvailable(): boolean {
@@ -246,7 +244,7 @@ export async function enrollTotpMfa(): Promise<MfaEnrollmentResult> {
     throw new Error('You must be signed in to enroll MFA.');
   }
 
-  await reauthenticateIfNeeded(user);
+  requireSensitiveActionAuthorization();
 
   const session = await multiFactor(user).getSession();
   const totpSecret: TotpSecret = await TotpMultiFactorGenerator.generateSecret(session);
@@ -304,7 +302,12 @@ export async function verifyMfaSignIn({ verificationCode }: MfaVerifyParams): Pr
   }
 
   const result = await resolver.resolveSignIn(assertion);
+  const wasReauthentication = pendingMfaPurpose === 'reauthenticate';
   clearPendingMfaResolver();
+  if (wasReauthentication) {
+    sensitiveActionAuthorizedAt = Date.now();
+    sensitiveActionAuthorizedUid = result.user.uid;
+  }
   return result.user;
 }
 
@@ -325,7 +328,7 @@ export async function unenrollMfa(factorUid: string): Promise<void> {
     throw new Error('You must be signed in to manage MFA.');
   }
 
-  await reauthenticateIfNeeded(user);
+  requireSensitiveActionAuthorization();
   await multiFactor(user).unenroll(factorUid);
 }
 
@@ -340,23 +343,74 @@ export function getEnrolledMfaFactors() {
   return multiFactor(user).enrolledFactors;
 }
 
-async function reauthenticateIfNeeded(user: User): Promise<void> {
-  if (!user.email) {
-    return;
+const SENSITIVE_ACTION_WINDOW_MS = 5 * 60 * 1000;
+
+function requireSensitiveActionAuthorization(): void {
+  if (!hasSensitiveActionAuthorization()) {
+    throw {
+      code: 'auth/requires-recent-login',
+      message: 'Reauthenticate from Privacy & Security before managing MFA.',
+    };
   }
+}
 
-  const lastSignIn = user.metadata.lastSignInTime
-    ? new Date(user.metadata.lastSignInTime).getTime()
-    : 0;
-  const fiveMinutesAgo = Date.now() - 5 * 60 * 1000;
-
-  if (lastSignIn > fiveMinutesAgo) {
-    return;
-  }
-
-  throw new Error(
-    'Recent sign-in required. Please sign out and sign in again before enrolling MFA.',
+export function hasSensitiveActionAuthorization(): boolean {
+  return (
+    sensitiveActionAuthorizedUid != null &&
+    sensitiveActionAuthorizedUid === auth?.currentUser?.uid &&
+    Date.now() - sensitiveActionAuthorizedAt <= SENSITIVE_ACTION_WINDOW_MS
   );
+}
+
+async function signInWithCredentialAndMfa(credential: AuthCredential): Promise<User> {
+  try {
+    const result = await signInWithCredential(getAuthOrThrow(), credential);
+    return result.user;
+  } catch (error) {
+    const authError = error as { code?: string };
+    if (authError.code === 'auth/multi-factor-auth-required') {
+      pendingMfaResolver = getMultiFactorResolver(getAuthOrThrow(), error as never);
+      pendingMfaPurpose = 'sign-in';
+    }
+    throw error;
+  }
+}
+
+async function reauthenticate(credential: AuthCredential): Promise<User> {
+  const user = getAuthOrThrow().currentUser;
+  if (!user) {
+    throw new Error('You must be signed in to reauthenticate.');
+  }
+  try {
+    const result = await reauthenticateWithCredential(user, credential);
+    sensitiveActionAuthorizedAt = Date.now();
+    sensitiveActionAuthorizedUid = result.user.uid;
+    return result.user;
+  } catch (error) {
+    const authError = error as { code?: string };
+    if (authError.code === 'auth/multi-factor-auth-required') {
+      pendingMfaResolver = getMultiFactorResolver(getAuthOrThrow(), error as never);
+      pendingMfaPurpose = 'reauthenticate';
+    }
+    throw error;
+  }
+}
+
+export async function reauthenticateWithPassword(password: string): Promise<User> {
+  const user = getAuthOrThrow().currentUser;
+  if (!user?.email) {
+    throw new Error('This account does not have an email address for password reauthentication.');
+  }
+  return reauthenticate(EmailAuthProvider.credential(user.email, password));
+}
+
+export async function reauthenticateWithGoogleIdToken(idToken: string): Promise<User> {
+  return reauthenticate(GoogleAuthProvider.credential(idToken));
+}
+
+export async function reauthenticateWithApple(): Promise<User> {
+  const { credential } = await requestAppleCredential();
+  return reauthenticate(credential);
 }
 
 export async function linkEmailPassword(email: string, password: string): Promise<User> {

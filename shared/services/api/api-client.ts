@@ -1,5 +1,9 @@
+import { logger } from '@/shared/services/observability/logger';
 import { apiRateLimiter, waitForRateLimit } from '@/shared/services/rate-limit/rate-limiter';
-import { secureStorageService, SecureStorageKeys } from '@/shared/services/storage/secure-storage.service';
+import {
+  secureStorageService,
+  SecureStorageKeys,
+} from '@/shared/services/storage/secure-storage.service';
 
 export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 
@@ -52,7 +56,9 @@ const DEFAULT_RETRIES = 2;
 const DEFAULT_RETRY_DELAY = 1_000;
 
 function buildUrl(path: string, params?: ApiRequestConfig['params']): string {
-  const url = path.startsWith('http') ? path : `${BASE_URL}${path.startsWith('/') ? path : `/${path}`}`;
+  const url = path.startsWith('http')
+    ? path
+    : `${BASE_URL}${path.startsWith('/') ? path : `/${path}`}`;
 
   if (!params) return url;
 
@@ -155,12 +161,19 @@ export async function apiRequest<T>(path: string, config: ApiRequestConfig = {})
         );
 
         if (attempt < retries && isRetryable(response.status, method)) {
+          logger.warn('api.retry_scheduled', {
+            method,
+            path,
+            status: response.status,
+            attempt: attempt + 1,
+          });
           lastError = error;
           attempt += 1;
           await new Promise((resolve) => setTimeout(resolve, retryDelay * attempt));
           continue;
         }
 
+        logger.error('api.request_failed', error, { method, path, status: response.status });
         throw error;
       }
 
@@ -180,6 +193,7 @@ export async function apiRequest<T>(path: string, config: ApiRequestConfig = {})
       lastError = error instanceof Error ? error : new Error('Unknown request error');
 
       if (attempt < retries) {
+        logger.warn('api.network_retry_scheduled', { method, path, attempt: attempt + 1 });
         attempt += 1;
         await new Promise((resolve) => setTimeout(resolve, retryDelay * attempt));
         continue;
@@ -187,7 +201,9 @@ export async function apiRequest<T>(path: string, config: ApiRequestConfig = {})
     }
   }
 
-  throw lastError ?? new Error('Request failed');
+  const terminalError = lastError ?? new Error('Request failed');
+  logger.error('api.request_failed', terminalError, { method, path });
+  throw terminalError;
 }
 
 export const apiClient = {

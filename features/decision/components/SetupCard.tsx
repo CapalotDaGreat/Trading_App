@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { memo, useState } from 'react';
 import { Pressable, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -59,7 +59,7 @@ const RISK_VARIANT: Record<ImpactLevel, 'success' | 'warning' | 'danger'> = {
   high: 'danger',
 };
 
-export function SetupCard({ setup, onPress, highlight }: SetupCardProps) {
+export function SetupCardComponent({ setup, onPress, highlight }: SetupCardProps) {
   const { colors } = useTheme();
   const [detailsOpen, setDetailsOpen] = useState(false);
   const changeColor =
@@ -268,3 +268,5 @@ export function SetupCard({ setup, onPress, highlight }: SetupCardProps) {
     </GlassCard>
   );
 }
+
+export const SetupCard = memo(SetupCardComponent);

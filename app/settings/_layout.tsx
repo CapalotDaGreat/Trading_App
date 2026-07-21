@@ -8,6 +8,9 @@ export default function SettingsLayout() {
       <Stack.Screen name="privacy" />
       <Stack.Screen name="profile" />
       <Stack.Screen name="market-data" />
+      <Stack.Screen name="mfa" />
+      <Stack.Screen name="mfa-enroll" />
+      <Stack.Screen name="legal/[doc]" />
     </Stack>
   );
 }

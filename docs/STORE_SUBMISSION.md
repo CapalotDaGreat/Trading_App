@@ -13,6 +13,8 @@ be completed in the named external console before submission.
 - Set all production `EXPO_PUBLIC_FIREBASE_*` and public RevenueCat SDK keys in
   EAS environment variables. Set `REVENUECAT_WEBHOOK_AUTH_TOKEN` only as a
   Functions secret/environment value, never as an `EXPO_PUBLIC_*` value.
+- Set `EXPO_PUBLIC_SENTRY_DSN` only if crash reporting will ship, and store
+  `SENTRY_AUTH_TOKEN` as a sensitive EAS build secret for source-map upload.
 - Deploy exactly `revenueCatWebhook` and `deleteAccount`; verify no `aiBrief`
   function remains deployed.
 - Install both signed builds and verify the runtime version and OTA rollback.
@@ -29,12 +31,18 @@ be completed in the named external console before submission.
 
 ## Compliance and review
 
-- Publish Terms, Privacy, and Support URLs and verify they return HTTP 200.
+- Publish Terms, Privacy, Risk Disclaimer, Security Notice, Support, and Account
+  Deletion URLs and verify they return HTTP 200. Canonical sources are in
+  `store/legal/` (run `npm run legal:sync` after edits). Have Swiss/EU/US counsel
+  review and insert the registered legal entity before production.
+- Set App Store age rating consistent with the 18+ eligibility rule (not 4+).
 - Publish the account-deletion instructions at
   `https://tradevision.ai/account-deletion`; state that account deletion does
   not cancel store billing and link both stores' subscription management.
 - Complete Apple privacy labels and Google Play Data Safety from the shipped
-  behavior, not aspirational settings.
+  behavior, not aspirational settings. Crash diagnostics are optional,
+  disabled by default, and sent to Sentry only after explicit consent; no
+  general usage analytics, personalized ads, or trading-pattern sharing ships.
 - Upload the assets listed in `store/screenshots/README.md`.
 - Provide reviewer credentials and paste `store/reviewer-notes.md`.
 - Complete content ratings, export compliance, subscription disclosures, and
@@ -45,9 +53,9 @@ be completed in the named external console before submission.
 - Enable the callable `deleteAccount` in the same Firebase project used by the
   signed app and confirm the default Storage bucket exists.
 - With a newly signed-in test account, create data under `users/{uid}` and a
-  nested subcollection, `userSettings/{uid}`, `subscriptions/{uid}`, and
-  `users/{uid}/` in Storage. Delete in-app and verify all are gone with the Auth
-  user.
+  nested subcollection, `userSettings/{uid}`, `subscriptions/{uid}`,
+  RevenueCat webhook event docs with that `uid`, and `users/{uid}/` in Storage.
+  Delete in-app and verify all are gone with the Auth user.
 - Sign in, wait more than five minutes, and verify deletion is rejected until
   the user signs out and signs in again.
 - Verify Manage Subscription opens the correct Apple or Google management page
