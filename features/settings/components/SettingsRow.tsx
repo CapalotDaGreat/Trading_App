@@ -34,16 +34,10 @@ export function SettingsRow({
   disabled = false,
   className,
 }: SettingsRowProps) {
-  const { colors, isDark } = useTheme();
+  const { colors } = useTheme();
 
   const content = (
-    <View
-      className={cn(
-        'flex-row items-center px-4 py-3.5',
-        disabled && 'opacity-50',
-        className,
-      )}
-    >
+    <View className={cn('flex-row items-center px-4 py-3.5', disabled && 'opacity-50', className)}>
       {icon ? (
         <View className="mr-3 h-9 w-9 items-center justify-center rounded-xl bg-surface">
           <Ionicons
@@ -67,14 +61,16 @@ export function SettingsRow({
 
       {toggle ? (
         <Switch
+          accessibilityLabel={label}
+          accessibilityHint={description}
           value={toggleValue}
           onValueChange={onToggle}
           disabled={disabled}
           trackColor={{
-            false: isDark ? '#334155' : '#CBD5E1',
+            false: colors.background.tertiary,
             true: colors.accent.primary,
           }}
-          thumbColor={isDark ? '#F8FAFC' : '#FFFFFF'}
+          thumbColor={colors.text.primary}
         />
       ) : value ? (
         <Text variant="body-sm" className="mr-2">
@@ -90,7 +86,14 @@ export function SettingsRow({
 
   if (onPress && !toggle) {
     return (
-      <Pressable accessibilityRole="button" onPress={onPress} disabled={disabled}>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={label}
+        accessibilityHint={description ?? (showChevron ? 'Opens details' : undefined)}
+        accessibilityState={{ disabled }}
+        onPress={onPress}
+        disabled={disabled}
+      >
         {content}
       </Pressable>
     );

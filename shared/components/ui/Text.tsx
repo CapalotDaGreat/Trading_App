@@ -3,18 +3,9 @@ import { Text as RNText, type TextProps as RNTextProps } from 'react-native';
 import { cn } from '@/shared/utils/cn';
 
 type TextVariant =
-  | 'h1'
-  | 'h2'
-  | 'h3'
-  | 'body'
-  | 'body-sm'
-  | 'caption'
-  | 'label'
-  | 'mono'
-  | 'price'
-  | 'price-lg';
+  'h1' | 'h2' | 'h3' | 'body' | 'body-sm' | 'caption' | 'label' | 'mono' | 'price' | 'price-lg';
 
-interface TextProps extends RNTextProps {
+export interface TextProps extends RNTextProps {
   variant?: TextVariant;
   className?: string;
 }
@@ -32,9 +23,27 @@ const variantStyles: Record<TextVariant, string> = {
   'price-lg': 'font-mono text-3xl font-bold tabular-nums tracking-tight text-text-primary',
 };
 
-export function Text({ variant = 'body', className, children, ...props }: TextProps) {
+const headingVariants = new Set<TextVariant>(['h1', 'h2', 'h3']);
+
+export function Text({
+  variant = 'body',
+  className,
+  children,
+  allowFontScaling = true,
+  maxFontSizeMultiplier,
+  accessibilityRole,
+  ...props
+}: TextProps) {
+  const isHeading = headingVariants.has(variant);
+
   return (
-    <RNText className={cn(variantStyles[variant], className)} {...props}>
+    <RNText
+      allowFontScaling={allowFontScaling}
+      maxFontSizeMultiplier={maxFontSizeMultiplier ?? (isHeading ? 1.6 : 2)}
+      accessibilityRole={accessibilityRole ?? (isHeading ? 'header' : undefined)}
+      className={cn(variantStyles[variant], className)}
+      {...props}
+    >
       {children}
     </RNText>
   );

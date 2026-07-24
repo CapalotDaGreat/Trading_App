@@ -2,6 +2,7 @@ import { Pressable, Switch, View } from 'react-native';
 
 import { GlassCard } from '@/shared/components/ui/GlassCard';
 import { Text } from '@/shared/components/ui/Text';
+import { useTheme } from '@/shared/hooks/useTheme';
 import type { PriceAlert } from '@/shared/types/market';
 import { formatPrice } from '@/shared/utils/format';
 import { formatRelativeTime } from '@/shared/utils/date';
@@ -14,6 +15,7 @@ interface AlertCardProps {
 }
 
 export function AlertCard({ alert, onToggle, onDelete, onPress }: AlertCardProps) {
+  const { colors } = useTheme();
   const conditionLabel = alert.condition === 'above' ? '≥' : '≤';
   const isTriggered = Boolean(alert.triggeredAt);
 
@@ -45,10 +47,11 @@ export function AlertCard({ alert, onToggle, onDelete, onPress }: AlertCardProps
 
           <View className="items-end gap-2">
             <Switch
+              accessibilityLabel={`${alert.symbol} price alert`}
               value={alert.isActive}
               onValueChange={(value) => onToggle?.(alert.id, value)}
-              trackColor={{ false: '#334155', true: '#00D4AA' }}
-              thumbColor="#FFFFFF"
+              trackColor={{ false: colors.background.tertiary, true: colors.accent.primary }}
+              thumbColor={colors.text.primary}
             />
             {onDelete ? (
               <Pressable accessibilityRole="button" onPress={() => onDelete(alert.id)}>

@@ -4,6 +4,7 @@ import Svg, { Defs, LinearGradient, Path, Stop } from 'react-native-svg';
 
 import { GlassCard } from '@/shared/components/ui/GlassCard';
 import { Text } from '@/shared/components/ui/Text';
+import { useTheme } from '@/shared/hooks/useTheme';
 import { cn } from '@/shared/utils/cn';
 import { formatPercent, formatPrice } from '@/shared/utils/format';
 
@@ -25,6 +26,7 @@ export function PerformanceChart({
   currency = 'USD',
   onPeriodChange,
 }: PerformanceChartProps) {
+  const { colors } = useTheme();
   const { points, period } = performance;
   const [chartWidth, setChartWidth] = useState(0);
 
@@ -63,7 +65,7 @@ export function PerformanceChart({
   const latest = points[points.length - 1];
   const first = points[0];
   const isPositive = latest && first ? latest.pnl >= 0 : true;
-  const strokeColor = isPositive ? '#00D4AA' : '#FF4757';
+  const strokeColor = isPositive ? colors.bullish.primary : colors.bearish.primary;
   const gradientId = 'performanceGradient';
 
   return (

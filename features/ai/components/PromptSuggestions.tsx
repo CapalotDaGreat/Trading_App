@@ -28,8 +28,11 @@ export function PromptSuggestions({
           key={suggestion}
           disabled={disabled}
           onPress={() => onSelect(suggestion)}
+          accessibilityRole="button"
+          accessibilityLabel={`Ask: ${suggestion}`}
+          accessibilityState={{ disabled }}
           className={cn(
-            'rounded-full border border-border bg-surface-glass px-4 py-2',
+            'min-h-11 justify-center rounded-full border border-border bg-surface-glass px-4 py-2',
             disabled && 'opacity-50',
           )}
         >
@@ -43,11 +46,11 @@ export function PromptSuggestions({
 }
 
 export const DEFAULT_CHAT_PROMPTS = [
-  'What is RSI and how do I use it?',
+  'What evidence deserves attention today?',
   'Explain support and resistance',
-  'How should I manage risk?',
-  'Analyze SPY technicals',
-  'What affects market sentiment?',
+  'Help me review concentration risk',
+  'Summarize SPY technical context',
+  'What could invalidate this thesis?',
 ];
 
 export const DEFAULT_ANALYSIS_PROMPTS = [

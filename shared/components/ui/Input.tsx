@@ -1,16 +1,16 @@
-import { forwardRef, useState } from 'react';
+import { forwardRef, useId, useState, type ReactNode } from 'react';
 import { TextInput, View, type TextInputProps } from 'react-native';
 
 import { Text } from '@/shared/components/ui/Text';
 import { useTheme } from '@/shared/hooks/useTheme';
 import { cn } from '@/shared/utils/cn';
 
-interface InputProps extends TextInputProps {
+export interface InputProps extends TextInputProps {
   label?: string;
   error?: string;
   hint?: string;
-  leftElement?: React.ReactNode;
-  rightElement?: React.ReactNode;
+  leftElement?: ReactNode;
+  rightElement?: ReactNode;
   containerClassName?: string;
   inputClassName?: string;
 }
@@ -27,6 +27,10 @@ export const Input = forwardRef<TextInput, InputProps>(function Input(
     editable = true,
     onFocus,
     onBlur,
+    accessibilityLabel,
+    accessibilityHint,
+    accessibilityState,
+    nativeID,
     ...props
   },
   ref,
@@ -34,27 +38,36 @@ export const Input = forwardRef<TextInput, InputProps>(function Input(
   const { colors } = useTheme();
   const [isFocused, setIsFocused] = useState(false);
   const hasError = Boolean(error);
+  const generatedId = useId();
+  const inputId = nativeID ?? `input-${generatedId}`;
+  const labelId = `${inputId}-label`;
+  const messageId = `${inputId}-message`;
 
   return (
     <View className={cn('w-full', containerClassName)}>
       {label ? (
-        <Text variant="label" className="mb-2 text-text-secondary">
+        <Text nativeID={labelId} variant="label" className="mb-2 text-text-secondary">
           {label}
         </Text>
       ) : null}
 
       <View
         className={cn(
-          'flex-row items-center rounded-2xl bg-surface px-4',
-          isFocused && !hasError && 'bg-accent-muted',
-          hasError && 'bg-bearish-muted',
-          !editable && 'opacity-50',
+          'min-h-11 flex-row items-center rounded-control border border-transparent bg-surface px-4',
+          isFocused && !hasError && 'border-focus bg-accent-muted',
+          hasError && 'border-bearish bg-bearish-muted',
+          !editable && 'border-transparent bg-disabled',
         )}
       >
         {leftElement}
         <TextInput
           ref={ref}
+          nativeID={inputId}
           editable={editable}
+          accessibilityLabel={accessibilityLabel ?? label ?? props.placeholder}
+          accessibilityLabelledBy={label ? labelId : undefined}
+          accessibilityHint={accessibilityHint ?? error ?? hint}
+          accessibilityState={{ ...accessibilityState, disabled: !editable }}
           placeholderTextColor={colors.text.tertiary}
           onFocus={(e) => {
             setIsFocused(true);
@@ -76,11 +89,17 @@ export const Input = forwardRef<TextInput, InputProps>(function Input(
       </View>
 
       {error ? (
-        <Text variant="caption" className="mt-1.5 text-bearish">
+        <Text
+          nativeID={messageId}
+          accessibilityRole="alert"
+          accessibilityLiveRegion="assertive"
+          variant="caption"
+          className="mt-1.5 text-bearish"
+        >
           {error}
         </Text>
       ) : hint ? (
-        <Text variant="caption" className="mt-1.5 text-text-tertiary">
+        <Text nativeID={messageId} variant="caption" className="mt-1.5 text-text-tertiary">
           {hint}
         </Text>
       ) : null}

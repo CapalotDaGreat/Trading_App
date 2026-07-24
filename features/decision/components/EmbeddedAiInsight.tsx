@@ -11,7 +11,9 @@ interface EmbeddedAiInsightProps {
   body: string;
   onExplain?: () => void;
   explainLabel?: string;
+  /** Evidence/process quality only; never probability of a price move. */
   confidence?: number;
+  scoreLabel?: 'DQS' | 'RVS' | 'Evidence';
   className?: string;
 }
 
@@ -21,6 +23,7 @@ export function EmbeddedAiInsight({
   onExplain,
   explainLabel = 'Details',
   confidence,
+  scoreLabel = 'Evidence',
   className,
 }: EmbeddedAiInsightProps) {
   const { colors } = useTheme();
@@ -42,7 +45,11 @@ export function EmbeddedAiInsight({
             {title}
           </Text>
           {confidence !== undefined ? (
-            <Badge label={`${Math.round(confidence)}% quality`} variant="accent" size="sm" />
+            <Badge
+              label={`${scoreLabel} ${Math.round(confidence)}/100`}
+              variant="accent"
+              size="sm"
+            />
           ) : null}
         </View>
         <Text variant="caption" className="leading-relaxed text-text-secondary" numberOfLines={3}>
@@ -55,7 +62,7 @@ export function EmbeddedAiInsight({
           accessibilityRole="button"
           accessibilityLabel={explainLabel}
           onPress={onExplain}
-          className="rounded-full bg-surface px-2.5 py-1 active:bg-surface-active"
+          className="min-h-11 justify-center rounded-full bg-surface px-3 active:bg-surface-active"
         >
           <Text variant="caption" className="font-semibold text-accent">
             {explainLabel}

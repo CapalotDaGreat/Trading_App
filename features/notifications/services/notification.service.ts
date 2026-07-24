@@ -12,6 +12,7 @@ import {
 import { Platform } from 'react-native';
 
 import { requireDb, isFirebaseConfigured } from '@/firebase/config';
+import { colors } from '@/shared/constants/theme';
 import { logger } from '@/shared/services/observability/logger';
 
 export type NotificationPermissionStatus = 'granted' | 'denied' | 'undetermined';
@@ -139,7 +140,7 @@ class NotificationServiceImpl implements NotificationService {
         name: 'Default',
         importance: Notifications.AndroidImportance.MAX,
         vibrationPattern: [0, 250, 250, 250],
-        lightColor: '#00D4AA',
+        lightColor: colors.accent.primary,
       });
     }
 

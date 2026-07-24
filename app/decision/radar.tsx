@@ -12,11 +12,13 @@ import { GlassCard } from '@/shared/components/ui/GlassCard';
 import { Skeleton } from '@/shared/components/ui/Skeleton';
 import { Text } from '@/shared/components/ui/Text';
 import { useResponsiveLayout } from '@/shared/hooks/useResponsiveLayout';
+import { useTheme } from '@/shared/hooks/useTheme';
 
 export default function SetupRadarScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const layout = useResponsiveLayout();
+  const { colors } = useTheme();
   const { data, isLoading, isRefetching, refetch } = useSetupRadar();
 
   const renderItem = useCallback(
@@ -52,7 +54,7 @@ export default function SetupRadarScreen() {
           <RefreshControl
             refreshing={isRefetching}
             onRefresh={() => void refetch()}
-            tintColor="#00D4AA"
+            tintColor={colors.accent.primary}
           />
         }
         ListHeaderComponent={
@@ -80,7 +82,9 @@ export default function SetupRadarScreen() {
         ListEmptyComponent={
           !isLoading ? (
             <GlassCard className="p-4">
-              <Text variant="body-sm">No setups scored yet. Pull to refresh with market online.</Text>
+              <Text variant="body-sm">
+                No setups scored yet. Pull to refresh with market online.
+              </Text>
             </GlassCard>
           ) : null
         }

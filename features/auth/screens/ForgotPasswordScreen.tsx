@@ -1,21 +1,19 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useState } from 'react';
-import {
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  Text,
-  View,
-} from 'react-native';
+import { KeyboardAvoidingView, Platform, Pressable, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+
+import { Button } from '@/shared/components/ui/Button';
+import { Text } from '@/shared/components/ui/Text';
+import { useTheme } from '@/shared/hooks/useTheme';
 
 import { AuthInput } from '../components/AuthInput';
 import { useAuth } from '../hooks/useAuth';
 import { useForgotPasswordForm } from '../hooks/useAuthForm';
 
 export function ForgotPasswordScreen() {
+  const { colors } = useTheme();
   const { resetPassword, isLoading, error, clearError } = useAuth();
   const [submitting, setSubmitting] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
@@ -47,36 +45,50 @@ export function ForgotPasswordScreen() {
   const isBusy = isLoading || submitting;
 
   return (
-    <View className="flex-1 bg-[#070B14]">
+    <View className="flex-1 bg-background">
       <SafeAreaView className="flex-1 px-6">
         <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           className="flex-1"
         >
-          <Pressable onPress={() => router.back()} className="mt-2 mb-6 w-10 py-2">
-            <Ionicons name="arrow-back" size={24} color="#E2E8F0" />
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+            onPress={() => router.back()}
+            className="mb-6 mt-2 h-11 w-11 items-center justify-center rounded-full active:bg-surface"
+          >
+            <Ionicons name="arrow-back" size={24} color={colors.text.primary} />
           </Pressable>
 
-          <View className="mb-4 h-14 w-14 items-center justify-center rounded-2xl bg-blue-500/15">
-            <Ionicons name="key-outline" size={28} color="#60A5FA" />
+          <View className="mb-4 h-14 w-14 items-center justify-center rounded-2xl bg-info-muted">
+            <Ionicons name="key-outline" size={28} color={colors.info.primary} />
           </View>
 
-          <Text className="text-3xl font-bold text-white">Reset password</Text>
-          <Text className="mt-2 text-base leading-6 text-slate-400">
+          <Text variant="h1">Reset password</Text>
+          <Text variant="body" className="mt-2 text-text-secondary">
             Enter your email and we&apos;ll send you a link to reset your password.
           </Text>
 
           {emailSent ? (
-            <View className="mt-8 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-4">
-              <Text className="text-sm leading-6 text-emerald-300">
+            <View
+              accessibilityLiveRegion="polite"
+              className="mt-8 rounded-card bg-bullish-muted px-4 py-4"
+            >
+              <Text variant="body-sm" className="text-bullish">
                 Password reset email sent. Check your inbox and follow the instructions.
               </Text>
             </View>
           ) : (
             <View className="mt-8">
               {error ? (
-                <View className="mb-4 rounded-2xl border border-red-500/40 bg-red-500/10 px-4 py-3">
-                  <Text className="text-sm text-red-300">{error}</Text>
+                <View
+                  accessibilityRole="alert"
+                  accessibilityLiveRegion="assertive"
+                  className="mb-4 rounded-card bg-bearish-muted px-4 py-3"
+                >
+                  <Text variant="body-sm" className="text-bearish">
+                    {error}
+                  </Text>
                 </View>
               ) : null}
 
@@ -90,22 +102,20 @@ export function ForgotPasswordScreen() {
                 error={errors.email?.message}
               />
 
-              <Pressable
-                onPress={onSubmit}
-                disabled={isBusy}
-                className="items-center rounded-2xl bg-emerald-500 py-4 active:bg-emerald-600 disabled:opacity-60"
-              >
-                {isBusy ? (
-                  <ActivityIndicator color="#022C22" />
-                ) : (
-                  <Text className="text-base font-bold text-slate-950">Send Reset Link</Text>
-                )}
-              </Pressable>
+              <Button fullWidth size="lg" onPress={onSubmit} disabled={isBusy} loading={isBusy}>
+                Send reset link
+              </Button>
             </View>
           )}
 
-          <Pressable onPress={() => router.push('/(auth)/login')} className="mt-8 items-center py-2">
-            <Text className="text-sm font-semibold text-emerald-400">Back to Sign In</Text>
+          <Pressable
+            accessibilityRole="link"
+            onPress={() => router.push('/(auth)/login')}
+            className="mt-8 min-h-11 items-center justify-center"
+          >
+            <Text variant="label" className="text-accent">
+              Back to sign in
+            </Text>
           </Pressable>
         </KeyboardAvoidingView>
       </SafeAreaView>

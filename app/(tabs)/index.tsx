@@ -29,6 +29,7 @@ import {
 import { ensureDemoDecisionTape } from '@/features/decision-replay/services/demo-tape.service';
 import { ensureDemoSeedData } from '@/features/onboarding/services/demo-seed.service';
 import { Screen } from '@/shared/components/layout/Screen';
+import { Button } from '@/shared/components/ui/Button';
 import { GlassCard } from '@/shared/components/ui/GlassCard';
 import { Skeleton } from '@/shared/components/ui/Skeleton';
 import { Text } from '@/shared/components/ui/Text';
@@ -75,9 +76,7 @@ function TodayHeader({
   return (
     <View className="flex-row items-center justify-between" testID="today-section-header">
       <View className="flex-1 pr-3">
-        <Text variant="h1" className="text-2xl">
-          Today
-        </Text>
+        <Text variant="h1">Today</Text>
         <Text variant="caption" className="mt-1 text-text-secondary">
           {streak
             ? `${streak.days}d discipline streak · ${completed}/3 loop steps`
@@ -220,8 +219,17 @@ export default function DecisionBriefScreen() {
                 <GlassCard className="p-4">
                   <Text variant="h3">Couldn’t load today’s brief</Text>
                   <Text variant="body-sm" className="mt-2 text-text-secondary">
-                    Pull to refresh. Market data keys can be configured in Settings.
+                    No score or setup has been invented. Check your market-data connection and try
+                    again.
                   </Text>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="mt-3 self-start"
+                    onPress={() => void briefQuery.refetch()}
+                  >
+                    Retry brief
+                  </Button>
                 </GlassCard>
               )}
             </View>

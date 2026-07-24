@@ -1,14 +1,18 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { ActivityIndicator, Pressable, Text, View } from 'react-native';
+import { View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useProfile } from '@/features/profile/hooks/useProfile';
+import { Button } from '@/shared/components/ui/Button';
+import { Text } from '@/shared/components/ui/Text';
+import { useTheme } from '@/shared/hooks/useTheme';
 
 import { useAuth } from '../hooks/useAuth';
 
 export function VerifyEmailScreen() {
+  const { colors } = useTheme();
   const { user, resendVerificationEmail, refreshUser, signOut, isLoading, error, clearError } =
     useAuth();
   const { upsertProfile } = useProfile();
@@ -48,64 +52,67 @@ export function VerifyEmailScreen() {
   };
 
   return (
-    <View className="flex-1 bg-[#070B14]">
+    <View className="flex-1 bg-background">
       <SafeAreaView className="flex-1 px-6">
         <View className="mt-8 flex-1">
-          <View className="mb-6 h-16 w-16 items-center justify-center rounded-2xl bg-amber-500/15">
-            <Ionicons name="mail-unread-outline" size={32} color="#FBBF24" />
+          <View className="mb-6 h-16 w-16 items-center justify-center rounded-2xl bg-warning-muted">
+            <Ionicons name="mail-unread-outline" size={32} color={colors.warning.primary} />
           </View>
 
-          <Text className="text-3xl font-bold text-white">Verify your email</Text>
-          <Text className="mt-3 text-base leading-6 text-slate-400">
+          <Text variant="h1">Verify your email</Text>
+          <Text variant="body" className="mt-3 text-text-secondary">
             We sent a verification link to{' '}
-            <Text className="font-semibold text-slate-200">{user?.email ?? 'your email'}</Text>.
-            Please verify to access all trading features.
+            <Text className="font-semibold text-text-primary">{user?.email ?? 'your email'}</Text>.
+            Please verify to sync your decision workspace.
           </Text>
 
           {error ? (
-            <View className="mt-6 rounded-2xl border border-red-500/40 bg-red-500/10 px-4 py-3">
-              <Text className="text-sm text-red-300">{error}</Text>
+            <View
+              accessibilityRole="alert"
+              accessibilityLiveRegion="assertive"
+              className="mt-6 rounded-card bg-bearish-muted px-4 py-3"
+            >
+              <Text variant="body-sm" className="text-bearish">
+                {error}
+              </Text>
             </View>
           ) : null}
 
           {resent ? (
-            <View className="mt-6 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3">
-              <Text className="text-sm text-emerald-300">
+            <View
+              accessibilityLiveRegion="polite"
+              className="mt-6 rounded-card bg-bullish-muted px-4 py-3"
+            >
+              <Text variant="body-sm" className="text-bullish">
                 Verification email resent successfully.
               </Text>
             </View>
           ) : null}
 
           <View className="mt-10 gap-3">
-            <Pressable
+            <Button
+              fullWidth
+              size="lg"
               onPress={handleRefresh}
               disabled={checking}
-              className="items-center rounded-2xl bg-emerald-500 py-4 active:bg-emerald-600 disabled:opacity-60"
+              loading={checking}
             >
-              {checking ? (
-                <ActivityIndicator color="#022C22" />
-              ) : (
-                <Text className="text-base font-bold text-slate-950">
-                  I&apos;ve Verified My Email
-                </Text>
-              )}
-            </Pressable>
+              I&apos;ve verified my email
+            </Button>
 
-            <Pressable
+            <Button
+              fullWidth
+              variant="secondary"
               onPress={handleResend}
               disabled={isLoading}
-              className="items-center rounded-2xl border border-slate-600 bg-slate-900/50 py-4 active:opacity-80 disabled:opacity-60"
+              loading={isLoading}
             >
-              {isLoading ? (
-                <ActivityIndicator color="#E2E8F0" />
-              ) : (
-                <Text className="text-base font-semibold text-white">Resend Email</Text>
-              )}
-            </Pressable>
+              Resend email
+            </Button>
 
-            <Pressable onPress={handleSignOut} className="items-center py-4">
-              <Text className="text-sm font-medium text-slate-400">Sign out</Text>
-            </Pressable>
+            <Button fullWidth variant="ghost" onPress={handleSignOut}>
+              Sign out
+            </Button>
           </View>
         </View>
       </SafeAreaView>

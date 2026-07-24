@@ -1,4 +1,6 @@
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
+
+import { Text } from '@/shared/components/ui/Text';
 
 interface AuthDividerProps {
   label?: string;
@@ -7,11 +9,11 @@ interface AuthDividerProps {
 export function AuthDivider({ label = 'or continue with' }: AuthDividerProps) {
   return (
     <View className="my-6 flex-row items-center">
-      <View className="h-px flex-1 bg-slate-700/80" />
-      <Text className="mx-4 text-xs font-medium uppercase tracking-widest text-slate-500">
+      <View className="h-px flex-1 bg-border-strong" />
+      <Text variant="caption" className="mx-4 font-medium uppercase tracking-widest">
         {label}
       </Text>
-      <View className="h-px flex-1 bg-slate-700/80" />
+      <View className="h-px flex-1 bg-border-strong" />
     </View>
   );
 }

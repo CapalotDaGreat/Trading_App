@@ -29,6 +29,24 @@ export const colors = {
     primary: '#FBBF24',
     muted: 'rgba(251, 191, 36, 0.14)',
   },
+  info: {
+    primary: '#60A5FA',
+    muted: 'rgba(96, 165, 250, 0.14)',
+  },
+  focus: {
+    ring: '#5EEAD4',
+  },
+  disabled: {
+    background: 'rgba(148, 163, 184, 0.12)',
+    foreground: '#94A3B8',
+  },
+  chart: {
+    grid: 'rgba(148, 163, 184, 0.12)',
+    axis: '#94A3B8',
+    primary: '#2DD4BF',
+    secondary: '#60A5FA',
+    neutral: '#CBD5E1',
+  },
   border: {
     default: 'rgba(148, 163, 184, 0.06)',
     strong: 'rgba(148, 163, 184, 0.12)',
@@ -37,8 +55,10 @@ export const colors = {
   text: {
     primary: '#F8FAFC',
     secondary: '#94A3B8',
-    tertiary: '#64748B',
+    tertiary: '#7C8BA1',
     inverse: '#0B1220',
+    onAccent: '#06201D',
+    onDanger: '#270707',
   },
   light: {
     background: {
@@ -71,6 +91,24 @@ export const colors = {
       primary: '#D97706',
       muted: 'rgba(217, 119, 6, 0.12)',
     },
+    info: {
+      primary: '#2563EB',
+      muted: 'rgba(37, 99, 235, 0.12)',
+    },
+    focus: {
+      ring: '#0D9488',
+    },
+    disabled: {
+      background: 'rgba(100, 116, 139, 0.12)',
+      foreground: '#64748B',
+    },
+    chart: {
+      grid: 'rgba(71, 85, 105, 0.14)',
+      axis: '#475569',
+      primary: '#0F766E',
+      secondary: '#2563EB',
+      neutral: '#64748B',
+    },
     border: {
       default: 'rgba(15, 23, 42, 0.04)',
       strong: 'rgba(15, 23, 42, 0.09)',
@@ -81,6 +119,8 @@ export const colors = {
       secondary: '#475569',
       tertiary: '#64748B',
       inverse: '#F8FAFC',
+      onAccent: '#FFFFFF',
+      onDanger: '#FFFFFF',
     },
   },
 } as const;
@@ -171,6 +211,10 @@ export const borderRadius = {
   lg: 16,
   xl: 20,
   '2xl': 24,
+  control: 12,
+  card: 16,
+  panel: 20,
+  pill: 9999,
   full: 9999,
 } as const;
 

@@ -2,7 +2,10 @@ import { Ionicons } from '@expo/vector-icons';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import * as Google from 'expo-auth-session/providers/google';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Platform, Pressable, Text, View } from 'react-native';
+import { Platform, View } from 'react-native';
+
+import { Button } from '@/shared/components/ui/Button';
+import { useTheme } from '@/shared/hooks/useTheme';
 
 interface SocialAuthButtonsProps {
   onGoogleSuccess: (idToken: string) => Promise<void>;
@@ -21,6 +24,7 @@ export function SocialAuthButtons({
   showApple = true,
   actionLabel = 'Continue',
 }: SocialAuthButtonsProps) {
+  const { colors } = useTheme();
   const [isAppleLoading, setIsAppleLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [appleAvailable, setAppleAvailable] = useState(false);
@@ -69,41 +73,29 @@ export function SocialAuthButtons({
   return (
     <View className="gap-3">
       {showGoogle ? (
-        <Pressable
+        <Button
+          fullWidth
+          variant="secondary"
           onPress={handleGooglePress}
           disabled={disabled || !request || isGoogleLoading}
-          className="flex-row items-center justify-center rounded-2xl border border-slate-700/80 bg-slate-900/60 px-4 py-4 active:opacity-80"
+          loading={isGoogleLoading}
+          leftIcon={<Ionicons name="logo-google" size={20} color={colors.text.primary} />}
         >
-          {isGoogleLoading ? (
-            <ActivityIndicator color="#E2E8F0" />
-          ) : (
-            <>
-              <Ionicons name="logo-google" size={20} color="#E2E8F0" />
-              <Text className="ml-3 text-base font-semibold text-slate-100">
-                {actionLabel} with Google
-              </Text>
-            </>
-          )}
-        </Pressable>
+          {actionLabel} with Google
+        </Button>
       ) : null}
 
       {showApple && appleAvailable ? (
-        <Pressable
+        <Button
+          fullWidth
+          variant="secondary"
           onPress={handleApplePress}
           disabled={disabled || isAppleLoading}
-          className="flex-row items-center justify-center rounded-2xl border border-slate-700/80 bg-black px-4 py-4 active:opacity-80"
+          loading={isAppleLoading}
+          leftIcon={<Ionicons name="logo-apple" size={22} color={colors.text.primary} />}
         >
-          {isAppleLoading ? (
-            <ActivityIndicator color="#FFFFFF" />
-          ) : (
-            <>
-              <Ionicons name="logo-apple" size={22} color="#FFFFFF" />
-              <Text className="ml-3 text-base font-semibold text-white">
-                {actionLabel} with Apple
-              </Text>
-            </>
-          )}
-        </Pressable>
+          {actionLabel} with Apple
+        </Button>
       ) : null}
     </View>
   );

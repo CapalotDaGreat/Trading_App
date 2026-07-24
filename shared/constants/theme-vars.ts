@@ -22,6 +22,16 @@ export const darkThemeVars = vars({
   '--color-bearish-muted': colors.bearish.muted,
   '--color-warning': colors.warning.primary,
   '--color-warning-muted': colors.warning.muted,
+  '--color-info': colors.info.primary,
+  '--color-info-muted': colors.info.muted,
+  '--color-focus': colors.focus.ring,
+  '--color-disabled-background': colors.disabled.background,
+  '--color-disabled-foreground': colors.disabled.foreground,
+  '--color-chart-grid': colors.chart.grid,
+  '--color-chart-axis': colors.chart.axis,
+  '--color-chart-primary': colors.chart.primary,
+  '--color-chart-secondary': colors.chart.secondary,
+  '--color-chart-neutral': colors.chart.neutral,
   '--color-border': colors.border.default,
   '--color-border-strong': colors.border.strong,
   '--color-border-accent': colors.border.accent,
@@ -29,6 +39,8 @@ export const darkThemeVars = vars({
   '--color-text-secondary': colors.text.secondary,
   '--color-text-tertiary': colors.text.tertiary,
   '--color-text-inverse': colors.text.inverse,
+  '--color-text-on-accent': colors.text.onAccent,
+  '--color-text-on-danger': colors.text.onDanger,
 });
 
 export const lightThemeVars = vars({
@@ -50,6 +62,16 @@ export const lightThemeVars = vars({
   '--color-bearish-muted': colors.light.bearish.muted,
   '--color-warning': colors.light.warning.primary,
   '--color-warning-muted': colors.light.warning.muted,
+  '--color-info': colors.light.info.primary,
+  '--color-info-muted': colors.light.info.muted,
+  '--color-focus': colors.light.focus.ring,
+  '--color-disabled-background': colors.light.disabled.background,
+  '--color-disabled-foreground': colors.light.disabled.foreground,
+  '--color-chart-grid': colors.light.chart.grid,
+  '--color-chart-axis': colors.light.chart.axis,
+  '--color-chart-primary': colors.light.chart.primary,
+  '--color-chart-secondary': colors.light.chart.secondary,
+  '--color-chart-neutral': colors.light.chart.neutral,
   '--color-border': colors.light.border.default,
   '--color-border-strong': colors.light.border.strong,
   '--color-border-accent': colors.light.border.accent,
@@ -57,6 +79,8 @@ export const lightThemeVars = vars({
   '--color-text-secondary': colors.light.text.secondary,
   '--color-text-tertiary': colors.light.text.tertiary,
   '--color-text-inverse': colors.light.text.inverse,
+  '--color-text-on-accent': colors.light.text.onAccent,
+  '--color-text-on-danger': colors.light.text.onDanger,
 });
 
 export const themeVars = {

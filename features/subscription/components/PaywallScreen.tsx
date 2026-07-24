@@ -1,14 +1,17 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { useMemo, useState } from 'react';
-import { ActivityIndicator, Pressable, View } from 'react-native';
+import { useEffect, useMemo, useState } from 'react';
+import { AccessibilityInfo, ActivityIndicator, Linking, Pressable, View } from 'react-native';
 
+import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useSubscription } from '@/features/subscription/hooks/useSubscription';
 import type { SubscriptionPlanId } from '@/features/subscription/types/subscription.types';
+import { DEMO_USER_UID } from '@/firebase/config';
 import { Header } from '@/shared/components/layout/Header';
 import { Screen } from '@/shared/components/layout/Screen';
 import { Button } from '@/shared/components/ui/Button';
 import { Text } from '@/shared/components/ui/Text';
+import { LEGAL_URLS } from '@/shared/constants/legal';
 import { SUBSCRIPTION_TIERS } from '@/shared/constants/subscription';
 import { useResponsiveLayout } from '@/shared/hooks/useResponsiveLayout';
 import { useTheme } from '@/shared/hooks/useTheme';
@@ -29,8 +32,10 @@ const PREMIUM_FEATURES = [
 
 export function PaywallScreen() {
   const router = useRouter();
+  const { user } = useAuth();
   const { colors } = useTheme();
   const layout = useResponsiveLayout();
+  const isGuest = user?.uid === DEMO_USER_UID;
   const {
     plans,
     isPremium,
@@ -49,6 +54,10 @@ export function PaywallScreen() {
   const defaultPlan = plans.find((p) => p.isPopular)?.id ?? 'yearly';
   const [selectedPlan, setSelectedPlan] = useState<SubscriptionPlanId>(defaultPlan);
   const [actionMessage, setActionMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (actionMessage) AccessibilityInfo.announceForAccessibility(actionMessage);
+  }, [actionMessage]);
 
   const selected = useMemo(
     () => plans.find((p) => p.id === selectedPlan) ?? plans[0],
@@ -106,7 +115,12 @@ export function PaywallScreen() {
           <Button variant="outline" className="mt-6" onPress={() => void manage()}>
             {subscription?.status === 'cancelled' ? 'Resume Subscription' : 'Manage Subscription'}
           </Button>
-          <Button variant="secondary" className="mt-6" onPress={() => refresh()} loading={isRefreshing}>
+          <Button
+            variant="secondary"
+            className="mt-6"
+            onPress={() => refresh()}
+            loading={isRefreshing}
+          >
             Refresh Status
           </Button>
         </View>
@@ -139,8 +153,19 @@ export function PaywallScreen() {
       {!nativeBillingAvailable ? (
         <View className="mb-5 rounded-2xl bg-background-elevated p-4">
           <Text variant="body-sm" className="text-center">
-            Store purchases are available in EAS development and production builds. Expo Go and
-            demo mode remain free.
+            Store purchases are available in EAS development and production builds. Expo Go and demo
+            mode remain free.
+          </Text>
+        </View>
+      ) : null}
+
+      {isGuest ? (
+        <View className="mb-5 rounded-2xl bg-accent-muted p-4">
+          <Text variant="label" className="text-accent">
+            Create an account before subscribing
+          </Text>
+          <Text variant="body-sm" className="mt-1">
+            Your purchase needs an account so Premium access can be restored across devices.
           </Text>
         </View>
       ) : null}
@@ -161,7 +186,8 @@ export function PaywallScreen() {
                 <Pressable
                   key={plan.id}
                   accessibilityRole="radio"
-                  accessibilityState={{ selected: active }}
+                  accessibilityLabel={`${plan.title}, ${plan.price}${plan.pricePerMonth ? `, ${plan.pricePerMonth}` : ''}${plan.trialLabel ? `, ${plan.trialLabel}` : ''}`}
+                  accessibilityState={{ checked: active }}
                   onPress={() => setSelectedPlan(plan.id)}
                   className={cn(
                     'min-h-11 flex-1 items-center justify-center rounded-xl px-2 py-3',
@@ -178,11 +204,17 @@ export function PaywallScreen() {
                     {plan.title}
                   </Text>
                   {plan.badge ? (
-                    <Text variant="caption" className={active ? 'text-accent' : 'text-text-tertiary'}>
+                    <Text
+                      variant="caption"
+                      className={active ? 'text-accent' : 'text-text-tertiary'}
+                    >
                       {plan.badge}
                     </Text>
                   ) : plan.trialLabel ? (
-                    <Text variant="caption" className={active ? 'text-accent' : 'text-text-tertiary'}>
+                    <Text
+                      variant="caption"
+                      className={active ? 'text-accent' : 'text-text-tertiary'}
+                    >
                       {plan.trialLabel}
                     </Text>
                   ) : (
@@ -252,10 +284,10 @@ export function PaywallScreen() {
         fullWidth
         size="lg"
         loading={isPurchasing}
-        disabled={!nativeBillingAvailable}
-        onPress={() => void handlePurchase()}
+        disabled={!isGuest && !nativeBillingAvailable}
+        onPress={() => (isGuest ? router.push('/(auth)/register' as never) : void handlePurchase())}
       >
-        {ctaLabel}
+        {isGuest ? 'Create account to subscribe' : ctaLabel}
       </Button>
 
       <Button
@@ -263,7 +295,7 @@ export function PaywallScreen() {
         className="mt-3"
         fullWidth
         loading={isRestoring}
-        disabled={!nativeBillingAvailable}
+        disabled={isGuest || !nativeBillingAvailable}
         onPress={() => {
           setActionMessage(null);
           void restore()
@@ -285,17 +317,60 @@ export function PaywallScreen() {
       </Button>
 
       {actionMessage ? (
-        <Text variant="body-sm" className="mt-3 text-center text-text-secondary">
+        <Text
+          accessibilityRole="alert"
+          accessibilityLiveRegion="polite"
+          variant="body-sm"
+          className="mt-3 text-center text-text-secondary"
+        >
           {actionMessage}
         </Text>
       ) : null}
 
-      <Text variant="caption" className="mt-4 text-center leading-5">
-        Subscriptions auto-renew unless cancelled. Premium does not provide brokerage execution or
-        exchange-tick realtime data. Free includes{' '}
-        {SUBSCRIPTION_TIERS.free.aiAnalysisPerDay} AI analyses/day and up to{' '}
-        {SUBSCRIPTION_TIERS.free.watchlistMax} watchlist symbols.
+      <Text variant="caption" className="mt-4 text-center leading-5 text-text-secondary">
+        Payment is charged to your Apple ID or Google Play account at confirmation. Subscriptions
+        auto-renew unless cancelled at least 24 hours before the end of the current period in your
+        store account settings. After a free trial, the listed plan price is charged. Cancelling
+        stops renewal; Premium remains available until the paid-through date. Prices shown come from
+        the store when available. Premium does not provide brokerage execution or exchange-tick
+        realtime data. Free includes {SUBSCRIPTION_TIERS.free.aiAnalysisPerDay} AI analyses/day and
+        up to {SUBSCRIPTION_TIERS.free.watchlistMax} watchlist symbols.
       </Text>
+
+      <View className="mt-3 flex-row flex-wrap items-center justify-center gap-x-3 gap-y-2 pb-4">
+        <Pressable
+          accessibilityRole="link"
+          onPress={() => router.push('/settings/legal/terms' as never)}
+        >
+          <Text variant="caption" className="text-accent">
+            Terms of Service
+          </Text>
+        </Pressable>
+        <Pressable
+          accessibilityRole="link"
+          onPress={() => router.push('/settings/legal/privacy' as never)}
+        >
+          <Text variant="caption" className="text-accent">
+            Privacy Policy
+          </Text>
+        </Pressable>
+        <Pressable
+          accessibilityRole="link"
+          onPress={() => router.push('/settings/legal/risk' as never)}
+        >
+          <Text variant="caption" className="text-accent">
+            Risk Disclaimer
+          </Text>
+        </Pressable>
+        <Pressable
+          accessibilityRole="link"
+          onPress={() => void Linking.openURL(LEGAL_URLS.support)}
+        >
+          <Text variant="caption" className="text-accent">
+            Support
+          </Text>
+        </Pressable>
+      </View>
     </Screen>
   );
 }

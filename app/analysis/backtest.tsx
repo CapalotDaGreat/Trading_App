@@ -16,6 +16,7 @@ import { Screen } from '@/shared/components/layout/Screen';
 import { Button } from '@/shared/components/ui/Button';
 import { GlassCard } from '@/shared/components/ui/GlassCard';
 import { Text } from '@/shared/components/ui/Text';
+import { useTheme } from '@/shared/hooks/useTheme';
 import { cn } from '@/shared/utils/cn';
 import { formatNumber, formatPercent } from '@/shared/utils/format';
 
@@ -23,6 +24,7 @@ type StrategyType = 'sma' | 'rsi';
 
 export default function BacktestScreen() {
   const router = useRouter();
+  const { colors } = useTheme();
   const [strategyType, setStrategyType] = useState<StrategyType>('sma');
   const [result, setResult] = useState<BacktestResult | null>(null);
   const [isRunning, setIsRunning] = useState(false);
@@ -70,7 +72,7 @@ export default function BacktestScreen() {
                 testID={`strategy-sandbox-${type}`}
                 onPress={() => setStrategyType(type)}
                 className={cn(
-                  'flex-1 rounded-full py-2.5',
+                  'min-h-11 flex-1 justify-center rounded-full py-2.5',
                   strategyType === type ? 'bg-accent-muted' : 'bg-surface',
                 )}
               >
@@ -104,7 +106,7 @@ export default function BacktestScreen() {
         </GlassCard>
 
         {isRunning ? (
-          <ActivityIndicator size="large" color="#00D4AA" />
+          <ActivityIndicator size="large" color={colors.accent.primary} />
         ) : result ? (
           <BacktestResults result={result} />
         ) : null}

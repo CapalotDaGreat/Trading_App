@@ -2,7 +2,7 @@ import { useFonts } from 'expo-font';
 import { Stack, useRouter, useSegments, type ErrorBoundaryProps } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect, useState } from 'react';
-import { View } from 'react-native';
+import { ActivityIndicator, View } from 'react-native';
 import 'react-native-reanimated';
 import '../global.css';
 
@@ -18,6 +18,7 @@ import { DEMO_USER_UID, isFirebaseConfigured } from '@/firebase/config';
 import { Button } from '@/shared/components/ui/Button';
 import { Text } from '@/shared/components/ui/Text';
 import { AppProviders } from '@/shared/providers/AppProviders';
+import { useTheme } from '@/shared/hooks/useTheme';
 import {
   addBreadcrumb,
   captureException,
@@ -81,6 +82,7 @@ export default function RootLayout() {
 
 function RootLayoutNav() {
   const { status, user } = useAuth();
+  const { colors } = useTheme();
   const segments = useSegments();
   const router = useRouter();
   const localOnboardingCompleted = useSettingsStore((state) => state.hasCompletedOnboarding);
@@ -148,7 +150,17 @@ function RootLayoutNav() {
   }, [status, user?.uid]);
 
   if (status === 'authenticated' && !onboarding) {
-    return null;
+    return (
+      <View
+        className="flex-1 items-center justify-center bg-background px-6"
+        accessibilityLiveRegion="polite"
+      >
+        <ActivityIndicator size="large" color={colors.accent.primary} />
+        <Text variant="body-sm" className="mt-4 text-center">
+          Preparing your decision workspace…
+        </Text>
+      </View>
+    );
   }
 
   if (!isFirebaseConfigured()) {
@@ -171,7 +183,17 @@ function RootLayoutNav() {
   }
 
   if (status === 'loading') {
-    return null;
+    return (
+      <View
+        className="flex-1 items-center justify-center bg-background px-6"
+        accessibilityLiveRegion="polite"
+      >
+        <ActivityIndicator size="large" color={colors.accent.primary} />
+        <Text variant="body-sm" className="mt-4 text-center">
+          Signing you in…
+        </Text>
+      </View>
+    );
   }
 
   return (

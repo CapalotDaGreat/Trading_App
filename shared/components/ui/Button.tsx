@@ -1,11 +1,7 @@
 import * as Haptics from 'expo-haptics';
 import { type ReactNode } from 'react';
 import { ActivityIndicator, Pressable, type PressableProps } from 'react-native';
-import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withSpring,
-} from 'react-native-reanimated';
+import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 
 import { useReducedMotion } from '@/shared/hooks/useReducedMotion';
 import { useTheme } from '@/shared/hooks/useTheme';
@@ -46,10 +42,10 @@ const sizeStyles: Record<ButtonSize, string> = {
 };
 
 const textVariantStyles: Record<ButtonVariant, string> = {
-  primary: 'text-text-inverse font-semibold',
+  primary: 'text-text-on-accent font-semibold',
   secondary: 'text-text-primary font-medium',
   ghost: 'text-text-primary font-medium',
-  danger: 'text-text-primary font-semibold',
+  danger: 'text-text-on-danger font-semibold',
   outline: 'text-accent font-semibold',
 };
 
@@ -74,6 +70,8 @@ export function Button({
   onPress,
   onPressIn,
   onPressOut,
+  accessibilityLabel,
+  accessibilityState,
   ...props
 }: ButtonProps) {
   const { colors } = useTheme();
@@ -111,6 +109,14 @@ export function Button({
   return (
     <AnimatedPressable
       accessibilityRole="button"
+      accessibilityLabel={
+        accessibilityLabel ?? (typeof children === 'string' ? children : undefined)
+      }
+      accessibilityState={{
+        ...accessibilityState,
+        disabled: isDisabled,
+        busy: loading,
+      }}
       disabled={isDisabled}
       onPress={handlePress}
       onPressIn={handlePressIn}
@@ -121,14 +127,20 @@ export function Button({
         variantStyles[variant],
         sizeStyles[size],
         fullWidth && 'w-full',
-        isDisabled && 'opacity-50',
+        isDisabled && 'bg-disabled opacity-100',
         className,
       )}
       {...props}
     >
       {loading ? (
         <ActivityIndicator
-          color={variant === 'primary' ? colors.text.inverse : colors.accent.primary}
+          color={
+            variant === 'primary'
+              ? colors.text.onAccent
+              : variant === 'danger'
+                ? colors.text.onDanger
+                : colors.accent.primary
+          }
           size="small"
         />
       ) : (
@@ -140,8 +152,11 @@ export function Button({
               textSizeStyles[size],
               leftIcon && 'ml-2',
               rightIcon && 'mr-2',
+              isDisabled && 'text-disabled-foreground',
               textClassName,
             )}
+            allowFontScaling
+            maxFontSizeMultiplier={1.8}
           >
             {children}
           </Animated.Text>

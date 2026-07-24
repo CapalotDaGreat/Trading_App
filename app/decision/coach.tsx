@@ -8,9 +8,11 @@ import { Screen } from '@/shared/components/layout/Screen';
 import { GlassCard } from '@/shared/components/ui/GlassCard';
 import { Skeleton } from '@/shared/components/ui/Skeleton';
 import { Text } from '@/shared/components/ui/Text';
+import { useTheme } from '@/shared/hooks/useTheme';
 
 export default function JournalCoachScreen() {
   const router = useRouter();
+  const { colors } = useTheme();
   const { data, isLoading, isRefetching, refetch } = useJournalCoach();
 
   return (
@@ -21,13 +23,13 @@ export default function JournalCoachScreen() {
           <RefreshControl
             refreshing={isRefetching}
             onRefresh={() => void refetch()}
-            tintColor="#00D4AA"
+            tintColor={colors.accent.primary}
           />
         ),
       }}
     >
       <Header
-        title="Ask"
+        title="Coach"
         subtitle="One process prompt from your history"
         onBack={() => router.back()}
       />

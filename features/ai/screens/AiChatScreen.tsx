@@ -11,8 +11,10 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { Header } from '@/shared/components/layout/Header';
 import { Screen } from '@/shared/components/layout/Screen';
+import { IconButton } from '@/shared/components/ui/IconButton';
 import { Input } from '@/shared/components/ui/Input';
 import { Text } from '@/shared/components/ui/Text';
+import { useTheme } from '@/shared/hooks/useTheme';
 import { useSubscriptionStore } from '@/shared/stores/subscription.store';
 
 import { AiChatBubble } from '../components/AiChatBubble';
@@ -31,6 +33,7 @@ interface AiChatScreenProps {
 export function AiChatScreen({ symbol }: AiChatScreenProps) {
   const [input, setInput] = useState('');
   const listRef = useRef<FlatList<AiMessage>>(null);
+  const { colors } = useTheme();
   const isPremium = useSubscriptionStore((s) => s.isPremium);
   const { usage } = useAiAnalysis();
   const { messages, sendMessage, clearChat, isSending, error } = useAiChat(
@@ -45,18 +48,21 @@ export function AiChatScreen({ symbol }: AiChatScreenProps) {
     setTimeout(() => listRef.current?.scrollToEnd({ animated: true }), 100);
   }, [input, sendMessage]);
 
-  const errorMessage =
-    error && aiService.isServiceError(error) ? error.message : error?.message;
+  const errorMessage = error && aiService.isServiceError(error) ? error.message : error?.message;
 
   return (
-    <Screen safeBottom={false} padded={false} className="flex-1">
+    <Screen safeTop={false} safeBottom={false} padded={false} className="flex-1">
       <Header
-        title="AI Assistant"
-        subtitle={symbol ? `Analyzing ${symbol}` : 'Market intelligence'}
+        title="Ask"
+        subtitle={symbol ? `Decision context for ${symbol}` : 'Research context, not trade signals'}
         rightAction={
-          <Pressable onPress={clearChat} className="p-2">
-            <Ionicons name="refresh" size={20} color="#94A3B8" />
-          </Pressable>
+          <IconButton
+            onPress={clearChat}
+            accessibilityLabel="Clear conversation"
+            icon={<Ionicons name="refresh" size={20} color={colors.text.secondary} />}
+            variant="ghost"
+            size="sm"
+          />
         }
       />
 
@@ -76,7 +82,11 @@ export function AiChatScreen({ symbol }: AiChatScreenProps) {
         />
 
         {errorMessage ? (
-          <View className="mx-4 mb-2 rounded-lg bg-bearish-muted px-3 py-2">
+          <View
+            className="mx-4 mb-2 rounded-lg bg-bearish-muted px-3 py-2"
+            accessibilityRole="alert"
+            accessibilityLiveRegion="assertive"
+          >
             <Text variant="caption" className="text-bearish">
               {errorMessage}
             </Text>
@@ -98,9 +108,10 @@ export function AiChatScreen({ symbol }: AiChatScreenProps) {
           <View className="flex-row items-end gap-2">
             <View className="flex-1">
               <Input
+                accessibilityLabel="Ask TradeVision"
                 value={input}
                 onChangeText={setInput}
-                placeholder="Ask about markets, indicators, risk..."
+                placeholder="Ask about evidence, risk, or your process"
                 multiline
                 maxLength={1000}
                 editable={!isSending}
@@ -109,12 +120,15 @@ export function AiChatScreen({ symbol }: AiChatScreenProps) {
             <Pressable
               onPress={() => void handleSend()}
               disabled={isSending || !input.trim()}
+              accessibilityRole="button"
+              accessibilityLabel={isSending ? 'Sending question' : 'Send question'}
+              accessibilityState={{ disabled: isSending || !input.trim(), busy: isSending }}
               className="mb-1 h-11 w-11 items-center justify-center rounded-xl bg-accent disabled:opacity-50"
             >
               {isSending ? (
-                <ActivityIndicator color="#0A0E17" size="small" />
+                <ActivityIndicator color={colors.text.inverse} size="small" />
               ) : (
-                <Ionicons name="send" size={18} color="#0A0E17" />
+                <Ionicons name="send" size={18} color={colors.text.inverse} />
               )}
             </Pressable>
           </View>

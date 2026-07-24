@@ -9,9 +9,11 @@ import { Screen } from '@/shared/components/layout/Screen';
 import { GlassCard } from '@/shared/components/ui/GlassCard';
 import { Skeleton } from '@/shared/components/ui/Skeleton';
 import { Text } from '@/shared/components/ui/Text';
+import { useTheme } from '@/shared/hooks/useTheme';
 
 export default function RiskCenterScreen() {
   const router = useRouter();
+  const { colors } = useTheme();
   const { data, isLoading, isRefetching, refetch } = useRiskCenter();
 
   return (
@@ -22,7 +24,7 @@ export default function RiskCenterScreen() {
           <RefreshControl
             refreshing={isRefetching}
             onRefresh={() => void refetch()}
-            tintColor="#00D4AA"
+            tintColor={colors.accent.primary}
           />
         ),
       }}

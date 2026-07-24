@@ -8,6 +8,7 @@ import { EmptyState } from '@/shared/components/feedback/EmptyState';
 import { Header } from '@/shared/components/layout/Header';
 import { Screen } from '@/shared/components/layout/Screen';
 import { Text } from '@/shared/components/ui/Text';
+import { useTheme } from '@/shared/hooks/useTheme';
 import { cn } from '@/shared/utils/cn';
 import { formatDate } from '@/shared/utils/date';
 
@@ -15,19 +16,14 @@ const IMPACTS: EventImpact[] = ['high', 'medium', 'low'];
 
 export default function CalendarScreen() {
   const router = useRouter();
-  const {
-    grouped,
-    impactFilter,
-    toggleImpact,
-    isLoading,
-    isError,
-    refetch,
-  } = useEconomicCalendar();
+  const { colors } = useTheme();
+  const { grouped, impactFilter, toggleImpact, isLoading, isError, refetch } =
+    useEconomicCalendar();
 
   if (isLoading) {
     return (
       <Screen className="items-center justify-center">
-        <ActivityIndicator size="large" color="#00D4AA" />
+        <ActivityIndicator size="large" color={colors.accent.primary} />
       </Screen>
     );
   }
@@ -55,10 +51,12 @@ export default function CalendarScreen() {
           {IMPACTS.map((impact) => (
             <Pressable
               key={impact}
-              accessibilityRole="button"
+              accessibilityRole="checkbox"
+              accessibilityLabel={`${impact} impact events`}
+              accessibilityState={{ checked: impactFilter.includes(impact) }}
               onPress={() => toggleImpact(impact)}
               className={cn(
-                'rounded-lg border px-3 py-1.5 capitalize',
+                'min-h-11 justify-center rounded-lg border px-3 capitalize',
                 impactFilter.includes(impact)
                   ? 'border-border-strong bg-accent-muted'
                   : 'border-border opacity-50',

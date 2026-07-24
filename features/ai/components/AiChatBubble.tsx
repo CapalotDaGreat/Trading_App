@@ -3,6 +3,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { Badge } from '@/shared/components/ui/Badge';
 import { Text } from '@/shared/components/ui/Text';
+import { useTheme } from '@/shared/hooks/useTheme';
 import { cn } from '@/shared/utils/cn';
 import { formatRelativeTime } from '@/shared/utils/date';
 
@@ -14,12 +15,13 @@ interface AiChatBubbleProps {
 
 export function AiChatBubble({ message }: AiChatBubbleProps) {
   const isUser = message.role === 'user';
+  const { colors } = useTheme();
 
   return (
     <View className={cn('mb-3 flex-row', isUser ? 'justify-end' : 'justify-start')}>
       {!isUser ? (
         <View className="mr-2 mt-1 h-7 w-7 items-center justify-center rounded-full bg-accent-muted">
-          <Ionicons name="sparkles" size={14} color="#00D4AA" />
+          <Ionicons name="sparkles" size={14} color={colors.accent.primary} />
         </View>
       ) : null}
 
@@ -33,18 +35,14 @@ export function AiChatBubble({ message }: AiChatBubbleProps) {
       >
         <Text
           variant="body-sm"
-          className={cn('leading-relaxed', isUser ? 'text-text-inverse' : 'text-text-primary')}
+          className={cn('leading-relaxed', isUser ? 'text-text-on-accent' : 'text-text-primary')}
         >
           {message.content}
         </Text>
 
         {!isUser && message.metadata?.source ? (
           <View className="mt-2 flex-row items-center gap-2">
-            <Badge
-              label="Local rules engine"
-              variant="default"
-              size="sm"
-            />
+            <Badge label="Local rules engine" variant="default" size="sm" />
             {message.metadata.confidence ? (
               <Text variant="caption">{message.metadata.confidence}% output quality</Text>
             ) : null}
@@ -53,7 +51,7 @@ export function AiChatBubble({ message }: AiChatBubbleProps) {
 
         <Text
           variant="caption"
-          className={cn('mt-1.5', isUser ? 'text-text-inverse/70' : 'text-text-tertiary')}
+          className={cn('mt-1.5', isUser ? 'text-text-on-accent' : 'text-text-tertiary')}
         >
           {formatRelativeTime(message.timestamp)}
         </Text>

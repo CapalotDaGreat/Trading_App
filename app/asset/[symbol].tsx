@@ -38,7 +38,7 @@ import {
 } from '@/shared/utils/format';
 import { getPriceAccessibilityLabel } from '@/shared/utils/accessibility';
 
-type DetailTab = 'decision' | 'chart' | 'indicators' | 'analysis';
+type DetailTab = 'decision' | 'chart' | 'details';
 
 export default function AssetDetailScreen() {
   const router = useRouter();
@@ -49,9 +49,11 @@ export default function AssetDetailScreen() {
 
   const [interval, setInterval] = useState<CandleInterval>('1d');
   const requestedTab: DetailTab =
-    params.tab === 'chart' || params.tab === 'indicators' || params.tab === 'analysis'
-      ? params.tab
-      : 'decision';
+    params.tab === 'chart'
+      ? 'chart'
+      : params.tab === 'details' || params.tab === 'indicators' || params.tab === 'analysis'
+        ? 'details'
+        : 'decision';
   const [activeTab, setActiveTab] = useState<DetailTab>(requestedTab);
   const [activeIndicators, setActiveIndicators] = useState<IndicatorType[]>([
     'rsi',
@@ -63,11 +65,8 @@ export default function AssetDetailScreen() {
   const asset = useMemo(() => buildAssetFromSymbol(symbol, marketType), [symbol, marketType]);
 
   const needsChartWork =
-    activeTab === 'decision' ||
-    activeTab === 'chart' ||
-    activeTab === 'indicators' ||
-    activeTab === 'analysis';
-  const needsMtf = activeTab === 'decision' || activeTab === 'analysis';
+    activeTab === 'decision' || activeTab === 'chart' || activeTab === 'details';
+  const needsMtf = activeTab === 'decision' || activeTab === 'details';
   const needsRegime = activeTab === 'decision';
 
   const { data: quote, isLoading: quoteLoading } = useMarketQuote({
@@ -143,8 +142,7 @@ export default function AssetDetailScreen() {
   const tabs: { key: DetailTab; label: string }[] = [
     { key: 'decision', label: 'Decision' },
     { key: 'chart', label: 'Chart' },
-    { key: 'indicators', label: 'Indicators' },
-    { key: 'analysis', label: 'Analysis' },
+    { key: 'details', label: 'Details' },
   ];
 
   return (
@@ -189,12 +187,13 @@ export default function AssetDetailScreen() {
                 className="mt-3"
                 title="Should this chart get your time?"
                 confidence={Math.round(analysis.summary.confidence * 100)}
+                scoreLabel="RVS"
                 body={`${analysis.summary.overallBias} bias · ${analysis.summary.trend} · RSI ${analysis.summary.rsiSignal}. Use invalidation levels before sizing any idea.`}
                 onExplain={() => {
-                  setActiveTab('analysis');
+                  setActiveTab('details');
                   router.replace({
                     pathname: '/asset/[symbol]',
-                    params: { ...params, symbol, tab: 'analysis' },
+                    params: { ...params, symbol, tab: 'details' },
                   } as never);
                 }}
               />
@@ -232,7 +231,10 @@ export default function AssetDetailScreen() {
             accessibilityState={{ selected: activeTab === tab.key }}
             accessibilityLabel={`Show ${tab.label} for ${asset.symbol}`}
             testID={`asset-tab-${tab.key}`}
-            className={cn('flex-1 rounded-lg py-2', activeTab === tab.key && 'bg-accent-muted')}
+            className={cn(
+              'min-h-11 flex-1 justify-center rounded-lg py-2',
+              activeTab === tab.key && 'bg-accent-muted',
+            )}
           >
             <Text
               variant="caption"
@@ -381,7 +383,7 @@ export default function AssetDetailScreen() {
         </GlassCard>
       ) : null}
 
-      {activeTab === 'indicators' ? (
+      {activeTab === 'details' ? (
         <View className="mb-6 gap-4">
           <IndicatorPanel active={activeIndicators} onToggle={toggleIndicator} />
           {analysis?.indicators.rsi ? (
@@ -426,7 +428,7 @@ export default function AssetDetailScreen() {
         </View>
       ) : null}
 
-      {activeTab === 'analysis' && analysis ? (
+      {activeTab === 'details' && analysis ? (
         <View className="mb-8 gap-4">
           {mtfQuery.data ? <MtfConsensusCard data={mtfQuery.data} /> : null}
           <GlassCard className="p-4">

@@ -1,94 +1,127 @@
 import { Ionicons } from '@expo/vector-icons';
-import { BlurView } from 'expo-blur';
 import { router } from 'expo-router';
-import { ActivityIndicator, Pressable, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useState } from 'react';
+import { Pressable, View } from 'react-native';
+
+import { Screen } from '@/shared/components/layout/Screen';
+import { Button } from '@/shared/components/ui/Button';
+import { GlassCard } from '@/shared/components/ui/GlassCard';
+import { Text } from '@/shared/components/ui/Text';
+import { useTheme } from '@/shared/hooks/useTheme';
 
 import { useAuth } from '../hooks/useAuth';
 
 export function WelcomeScreen() {
   const { signInAnonymously, isLoading } = useAuth();
+  const { colors } = useTheme();
+  const [acceptedGuestTerms, setAcceptedGuestTerms] = useState(false);
 
   const handleGuestAccess = async () => {
+    if (!acceptedGuestTerms) return;
     await signInAnonymously();
     router.replace('/(tabs)');
   };
 
   return (
-    <View className="flex-1 bg-[#070B14]">
-      <View className="absolute inset-0 bg-[#0B1220]" />
-      <View className="absolute -top-20 right-0 h-72 w-72 rounded-full bg-emerald-500/10 blur-3xl" />
-      <View className="absolute bottom-20 -left-10 h-64 w-64 rounded-full bg-blue-500/10 blur-3xl" />
-
-      <SafeAreaView className="flex-1 px-6">
-        <View className="mt-8 flex-row items-center">
-          <View className="mr-3 h-11 w-11 items-center justify-center rounded-2xl bg-emerald-500/20">
-            <Ionicons name="trending-up" size={24} color="#34D399" />
+    <Screen
+      scrollable
+      className="bg-background"
+      scrollViewProps={{ contentContainerStyle: { flexGrow: 1 } }}
+    >
+      <View className="min-h-full flex-1 py-6">
+        <View className="flex-row items-center">
+          <View className="mr-3 h-11 w-11 items-center justify-center rounded-2xl bg-accent-muted">
+            <Ionicons name="compass-outline" size={24} color={colors.accent.primary} />
           </View>
-          <Text className="text-lg font-semibold tracking-wide text-emerald-400">TradeVision AI</Text>
+          <View>
+            <Text variant="h3">TradeVision AI</Text>
+            <Text variant="caption" className="text-text-secondary">
+              Decision-first market research
+            </Text>
+          </View>
         </View>
 
-        <View className="flex-1 justify-center">
-          <Text className="text-4xl font-bold leading-tight text-white">
-            Decide what deserves{'\n'}
-            <Text className="text-emerald-400">your research time</Text>
+        <View className="flex-1 justify-center py-10">
+          <Text variant="h1" className="text-4xl leading-tight">
+            Spend your attention{'\n'}
+            <Text className="text-accent">where it matters</Text>
           </Text>
-          <Text className="mt-4 text-base leading-6 text-slate-400">
-            Research-value briefs, honest source labels, and a decision journal — built to improve
-            process, not predict price direction. Not a broker. Not investment advice.
+          <Text variant="body" className="mt-4 max-w-xl text-text-secondary">
+            Start with a focused brief, decide what deserves research, then review the quality of
+            your process. No buy/sell signals and no prediction claims.
           </Text>
 
-          <BlurView intensity={30} tint="dark" className="mt-10 overflow-hidden rounded-3xl border border-slate-700/50">
+          <GlassCard className="mt-8" bordered>
             <View className="p-5">
               <View className="mb-4 flex-row items-center">
-                <Ionicons name="shield-checkmark" size={18} color="#34D399" />
-                <Text className="ml-2 text-sm text-slate-300">
-                  MFA, verified-cloud writes, and privacy-first diagnostics
+                <Ionicons name="shield-checkmark-outline" size={20} color={colors.accent.primary} />
+                <Text variant="body-sm" className="ml-3 flex-1">
+                  Optional MFA and privacy-first crash reporting on signed-in accounts
                 </Text>
               </View>
               <View className="flex-row items-center">
-                <Ionicons name="flash" size={18} color="#60A5FA" />
-                <Text className="ml-2 text-sm text-slate-300">Sync watchlists, portfolio & journal</Text>
+                <Ionicons name="cloud-offline-outline" size={20} color={colors.text.secondary} />
+                <Text variant="body-sm" className="ml-3 flex-1">
+                  Local demo available; cloud sync after you create an account
+                </Text>
               </View>
             </View>
-          </BlurView>
+          </GlassCard>
         </View>
 
-        <View className="pb-4">
-          <Pressable
+        <View>
+          <Button
+            fullWidth
+            size="lg"
             onPress={() => router.push('/(auth)/register')}
-            className="mb-3 items-center rounded-2xl bg-emerald-500 py-4 active:bg-emerald-600"
+            accessibilityLabel="Create account"
           >
-            <Text className="text-base font-bold text-slate-950">Create Account</Text>
-          </Pressable>
+            Create account
+          </Button>
 
-          <Pressable
+          <Button
+            fullWidth
+            variant="secondary"
+            className="mt-3"
             onPress={() => router.push('/(auth)/login')}
-            className="mb-3 items-center rounded-2xl border border-slate-600 bg-slate-900/50 py-4 active:opacity-80"
           >
-            <Text className="text-base font-semibold text-white">Sign In</Text>
-          </Pressable>
+            Sign in
+          </Button>
 
           <Pressable
+            accessibilityRole="checkbox"
+            accessibilityState={{ checked: acceptedGuestTerms }}
+            accessibilityLabel="Confirm age 18 or older and acknowledge guest risk disclaimer"
+            testID="welcome-guest-age-ack"
+            onPress={() => setAcceptedGuestTerms((value) => !value)}
+            className="mt-4 min-h-11 flex-row items-start py-1"
+          >
+            <Ionicons
+              name={acceptedGuestTerms ? 'checkbox' : 'square-outline'}
+              size={22}
+              color={acceptedGuestTerms ? colors.accent.primary : colors.text.tertiary}
+              style={{ marginTop: 2, marginRight: 10 }}
+            />
+            <Text variant="caption" className="flex-1 text-text-secondary">
+              I am 18+ and understand Guest mode is a local demo. Scores do not predict prices.
+              TradeVision does not provide investment advice or buy/sell signals.
+            </Text>
+          </Pressable>
+
+          <Button
+            fullWidth
+            variant="ghost"
+            className="mt-1"
             onPress={handleGuestAccess}
-            disabled={isLoading}
-            accessibilityRole="button"
+            disabled={isLoading || !acceptedGuestTerms}
             accessibilityLabel="Continue as Guest"
             testID="welcome-continue-guest"
-            className="items-center py-3 active:opacity-70"
+            loading={isLoading}
           >
-            {isLoading ? (
-              <ActivityIndicator color="#94A3B8" />
-            ) : (
-              <Text className="text-sm font-medium text-slate-400">Continue as Guest</Text>
-            )}
-          </Pressable>
-          <Text className="mt-2 px-2 text-center text-xs leading-4 text-slate-500">
-            Guest mode is local demo use. By continuing you acknowledge the Risk Disclaimer: scores
-            do not predict prices and TradeVision does not provide investment advice.
-          </Text>
+            Continue as guest
+          </Button>
         </View>
-      </SafeAreaView>
-    </View>
+      </View>
+    </Screen>
   );
 }

@@ -13,6 +13,10 @@ export function useTheme() {
         bullish: colors.bullish,
         bearish: colors.bearish,
         warning: colors.warning,
+        info: colors.info,
+        focus: colors.focus,
+        disabled: colors.disabled,
+        chart: colors.chart,
         border: colors.border,
         text: colors.text,
       }
@@ -23,6 +27,10 @@ export function useTheme() {
         bullish: colors.light.bullish,
         bearish: colors.light.bearish,
         warning: colors.light.warning,
+        info: colors.light.info,
+        focus: colors.light.focus,
+        disabled: colors.light.disabled,
+        chart: colors.light.chart,
         border: colors.light.border,
         text: colors.light.text,
       };

@@ -26,8 +26,11 @@ export function TimeframeSelector({ value, onChange, className }: TimeframeSelec
           <Pressable
             key={option.value}
             onPress={() => onChange(option.value)}
+            accessibilityRole="tab"
+            accessibilityLabel={`${option.label} timeframe`}
+            accessibilityState={{ selected: isActive }}
             className={cn(
-              'rounded-full px-3.5 py-2',
+              'min-h-11 justify-center rounded-full px-3.5 py-2',
               isActive ? 'bg-accent-muted' : 'bg-surface',
             )}
           >

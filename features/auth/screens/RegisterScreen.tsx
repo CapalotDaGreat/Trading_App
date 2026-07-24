@@ -1,19 +1,13 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useState } from 'react';
-import {
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Linking,
-  Platform,
-  Pressable,
-  ScrollView,
-  Text,
-  View,
-} from 'react-native';
+import { KeyboardAvoidingView, Linking, Platform, Pressable, ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { Button } from '@/shared/components/ui/Button';
+import { Text } from '@/shared/components/ui/Text';
 import { LEGAL_ACCEPTANCE_VERSION, LEGAL_URLS } from '@/shared/constants/legal';
+import { useTheme } from '@/shared/hooks/useTheme';
 
 import { AuthDivider } from '../components/AuthDivider';
 import { AuthInput } from '../components/AuthInput';
@@ -22,6 +16,7 @@ import { useAuth } from '../hooks/useAuth';
 import { useRegisterForm } from '../hooks/useAuthForm';
 
 export function RegisterScreen() {
+  const { colors } = useTheme();
   const { signUp, signInWithGoogle, signInWithAppleProvider, isLoading, error, clearError } =
     useAuth();
   const [submitting, setSubmitting] = useState(false);
@@ -82,10 +77,10 @@ export function RegisterScreen() {
   const isBusy = isLoading || submitting;
 
   return (
-    <View className="flex-1 bg-[#070B14]">
+    <View className="flex-1 bg-background">
       <SafeAreaView className="flex-1">
         <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           className="flex-1"
         >
           <ScrollView
@@ -93,18 +88,29 @@ export function RegisterScreen() {
             contentContainerClassName="grow pb-8"
             keyboardShouldPersistTaps="handled"
           >
-            <Pressable onPress={() => router.back()} className="mt-2 mb-6 w-10 py-2">
-              <Ionicons name="arrow-back" size={24} color="#E2E8F0" />
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Go back"
+              onPress={() => router.back()}
+              className="mb-6 mt-2 h-11 w-11 items-center justify-center rounded-full active:bg-surface"
+            >
+              <Ionicons name="arrow-back" size={24} color={colors.text.primary} />
             </Pressable>
 
-            <Text className="text-3xl font-bold text-white">Create your account</Text>
-            <Text className="mt-2 text-base text-slate-400">
+            <Text variant="h1">Create your account</Text>
+            <Text variant="body" className="mt-2 text-text-secondary">
               Build a more consistent research and decision process.
             </Text>
 
             {error ? (
-              <View className="mt-4 rounded-2xl border border-red-500/40 bg-red-500/10 px-4 py-3">
-                <Text className="text-sm text-red-300">{error}</Text>
+              <View
+                accessibilityRole="alert"
+                accessibilityLiveRegion="assertive"
+                className="mt-4 rounded-card border border-bearish bg-bearish-muted px-4 py-3"
+              >
+                <Text variant="body-sm" className="text-bearish">
+                  {error}
+                </Text>
               </View>
             ) : null}
 
@@ -156,40 +162,54 @@ export function RegisterScreen() {
                   <Ionicons
                     name={acceptedLegal ? 'checkbox' : 'square-outline'}
                     size={22}
-                    color={acceptedLegal ? '#34D399' : '#94A3B8'}
+                    color={acceptedLegal ? colors.accent.primary : colors.text.tertiary}
                   />
                 </Pressable>
                 <View className="flex-1">
-                  <Text className="text-sm text-slate-400">
+                  <Text variant="body-sm">
                     I am 18+, and I have read and agree to the Terms of Service, Privacy Policy, and
                     Risk & Investment Disclaimer (v{LEGAL_ACCEPTANCE_VERSION}). TradeVision is not a
                     broker and does not provide investment advice or buy/sell signals.
                   </Text>
                   <View className="mt-2 flex-row flex-wrap gap-x-2 gap-y-1">
-                    <Pressable onPress={() => void Linking.openURL(LEGAL_URLS.terms)}>
-                      <Text className="text-sm font-semibold text-emerald-400">Terms</Text>
+                    <Pressable
+                      accessibilityRole="link"
+                      onPress={() => void Linking.openURL(LEGAL_URLS.terms)}
+                    >
+                      <Text variant="label" className="text-accent">
+                        Terms
+                      </Text>
                     </Pressable>
-                    <Pressable onPress={() => void Linking.openURL(LEGAL_URLS.privacy)}>
-                      <Text className="text-sm font-semibold text-emerald-400">Privacy</Text>
+                    <Pressable
+                      accessibilityRole="link"
+                      onPress={() => void Linking.openURL(LEGAL_URLS.privacy)}
+                    >
+                      <Text variant="label" className="text-accent">
+                        Privacy
+                      </Text>
                     </Pressable>
-                    <Pressable onPress={() => void Linking.openURL(LEGAL_URLS.risk)}>
-                      <Text className="text-sm font-semibold text-emerald-400">Risk disclaimer</Text>
+                    <Pressable
+                      accessibilityRole="link"
+                      onPress={() => void Linking.openURL(LEGAL_URLS.risk)}
+                    >
+                      <Text variant="label" className="text-accent">
+                        Risk disclaimer
+                      </Text>
                     </Pressable>
                   </View>
                 </View>
               </View>
 
-              <Pressable
+              <Button
+                fullWidth
+                size="lg"
+                className="mt-2"
                 onPress={onSubmit}
                 disabled={isBusy || !acceptedLegal}
-                className="mt-2 items-center rounded-2xl bg-emerald-500 py-4 active:bg-emerald-600 disabled:opacity-60"
+                loading={isBusy}
               >
-                {isBusy ? (
-                  <ActivityIndicator color="#022C22" />
-                ) : (
-                  <Text className="text-base font-bold text-slate-950">Create Account</Text>
-                )}
-              </Pressable>
+                Create account
+              </Button>
             </View>
 
             <AuthDivider />
@@ -201,9 +221,11 @@ export function RegisterScreen() {
             />
 
             <View className="mt-8 flex-row items-center justify-center">
-              <Text className="text-sm text-slate-400">Already have an account? </Text>
-              <Pressable onPress={() => router.push('/(auth)/login')}>
-                <Text className="text-sm font-semibold text-emerald-400">Sign in</Text>
+              <Text variant="body-sm">Already have an account? </Text>
+              <Pressable accessibilityRole="link" onPress={() => router.push('/(auth)/login')}>
+                <Text variant="label" className="text-accent">
+                  Sign in
+                </Text>
               </Pressable>
             </View>
           </ScrollView>

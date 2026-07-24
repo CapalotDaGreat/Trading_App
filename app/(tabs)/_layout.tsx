@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
 import { Platform } from 'react-native';
 
+import { IA_GLOSSARY } from '@/features/navigation/config/navigation-ia.config';
 import { useTheme } from '@/shared/hooks/useTheme';
 
 type TabIconName = keyof typeof Ionicons.glyphMap;
@@ -38,38 +39,49 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Daily',
-          tabBarIcon: ({ color }) => <TabIcon name="flash-outline" color={color} />,
+          title: IA_GLOSSARY.today,
+          tabBarAccessibilityLabel: 'Today',
+          tabBarIcon: ({ color }) => <TabIcon name="today-outline" color={color} />,
         }}
       />
       <Tabs.Screen
-        name="markets"
+        name="research"
         options={{
-          title: 'Markets',
-          tabBarIcon: ({ color }) => <TabIcon name="trending-up-outline" color={color} />,
+          title: IA_GLOSSARY.research,
+          tabBarAccessibilityLabel: 'Research',
+          tabBarIcon: ({ color }) => <TabIcon name="search-outline" color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="review"
+        options={{
+          title: IA_GLOSSARY.review,
+          tabBarAccessibilityLabel: 'Review',
+          tabBarIcon: ({ color }) => <TabIcon name="film-outline" color={color} />,
         }}
       />
       <Tabs.Screen
         name="ai"
         options={{
-          title: 'Ask',
+          title: IA_GLOSSARY.ask,
+          tabBarAccessibilityLabel: 'Ask',
           tabBarIcon: ({ color }) => <TabIcon name="sparkles-outline" color={color} />,
         }}
       />
       <Tabs.Screen
-        name="portfolio"
+        name="you"
         options={{
-          title: 'Portfolio',
-          tabBarIcon: ({ color }) => <TabIcon name="briefcase-outline" color={color} />,
+          title: IA_GLOSSARY.you,
+          tabBarAccessibilityLabel: 'You',
+          tabBarIcon: ({ color }) => <TabIcon name="person-outline" color={color} />,
         }}
       />
+      <Tabs.Screen name="markets" options={{ href: null }} />
+      <Tabs.Screen name="portfolio" options={{ href: null }} />
       <Tabs.Screen
         name="more"
         options={{
-          title: 'More',
-          tabBarIcon: ({ color }) => (
-            <TabIcon name="ellipsis-horizontal-circle-outline" color={color} />
-          ),
+          href: null,
         }}
       />
     </Tabs>
