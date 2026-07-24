@@ -78,7 +78,7 @@ export function JournalCoachCard({ insight }: JournalCoachCardProps) {
         <View className="mt-3 gap-3">
           <View className="flex-row gap-3">
             <StatBlock
-              label="Win rate"
+              label="Well executed %"
               value={formatPercent(insight.winRate, { showSign: false })}
             />
             <StatBlock label="Avg R:R" value={insight.avgRr.toFixed(1)} />
@@ -89,7 +89,7 @@ export function JournalCoachCard({ insight }: JournalCoachCardProps) {
           <InsightRow label="Usually skip" value={insight.avoid} tone="warning" />
 
           <View className="flex-row flex-wrap gap-1.5">
-            <Badge label={`Best day · ${insight.bestWeekday}`} variant="success" size="sm" />
+            <Badge label={`Best process day · ${insight.bestWeekday}`} variant="success" size="sm" />
             <Badge label={`Weak · ${insight.worstCondition}`} variant="danger" size="sm" />
             <Badge label={insight.bestIndicator} variant="accent" size="sm" />
           </View>

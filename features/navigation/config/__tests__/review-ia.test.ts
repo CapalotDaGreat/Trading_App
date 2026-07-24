@@ -10,7 +10,7 @@ import {
 } from '../review-navigation.config';
 
 describe('review information architecture', () => {
-  it('exposes the four More sections with one Review entry', () => {
+  it('exposes the four More sections with Review and Decision Heatmap', () => {
     expect(MORE_HUB_SECTIONS.map((section) => section.title)).toEqual([
       'Decide',
       'Review',
@@ -24,17 +24,24 @@ describe('review information architecture', () => {
         href: '/decision/decision-replay',
         title: 'Review',
       }),
+      expect.objectContaining({
+        href: '/decision/heatmap',
+        title: 'Decision Heatmap',
+      }),
     ]);
   });
 
-  it('keeps Lab and Learn in Practice and labels the sample strategy sandbox honestly', () => {
+  it('keeps Mentor, Simulator, Passport, Lab and Learn in Practice', () => {
     const practice = MORE_HUB_SECTIONS.find((section) => section.title === 'Practice');
     expect(practice?.items.map((item) => item.href)).toEqual([
+      '/decision/mentor',
+      '/decision/simulator',
+      '/decision/passport',
       '/decision/lab',
       '/analysis/backtest',
       '/academy',
     ]);
-    expect(practice?.items[1]?.title).toBe('Strategy sandbox — sample data');
+    expect(practice?.items[4]?.title).toBe('Strategy sandbox — sample data');
   });
 
   it('defines clear Process Tape and Chart Replay segments', () => {

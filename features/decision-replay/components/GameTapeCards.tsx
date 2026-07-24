@@ -66,8 +66,8 @@ export function WeeklyGameTapeCard({ tape }: { tape: WeeklyGameTape }) {
   );
 
   const rows: { label: string; value: string }[] = [
-    { label: 'Best decision', value: tape.bestDecision },
-    { label: 'Worst decision', value: tape.worstDecision },
+    { label: 'Best process', value: tape.bestDecision },
+    { label: 'Process leak', value: tape.worstDecision },
     { label: 'Most disciplined', value: tape.mostDisciplined },
     { label: 'Most emotional', value: tape.mostEmotional },
     { label: 'Most improved habit', value: tape.mostImprovedHabit },
@@ -77,13 +77,13 @@ export function WeeklyGameTapeCard({ tape }: { tape: WeeklyGameTape }) {
   return (
     <View className="rounded-2xl bg-background-elevated p-4">
       <Text variant="caption" className="mb-1 font-semibold text-text-tertiary">
-        WEEKLY GAME TAPE
+        WEEKLY REVIEW
       </Text>
       <Text variant="h3" className="mb-1">
-        Sunday review
+        What did you learn?
       </Text>
       <Text variant="caption" className="mb-3 text-text-secondary">
-        Process score {tape.processScore} · celebrate discipline, not P&L
+        Process score {tape.processScore} · celebrate discipline, patience, and plan adherence
       </Text>
       {rows.map((row) => (
         <View key={row.label} className="mb-2.5">

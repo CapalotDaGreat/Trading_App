@@ -1,7 +1,7 @@
 # Privacy Policy
 
-**Last updated:** 21 July 2026  
-**Version:** 2026.07.21  
+**Last updated:** 24 July 2026  
+**Version:** 2026.07.24  
 **Controller / Operator:** TradeVision AI (“TradeVision”, “we”, “us”, “our”), operator of the TradeVision AI mobile application and https://tradevision.ai  
 **Privacy contact:** privacy@tradevision.ai  
 **Support contact:** support@tradevision.ai  
@@ -151,9 +151,11 @@ Depending on your state, you may have rights to **know/access**, **delete**, **c
 
 ---
 
-## 9. Children’s privacy
+## 9. Children’s privacy and audience
 
-TradeVision AI is intended for users **18 years of age or older** (or the age of majority in your jurisdiction, if higher). We do not knowingly collect personal data from children. If you believe a minor has provided data, contact privacy@tradevision.ai and we will delete it.
+TradeVision AI is intended for a **general audience**. Anyone may download the app and explore educational Guest/demo features that remain local on the device.
+
+**Cloud account features** — including registration, cloud sync, online journals, online portfolios, and paid subscriptions — are available only to users who meet the minimum eligibility requirements: at least **18** years old, or the age of majority in their jurisdiction. We do not knowingly collect personal data from young children through cloud accounts. The application is **not directed toward young children**. If you believe a minor has created an account or provided personal data, contact privacy@tradevision.ai and we will delete it.
 
 ---
 

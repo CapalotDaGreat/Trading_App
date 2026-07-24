@@ -99,7 +99,8 @@ export function RegisterScreen() {
 
             <Text variant="h1">Create your account</Text>
             <Text variant="body" className="mt-2 text-text-secondary">
-              Build a more consistent research and decision process.
+              Cloud sync, journals, and subscriptions require an eligible account. You must be at
+              least 18, or the age of majority where you live.
             </Text>
 
             {error ? (
@@ -155,7 +156,7 @@ export function RegisterScreen() {
                 <Pressable
                   accessibilityRole="checkbox"
                   accessibilityState={{ checked: acceptedLegal }}
-                  accessibilityLabel="Accept Terms of Service, Privacy Policy, and Risk Disclaimer"
+                  accessibilityLabel="Confirm age eligibility and accept Terms of Service, Privacy Policy, and Risk Disclaimer"
                   onPress={() => setAcceptedLegal((value) => !value)}
                   className="mr-3 mt-0.5 min-h-11 min-w-11 items-center justify-center"
                 >
@@ -167,9 +168,10 @@ export function RegisterScreen() {
                 </Pressable>
                 <View className="flex-1">
                   <Text variant="body-sm">
-                    I am 18+, and I have read and agree to the Terms of Service, Privacy Policy, and
-                    Risk & Investment Disclaimer (v{LEGAL_ACCEPTANCE_VERSION}). TradeVision is not a
-                    broker and does not provide investment advice or buy/sell signals.
+                    I am at least 18 years old, or the age of majority in my jurisdiction, and I have
+                    read and agree to the Terms of Service, Privacy Policy, and Risk & Investment
+                    Disclaimer (v{LEGAL_ACCEPTANCE_VERSION}). TradeVision is not a broker and does not
+                    provide investment advice or buy/sell signals.
                   </Text>
                   <View className="mt-2 flex-row flex-wrap gap-x-2 gap-y-1">
                     <Pressable

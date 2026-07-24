@@ -25,7 +25,8 @@ cybersecurity expectations. Before production:
 
 1. Insert the registered legal entity name, postal address, and UID/VAT.
 2. Confirm processor list / DPAs / SCCs with counsel.
-3. Confirm age rating and store privacy questionnaires match shipped behaviour.
+3. Confirm store age rating (Apple **12+**, Google Play **Teen**) and account eligibility
+   (**18+** / age of majority for accounts and subscriptions) match shipped behaviour.
 4. Publish HTTP 200 pages that match this folder (or regenerate from it).
 
 They are **not** a substitute for advice from a licensed attorney.

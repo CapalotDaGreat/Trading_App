@@ -11,6 +11,7 @@ export const IA_GLOSSARY = {
   processTape: 'Process Tape',
   chartReplay: 'Chart Replay',
   journal: 'Journal',
+  decisionHeatmap: 'Decision Heatmap',
   decisionLab: 'Decision Lab',
   learn: 'Learn',
   strategySandbox: 'Strategy sandbox',
@@ -29,6 +30,7 @@ export type NavigationIconName =
   | 'card-outline'
   | 'film-outline'
   | 'flask-outline'
+  | 'grid-outline'
   | 'notifications-outline'
   | 'pulse-outline'
   | 'radio-outline'
@@ -123,6 +125,14 @@ export const REVIEW_HUB_SECTIONS: readonly NavigationHubSection[] = [
         accessibilityLabel: 'Open decision journal',
         icon: 'book-outline',
         testID: 'review-journal',
+      },
+      {
+        href: '/decision/heatmap',
+        title: IA_GLOSSARY.decisionHeatmap,
+        description: 'See process consistency by day, week, month, or year.',
+        accessibilityLabel: 'Open Decision Heatmap',
+        icon: 'grid-outline',
+        testID: 'review-decision-heatmap',
       },
     ],
   },

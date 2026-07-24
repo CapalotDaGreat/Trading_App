@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
+import { EducationalModeBadge } from '@/features/educational/components/EducationalModeBadge';
 import { Header } from '@/shared/components/layout/Header';
 import { Screen } from '@/shared/components/layout/Screen';
 import { IconButton } from '@/shared/components/ui/IconButton';
@@ -54,7 +55,11 @@ export function AiChatScreen({ symbol }: AiChatScreenProps) {
     <Screen safeTop={false} safeBottom={false} padded={false} className="flex-1">
       <Header
         title="Ask"
-        subtitle={symbol ? `Decision context for ${symbol}` : 'Research context, not trade signals'}
+        subtitle={
+          symbol
+            ? `Educational research context for ${symbol}`
+            : 'Research opportunities & explainability — not trade signals'
+        }
         rightAction={
           <IconButton
             onPress={clearChat}
@@ -65,7 +70,9 @@ export function AiChatScreen({ symbol }: AiChatScreenProps) {
           />
         }
       />
-
+      <View className="px-4 pb-2">
+        <EducationalModeBadge />
+      </View>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         className="flex-1"

@@ -11,6 +11,8 @@ tags:
       id: welcome-continue-guest
     timeout: 15000
 - tapOn:
+    id: welcome-guest-risk-ack
+- tapOn:
     id: welcome-continue-guest
 - extendedWaitUntil:
     visible:

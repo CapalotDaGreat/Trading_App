@@ -3,6 +3,7 @@ import { useCallback } from 'react';
 import { FlatList, RefreshControl, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { EducationalModeBadge } from '@/features/educational/components/EducationalModeBadge';
 import { DecisionQualityExplainer } from '@/features/decision/components/DecisionQualityExplainer';
 import { SetupCard } from '@/features/decision/components/SetupCard';
 import { useSetupRadar } from '@/features/decision/hooks/useDecision';
@@ -61,13 +62,14 @@ export default function SetupRadarScreen() {
           <View className="mt-2 gap-3 pb-3">
             <Header
               title="Setups"
-              subtitle="Ranked by how much research time they deserve"
+              subtitle="Research opportunities ranked by attention value"
               onBack={() => router.back()}
             />
+            <EducationalModeBadge />
             <GlassCard className="p-4">
               <Text variant="body-sm" className="text-text-secondary">
-                These are research priorities — not buy/sell orders. Open a card’s chart before you
-                decide anything.
+                These are research opportunities — not buy/sell orders. Open a card’s chart before
+                you decide anything.
               </Text>
             </GlassCard>
             {isLoading && !data?.length ? (

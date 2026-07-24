@@ -12,7 +12,7 @@ import {
 
 describe('legal compliance pack', () => {
   it('exposes CH/EU/US-oriented document set with versioned acceptance', () => {
-    expect(LEGAL_ACCEPTANCE_VERSION).toBe('2026.07.21');
+    expect(LEGAL_ACCEPTANCE_VERSION).toBe('2026.07.24');
     expect(LEGAL_DOCUMENTS).toEqual([
       'terms',
       'privacy',
@@ -35,6 +35,12 @@ describe('legal compliance pack', () => {
     expect(terms).toContain('not');
     expect(terms).toContain('broker');
     expect(terms).toContain('switzerland');
+    expect(terms).toContain('create an account or purchase a subscription');
+    expect(terms).toContain('guest/demo mode');
+
+    expect(privacy).toContain('general audience');
+    expect(privacy).toContain('not directed toward young children');
+    expect(privacy).toContain('cloud account features');
 
     const risk = LEGAL_DOCUMENT_TEXT.risk.toLowerCase();
     expect(risk).toContain('decision quality score');

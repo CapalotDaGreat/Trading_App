@@ -178,19 +178,19 @@ export function ChartReplaySegment({
 
           {atEnd && userBias ? (
             <View className="mt-4 gap-2" testID="chart-replay-comparison">
-              <Text variant="label">Learning comparison</Text>
+              <Text variant="label">What did you learn?</Text>
               <Text variant="body-sm">
                 You: {userBias} · Chart structure: {frame.bias}
                 {userBias === frame.bias
-                  ? ' — aligned with structure.'
+                  ? ' — process aligned with structure.'
                   : ' — divergence is a lesson, not a wrong or right trade call.'}
               </Text>
               <Text variant="caption" className="text-text-secondary">
-                Historical outcomes are educational only. Reflect on invalidation, sizing, or why
-                you would wait.
+                Historical outcomes are educational only. Name one process cue — invalidation,
+                sizing, patience, or checklist — before you leave.
               </Text>
               <Button
-                accessibilityLabel="Reflect on this chart replay"
+                accessibilityLabel="Reflect on what you learned in this chart replay"
                 testID="chart-replay-reflect"
                 onPress={() => {
                   void appendDecision.mutateAsync({
@@ -198,12 +198,12 @@ export function ChartReplaySegment({
                     regime: 'replay',
                     action: 'replay_completed',
                     bias: userBias,
-                    note: `Chart replay · you ${userBias} · structure ${frame.bias}`,
+                    note: `Chart replay learning · you ${userBias} · structure ${frame.bias}`,
                   });
                   onReflect();
                 }}
               >
-                Reflect on this session
+                Capture what you learned
               </Button>
             </View>
           ) : null}

@@ -25,10 +25,11 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   splash: {
     image: './assets/images/splash-icon.png',
     resizeMode: 'contain',
-    backgroundColor: '#0A0E17',
+    backgroundColor: '#070B12',
   },
   ios: {
     supportsTablet: true,
+    usesAppleSignIn: true,
     bundleIdentifier: BUNDLE_IDENTIFIER,
     buildNumber: '1',
     associatedDomains: ['applinks:tradevision.ai', 'applinks:www.tradevision.ai'],
@@ -51,7 +52,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       foregroundImage: './assets/images/android-icon-foreground.png',
       backgroundImage: './assets/images/android-icon-background.png',
       monochromeImage: './assets/images/android-icon-monochrome.png',
-      backgroundColor: '#0A0E17',
+      backgroundColor: '#070B12',
     },
     intentFilters: [
       {
@@ -86,6 +87,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   },
   plugins: [
     'expo-router',
+    'expo-apple-authentication',
     '@sentry/react-native',
     'expo-secure-store',
     [
@@ -93,10 +95,10 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       {
         image: './assets/images/splash-icon.png',
         resizeMode: 'contain',
-        backgroundColor: '#0A0E17',
+        backgroundColor: '#070B12',
         dark: {
           image: './assets/images/splash-icon.png',
-          backgroundColor: '#0A0E17',
+          backgroundColor: '#070B12',
         },
       },
     ],
@@ -104,7 +106,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       'expo-notifications',
       {
         icon: './assets/images/android-icon-monochrome.png',
-        color: '#00D4AA',
+        color: '#2DD4BF',
         defaultChannel: 'default',
         sounds: [],
       },

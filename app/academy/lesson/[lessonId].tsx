@@ -2,6 +2,9 @@ import { useEffect } from 'react';
 import { ActivityIndicator, Pressable, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 
+import { EducationalModeBadge } from '@/features/educational/components/EducationalModeBadge';
+import { EducationalPanel } from '@/features/educational/components/EducationalPanel';
+import { getLessonEducationalFraming } from '@/features/educational/services/lesson-framing.service';
 import { getLocalLessonById } from '@/features/academy/content';
 import { LessonQuiz } from '@/features/academy/components/LessonQuiz';
 import { LessonSections } from '@/features/academy/components/LessonSections';
@@ -62,6 +65,7 @@ export default function AcademyLessonScreen() {
   }
 
   const locked = lesson.isPremium && !isPremiumUser;
+  const framing = getLessonEducationalFraming(lesson);
 
   if (locked) {
     return (
@@ -91,6 +95,8 @@ export default function AcademyLessonScreen() {
         onBack={() => router.back()}
       />
 
+      <EducationalModeBadge className="mt-3" />
+
       <View className="mt-3 flex-row flex-wrap gap-2">
         <Badge
           label={lesson.difficulty}
@@ -115,9 +121,34 @@ export default function AcademyLessonScreen() {
         ) : null}
       </View>
 
-      <Text variant="body-sm" className="mt-3">
-        {lesson.description}
-      </Text>
+      <View className="mt-4 rounded-2xl border border-info/20 bg-info-muted p-4">
+        <Text variant="caption" className="font-semibold uppercase tracking-wide text-info">
+          Learning objective
+        </Text>
+        <Text variant="body-sm" className="mt-1.5 leading-relaxed text-text-primary">
+          {framing.learningObjective}
+        </Text>
+        <View className="mt-3 flex-row flex-wrap gap-x-4 gap-y-1">
+          <Text variant="caption" className="text-text-secondary">
+            ~{framing.estimatedMinutes} min
+          </Text>
+          <Text variant="caption" className="capitalize text-text-secondary">
+            {framing.difficulty}
+          </Text>
+        </View>
+        <Text variant="caption" className="mt-2 font-semibold text-text-tertiary">
+          Skills practiced
+        </Text>
+        <Text variant="body-sm" className="mt-0.5 capitalize text-text-secondary">
+          {framing.skillsPracticed.join(' · ')}
+        </Text>
+        <Text variant="caption" className="mt-2 font-semibold text-text-tertiary">
+          Real-world application
+        </Text>
+        <Text variant="body-sm" className="mt-0.5 leading-relaxed text-text-secondary">
+          {framing.realWorldApplication}
+        </Text>
+      </View>
 
       <View className="mt-6">
         <LessonSections sections={lesson.sections} />
@@ -140,6 +171,12 @@ export default function AcademyLessonScreen() {
           ))}
         </View>
       ) : null}
+
+      <View className="mt-4 gap-3">
+        <EducationalPanel variant="practice" title="Practice recommendation" body={framing.practiceRecommendation} />
+        <EducationalPanel variant="tip" title="Suggested Replay" body={framing.suggestedReplay} learnMoreHref="/decision/decision-replay" />
+        <EducationalPanel variant="why" title="Suggested Decision Lab exercise" body={framing.suggestedLabExercise} learnMoreHref="/decision/lab" />
+      </View>
 
       {lesson.practiceLinks.length > 0 ? (
         <View className="mt-6">

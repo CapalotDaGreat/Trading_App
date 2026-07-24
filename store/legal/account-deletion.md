@@ -1,7 +1,7 @@
 # Account Deletion Notice
 
-**Last updated:** 21 July 2026  
-**Version:** 2026.07.21  
+**Last updated:** 24 July 2026  
+**Version:** 2026.07.24  
 
 This notice explains how to delete your TradeVision AI account and what happens to your data. It supports Apple App Store and Google Play account-deletion requirements and privacy rights under Swiss nFADP, EU/UK GDPR, and U.S. state privacy laws (including CCPA/CPRA deletion rights).
 

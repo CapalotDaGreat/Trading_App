@@ -1,11 +1,11 @@
 # Terms of Service
 
-**Last updated:** 21 July 2026  
-**Version:** 2026.07.21  
+**Last updated:** 24 July 2026  
+**Version:** 2026.07.24  
 **Operator:** TradeVision AI (“TradeVision”, “we”, “us”, “our”)  
 **Contact:** support@tradevision.ai | https://tradevision.ai  
 
-These Terms of Service (“Terms”) govern your access to and use of the TradeVision AI mobile application and related services (the “Service”). By creating an account, tapping accept, or using the Service, you agree to these Terms and our Privacy Policy, Risk & Investment Disclaimer, and Account Deletion Notice.
+These Terms of Service (“Terms”) govern your access to and use of the TradeVision AI mobile application and related services (the “Service”). By creating an account, tapping accept, or using cloud features of the Service, you agree to these Terms and our Privacy Policy, Risk & Investment Disclaimer, and Account Deletion Notice. Exploring Guest/demo mode remains subject to the educational and risk notices shown in the app.
 
 **Have Swiss, EU/EEA, and U.S. counsel review these Terms (including your legal entity name, registered address, and consumer-law adaptations) before production launch.** Mandatory consumer protections in your country of residence that cannot be waived remain unaffected.
 
@@ -13,7 +13,11 @@ These Terms of Service (“Terms”) govern your access to and use of the TradeV
 
 ## 1. Eligibility
 
-You must be at least **18** years old (or the age of majority where you live, if higher) and legally able to enter a binding contract. The Service is not directed to children. You may not use the Service if applicable sanctions or export laws prohibit you from doing so.
+Downloading the app or exploring **Guest/demo mode** does not require you to be 18.
+
+You must be at least **18** years old, or the age of majority in your jurisdiction, to create an account or purchase a subscription, and you must be legally able to enter a binding contract.
+
+The Service is an educational trading research and coaching platform for a general audience. It is **not directed toward young children**. You may not use cloud account features if applicable sanctions or export laws prohibit you from doing so.
 
 ---
 
@@ -37,7 +41,7 @@ You alone decide whether, when, and how to trade or invest, including with any t
 
 You must provide accurate registration information and keep credentials confidential. You are responsible for activity under your account. Enable multi-factor authentication where available. Notify us promptly of unauthorised access at support@tradevision.ai.
 
-We may require email verification before cloud sync. Guest/demo mode is for evaluation and may be limited, local-only, and reset.
+We may require email verification before cloud sync. **Guest/demo mode** lets anyone explore educational features locally (interface, demo data, Academy, Decision Replay, Decision Lab, charts, and AI explanations). Guest mode does **not** create cloud journals, sync data, store portfolios online, or allow subscription purchases.
 
 You must not share accounts or circumvent access controls, rate limits, paywalls, or security measures.
 

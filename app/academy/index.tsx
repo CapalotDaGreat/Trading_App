@@ -22,6 +22,8 @@ import { PremiumOsGate } from '@/features/decision/components/PremiumOsGate';
 import { useTraderMemory } from '@/features/decision/hooks/useDecision';
 import { buildDecisionDebt } from '@/features/decision/services/decision-os.service';
 import { useDecisionLog } from '@/features/decision-log/hooks/useDecisionLog';
+import { EducationalModeBadge } from '@/features/educational/components/EducationalModeBadge';
+import { EducationalPanel } from '@/features/educational/components/EducationalPanel';
 import { Header } from '@/shared/components/layout/Header';
 import { Screen } from '@/shared/components/layout/Screen';
 import { Text } from '@/shared/components/ui/Text';
@@ -85,11 +87,28 @@ export default function AcademyScreen() {
     <Screen scrollable contentClassName="pb-10">
       <Header
         title="Learn"
-        subtitle="Decision Operator curriculum — learn, practice, review"
+        subtitle="Practice trading concepts in a risk-free learning environment"
         onBack={() => router.back()}
       />
 
       <View className="mt-4 gap-6">
+        <EducationalModeBadge />
+
+        <View className="rounded-2xl bg-background-elevated p-4">
+          <Text variant="label" className="text-text-tertiary">
+            EDUCATIONAL ACADEMY
+          </Text>
+          <Text variant="body-sm" className="mt-2 leading-relaxed text-text-secondary">
+            Lessons teach process and research habits — not guaranteed profits, buy/sell signals, or
+            personalised investment advice.
+          </Text>
+        </View>
+
+        <EducationalPanel
+          variant="practice"
+          body="Celebrate checklist completion and practiced lessons — never profit leaderboards."
+        />
+
         <View className="rounded-2xl bg-background-elevated p-4">
           <Text variant="label" className="text-text-tertiary">
             YOUR PROGRESS

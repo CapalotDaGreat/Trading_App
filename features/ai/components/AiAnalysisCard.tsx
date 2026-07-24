@@ -1,5 +1,7 @@
 import { View } from 'react-native';
 
+import { EducationalInsightFooter } from '@/features/educational/components/EducationalInsightFooter';
+import { EducationalModeBadge } from '@/features/educational/components/EducationalModeBadge';
 import { Badge } from '@/shared/components/ui/Badge';
 import { GlassCard } from '@/shared/components/ui/GlassCard';
 import { Text } from '@/shared/components/ui/Text';
@@ -21,6 +23,7 @@ export function AiAnalysisCard({ result }: AiAnalysisCardProps) {
     <GlassCard className="p-4" glow>
       <View className="mb-3 flex-row items-start justify-between gap-2">
         <View className="flex-1">
+          <EducationalModeBadge className="mb-2" />
           <Text variant="h3">{formatTypeLabel(result.type)}</Text>
           {meta ? (
             <View className="mt-1 flex-row flex-wrap items-center gap-2">
@@ -76,7 +79,8 @@ export function AiAnalysisCard({ result }: AiAnalysisCardProps) {
         </View>
       ) : null}
 
-      <AiDisclaimer compact className="mt-4" />
+      <EducationalInsightFooter />
+      <AiDisclaimer compact className="mt-3" />
     </GlassCard>
   );
 }

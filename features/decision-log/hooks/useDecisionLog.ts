@@ -67,6 +67,8 @@ export function useAppendDecisionRecord() {
       void qc.invalidateQueries({ queryKey: decisionLogKeys.list(uid) });
       void qc.invalidateQueries({ queryKey: decisionLogKeys.summary(uid) });
       void qc.invalidateQueries({ queryKey: ['decision-replay'] });
+      void qc.invalidateQueries({ queryKey: ['decision-heatmap'] });
+      void qc.invalidateQueries({ queryKey: ['decision-passport'] });
     },
   });
 }

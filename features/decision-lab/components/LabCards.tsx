@@ -18,7 +18,7 @@ export function LabAccountCard({
   return (
     <GlassCard className="p-4">
       <Text variant="caption" className="mb-1 font-semibold text-text-tertiary">
-        VIRTUAL ACCOUNT · NOT A BROKER
+        VIRTUAL ACCOUNT · EDUCATIONAL SIMULATION
       </Text>
       <Text variant="h2" className="text-accent">
         {currency} {cash.toLocaleString(undefined, { maximumFractionDigits: 0 })}
@@ -28,7 +28,7 @@ export function LabAccountCard({
         {openCount === 1 ? '' : 's'}
       </Text>
       <Text variant="caption" className="mt-2 text-text-tertiary">
-        Practice structured decisions. Simulated cash only — never live orders.
+        No real money · No brokerage · No live execution · Not financial advice
       </Text>
     </GlassCard>
   );
@@ -156,6 +156,9 @@ export function LabStatsCard({ stats }: { stats: LabStats }) {
       <Text variant="caption" className="mb-2 text-text-tertiary">
         Win rate {stats.winRate}% (secondary) · Discipline {stats.avgDisciplineScore} · Risk{' '}
         {stats.avgRiskScore}
+      </Text>
+      <Text variant="caption" className="mt-2 text-text-tertiary">
+        Celebrate well executed decisions and checklist discipline — never overtrading.
       </Text>
       <Text variant="caption" className="mb-1 font-semibold text-text-tertiary">
         Common mistakes

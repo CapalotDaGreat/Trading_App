@@ -1,6 +1,7 @@
-import { View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { View } from 'react-native';
 
+import { EducationalInsightFooter } from '@/features/educational/components/EducationalInsightFooter';
 import { Badge } from '@/shared/components/ui/Badge';
 import { Text } from '@/shared/components/ui/Text';
 import { useTheme } from '@/shared/hooks/useTheme';
@@ -48,6 +49,8 @@ export function AiChatBubble({ message }: AiChatBubbleProps) {
             ) : null}
           </View>
         ) : null}
+
+        {!isUser ? <EducationalInsightFooter compact /> : null}
 
         <Text
           variant="caption"

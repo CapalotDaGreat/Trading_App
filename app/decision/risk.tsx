@@ -1,6 +1,8 @@
 import { RefreshControl, View } from 'react-native';
 import { useRouter } from 'expo-router';
 
+import { EducationalModeBadge } from '@/features/educational/components/EducationalModeBadge';
+import { EducationalPanel } from '@/features/educational/components/EducationalPanel';
 import { RiskCenterCard } from '@/features/decision/components/RiskCenterCard';
 import { PremiumOsGate } from '@/features/decision/components/PremiumOsGate';
 import { useRiskCenter } from '@/features/decision/hooks/useDecision';
@@ -35,6 +37,11 @@ export default function RiskCenterScreen() {
         onBack={() => router.back()}
       />
       <View className="mt-4 gap-4 pb-8">
+        <EducationalModeBadge />
+        <EducationalPanel
+          variant="risk"
+          body="Health reads help you notice concentration and stress. They are research context — not orders or advice."
+        />
         <GlassCard className="p-4">
           <Text variant="body-sm" className="text-text-secondary">
             A health-style read on tracked holdings. Analysis only — no brokerage orders.

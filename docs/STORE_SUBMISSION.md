@@ -35,7 +35,9 @@ be completed in the named external console before submission.
   Deletion URLs and verify they return HTTP 200. Canonical sources are in
   `store/legal/` (run `npm run legal:sync` after edits). Have Swiss/EU/US counsel
   review and insert the registered legal entity before production.
-- Set App Store age rating consistent with the 18+ eligibility rule (not 4+).
+- Set App Store age rating to **12+** and Google Play to **Teen** (content suitability). Keep
+  **account eligibility at 18+** (or age of majority) in Terms, registration, and purchases —
+  downloading or Guest mode does not require being 18.
 - Publish the account-deletion instructions at
   `https://tradevision.ai/account-deletion`; state that account deletion does
   not cancel store billing and link both stores' subscription management.
@@ -47,6 +49,8 @@ be completed in the named external console before submission.
 - Provide reviewer credentials and paste `store/reviewer-notes.md`.
 - Complete content ratings, export compliance, subscription disclosures, and
   account-deletion URL fields.
+- Follow [APP_STORE_REVIEW.md](./APP_STORE_REVIEW.md) for guideline cross-checks
+  (IAP disclosures, Sign in with Apple, Privacy Nutrition Labels, screenshots).
 
 ## Account-deletion production proof
 

@@ -4,9 +4,9 @@
   "versionCode": 1,
   "versionName": "1.0.0",
   "primaryCategory": "FINANCE",
-  "contentRating": "Everyone",
-  "shortDescription": "Decision-first trading research and coaching — not buy/sell signals.",
-  "fullDescription": "TradeVision AI helps discretionary traders decide what deserves research time. Use a Today brief, research-value queue, regime context, decision journal, replay, and Academy practice to build a more consistent process.\n\nScores measure research priority and decision-process quality; they do not predict price direction. TradeVision is not a broker, does not execute trades, and does not provide buy/sell signals.\n\nPremium adds deeper decision radar, portfolio context, faster quote polling, advanced charts, and data export. Monthly and yearly subscriptions renew automatically unless cancelled in Google Play subscription settings. Cancellation stops renewal while access continues through the store-reported paid-through date. The yearly plan includes a 7-day trial only when shown on the Google Play purchase sheet.\n\nFeatures:\n• Decision Brief and research-value queue\n• Rules-based decision coaching and explainability\n• Portfolio context and risk tools (Premium)\n• Price alerts and economic calendar\n• Trading Academy with practice links",
+  "contentRating": "Teen",
+  "shortDescription": "Educational trading research and coaching — not buy/sell signals.",
+  "fullDescription": "TradeVision AI is an educational decision-first research and coaching app. It helps discretionary traders decide what deserves research time with a Today brief, research-value queue, regime context, decision journal, replay, Decision Lab practice, and Academy lessons.\n\nAnyone may download and explore Guest mode. Creating an account or purchasing a subscription requires being at least 18 (or the age of majority where required).\n\nScores measure research priority and decision-process quality; they do not predict price direction. TradeVision is not a broker, does not execute trades, does not handle real money, and does not provide buy/sell signals.\n\nPremium adds deeper decision radar, portfolio context, faster quote polling, advanced charts, and data export. Monthly and yearly subscriptions renew automatically unless cancelled in Google Play subscription settings. Cancellation stops renewal while access continues through the store-reported paid-through date. The yearly plan includes a 7-day trial only when shown on the Google Play purchase sheet.\n\nFeatures:\n• Decision Brief and research-value queue\n• Rules-based decision coaching and explainability\n• Educational Academy and risk-free Decision Lab practice\n• Portfolio context and risk tools (Premium)\n• Price alerts and economic calendar",
   "keywords": [
     "trading",
     "stocks",
@@ -14,7 +14,8 @@
     "finance",
     "portfolio",
     "research",
-    "coaching"
+    "coaching",
+    "education"
   ],
   "screenshots": {
     "phone": [],
@@ -31,7 +32,8 @@
     "crashDiagnostics": "Optional; disabled by default and sent to Sentry only after explicit consent",
     "usageAnalytics": false,
     "advertisingOrTracking": false,
-    "ageRestriction": "18+",
+    "storeAgeRating": "Teen",
+    "accountEligibility": "18+ (or age of majority) for accounts and subscriptions",
     "jurisdictions": ["CH", "EU", "US"]
   },
   "accountDeletionUrl": "https://tradevision.ai/account-deletion",

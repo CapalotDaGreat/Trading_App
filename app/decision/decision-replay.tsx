@@ -3,6 +3,8 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Pressable, RefreshControl, View } from 'react-native';
 
+import { EducationalModeBadge } from '@/features/educational/components/EducationalModeBadge';
+import { EducationalPanel } from '@/features/educational/components/EducationalPanel';
 import { PremiumOsGate } from '@/features/decision/components/PremiumOsGate';
 import { ChartReplaySegment } from '@/features/decision-replay/components/ChartReplaySegment';
 import { DecisionReplayTimeline } from '@/features/decision-replay/components/DecisionReplayTimeline';
@@ -91,6 +93,13 @@ export default function ReviewHubScreen() {
       />
 
       <View className="mt-4 gap-4 pb-10">
+        <EducationalModeBadge />
+        <EducationalPanel
+          variant="why"
+          title="What did you learn?"
+          body="End every review by naming a process lesson — patience, invalidation, sizing, or checklist discipline — not whether you made money."
+        />
+
         <View className="rounded-2xl bg-background-elevated p-4">
           <Text variant="body-sm" className="leading-relaxed text-text-secondary">
             Review improves decision process; it does not predict price direction. Process Tape uses

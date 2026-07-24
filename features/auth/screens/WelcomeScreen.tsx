@@ -36,7 +36,7 @@ export function WelcomeScreen() {
           <View>
             <Text variant="h3">TradeVision AI</Text>
             <Text variant="caption" className="text-text-secondary">
-              Decision-first market research
+              Educational market research
             </Text>
           </View>
         </View>
@@ -47,22 +47,23 @@ export function WelcomeScreen() {
             <Text className="text-accent">where it matters</Text>
           </Text>
           <Text variant="body" className="mt-4 max-w-xl text-text-secondary">
-            Start with a focused brief, decide what deserves research, then review the quality of
-            your process. No buy/sell signals and no prediction claims.
+            Explore educational research tools, charts, Academy lessons, and decision coaching.
+            Anyone can try Guest mode. Creating an account or buying a subscription requires being
+            at least 18 (or the age of majority where you live).
           </Text>
 
           <GlassCard className="mt-8" bordered>
             <View className="p-5">
               <View className="mb-4 flex-row items-center">
-                <Ionicons name="shield-checkmark-outline" size={20} color={colors.accent.primary} />
+                <Ionicons name="school-outline" size={20} color={colors.accent.primary} />
                 <Text variant="body-sm" className="ml-3 flex-1">
-                  Optional MFA and privacy-first crash reporting on signed-in accounts
+                  Guest mode: explore the interface, demo data, Academy, Replay, Lab, and charts
                 </Text>
               </View>
               <View className="flex-row items-center">
                 <Ionicons name="cloud-offline-outline" size={20} color={colors.text.secondary} />
                 <Text variant="body-sm" className="ml-3 flex-1">
-                  Local demo available; cloud sync after you create an account
+                  Local only until you create an account — no cloud journals, sync, or purchases
                 </Text>
               </View>
             </View>
@@ -91,8 +92,8 @@ export function WelcomeScreen() {
           <Pressable
             accessibilityRole="checkbox"
             accessibilityState={{ checked: acceptedGuestTerms }}
-            accessibilityLabel="Confirm age 18 or older and acknowledge guest risk disclaimer"
-            testID="welcome-guest-age-ack"
+            accessibilityLabel="Acknowledge Guest mode is a local educational demo, not investment advice"
+            testID="welcome-guest-risk-ack"
             onPress={() => setAcceptedGuestTerms((value) => !value)}
             className="mt-4 min-h-11 flex-row items-start py-1"
           >
@@ -103,7 +104,7 @@ export function WelcomeScreen() {
               style={{ marginTop: 2, marginRight: 10 }}
             />
             <Text variant="caption" className="flex-1 text-text-secondary">
-              I am 18+ and understand Guest mode is a local demo. Scores do not predict prices.
+              I understand Guest mode is a local educational demo. Scores do not predict prices.
               TradeVision does not provide investment advice or buy/sell signals.
             </Text>
           </Pressable>

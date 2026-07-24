@@ -4,13 +4,16 @@ import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Pressable, RefreshControl, View } from 'react-native';
 
+import { EducationalModeBadge } from '@/features/educational/components/EducationalModeBadge';
 import { useAcademyProgressStore } from '@/features/academy/stores/academy-progress.store';
 import { WhyNotCard } from '@/features/decision/components/CoachRetentionCards';
 import { DecisionBriefHeader } from '@/features/decision/components/DecisionBriefHeader';
+import { MentorCard } from '@/features/decision/components/MentorCard';
 import { RegimeCard } from '@/features/decision/components/RegimeCard';
 import { ResearchQueueCard } from '@/features/decision/components/ResearchQueueCard';
 import { StartHereCard } from '@/features/decision/components/StartHereCard';
 import { useDecisionBrief } from '@/features/decision/hooks/useDecision';
+import { useTradingMentor } from '@/features/decision/hooks/useTradingMentor';
 import {
   loadDisciplineStreak,
   markDisciplineAction,
@@ -74,24 +77,27 @@ function TodayHeader({
   const completed = streak ? Object.values(streak.completedToday).filter(Boolean).length : 0;
 
   return (
-    <View className="flex-row items-center justify-between" testID="today-section-header">
-      <View className="flex-1 pr-3">
-        <Text variant="h1">Today</Text>
-        <Text variant="caption" className="mt-1 text-text-secondary">
-          {streak
-            ? `${streak.days}d discipline streak · ${completed}/3 loop steps`
-            : 'Your decision loop'}
-        </Text>
+    <View testID="today-section-header">
+      <View className="flex-row items-center justify-between">
+        <View className="flex-1 pr-3">
+          <Text variant="h1">Today</Text>
+          <Text variant="caption" className="mt-1 text-text-secondary">
+            {streak
+              ? `${streak.days}d discipline streak · ${completed}/3 loop steps`
+              : 'Your decision loop'}
+          </Text>
+        </View>
+        <Pressable
+          onPress={onAskAi}
+          className="h-11 w-11 items-center justify-center rounded-full bg-surface"
+          accessibilityRole="button"
+          accessibilityLabel="Ask AI"
+          testID="today-ask-ai"
+        >
+          <Ionicons name="sparkles" size={20} color={colors.accent.primary} />
+        </Pressable>
       </View>
-      <Pressable
-        onPress={onAskAi}
-        className="h-11 w-11 items-center justify-center rounded-full bg-surface"
-        accessibilityRole="button"
-        accessibilityLabel="Ask AI"
-        testID="today-ask-ai"
-      >
-        <Ionicons name="sparkles" size={20} color={colors.accent.primary} />
-      </Pressable>
+      <EducationalModeBadge className="mt-3" />
     </View>
   );
 }
@@ -155,6 +161,7 @@ export default function DecisionBriefScreen() {
   const timeBudgetMinutes = useSettingsStore(selectTodayTimeBudget);
   const tier = useSubscriptionStore((state) => state.tier);
   const briefQuery = useDecisionBrief(timeBudgetMinutes);
+  const mentorQuery = useTradingMentor();
   const { summary: logSummary } = useDecisionLog();
   const { mutateAsync: appendDecision } = useAppendDecisionRecord();
 
@@ -232,6 +239,10 @@ export default function DecisionBriefScreen() {
                   </Button>
                 </GlassCard>
               )}
+            </View>
+
+            <View testID="today-section-mentor">
+              <MentorCard brief={mentorQuery.data} isLoading={mentorQuery.isLoading} />
             </View>
 
             {brief && startHereSymbol ? (

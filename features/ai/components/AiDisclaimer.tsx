@@ -32,10 +32,10 @@ export function AiDisclaimer({ compact = false, className }: AiDisclaimerProps) 
           AI Analysis Disclaimer
         </Text>
         <Text variant="caption" className="leading-relaxed text-text-secondary">
-          TradeVision AI provides market analysis and educational insights based on available data.
-          It does not predict future prices or guarantee outcomes. This is not financial advice.
-          Always conduct your own research and consult a licensed professional before making
-          investment decisions.
+          Educational purposes only · Not financial advice · Research context only · Explanations
+          describe process and evidence, not price predictions. TradeVision does not provide
+          buy/sell signals. You are solely responsible for any trading decisions. Always verify
+          independently and consult a licensed professional when needed.
         </Text>
       </View>
     </View>

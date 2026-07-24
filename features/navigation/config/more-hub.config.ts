@@ -13,7 +13,11 @@ export interface MoreHubItem {
     | 'school-outline'
     | 'notifications-outline'
     | 'calendar-outline'
-    | 'settings-outline';
+    | 'settings-outline'
+    | 'compass-outline'
+    | 'fitness-outline'
+    | 'ribbon-outline'
+    | 'grid-outline';
   testID: string;
 }
 
@@ -69,12 +73,40 @@ export const MORE_HUB_SECTIONS: MoreHubSection[] = [
         icon: 'film-outline',
         testID: 'more-review',
       },
+      {
+        href: '/decision/heatmap',
+        title: 'Decision Heatmap',
+        description: 'Process consistency across days — never P&L',
+        icon: 'grid-outline',
+        testID: 'more-decision-heatmap',
+      },
     ],
   },
   {
     title: 'Practice',
     hint: 'Build skill without live risk',
     items: [
+      {
+        href: '/decision/mentor',
+        title: 'Trading Mentor',
+        description: 'Daily focus and weekly process coaching',
+        icon: 'compass-outline',
+        testID: 'more-trading-mentor',
+      },
+      {
+        href: '/decision/simulator',
+        title: 'Decision Simulator',
+        description: 'Train decisions with future candles hidden',
+        icon: 'fitness-outline',
+        testID: 'more-decision-simulator',
+      },
+      {
+        href: '/decision/passport',
+        title: 'Decision Passport',
+        description: 'Process credentials from practice loops',
+        icon: 'ribbon-outline',
+        testID: 'more-decision-passport',
+      },
       {
         href: '/decision/lab',
         title: 'Decision Lab',

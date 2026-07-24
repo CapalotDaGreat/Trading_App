@@ -1,6 +1,8 @@
 import { useRouter } from 'expo-router';
 import { RefreshControl, View } from 'react-native';
 
+import { EducationalModeBadge } from '@/features/educational/components/EducationalModeBadge';
+import { EducationalPanel } from '@/features/educational/components/EducationalPanel';
 import { JournalCoachCard } from '@/features/decision/components/JournalCoachCard';
 import { useJournalCoach } from '@/features/decision/hooks/useDecision';
 import { Header } from '@/shared/components/layout/Header';
@@ -34,6 +36,11 @@ export default function JournalCoachScreen() {
         onBack={() => router.back()}
       />
       <View className="mt-4 gap-4 pb-8">
+        <EducationalModeBadge />
+        <EducationalPanel
+          variant="tip"
+          body="Coach prompts reinforce journaling discipline and plan adherence — never overtrading."
+        />
         <GlassCard className="p-4">
           <Text variant="body-sm" className="text-text-secondary">
             Built from closed trades and notes in your journal. More fills = more personal tips.

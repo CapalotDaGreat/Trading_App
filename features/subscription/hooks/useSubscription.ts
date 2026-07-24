@@ -35,6 +35,13 @@ export function useSubscription() {
     void subscriptionService.configureForUser(uid);
   }, [ownerUid, uid, reset, queryClient]);
 
+  const plansQuery = useQuery({
+    queryKey: [SUBSCRIPTION_QUERY_KEY, 'plans', uid],
+    queryFn: () => subscriptionService.getStorePlans(),
+    staleTime: 60_000,
+    placeholderData: subscriptionService.getPlans(),
+  });
+
   const subscriptionQuery = useQuery({
     queryKey: [SUBSCRIPTION_QUERY_KEY, uid],
     queryFn: async (): Promise<SubscriptionRecord | null> => {
@@ -144,7 +151,7 @@ export function useSubscription() {
 
   return {
     uid,
-    plans: subscriptionService.getPlans(),
+    plans: plansQuery.data ?? subscriptionService.getPlans(),
     subscription: subscriptionQuery.data,
     isPremium: subscriptionQuery.data?.isPremium ?? cachedPremium,
     tier: subscriptionQuery.data?.tier ?? (cachedPremium ? tier : 'free'),

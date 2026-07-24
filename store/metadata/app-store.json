@@ -5,7 +5,7 @@
   "sku": "tradevision-ai-ios-001",
   "primaryCategory": "FINANCE",
   "secondaryCategory": "PRODUCTIVITY",
-  "contentRating": "17+",
+  "contentRating": "12+",
   "version": "1.0.0",
   "buildNumber": "1",
   "keywords": [
@@ -15,11 +15,12 @@
     "portfolio",
     "market analysis",
     "finance",
-    "investing"
+    "investing",
+    "education"
   ],
   "description": {
-    "short": "A decision coach for consistent trading research, journaling, and review.",
-    "full": "TradeVision AI is a decision-first research and coaching app for discretionary traders. It helps you decide what deserves research time with a Today brief, research-value queue, regime context, decision journal, replay, and Academy practice.\n\nScores measure research priority and decision-process quality; they do not predict price direction. TradeVision is not a broker, does not execute trades, and does not provide buy/sell signals.\n\nPremium adds deeper decision radar, portfolio context, faster quote polling, advanced charts, and data export. Monthly and yearly subscriptions renew automatically unless cancelled in App Store subscription settings. Cancellation stops renewal while access continues through the store-reported paid-through date. The yearly plan includes a 7-day trial only when shown on the App Store purchase sheet."
+    "short": "Educational trading research and decision coaching — not buy/sell signals.",
+    "full": "TradeVision AI is an educational decision-first research and coaching app for discretionary traders. It helps you decide what deserves research time with a Today brief, research-value queue, regime context, decision journal, replay, Decision Lab practice, and Academy lessons.\n\nAnyone may download and explore Guest mode. Creating an account or purchasing a subscription requires being at least 18 (or the age of majority where required).\n\nScores measure research priority and decision-process quality; they do not predict price direction. TradeVision is not a broker, does not execute trades, does not handle real money, and does not provide buy/sell signals.\n\nPremium adds deeper decision radar, portfolio context, faster quote polling, advanced charts, and data export. Monthly and yearly subscriptions renew automatically unless cancelled in App Store subscription settings. Cancellation stops renewal while access continues through the store-reported paid-through date. The yearly plan includes a 7-day trial only when shown on the App Store purchase sheet."
   },
   "screenshots": {
     "iphone67": [],
@@ -37,7 +38,8 @@
     "crashDiagnostics": "Optional; disabled by default and sent to Sentry only after explicit consent",
     "usageAnalytics": false,
     "tracking": false,
-    "ageRestriction": "18+",
+    "storeAgeRating": "12+",
+    "accountEligibility": "18+ (or age of majority) for accounts and subscriptions",
     "jurisdictions": ["CH", "EU", "US"]
   },
   "screenshotInventory": "store/screenshots/README.md",

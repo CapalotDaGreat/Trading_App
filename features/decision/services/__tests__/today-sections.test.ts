@@ -7,6 +7,7 @@ import {
 
 const populatedContext = {
   hasBrief: true,
+  hasMentor: true,
   hasStartHere: true,
   hasResearchQueue: true,
   hasWhyNot: true,
@@ -15,10 +16,11 @@ const populatedContext = {
 } as const;
 
 describe('Today section configuration', () => {
-  it('keeps the requested eight-block order', () => {
+  it('keeps the mentor card after the morning brief', () => {
     expect(TODAY_SECTION_ORDER).toEqual([
       'header',
       'morningBrief',
+      'mentor',
       'startHere',
       'researchQueue',
       'whyNot',
@@ -33,6 +35,7 @@ describe('Today section configuration', () => {
     expect(
       visibleTodaySections({
         ...populatedContext,
+        hasMentor: false,
         hasStartHere: false,
         hasWhyNot: false,
         hasDecisionLog: false,

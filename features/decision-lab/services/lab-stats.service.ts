@@ -129,6 +129,6 @@ export function buildLabStats(positions: LabPosition[]): LabStats {
     commonMistakes: mistakes,
     improvementNote,
     simulatedPnlNote:
-      'Win rate and simulated P&L are secondary. Celebrate rule adherence and process score.',
+      'Process adherence and simulated discipline matter more than win rate. Celebrate well executed decisions.',
   };
 }

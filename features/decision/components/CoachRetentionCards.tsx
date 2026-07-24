@@ -58,7 +58,7 @@ export function WeeklyReviewCard({ review }: { review: WeeklyReviewInsight }) {
         </Text>
       ) : null}
       <Text variant="body-sm" className="mb-1 text-text-secondary">
-        Best: {review.bestDecision}
+        Best process: {review.bestDecision}
       </Text>
       <Text variant="body-sm" className="mb-1 text-text-secondary">
         Watch: {review.biggestMistake}

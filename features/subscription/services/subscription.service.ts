@@ -150,6 +150,43 @@ class SubscriptionServiceImpl implements SubscriptionService {
     return DEFAULT_PLANS;
   }
 
+  async getStorePlans(): Promise<SubscriptionPlan[]> {
+    const Purchases = getPurchases();
+    if (!Purchases || !getPublicSdkKey()) return DEFAULT_PLANS;
+
+    try {
+      const isConfigured = await Purchases.isConfigured();
+      if (!isConfigured) return DEFAULT_PLANS;
+
+      const offerings = await Purchases.getOfferings();
+      const packages = offerings.current?.availablePackages ?? [];
+      if (!packages.length) return DEFAULT_PLANS;
+
+      return DEFAULT_PLANS.map((plan) => {
+        const storePackage = packages.find(
+          (item: PurchasesPackage) => item.product.identifier === plan.productId,
+        );
+        if (!storePackage) return plan;
+
+        const priceString = storePackage.product.priceString;
+        return {
+          ...plan,
+          price: priceString,
+          pricePerMonth:
+            plan.id === 'yearly'
+              ? plan.pricePerMonth
+              : priceString
+                ? `${priceString}/mo`
+                : plan.pricePerMonth,
+          title: storePackage.product.title || plan.title,
+          description: storePackage.product.description || plan.description,
+        };
+      });
+    } catch {
+      return DEFAULT_PLANS;
+    }
+  }
+
   isNativeBillingAvailable(): boolean {
     return Boolean(getPurchases() && getPublicSdkKey());
   }

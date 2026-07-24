@@ -60,13 +60,13 @@ export function ResearchQueueCard({
   return (
     <View className="rounded-2xl bg-background-elevated p-4">
       <Text variant="caption" className="mb-1 font-semibold text-text-tertiary">
-        TODAY&apos;S RESEARCH QUEUE
+        RESEARCH OPPORTUNITIES
       </Text>
       <Text variant="h3" className="mb-1">
         Highest-value ideas only
       </Text>
       <Text variant="caption" className="mb-3 text-text-secondary">
-        ~{totalMinutes} min remaining · ranked by research value
+        ~{totalMinutes} min remaining · ranked by research value — not trade signals
       </Text>
 
       {freePending.map((item, index) => (

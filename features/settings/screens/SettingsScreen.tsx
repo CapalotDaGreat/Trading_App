@@ -8,6 +8,7 @@ import { ThemeToggle } from '@/features/settings/components/ThemeToggle';
 import { useSettings } from '@/features/settings/hooks/useSettings';
 import { PremiumBadge } from '@/features/subscription/components/PremiumBadge';
 import { useSubscription } from '@/features/subscription/hooks/useSubscription';
+import { DEMO_USER_UID } from '@/firebase/config';
 import { Header } from '@/shared/components/layout/Header';
 import { Screen } from '@/shared/components/layout/Screen';
 import { Button } from '@/shared/components/ui/Button';
@@ -24,6 +25,7 @@ export function SettingsScreen() {
   const [deletePhrase, setDeletePhrase] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
   const [deletionError, setDeletionError] = useState<string | null>(null);
+  const isGuest = user?.uid === DEMO_USER_UID;
 
   const handleDeleteAccount = async () => {
     if (deletePhrase !== 'DELETE') return;
@@ -96,6 +98,19 @@ export function SettingsScreen() {
           label="Privacy & Security"
           showChevron
           onPress={() => router.push('/settings/privacy')}
+        />
+      </GlassCard>
+
+      <Text variant="label" className="mb-2 mt-6 px-1">
+        Learning
+      </Text>
+      <GlassCard className="overflow-hidden">
+        <SettingsRow
+          icon="school-outline"
+          label="Educational Mode"
+          description="How AI, scores, Replay, and Lab stay educational"
+          showChevron
+          onPress={() => router.push('/settings/educational-mode' as never)}
         />
       </GlassCard>
 
@@ -174,72 +189,85 @@ export function SettingsScreen() {
         />
       </GlassCard>
 
-      <Text variant="label" className="mb-2 mt-6 px-1">
-        Delete Account
-      </Text>
-      <GlassCard className="p-4">
-        <Text variant="body-sm">
-          Permanently deletes your account and TradeVision app data. Deleting your account does not
-          cancel Apple App Store or Google Play billing.
-        </Text>
-        <Button variant="secondary" className="mt-4" onPress={() => void manage()}>
-          Manage Subscription First
-        </Button>
-        {!showDeleteConfirmation ? (
-          <Button variant="danger" className="mt-3" onPress={() => setShowDeleteConfirmation(true)}>
+      {!isGuest ? (
+        <>
+          <Text variant="label" className="mb-2 mt-6 px-1">
             Delete Account
-          </Button>
-        ) : (
-          <View className="mt-4">
+          </Text>
+          <GlassCard className="p-4">
             <Text variant="body-sm">
-              This cannot be undone. Type DELETE to permanently erase the account and app data.
+              Permanently deletes your account and TradeVision app data. Deleting your account does
+              not cancel Apple App Store or Google Play billing.
             </Text>
-            <TextInput
-              accessibilityLabel="Type DELETE to confirm account deletion"
-              autoCapitalize="characters"
-              autoCorrect={false}
-              value={deletePhrase}
-              onChangeText={setDeletePhrase}
-              placeholder="DELETE"
-              placeholderTextColor="#64748B"
-              className="mt-3 rounded-xl border border-bearish px-4 py-3 text-text-primary"
-            />
-            {deletionError ? (
-              <Text variant="caption" className="mt-2 text-bearish">
-                {deletionError}
-              </Text>
-            ) : null}
-            <View className="mt-3 gap-3">
+            <Button variant="secondary" className="mt-4" onPress={() => void manage()}>
+              Manage Subscription First
+            </Button>
+            {!showDeleteConfirmation ? (
               <Button
                 variant="danger"
-                disabled={deletePhrase !== 'DELETE'}
-                loading={isDeleting}
-                onPress={() => void handleDeleteAccount()}
+                className="mt-3"
+                onPress={() => setShowDeleteConfirmation(true)}
               >
-                Permanently Delete Account
+                Delete Account
               </Button>
-              <Button
-                variant="ghost"
-                disabled={isDeleting}
-                onPress={() => {
-                  setShowDeleteConfirmation(false);
-                  setDeletePhrase('');
-                  setDeletionError(null);
-                }}
-              >
-                Keep Account
-              </Button>
-            </View>
-          </View>
-        )}
-      </GlassCard>
+            ) : (
+              <View className="mt-4">
+                <Text variant="body-sm">
+                  This cannot be undone. Type DELETE to permanently erase the account and app data.
+                </Text>
+                <TextInput
+                  accessibilityLabel="Type DELETE to confirm account deletion"
+                  autoCapitalize="characters"
+                  autoCorrect={false}
+                  value={deletePhrase}
+                  onChangeText={setDeletePhrase}
+                  placeholder="DELETE"
+                  placeholderTextColor="#64748B"
+                  className="mt-3 rounded-xl border border-bearish px-4 py-3 text-text-primary"
+                />
+                {deletionError ? (
+                  <Text variant="caption" className="mt-2 text-bearish">
+                    {deletionError}
+                  </Text>
+                ) : null}
+                <View className="mt-3 gap-3">
+                  <Button
+                    variant="danger"
+                    disabled={deletePhrase !== 'DELETE'}
+                    loading={isDeleting}
+                    onPress={() => void handleDeleteAccount()}
+                  >
+                    Permanently Delete Account
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    disabled={isDeleting}
+                    onPress={() => {
+                      setShowDeleteConfirmation(false);
+                      setDeletePhrase('');
+                      setDeletionError(null);
+                    }}
+                  >
+                    Keep Account
+                  </Button>
+                </View>
+              </View>
+            )}
+          </GlassCard>
+        </>
+      ) : (
+        <Text variant="caption" className="mt-6 px-1 text-text-secondary">
+          Guest mode is local-only. Sign out to leave the demo, or create an account for cloud sync
+          and account deletion controls.
+        </Text>
+      )}
 
       <View className="mt-8 gap-3">
         <Button variant="secondary" onPress={() => void sync()}>
           Sync Settings
         </Button>
         <Button variant="danger" onPress={() => void signOut()}>
-          Sign Out
+          {isGuest ? 'Leave Guest Demo' : 'Sign Out'}
         </Button>
       </View>
 

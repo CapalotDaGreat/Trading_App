@@ -3,8 +3,14 @@ import { useMemo } from 'react';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
+import { useAppendDecisionRecord } from '@/features/decision-log/hooks/useDecisionLog';
+import { useRegime } from '@/features/decision/hooks/useDecision';
+import type { DecisionDebtSnapshot, TraderMemory } from '@/features/decision/types/decision.types';
+import { useDecisionLabStore } from '@/features/decision-lab/stores/lab.store';
 import { createPersistedStorage } from '@/shared/stores/create-persisted-storage';
+import { useSubscriptionStore } from '@/shared/stores/subscription.store';
 
+import { LEARNING_PATHS, type AcademyPathMeta } from '../content/paths-and-checklists';
 import {
   getAllChecklists,
   getLearningPathById,
@@ -23,11 +29,7 @@ import {
   getDefaultOperatorPath,
   type CurriculumRecommendation,
 } from '../services/curriculum.service';
-import { LEARNING_PATHS, type AcademyPathMeta } from '../content/paths-and-checklists';
 import { useAcademyProgressStore } from '../stores/academy-progress.store';
-import { useDecisionLabStore } from '@/features/decision-lab/stores/lab.store';
-import type { DecisionDebtSnapshot, TraderMemory } from '@/features/decision/types/decision.types';
-import { useSubscriptionStore } from '@/shared/stores/subscription.store';
 
 const checklistQueryKey = (id: string) => ['academy-checklist', id] as const;
 
@@ -248,20 +250,46 @@ export function useTradingChecklist(checklistId = 'pre-trade-checklist') {
     staleTime: 30 * 60 * 1000,
   });
 
-  const toggleItem = useChecklistStore((s) => s.toggleItem);
+  const toggleItemStore = useChecklistStore((s) => s.toggleItem);
   const resetChecklist = useChecklistStore((s) => s.resetChecklist);
   const isItemChecked = useChecklistStore((s) => s.isItemChecked);
+  const appendDecision = useAppendDecisionRecord();
+  const regimeQuery = useRegime();
 
   const checklist = query.data;
   const checkedCount = checklist
     ? checklist.items.filter((item) => isItemChecked(checklistId, item.id)).length
     : 0;
 
+  const toggleItem = (itemId: string) => {
+    const before = useChecklistStore.getState().checkedItems[checklistId] ?? [];
+    const requiredIds = (checklist?.items ?? []).filter((i) => i.isRequired).map((i) => i.id);
+    const wasComplete =
+      requiredIds.length > 0 && requiredIds.every((id) => before.includes(id));
+
+    toggleItemStore(checklistId, itemId);
+
+    const after = useChecklistStore.getState().checkedItems[checklistId] ?? [];
+    const nowComplete =
+      requiredIds.length > 0 && requiredIds.every((id) => after.includes(id));
+
+    if (nowComplete && !wasComplete && checklist) {
+      const day = new Date().toISOString().slice(0, 10);
+      void appendDecision.mutateAsync({
+        symbol: 'PROCESS',
+        regime: regimeQuery.data?.regime ?? 'unknown',
+        action: 'checklist_done',
+        note: `Completed ${checklist.title}`,
+        eventKey: `checklist:${checklistId}:${day}`,
+      });
+    }
+  };
+
   return {
     checklist,
     checkedCount,
     totalCount: checklist?.items.length ?? 0,
-    toggleItem: (itemId: string) => toggleItem(checklistId, itemId),
+    toggleItem,
     resetChecklist: () => resetChecklist(checklistId),
     isItemChecked: (itemId: string) => isItemChecked(checklistId, itemId),
     isLoading: query.isLoading,

@@ -1,6 +1,8 @@
 import { RefreshControl, View } from 'react-native';
 import { useRouter } from 'expo-router';
 
+import { EducationalModeBadge } from '@/features/educational/components/EducationalModeBadge';
+import { EducationalPanel } from '@/features/educational/components/EducationalPanel';
 import { RegimeCard } from '@/features/decision/components/RegimeCard';
 import { useRegime } from '@/features/decision/hooks/useDecision';
 import { Header } from '@/shared/components/layout/Header';
@@ -29,10 +31,15 @@ export default function RegimeScreen() {
     >
       <Header
         title="Market condition"
-        subtitle="What the tape favors right now"
+        subtitle="What the tape favors right now — research context"
         onBack={() => router.back()}
       />
       <View className="mt-4 gap-4 pb-8">
+        <EducationalModeBadge />
+        <EducationalPanel
+          variant="why"
+          body="Regime context helps you choose patience vs aggression in research — it is not a signal to trade."
+        />
         {isLoading && !data ? <Skeleton height={220} rounded="lg" /> : null}
         {data ? <RegimeCard regime={data} /> : null}
         {!isLoading && !data ? (

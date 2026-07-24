@@ -5,8 +5,9 @@ and does not provide buy/sell signals or execute trades.
 
 ## Review access
 
-- Use **Continue as Guest** to review the complete local demo without external
-  credentials.
+- Use **Continue as Guest** after checking the educational/risk acknowledgment on the welcome
+  screen to review the complete local demo without external credentials. Guest mode does not
+  require being 18; creating an account or purchasing a subscription does.
 - A sandbox account and platform tester credentials must be entered in App
   Store Connect / Play Console; never commit them here.
 

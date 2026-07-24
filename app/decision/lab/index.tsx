@@ -2,6 +2,8 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, View } from 'react-native';
 
+import { EducationalModeBadge } from '@/features/educational/components/EducationalModeBadge';
+import { LabEducationalOnboarding } from '@/features/educational/components/LabEducationalOnboarding';
 import { PremiumOsGate } from '@/features/decision/components/PremiumOsGate';
 import { LabAccountCard, LabStatsCard } from '@/features/decision-lab/components/LabCards';
 import { useDecisionLabStore } from '@/features/decision-lab/stores/lab.store';
@@ -50,15 +52,22 @@ export default function DecisionLabHomeScreen() {
     <Screen scrollable>
       <Header
         title="Decision Lab"
-        subtitle="Educational paper trading — process, not profits"
+        subtitle="Educational simulation — no real money, no brokerage, no execution"
         onBack={() => router.back()}
       />
 
       <View className="mt-4 gap-4 pb-10">
+        <EducationalModeBadge />
+        <LabEducationalOnboarding />
+
         <GlassCard className="p-4">
+          <Text variant="caption" className="mb-2 font-semibold text-text-tertiary">
+            EDUCATIONAL PRACTICE ONLY
+          </Text>
           <Text variant="body-sm" className="leading-relaxed text-text-secondary">
-            Every simulated trade requires a complete thesis before open. Lab is not a broker and
-            does not maximize P&L — it trains structured decision-making.
+            Decision Lab is simulated learning. It is not a broker, does not execute live orders,
+            does not handle real money, and does not provide financial advice. Every practice trade
+            requires a complete thesis — process training, not profit claims.
           </Text>
         </GlassCard>
 

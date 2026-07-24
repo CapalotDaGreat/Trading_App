@@ -1,7 +1,7 @@
 # Security & Cybersecurity Notice
 
-**Last updated:** 21 July 2026  
-**Version:** 2026.07.21  
+**Last updated:** 24 July 2026  
+**Version:** 2026.07.24  
 
 This notice summarises TradeVision AI’s security posture for users, reviewers, and enterprise diligence. It complements the Privacy Policy and is aligned with expectations under Swiss nFADP, GDPR security principles (Art. 32), and commonly referenced U.S. frameworks (e.g. reasonable security under state law, FTC Act Section 5 unfairness for unreasonable security).
 

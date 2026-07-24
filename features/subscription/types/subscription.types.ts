@@ -88,6 +88,8 @@ export interface RevenueCatSubscriberResponse {
 
 export interface SubscriptionService {
   getPlans(): SubscriptionPlan[];
+  /** Prefer StoreKit/Play Billing localized price strings when offerings are available. */
+  getStorePlans(): Promise<SubscriptionPlan[]>;
   getSubscription(uid: string): Promise<SubscriptionRecord | null>;
   checkPremiumStatus(uid: string): Promise<boolean>;
   syncFromRevenueCat(uid: string): Promise<SubscriptionRecord>;

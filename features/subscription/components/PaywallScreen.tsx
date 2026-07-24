@@ -162,10 +162,12 @@ export function PaywallScreen() {
       {isGuest ? (
         <View className="mb-5 rounded-2xl bg-accent-muted p-4">
           <Text variant="label" className="text-accent">
-            Create an account before subscribing
+            Create an eligible account before subscribing
           </Text>
           <Text variant="body-sm" className="mt-1">
-            Your purchase needs an account so Premium access can be restored across devices.
+            Subscriptions require an account for users who are at least 18 (or the age of majority
+            where you live) so Premium can be restored across devices. Guest mode stays local and
+            free to explore.
           </Text>
         </View>
       ) : null}

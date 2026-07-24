@@ -3,6 +3,7 @@ import type { SubscriptionTier } from '@/shared/constants/subscription';
 export const TODAY_SECTION_ORDER = [
   'header',
   'morningBrief',
+  'mentor',
   'startHere',
   'researchQueue',
   'whyNot',
@@ -21,6 +22,7 @@ export function selectTodayTimeBudget(state: {
 
 interface TodaySectionContext {
   hasBrief: boolean;
+  hasMentor: boolean;
   hasStartHere: boolean;
   hasResearchQueue: boolean;
   hasWhyNot: boolean;
@@ -37,6 +39,7 @@ export function visibleTodaySections(context: TodaySectionContext): TodaySection
   const visible: Record<TodaySection, boolean> = {
     header: true,
     morningBrief: true,
+    mentor: context.hasMentor,
     startHere: context.hasBrief && context.hasStartHere,
     researchQueue: context.hasBrief && context.hasResearchQueue,
     whyNot: context.hasBrief && context.hasWhyNot,

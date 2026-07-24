@@ -11,6 +11,7 @@ export default function SettingsLayout() {
       <Stack.Screen name="mfa" />
       <Stack.Screen name="mfa-enroll" />
       <Stack.Screen name="legal/[doc]" />
+      <Stack.Screen name="educational-mode" />
     </Stack>
   );
 }

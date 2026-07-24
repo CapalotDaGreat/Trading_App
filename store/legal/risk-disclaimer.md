@@ -1,7 +1,7 @@
 # Risk & Investment Disclaimer
 
-**Last updated:** 21 July 2026  
-**Version:** 2026.07.21  
+**Last updated:** 24 July 2026  
+**Version:** 2026.07.24  
 **Operator:** TradeVision AI  
 
 This Risk & Investment Disclaimer forms part of your agreement with TradeVision AI together with the Terms of Service and Privacy Policy. **Read it carefully before using the app.**

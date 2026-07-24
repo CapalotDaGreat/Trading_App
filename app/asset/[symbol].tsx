@@ -2,6 +2,8 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, View } from 'react-native';
 
+import { AiDebateCard } from '@/features/ai/components/AiDebateCard';
+import { useAiDebate } from '@/features/ai/hooks/useAiDebate';
 import { CandlestickChart } from '@/features/charts/components/CandlestickChart';
 import { IndicatorPanel } from '@/features/charts/components/IndicatorPanel';
 import { TimeframeSelector } from '@/features/charts/components/TimeframeSelector';
@@ -38,7 +40,7 @@ import {
 } from '@/shared/utils/format';
 import { getPriceAccessibilityLabel } from '@/shared/utils/accessibility';
 
-type DetailTab = 'decision' | 'chart' | 'details';
+type DetailTab = 'decision' | 'chart' | 'debate' | 'details';
 
 export default function AssetDetailScreen() {
   const router = useRouter();
@@ -51,9 +53,11 @@ export default function AssetDetailScreen() {
   const requestedTab: DetailTab =
     params.tab === 'chart'
       ? 'chart'
-      : params.tab === 'details' || params.tab === 'indicators' || params.tab === 'analysis'
-        ? 'details'
-        : 'decision';
+      : params.tab === 'debate' || params.tab === 'analysis'
+        ? 'debate'
+        : params.tab === 'details' || params.tab === 'indicators'
+          ? 'details'
+          : 'decision';
   const [activeTab, setActiveTab] = useState<DetailTab>(requestedTab);
   const [activeIndicators, setActiveIndicators] = useState<IndicatorType[]>([
     'rsi',
@@ -66,8 +70,9 @@ export default function AssetDetailScreen() {
 
   const needsChartWork =
     activeTab === 'decision' || activeTab === 'chart' || activeTab === 'details';
-  const needsMtf = activeTab === 'decision' || activeTab === 'details';
-  const needsRegime = activeTab === 'decision';
+  const needsMtf = activeTab === 'decision' || activeTab === 'details' || activeTab === 'debate';
+  const needsRegime = activeTab === 'decision' || activeTab === 'debate';
+  const needsDebate = activeTab === 'debate';
 
   const { data: quote, isLoading: quoteLoading } = useMarketQuote({
     symbol,
@@ -89,6 +94,7 @@ export default function AssetDetailScreen() {
   });
   const mtfQuery = useMtfConsensus(symbol, { enabled: needsMtf });
   const regimeQuery = useRegime({ enabled: needsRegime });
+  const debateQuery = useAiDebate(symbol, interval, needsDebate);
   const appendDecision = useAppendDecisionRecord();
   const loggedRef = useRef(false);
   const [decisionOutcome, setDecisionOutcome] = useState<DecisionAction | null>(null);
@@ -142,6 +148,7 @@ export default function AssetDetailScreen() {
   const tabs: { key: DetailTab; label: string }[] = [
     { key: 'decision', label: 'Decision' },
     { key: 'chart', label: 'Chart' },
+    { key: 'debate', label: 'Debate' },
     { key: 'details', label: 'Details' },
   ];
 
@@ -188,12 +195,12 @@ export default function AssetDetailScreen() {
                 title="Should this chart get your time?"
                 confidence={Math.round(analysis.summary.confidence * 100)}
                 scoreLabel="RVS"
-                body={`${analysis.summary.overallBias} bias · ${analysis.summary.trend} · RSI ${analysis.summary.rsiSignal}. Use invalidation levels before sizing any idea.`}
+                body={`${analysis.summary.overallBias} bias · ${analysis.summary.trend} · RSI ${analysis.summary.rsiSignal}. Open Debate for balanced bull / bear / neutral cases.`}
                 onExplain={() => {
-                  setActiveTab('details');
+                  setActiveTab('debate');
                   router.replace({
                     pathname: '/asset/[symbol]',
-                    params: { ...params, symbol, tab: 'details' },
+                    params: { ...params, symbol, tab: 'debate' },
                   } as never);
                 }}
               />
@@ -381,6 +388,36 @@ export default function AssetDetailScreen() {
             symbol={asset.symbol}
           />
         </GlassCard>
+      ) : null}
+
+      {activeTab === 'debate' ? (
+        <View className="mb-8 gap-4">
+          {debateQuery.isLoading && !debateQuery.debate ? (
+            <View className="gap-3">
+              <Skeleton height={120} rounded="lg" />
+              <Skeleton height={160} rounded="lg" />
+              <Skeleton height={160} rounded="lg" />
+            </View>
+          ) : null}
+          {debateQuery.debate ? <AiDebateCard debate={debateQuery.debate} /> : null}
+          {!debateQuery.isLoading && !debateQuery.debate ? (
+            <GlassCard className="p-4">
+              <Text variant="h3">Debate unavailable</Text>
+              <Text variant="body-sm" className="mt-2 text-text-secondary">
+                We could not assemble enough evidence for a balanced debate. Check market-data
+                connectivity and try again — we will not invent bull or bear points.
+              </Text>
+              <Button
+                className="mt-3 self-start"
+                size="sm"
+                variant="outline"
+                onPress={() => void debateQuery.refetch()}
+              >
+                Retry debate
+              </Button>
+            </GlassCard>
+          ) : null}
+        </View>
       ) : null}
 
       {activeTab === 'details' ? (
