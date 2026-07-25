@@ -16,6 +16,11 @@ export interface ApiRequestConfig extends Omit<RequestInit, 'method' | 'body'> {
   retryDelay?: number;
   skipAuth?: boolean;
   rateLimitKey?: string;
+  /**
+   * How to log HTTP/network failures.
+   * Use `warn` or `silent` for optional provider probes that have a fallback.
+   */
+  failureLog?: 'error' | 'warn' | 'silent';
 }
 
 export interface ApiErrorBody {
@@ -105,6 +110,19 @@ async function fetchWithTimeout(
   }
 }
 
+function logApiFailure(
+  failureLog: NonNullable<ApiRequestConfig['failureLog']>,
+  error: unknown,
+  context: { method: string; path: string; status?: number },
+): void {
+  if (failureLog === 'silent') return;
+  if (failureLog === 'warn') {
+    logger.warn('api.request_failed', context);
+    return;
+  }
+  logger.error('api.request_failed', error, context);
+}
+
 export async function apiRequest<T>(path: string, config: ApiRequestConfig = {}): Promise<T> {
   const {
     method = 'GET',
@@ -116,6 +134,7 @@ export async function apiRequest<T>(path: string, config: ApiRequestConfig = {})
     retryDelay = DEFAULT_RETRY_DELAY,
     skipAuth = false,
     rateLimitKey = 'default',
+    failureLog = 'error',
     ...rest
   } = config;
 
@@ -173,7 +192,7 @@ export async function apiRequest<T>(path: string, config: ApiRequestConfig = {})
           continue;
         }
 
-        logger.error('api.request_failed', error, { method, path, status: response.status });
+        logApiFailure(failureLog, error, { method, path, status: response.status });
         throw error;
       }
 
@@ -202,7 +221,7 @@ export async function apiRequest<T>(path: string, config: ApiRequestConfig = {})
   }
 
   const terminalError = lastError ?? new Error('Request failed');
-  logger.error('api.request_failed', terminalError, { method, path });
+  logApiFailure(failureLog, terminalError, { method, path });
   throw terminalError;
 }
 

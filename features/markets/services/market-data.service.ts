@@ -1,18 +1,24 @@
 import { apiRequest, ApiError } from '@/shared/services/api/api-client';
 import { marketDataScheduler } from '@/shared/services/market-data/market-data-scheduler';
+import { logger } from '@/shared/services/observability/logger';
 import type { Asset, Candle, CandleInterval, MarketType, Quote } from '@/shared/types/market';
 
 import type { DataSourceKind } from '../constants/data-source';
 import { MARKET_DATA_POLICY } from '../constants/freshness';
-
-const FINNHUB_KEY = process.env.EXPO_PUBLIC_FINNHUB_API_KEY ?? '';
-const ALPHA_VANTAGE_KEY = process.env.EXPO_PUBLIC_ALPHA_VANTAGE_API_KEY ?? '';
 
 const COINGECKO_BASE = 'https://api.coingecko.com/api/v3';
 const EXCHANGE_RATE_BASE = 'https://api.open.er-api.com/v6/latest';
 const FINNHUB_BASE = 'https://finnhub.io/api/v1';
 const ALPHA_VANTAGE_BASE = 'https://www.alphavantage.co/query';
 export const USE_DIRECT_MARKET_DATA = process.env.EXPO_PUBLIC_MARKET_DATA_DIRECT === 'true';
+
+function getFinnhubKey(): string {
+  return process.env.EXPO_PUBLIC_FINNHUB_API_KEY ?? '';
+}
+
+function getAlphaVantageKey(): string {
+  return process.env.EXPO_PUBLIC_ALPHA_VANTAGE_API_KEY ?? '';
+}
 
 const CRYPTO_ID_MAP: Record<string, string> = {
   BTC: 'bitcoin',
@@ -49,7 +55,12 @@ export interface CandlesRequest extends MarketDataRequest {
   limit?: number;
 }
 
-export type MarketDataProvider = 'coingecko' | 'exchange-rate-api' | 'finnhub' | 'alpha-vantage';
+export type MarketDataProvider =
+  | 'coingecko'
+  | 'exchange-rate-api'
+  | 'finnhub'
+  | 'alpha-vantage'
+  | 'sample';
 
 export interface MarketDataMetadata {
   provider: MarketDataProvider;
@@ -229,45 +240,51 @@ async function fetchForexQuote(symbol: string): Promise<Quote> {
 }
 
 async function fetchFinnhubQuote(symbol: string): Promise<Quote | null> {
-  if (!FINNHUB_KEY) return null;
+  if (!getFinnhubKey()) return null;
 
-  const cleanSymbol = symbol.replace('^', '');
-  const data = await apiRequest<{
-    c: number;
-    d: number;
-    dp: number;
-    h: number;
-    l: number;
-    o: number;
-    pc: number;
-    v: number;
-    t: number;
-  }>(`${FINNHUB_BASE}/quote`, {
-    skipAuth: true,
-    rateLimitKey: 'finnhub',
-    params: { symbol: cleanSymbol, token: FINNHUB_KEY },
-  });
+  try {
+    const cleanSymbol = symbol.replace('^', '');
+    const data = await apiRequest<{
+      c: number;
+      d: number;
+      dp: number;
+      h: number;
+      l: number;
+      o: number;
+      pc: number;
+      v: number;
+      t: number;
+    }>(`${FINNHUB_BASE}/quote`, {
+      skipAuth: true,
+      rateLimitKey: 'finnhub',
+      retries: 0,
+      failureLog: 'warn',
+      params: { symbol: cleanSymbol, token: getFinnhubKey() },
+    });
 
-  if (!data.c) return null;
+    if (!data.c) return null;
 
-  return {
-    symbol,
-    price: data.c,
-    change: data.d ?? 0,
-    changePercent: data.dp ?? 0,
-    open: data.o ?? data.c,
-    high: data.h ?? data.c,
-    low: data.l ?? data.c,
-    previousClose: data.pc ?? data.c,
-    volume: data.v ?? 0,
-    timestamp: (data.t ?? Date.now() / 1000) * 1000,
-    status: 'open',
-    currency: 'USD',
-  };
+    return {
+      symbol,
+      price: data.c,
+      change: data.d ?? 0,
+      changePercent: data.dp ?? 0,
+      open: data.o ?? data.c,
+      high: data.h ?? data.c,
+      low: data.l ?? data.c,
+      previousClose: data.pc ?? data.c,
+      volume: data.v ?? 0,
+      timestamp: (data.t ?? Date.now() / 1000) * 1000,
+      status: 'open',
+      currency: 'USD',
+    };
+  } catch {
+    return null;
+  }
 }
 
 async function fetchAlphaVantageQuote(symbol: string): Promise<Quote> {
-  if (!ALPHA_VANTAGE_KEY) {
+  if (!getAlphaVantageKey()) {
     throw new ApiError('No stock API key configured', 503);
   }
 
@@ -290,7 +307,7 @@ async function fetchAlphaVantageQuote(symbol: string): Promise<Quote> {
     params: {
       function: 'GLOBAL_QUOTE',
       symbol: symbol.replace('^', ''),
-      apikey: ALPHA_VANTAGE_KEY,
+      apikey: getAlphaVantageKey(),
     },
   });
 
@@ -367,7 +384,7 @@ export async function fetchQuoteWithMetadataDirect(
     default:
       return {
         quote: await fetchStockQuote(symbol),
-        provider: FINNHUB_KEY ? 'finnhub' : 'alpha-vantage',
+        provider: getFinnhubKey() ? 'finnhub' : 'alpha-vantage',
         fetchedAt: Date.now(),
         kind: 'delayed',
       };
@@ -431,45 +448,52 @@ async function fetchFinnhubCandles(
   interval: CandleInterval,
   limit: number,
 ): Promise<Candle[] | null> {
-  if (!FINNHUB_KEY) return null;
+  if (!getFinnhubKey()) return null;
 
-  const cleanSymbol = symbol.replace('^', '');
-  const resolution = finnhubResolution(interval);
-  const to = Math.floor(Date.now() / 1000);
-  const from = to - intervalToDays(interval, limit) * 86400;
+  try {
+    const cleanSymbol = symbol.replace('^', '');
+    const resolution = finnhubResolution(interval);
+    const to = Math.floor(Date.now() / 1000);
+    const from = to - intervalToDays(interval, limit) * 86400;
 
-  const data = await apiRequest<{
-    s: string;
-    t?: number[];
-    o?: number[];
-    h?: number[];
-    l?: number[];
-    c?: number[];
-    v?: number[];
-  }>(`${FINNHUB_BASE}/stock/candle`, {
-    skipAuth: true,
-    rateLimitKey: 'finnhub',
-    params: {
-      symbol: cleanSymbol,
-      resolution,
-      from: String(from),
-      to: String(to),
-      token: FINNHUB_KEY,
-    },
-  });
+    const data = await apiRequest<{
+      s: string;
+      t?: number[];
+      o?: number[];
+      h?: number[];
+      l?: number[];
+      c?: number[];
+      v?: number[];
+    }>(`${FINNHUB_BASE}/stock/candle`, {
+      skipAuth: true,
+      rateLimitKey: 'finnhub',
+      retries: 0,
+      failureLog: 'warn',
+      params: {
+        symbol: cleanSymbol,
+        resolution,
+        from: String(from),
+        to: String(to),
+        token: getFinnhubKey(),
+      },
+    });
 
-  if (data.s !== 'ok' || !data.t?.length) return null;
+    if (data.s !== 'ok' || !data.t?.length) return null;
 
-  return data.t
-    .map((timestamp, i) => ({
-      timestamp: timestamp * 1000,
-      open: data.o![i],
-      high: data.h![i],
-      low: data.l![i],
-      close: data.c![i],
-      volume: data.v![i] ?? 0,
-    }))
-    .slice(-limit);
+    return data.t
+      .map((timestamp, i) => ({
+        timestamp: timestamp * 1000,
+        open: data.o![i],
+        high: data.h![i],
+        low: data.l![i],
+        close: data.c![i],
+        volume: data.v![i] ?? 0,
+      }))
+      .slice(-limit);
+  } catch {
+    // Free Finnhub plans often return 403 for /stock/candle — fall through to Alpha Vantage/sample.
+    return null;
+  }
 }
 
 async function fetchAlphaVantageCandles(
@@ -477,7 +501,7 @@ async function fetchAlphaVantageCandles(
   interval: CandleInterval,
   limit: number,
 ): Promise<Candle[]> {
-  if (!ALPHA_VANTAGE_KEY) {
+  if (!getAlphaVantageKey()) {
     throw new ApiError('No stock API key configured for candles', 503);
   }
 
@@ -486,7 +510,7 @@ async function fetchAlphaVantageCandles(
   const params: Record<string, string> = {
     function: fn,
     symbol: symbol.replace('^', ''),
-    apikey: ALPHA_VANTAGE_KEY,
+    apikey: getAlphaVantageKey(),
     outputsize: 'compact',
   };
 
@@ -497,6 +521,8 @@ async function fetchAlphaVantageCandles(
   const data = await apiRequest<Record<string, Record<string, string>>>(ALPHA_VANTAGE_BASE, {
     skipAuth: true,
     rateLimitKey: 'alphavantage',
+    retries: 0,
+    failureLog: 'warn',
     params,
   });
 
@@ -526,46 +552,52 @@ async function fetchFinnhubForexCandles(
   interval: CandleInterval,
   limit: number,
 ): Promise<Candle[] | null> {
-  if (!FINNHUB_KEY) return null;
+  if (!getFinnhubKey()) return null;
 
-  const [base, quote = 'USD'] = symbol.split('/');
-  const finnhubSymbol = `OANDA:${base}_${quote}`;
-  const resolution = finnhubResolution(interval);
-  const to = Math.floor(Date.now() / 1000);
-  const from = to - intervalToDays(interval, limit) * 86400;
+  try {
+    const [base, quote = 'USD'] = symbol.split('/');
+    const finnhubSymbol = `OANDA:${base}_${quote}`;
+    const resolution = finnhubResolution(interval);
+    const to = Math.floor(Date.now() / 1000);
+    const from = to - intervalToDays(interval, limit) * 86400;
 
-  const data = await apiRequest<{
-    s: string;
-    t?: number[];
-    o?: number[];
-    h?: number[];
-    l?: number[];
-    c?: number[];
-    v?: number[];
-  }>(`${FINNHUB_BASE}/forex/candle`, {
-    skipAuth: true,
-    rateLimitKey: 'finnhub',
-    params: {
-      symbol: finnhubSymbol,
-      resolution,
-      from: String(from),
-      to: String(to),
-      token: FINNHUB_KEY,
-    },
-  });
+    const data = await apiRequest<{
+      s: string;
+      t?: number[];
+      o?: number[];
+      h?: number[];
+      l?: number[];
+      c?: number[];
+      v?: number[];
+    }>(`${FINNHUB_BASE}/forex/candle`, {
+      skipAuth: true,
+      rateLimitKey: 'finnhub',
+      retries: 0,
+      failureLog: 'warn',
+      params: {
+        symbol: finnhubSymbol,
+        resolution,
+        from: String(from),
+        to: String(to),
+        token: getFinnhubKey(),
+      },
+    });
 
-  if (data.s !== 'ok' || !data.t?.length) return null;
+    if (data.s !== 'ok' || !data.t?.length) return null;
 
-  return data.t
-    .map((timestamp, i) => ({
-      timestamp: timestamp * 1000,
-      open: data.o![i],
-      high: data.h![i],
-      low: data.l![i],
-      close: data.c![i],
-      volume: data.v?.[i] ?? 0,
-    }))
-    .slice(-limit);
+    return data.t
+      .map((timestamp, i) => ({
+        timestamp: timestamp * 1000,
+        open: data.o![i],
+        high: data.h![i],
+        low: data.l![i],
+        close: data.c![i],
+        volume: data.v?.[i] ?? 0,
+      }))
+      .slice(-limit);
+  } catch {
+    return null;
+  }
 }
 
 async function fetchForexCandles(
@@ -580,6 +612,93 @@ async function fetchForexCandles(
     `Forex OHLC unavailable for ${symbol}. Configure Finnhub for real FX candles.`,
     503,
   );
+}
+
+/** Deterministic sample equity path for demo when live OHLC providers fail. Never used for FX. */
+function buildSampleEquityCandles(
+  symbol: string,
+  interval: CandleInterval,
+  limit: number,
+): Candle[] {
+  const seed = [...symbol.toUpperCase()].reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
+  let price = 80 + (seed % 120);
+  const stepMs =
+    interval === '1w'
+      ? 7 * 86_400_000
+      : interval === '1M'
+        ? 30 * 86_400_000
+        : interval === '1d'
+          ? 86_400_000
+          : interval === '4h'
+            ? 4 * 3_600_000
+            : interval === '1h'
+              ? 3_600_000
+              : 15 * 60_000;
+  const now = Date.now();
+  const candles: Candle[] = [];
+
+  for (let i = 0; i < limit; i += 1) {
+    const wave = Math.sin((i + seed) / 9) * 1.8;
+    const drift = i * 0.04;
+    const open = price;
+    const close = Math.max(1, open + wave * 0.35 + ((i + seed) % 5) * 0.05 - 0.1);
+    const high = Math.max(open, close) + 0.6;
+    const low = Math.min(open, close) - 0.55;
+    candles.push({
+      timestamp: now - (limit - i) * stepMs,
+      open,
+      high,
+      low,
+      close: close + drift * 0.01,
+      volume: 500_000 + ((i * 17 + seed) % 900_000),
+    });
+    price = candles[candles.length - 1]!.close;
+  }
+
+  return candles;
+}
+
+async function fetchStockLikeCandles(
+  symbol: string,
+  interval: CandleInterval,
+  limit: number,
+): Promise<CandleResult> {
+  const finnhubCandles = await fetchFinnhubCandles(symbol, interval, limit);
+  if (finnhubCandles?.length) {
+    return {
+      candles: finnhubCandles,
+      provider: 'finnhub',
+      fetchedAt: Date.now(),
+      kind: 'delayed',
+    };
+  }
+
+  if (getAlphaVantageKey()) {
+    try {
+      const candles = await fetchAlphaVantageCandles(symbol, interval, limit);
+      if (candles.length) {
+        return {
+          candles,
+          provider: 'alpha-vantage',
+          fetchedAt: Date.now(),
+          kind: 'delayed',
+        };
+      }
+    } catch (error) {
+      logger.warn('market_data.alpha_vantage_candles_unavailable', {
+        symbol,
+        message: error instanceof Error ? error.message : 'unknown',
+      });
+    }
+  }
+
+  logger.warn('market_data.using_sample_equity_candles', { symbol, interval, limit });
+  return {
+    candles: buildSampleEquityCandles(symbol, interval, limit),
+    provider: 'sample',
+    fetchedAt: Date.now(),
+    kind: 'sample',
+  };
 }
 
 export async function fetchCandlesWithMetadataDirect(
@@ -605,30 +724,10 @@ export async function fetchCandlesWithMetadataDirect(
       };
     case 'stocks':
     case 'indices':
-    case 'commodities': {
-      const finnhubCandles = await fetchFinnhubCandles(symbol, interval, limit);
-      if (finnhubCandles?.length) {
-        return {
-          candles: finnhubCandles,
-          provider: 'finnhub',
-          fetchedAt: Date.now(),
-          kind: 'delayed',
-        };
-      }
-      return {
-        candles: await fetchAlphaVantageCandles(symbol, interval, limit),
-        provider: 'alpha-vantage',
-        fetchedAt: Date.now(),
-        kind: 'delayed',
-      };
-    }
+    case 'commodities':
+      return fetchStockLikeCandles(symbol, interval, limit);
     default:
-      return {
-        candles: await fetchAlphaVantageCandles(symbol, interval, limit),
-        provider: 'alpha-vantage',
-        fetchedAt: Date.now(),
-        kind: 'delayed',
-      };
+      return fetchStockLikeCandles(symbol, interval, limit);
   }
 }
 
