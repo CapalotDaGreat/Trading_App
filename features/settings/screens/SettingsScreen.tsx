@@ -95,7 +95,7 @@ export function SettingsScreen() {
         />
         <SettingsRow
           icon="shield-checkmark-outline"
-          label="Privacy & Security"
+          label="Privacy Dashboard"
           showChevron
           onPress={() => router.push('/settings/privacy')}
         />

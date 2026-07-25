@@ -21,6 +21,15 @@ jest.mock('@/features/decision/stores/decision-ui.store', () => ({
 jest.mock('@/features/decision-lab/stores/lab.store', () => ({
   useDecisionLabStore: { getState: () => ({ resetAccount: mockResetLab }) },
 }));
+jest.mock('@/features/decision-simulator/stores/simulator.store', () => ({
+  useSimulatorStore: { setState: jest.fn() },
+}));
+jest.mock('@/features/decision-passport/stores/passport.store', () => ({
+  useDecisionPassportStore: { setState: jest.fn() },
+}));
+jest.mock('@/features/educational/stores/educational.store', () => ({
+  useEducationalStore: { setState: jest.fn() },
+}));
 jest.mock('@/features/notifications/services/notification.service', () => ({
   notificationService: {
     getExpoPushToken: jest.fn(async () => null),
@@ -39,8 +48,15 @@ jest.mock('@/shared/services/storage/secure-storage.service', () => ({
   secureStorageService: { clear: jest.fn(async () => undefined) },
   SecureStorageKeys: { AUTH_TOKEN: 'auth_token', USER_SESSION: 'user_session' },
 }));
+const mockSetOnboardingCompleted = jest.fn();
 jest.mock('@/shared/stores/settings.store', () => ({
-  useSettingsStore: { getState: () => ({ reset: mockResetSettings }) },
+  useSettingsStore: {
+    getState: () => ({
+      reset: mockResetSettings,
+      hasCompletedOnboarding: true,
+      setOnboardingCompleted: mockSetOnboardingCompleted,
+    }),
+  },
 }));
 jest.mock('@/shared/stores/subscription.store', () => ({
   useSubscriptionStore: { getState: () => ({ reset: mockResetSubscription }) },
@@ -50,6 +66,10 @@ jest.mock('../local-user.repository', () => ({
 }));
 
 describe('clearAllUserLocalState', () => {
+  beforeEach(() => {
+    mockSetOnboardingCompleted.mockClear();
+  });
+
   it('wipes the audited account keys and preserves only device theme', async () => {
     const queryClient = { clear: jest.fn() };
     const multiRemove = jest.spyOn(AsyncStorage, 'multiRemove');
@@ -61,9 +81,16 @@ describe('clearAllUserLocalState', () => {
       ...USER_LOCAL_STORAGE_KEYS,
       'tradevision:onboarding-draft:v1:user-1',
     ]);
+    expect(result.removedAsyncStorageKeys).toContain('tradevision-decision-passport-v1');
     expect(result.removedAsyncStorageKeys).not.toContain('tradevision-theme-v2');
     expect(multiRemove).toHaveBeenCalledWith(result.removedAsyncStorageKeys);
     expect(mockResetRepository).toHaveBeenCalled();
     expect(queryClient.clear).toHaveBeenCalled();
+    expect(mockSetOnboardingCompleted).not.toHaveBeenCalled();
+  });
+
+  it('preserves onboarding completion on logout mode', async () => {
+    await clearAllUserLocalState('user-1', undefined, { mode: 'logout' });
+    expect(mockSetOnboardingCompleted).toHaveBeenCalledWith(true);
   });
 });

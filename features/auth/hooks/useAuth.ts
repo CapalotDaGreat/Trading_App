@@ -240,13 +240,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }),
       signOut: async () => {
         clearPendingMfaResolver();
-        useSubscriptionStore.getState().reset();
-        const signingOutUid = state.user?.uid;
-        if (signingOutUid && signingOutUid !== DEMO_USER_UID) {
-          const token = await notificationService.getExpoPushToken();
-          await notificationService
-            .removeTokenFromFirestore(signingOutUid, token ?? '')
-            .catch((error) => logger.warn('signout.push_token_cleanup_failed', { error }));
+        const signingOutUid = state.user?.uid ?? DEMO_USER_UID;
+        try {
+          // Wipe local coaching/memory/AI usage before account switch on shared devices.
+          await clearAllUserLocalState(signingOutUid, queryClient, { mode: 'logout' });
+        } catch (error) {
+          logger.error('signout.local_wipe_failed', error);
+          useSubscriptionStore.getState().reset();
         }
         await signOutUser();
         if (!isFirebaseConfigured()) {

@@ -26,6 +26,9 @@ const DEFAULT_PRIVACY: PrivacySettings = {
   crashReportingEnabled: false,
   crashReportingConsentVersion: CRASH_REPORTING_CONSENT_VERSION,
   crashReportingConsentUpdatedAt: null,
+  clearLocalDataOnSignOut: true,
+  sessionTimeoutMinutes: 0,
+  marketingEmailsEnabled: false,
 };
 
 function getStoreState() {
@@ -111,6 +114,9 @@ class SettingsServiceImpl implements SettingsService {
       crashReportingEnabled: settings.crashReportingEnabled,
       crashReportingConsentVersion: settings.crashReportingConsentVersion,
       crashReportingConsentUpdatedAt: settings.crashReportingConsentUpdatedAt,
+      clearLocalDataOnSignOut: settings.clearLocalDataOnSignOut,
+      sessionTimeoutMinutes: settings.sessionTimeoutMinutes,
+      marketingEmailsEnabled: settings.marketingEmailsEnabled,
     };
   }
 
@@ -119,6 +125,16 @@ class SettingsServiceImpl implements SettingsService {
 
     if (updates.crashReportingEnabled !== undefined) {
       settingsStore.setCrashReportingEnabled(updates.crashReportingEnabled);
+    }
+    if (updates.clearLocalDataOnSignOut !== undefined) {
+      // Local wipe on sign-out stays enforced for shared-device safety.
+      settingsStore.setClearLocalDataOnSignOut(true);
+    }
+    if (updates.sessionTimeoutMinutes !== undefined) {
+      settingsStore.setSessionTimeoutMinutes(updates.sessionTimeoutMinutes);
+    }
+    if (updates.marketingEmailsEnabled !== undefined) {
+      settingsStore.setMarketingEmailsEnabled(updates.marketingEmailsEnabled);
     }
 
     settingsStore.setLastSyncAt(Date.now());

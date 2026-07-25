@@ -1,4 +1,5 @@
 import * as AppleAuthentication from 'expo-apple-authentication';
+import * as Crypto from 'expo-crypto';
 import * as WebBrowser from 'expo-web-browser';
 import {
   EmailAuthProvider,
@@ -196,16 +197,29 @@ export async function signInWithGoogleIdToken(idToken: string): Promise<User> {
   return signInWithCredentialAndMfa(credential);
 }
 
+/** Cryptographically random nonce for Apple ID token binding (Firebase recommended). */
+async function createAppleSignInNonce(): Promise<{ rawNonce: string; hashedNonce: string }> {
+  const rawNonce = Crypto.randomUUID().replace(/-/g, '') + Crypto.randomUUID().replace(/-/g, '');
+  const hashedNonce = await Crypto.digestStringAsync(
+    Crypto.CryptoDigestAlgorithm.SHA256,
+    rawNonce,
+  );
+  return { rawNonce, hashedNonce };
+}
+
 async function requestAppleCredential() {
   if (Platform.OS !== 'ios') {
     throw new Error('Apple Sign-In is only available on iOS.');
   }
+
+  const { rawNonce, hashedNonce } = await createAppleSignInNonce();
 
   const appleCredential = await AppleAuthentication.signInAsync({
     requestedScopes: [
       AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
       AppleAuthentication.AppleAuthenticationScope.EMAIL,
     ],
+    nonce: hashedNonce,
   });
 
   if (!appleCredential.identityToken) {
@@ -215,6 +229,7 @@ async function requestAppleCredential() {
   const provider = new OAuthProvider('apple.com');
   const credential = provider.credential({
     idToken: appleCredential.identityToken,
+    rawNonce,
   });
 
   return { credential, fullName: appleCredential.fullName };

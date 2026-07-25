@@ -14,6 +14,7 @@ import {
 import { reconcileOnboarding } from '@/features/onboarding/services/onboarding-reconciliation.service';
 import { resolveRootRedirect } from '@/features/onboarding/services/onboarding-routing.service';
 import type { OnboardingResolution } from '@/features/onboarding/types/onboarding.types';
+import { useSessionTimeout } from '@/features/settings/hooks/useSessionTimeout';
 import { DEMO_USER_UID, isFirebaseConfigured } from '@/firebase/config';
 import { Button } from '@/shared/components/ui/Button';
 import { Text } from '@/shared/components/ui/Text';
@@ -89,6 +90,7 @@ function RootLayoutNav() {
   const [onboarding, setOnboarding] = useState<OnboardingResolution | null>(null);
 
   usePushNotificationHandler();
+  useSessionTimeout();
 
   useEffect(() => {
     const route = `/${segments.join('/')}`;

@@ -19,10 +19,19 @@ export interface NotificationSettings {
   emailDigest: boolean;
 }
 
+/** Idle minutes before optional automatic sign-out. 0 = disabled. */
+export type SessionTimeoutMinutes = 0 | 15 | 30 | 60 | 120;
+
 export interface PrivacySettings {
   crashReportingEnabled: boolean;
   crashReportingConsentVersion: number;
   crashReportingConsentUpdatedAt: string | null;
+  /** Prefer clearing local user caches on every sign-out (always on for security). */
+  clearLocalDataOnSignOut: boolean;
+  /** Auto sign-out after idle period (minutes). 0 disables. */
+  sessionTimeoutMinutes: SessionTimeoutMinutes;
+  /** Marketing / product email preferences (digest-style). */
+  marketingEmailsEnabled: boolean;
 }
 
 export interface ProfileSettings {
