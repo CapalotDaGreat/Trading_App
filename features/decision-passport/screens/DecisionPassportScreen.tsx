@@ -28,7 +28,7 @@ const TABS: { value: PassportTab; label: string }[] = [
 export function DecisionPassportScreen() {
   const router = useRouter();
   const { colors } = useTheme();
-  const { tab, setTab, profile, exportStub, isLoading, isRefetching, refetch } =
+  const { tab, setTab, profile, exportPackage, shareExport, isLoading, isRefetching, refetch } =
     useDecisionPassport();
 
   return (
@@ -108,15 +108,18 @@ export function DecisionPassportScreen() {
               </Button>
               <Button
                 variant="outline"
+                accessibilityLabel="Share Decision Passport JSON export"
                 onPress={() => {
-                  Alert.alert(
-                    'PDF export coming soon',
-                    exportStub?.message ??
-                      'Beautiful PDF reports will export this passport without performance framing.',
-                  );
+                  void shareExport().catch(() => {
+                    Alert.alert(
+                      'Export unavailable',
+                      exportPackage?.message ??
+                        'Could not share the passport export on this device.',
+                    );
+                  });
                 }}
               >
-                Export PDF report
+                Share process export
               </Button>
             </View>
           </>

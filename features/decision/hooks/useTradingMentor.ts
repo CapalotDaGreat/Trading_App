@@ -18,6 +18,7 @@ import type { TradingMentorBrief } from '@/features/decision/types/mentor.types'
 import { useDecisionLog } from '@/features/decision-log/hooks/useDecisionLog';
 import { useWeeklyGameTape } from '@/features/decision-replay/hooks/useDecisionReplay';
 import { useDecisionLabStore } from '@/features/decision-lab/stores/lab.store';
+import { useAlerts } from '@/features/alerts/hooks/useAlerts';
 import { useSettingsStore } from '@/shared/stores/settings.store';
 import { loadDisciplineStreak } from '@/features/decision/services/coaching-loop.service';
 import { selectTodayTimeBudget } from '@/features/decision/services/today-sections.service';
@@ -42,20 +43,23 @@ export function useTradingMentor() {
   const getLabStats = useDecisionLabStore((s) => s.getStats);
   const labStats = getLabStats();
   const { practicedCount, totalCount } = useAcademy();
-  const debt = useMemo(
-    () =>
-      buildDecisionDebt({
-        unreviewedSetups: 0,
-        incompleteJournals: Math.max(
-          0,
-          (logSummary?.researched ?? 0) - (logSummary?.journaled ?? 0),
-        ),
-        unfinishedLessons: Math.max(0, totalCount - practicedCount),
-        unfinishedReplay: 0,
-        ignoredAlerts: 0,
-      }),
-    [logSummary, practicedCount, totalCount],
-  );
+  const { records } = useDecisionLog();
+  const { alerts } = useAlerts();
+  const debt = useMemo(() => {
+    const queueLen = briefQuery.data?.researchQueue?.length ?? 0;
+    const replayCompletions =
+      records?.filter((r) => r.action === 'replay_completed').length ?? 0;
+    const researched = logSummary?.researched ?? 0;
+    const unfinishedReplay = Math.max(0, Math.min(3, researched - replayCompletions));
+    const ignoredAlerts = alerts.filter((a) => !a.isActive && !a.triggeredAt).length;
+    return buildDecisionDebt({
+      unreviewedSetups: queueLen,
+      incompleteJournals: Math.max(0, researched - (logSummary?.journaled ?? 0)),
+      unfinishedLessons: Math.max(0, totalCount - practicedCount),
+      unfinishedReplay,
+      ignoredAlerts,
+    });
+  }, [briefQuery.data?.researchQueue?.length, logSummary, practicedCount, totalCount, records, alerts]);
   const { recommendation: academyRecommendation } = useNextAcademyLesson({
     memory: memoryQuery.data,
     debt,

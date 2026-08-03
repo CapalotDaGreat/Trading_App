@@ -15,7 +15,11 @@ export function ThemeToggle() {
   const { settings, updateSettings, isUpdating } = useSettings();
 
   return (
-    <View className="flex-row gap-1 rounded-2xl bg-surface p-1">
+    <View
+      className="flex-row gap-1 rounded-2xl bg-surface p-1"
+      accessibilityRole="radiogroup"
+      accessibilityLabel="Theme mode"
+    >
       {THEME_OPTIONS.map((option) => {
         const selected = settings.theme === option.mode;
 
@@ -24,12 +28,17 @@ export function ThemeToggle() {
             key={option.mode}
             disabled={isUpdating}
             onPress={() => void updateSettings({ theme: option.mode })}
+            accessibilityRole="radio"
+            accessibilityState={{ selected, disabled: isUpdating }}
+            accessibilityLabel={`${option.label} theme`}
             className={cn(
-              'flex-1 items-center rounded-xl py-2.5',
+              'min-h-11 flex-1 items-center rounded-xl py-2.5',
               selected && 'bg-background-elevated',
             )}
           >
-            <Text className="text-base">{option.icon}</Text>
+            <Text className="text-base" accessible={false}>
+              {option.icon}
+            </Text>
             <Text
               variant="caption"
               className={cn('mt-1 font-medium', selected ? 'text-accent' : 'text-text-secondary')}

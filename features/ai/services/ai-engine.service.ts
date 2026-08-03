@@ -139,10 +139,10 @@ function buildTradeSuggestion(context: AiEnrichedContext): AiAnalysisResult {
   }
   why.push(...researchPaths);
 
-  const entryLow = bias === 'bullish' ? support : price * 0.995;
-  const entryHigh = bias === 'bullish' ? price : resistance;
-  const stopLoss = bias === 'bullish' ? support - atr * 0.5 : resistance + atr * 0.5;
-  const takeProfit = bias === 'bullish' ? resistance + atr : support - atr;
+  const observeLow = bias === 'bullish' ? support : price * 0.995;
+  const observeHigh = bias === 'bullish' ? price : resistance;
+  const invalidationLevel = bias === 'bullish' ? support - atr * 0.5 : resistance + atr * 0.5;
+  const nextResearchLevel = bias === 'bullish' ? resistance + atr : support - atr;
 
   const content =
     bias === 'neutral'
@@ -159,9 +159,9 @@ function buildTradeSuggestion(context: AiEnrichedContext): AiAnalysisResult {
       confidence,
       reasoning: content,
       why,
-      entryZone: price > 0 ? { low: round2(entryLow), high: round2(entryHigh) } : undefined,
-      stopLoss: price > 0 ? round2(stopLoss) : undefined,
-      takeProfit: price > 0 ? round2(takeProfit) : undefined,
+      observationZone: price > 0 ? { low: round2(observeLow), high: round2(observeHigh) } : undefined,
+      invalidationLevel: price > 0 ? round2(invalidationLevel) : undefined,
+      nextResearchLevel: price > 0 ? round2(nextResearchLevel) : undefined,
       timeframe: '1–3 weeks (daily chart)',
     },
     generatedAt: Date.now(),
@@ -729,11 +729,15 @@ export function generateEngineChatResponse(
         '**Research evidence (not a prediction):**',
         ...(ts?.why.map((w) => `• ${w}`) ?? []),
         '',
-        ts?.entryZone
-          ? `Observation zone: ${formatPrice(ts.entryZone.low)} – ${formatPrice(ts.entryZone.high)}`
+        ts?.observationZone
+          ? `Observation zone: ${formatPrice(ts.observationZone.low)} – ${formatPrice(ts.observationZone.high)}`
           : '',
-        ts?.stopLoss ? `Invalidation reference: ${formatPrice(ts.stopLoss)}` : '',
-        ts?.takeProfit ? `Next level to research: ${formatPrice(ts.takeProfit)}` : '',
+        ts?.invalidationLevel
+          ? `Invalidation reference: ${formatPrice(ts.invalidationLevel)}`
+          : '',
+        ts?.nextResearchLevel
+          ? `Next level to research: ${formatPrice(ts.nextResearchLevel)}`
+          : '',
         '',
         '_This is educational analysis, not financial advice._',
       ]

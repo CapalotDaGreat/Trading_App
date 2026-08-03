@@ -60,9 +60,12 @@ export interface TradeSuggestion {
   confidence: number;
   reasoning: string;
   why: string[];
-  entryZone?: { low: number; high: number };
-  stopLoss?: number;
-  takeProfit?: number;
+  /** Price band worth observing — not an order entry instruction. */
+  observationZone?: { low: number; high: number };
+  /** Level that would invalidate the research thesis. */
+  invalidationLevel?: number;
+  /** Next structural level to investigate — not a profit target. */
+  nextResearchLevel?: number;
   timeframe: string;
 }
 

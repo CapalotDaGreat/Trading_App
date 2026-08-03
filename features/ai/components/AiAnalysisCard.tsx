@@ -113,17 +113,25 @@ function TradeSuggestionSection({
         </Text>
       ))}
       <View className="mt-3 gap-1">
-        {data.entryZone ? (
+        {data.observationZone ? (
           <LevelRow
             label="Observation zone"
-            value={`${formatPrice(data.entryZone.low)} – ${formatPrice(data.entryZone.high)}`}
+            value={`${formatPrice(data.observationZone.low)} – ${formatPrice(data.observationZone.high)}`}
           />
         ) : null}
-        {data.stopLoss !== undefined ? (
-          <LevelRow label="Invalidation reference" value={formatPrice(data.stopLoss)} tone="bearish" />
+        {data.invalidationLevel !== undefined ? (
+          <LevelRow
+            label="Invalidation reference"
+            value={formatPrice(data.invalidationLevel)}
+            tone="bearish"
+          />
         ) : null}
-        {data.takeProfit !== undefined ? (
-          <LevelRow label="Next level to research" value={formatPrice(data.takeProfit)} tone="bullish" />
+        {data.nextResearchLevel !== undefined ? (
+          <LevelRow
+            label="Next level to research"
+            value={formatPrice(data.nextResearchLevel)}
+            tone="bullish"
+          />
         ) : null}
       </View>
       <Text variant="caption" className="mt-2 text-text-tertiary">

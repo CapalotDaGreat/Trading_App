@@ -1,15 +1,8 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-import type { JournalEntry } from '@/features/journal/types/journal.types';
 import type { Holding } from '@/features/portfolio/types/portfolio.types';
 
-import type {
-  ImpactLevel,
-  JournalCoachInsight,
-  RiskCenterSnapshot,
-  TraderMemory,
-} from '../types/decision.types';
-import { buildExplainability } from './explainability.service';
+import type { ImpactLevel, RiskCenterSnapshot, TraderMemory } from '../types/decision.types';
 import { buildTradingDna } from './setup-enrichment.service';
 
 export interface MemoryProfileHints {
@@ -73,80 +66,7 @@ export async function syncMemoryFromProfile(
   });
 }
 
-export function buildJournalCoach(entries: JournalEntry[]): JournalCoachInsight {
-  const closed = entries.filter((e) => e.outcome !== 'open' && e.pnl !== undefined);
-  const wins = closed.filter((e) => (e.pnl ?? 0) > 0);
-  const losses = closed.filter((e) => (e.pnl ?? 0) < 0);
-  const winRate = closed.length ? Math.round((wins.length / closed.length) * 100) : 0;
-
-  const avgWin =
-    wins.length > 0 ? wins.reduce((s, e) => s + Math.abs(e.pnl ?? 0), 0) / wins.length : 0;
-  const avgLoss =
-    losses.length > 0 ? losses.reduce((s, e) => s + Math.abs(e.pnl ?? 0), 0) / losses.length : 1;
-  const avgRr = avgLoss > 0 ? Math.round((avgWin / avgLoss) * 10) / 10 : 0;
-
-  const weekdayCounts = new Map<string, { w: number; t: number }>();
-  for (const e of closed) {
-    const day = new Date(e.tradedAt).toLocaleDateString('en-US', { weekday: 'long' });
-    const cur = weekdayCounts.get(day) ?? { w: 0, t: 0 };
-    cur.t += 1;
-    if ((e.pnl ?? 0) > 0) cur.w += 1;
-    weekdayCounts.set(day, cur);
-  }
-  let bestWeekday = 'Tuesday';
-  let bestRate = -1;
-  for (const [day, v] of weekdayCounts) {
-    const rate = v.t ? v.w / v.t : 0;
-    if (rate > bestRate) {
-      bestRate = rate;
-      bestWeekday = day;
-    }
-  }
-
-  const notes = closed.map((e) => (e.notes ?? '').toLowerCase()).join(' ');
-  const movedStops = /stop/.test(notes);
-  const mostCommonMistake = movedStops
-    ? 'Moving stops after adverse moves'
-    : losses.length > wins.length
-      ? 'Entering without clear invalidation'
-      : 'Overtrading after wins';
-
-  const processScore = Math.min(
-    95,
-    Math.max(40, Math.round(winRate * 0.5 + Math.min(avgRr, 3) * 12 + (movedStops ? -8 : 10))),
-  );
-
-  const asOf = Date.now();
-  return {
-    winRate,
-    avgRr,
-    mostCommonMistake,
-    bestWeekday,
-    worstCondition: 'Low-ADX breakouts',
-    bestIndicator: 'VWAP + trend EMA',
-    psychology:
-      losses.length >= 2
-        ? 'Fear after consecutive losses is elevating risk of stop-moves.'
-        : 'Maintain process discipline after wins — avoid size creep.',
-    edge: 'Momentum continuation / pullbacks with trend',
-    avoid: 'Breakout chasing in ranging regimes',
-    recommendation:
-      closed.length < 5
-        ? 'Log more closed trades so coach insights become personal rather than defaults.'
-        : 'Prioritize pullback continuation setups; skip low-ADX breakouts this week.',
-    processScore,
-    explainability: buildExplainability({
-      confidence: processScore,
-      factors: [
-        { label: 'Sample size', agrees: closed.length >= 5, detail: `${closed.length} closed trades` },
-        { label: 'Win rate', agrees: winRate >= 50, detail: `${winRate}%` },
-        { label: 'RR', agrees: avgRr >= 1.5, detail: `${avgRr}` },
-      ],
-      dataAsOf: asOf,
-      reasoning: 'Coach insights derived from your journal outcomes and note patterns — process over P&L.',
-    }),
-  };
-}
+export { buildJournalCoach } from './journal-coach.service';
 
 export function buildRiskCenter(holdings: Holding[]): RiskCenterSnapshot {
   if (!holdings.length) {

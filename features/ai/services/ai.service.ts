@@ -6,6 +6,7 @@ import {
   isNearAiDailyLimit,
   type SubscriptionTier,
 } from '@/shared/constants/subscription';
+import { aiRateLimiter } from '@/shared/services/rate-limit/rate-limiter';
 
 import type {
   AiAnalysisResult,
@@ -115,12 +116,24 @@ function isAiServiceError(error: unknown): error is AiServiceError {
   );
 }
 
+function assertAiBurstLimit(bucket: string): void {
+  const result = aiRateLimiter.check(bucket);
+  if (!result.allowed) {
+    throw createAiError(
+      'RATE_LIMITED',
+      'AI requests are temporarily rate-limited. Wait a moment and try again.',
+      result.retryAfterMs,
+    );
+  }
+}
+
 async function requestAnalysis(
   type: AiAnalysisType,
   context: AiRequestContext,
   tier: SubscriptionTier,
   requiresPremium = false,
 ): Promise<AiAnalysisResult> {
+  assertAiBurstLimit(`analysis:${tier}`);
   const enrichedContext = await enrichRequestContext(context);
   const usage = await getStoredUsage();
   const accessError = checkAiAccess(tier, usage.count, requiresPremium);
@@ -171,6 +184,7 @@ export const aiService = {
     requestAnalysis(type, context, tier),
 
   chat: async (request: AiChatRequest, tier: SubscriptionTier): Promise<AiChatResponse> => {
+    assertAiBurstLimit(`chat:${tier}`);
     const enrichedContext = await enrichRequestContext(request.context ?? {});
     const usage = await getStoredUsage();
     const accessError = checkAiAccess(tier, usage.count);

@@ -26,7 +26,9 @@ describe('ai-engine', () => {
 
     expect(result.tradeSuggestion?.why.length).toBeGreaterThan(0);
     expect(result.metadata?.source).toBe('engine');
-    expect(result.tradeSuggestion?.entryZone).toBeDefined();
+    expect(result.tradeSuggestion?.observationZone).toBeDefined();
+    expect(result.tradeSuggestion?.invalidationLevel).toBeDefined();
+    expect(result.tradeSuggestion?.nextResearchLevel).toBeDefined();
   });
 
   it('generates risk analysis with ATR-based factors', async () => {

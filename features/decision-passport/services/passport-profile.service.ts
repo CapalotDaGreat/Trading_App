@@ -473,8 +473,9 @@ export function buildDecisionPassportProfile(input: BuildPassportProfileInput): 
     yearlySummaries,
     timeline,
     exportReady: {
-      status: 'stub',
-      message: 'Beautiful PDF export is coming soon. Your passport data is already structured for reports.',
+      status: 'ready',
+      message:
+        'Share a JSON process profile (identity, DNA, trends, achievements). Not a P&L or brokerage statement.',
     },
     counts,
   };

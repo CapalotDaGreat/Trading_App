@@ -160,6 +160,7 @@ export function MfaScreen({ mode = 'verify' }: MfaScreenProps) {
                     ) : null}
                     <Pressable
                       accessibilityRole="button"
+                      accessibilityLabel="Hide authenticator setup details"
                       onPress={() => setShowSetupSecret(false)}
                       className="mt-3 min-h-11 justify-center"
                     >

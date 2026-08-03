@@ -140,8 +140,15 @@ export function useRiskCenter() {
 
 export function useJournalCoach() {
   const { entries } = useJournal();
+  // Include content fingerprint so edits (notes/tags/emotion) invalidate coach cache.
+  const contentKey = entries
+    .map(
+      (e) =>
+        `${e.id}:${e.updatedAt}:${e.outcome}:${e.emotion ?? ''}:${e.tags.join(',')}:${(e.notes ?? '').length}`,
+    )
+    .join('|');
   return useQuery({
-    queryKey: ['decision', 'journal-coach', entries.length] as const,
+    queryKey: ['decision', 'journal-coach', entries.length, contentKey] as const,
     queryFn: async (): Promise<JournalCoachInsight> => buildJournalCoach(entries),
     staleTime: 30_000,
   });

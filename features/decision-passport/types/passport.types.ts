@@ -152,7 +152,7 @@ export interface DecisionPassportProfile {
   yearlySummaries: PassportPeriodSummary[];
   timeline: PassportTimelineEvent[];
   exportReady: {
-    status: 'stub';
+    status: 'ready' | 'stub';
     message: string;
   };
   counts: PassportCounts;

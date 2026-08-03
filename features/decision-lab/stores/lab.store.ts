@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
+import { useDecisionPassportStore } from '@/features/decision-passport/stores/passport.store';
 import { createPersistedStorage } from '@/shared/stores/create-persisted-storage';
 
 import type { MarketRegime, TraderMemory } from '@/features/decision/types/decision.types';
@@ -317,6 +318,13 @@ export const useDecisionLabStore = create<LabState>()(
             updatedAt: Date.now(),
           },
         }));
+
+        useDecisionPassportStore.getState().recordLabResult({
+          symbol: closed.thesis.symbol,
+          processScore: scores.processScore,
+          stopHonored: input.stopHonored,
+          journaled: input.journaled,
+        });
 
         return { ok: true, position: closed };
       },

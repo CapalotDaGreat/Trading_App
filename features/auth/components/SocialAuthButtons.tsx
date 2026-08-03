@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import * as Google from 'expo-auth-session/providers/google';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Platform, View } from 'react-native';
 
 import { Button } from '@/shared/components/ui/Button';
@@ -28,6 +28,10 @@ export function SocialAuthButtons({
   const [isAppleLoading, setIsAppleLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [appleAvailable, setAppleAvailable] = useState(false);
+  const onGoogleSuccessRef = useRef(onGoogleSuccess);
+  const handledResponseKeyRef = useRef<string | null>(null);
+
+  onGoogleSuccessRef.current = onGoogleSuccess;
 
   const [request, response, promptAsync] = Google.useAuthRequest({
     webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
@@ -42,19 +46,24 @@ export function SocialAuthButtons({
   }, []);
 
   useEffect(() => {
-    if (response?.type === 'success') {
-      const idToken = response.authentication?.idToken;
-      if (idToken) {
-        setIsGoogleLoading(true);
-        void onGoogleSuccess(idToken).finally(() => setIsGoogleLoading(false));
-      }
-    }
-  }, [onGoogleSuccess, response]);
+    if (response?.type !== 'success') return;
+    const idToken = response.authentication?.idToken;
+    if (!idToken) return;
+
+    // Stabilize against parent re-renders that recreate onGoogleSuccess each render.
+    const responseKey = `${response.type}:${idToken.slice(0, 24)}:${response.authentication?.accessToken?.slice(0, 12) ?? ''}`;
+    if (handledResponseKeyRef.current === responseKey) return;
+    handledResponseKeyRef.current = responseKey;
+
+    setIsGoogleLoading(true);
+    void onGoogleSuccessRef.current(idToken).finally(() => setIsGoogleLoading(false));
+  }, [response]);
 
   const handleGooglePress = () => {
     if (!request || disabled || isGoogleLoading) {
       return;
     }
+    handledResponseKeyRef.current = null;
     void promptAsync();
   };
 
@@ -80,6 +89,7 @@ export function SocialAuthButtons({
           disabled={disabled || !request || isGoogleLoading}
           loading={isGoogleLoading}
           leftIcon={<Ionicons name="logo-google" size={20} color={colors.text.primary} />}
+          accessibilityLabel={`${actionLabel} with Google`}
         >
           {actionLabel} with Google
         </Button>
@@ -93,6 +103,7 @@ export function SocialAuthButtons({
           disabled={disabled || isAppleLoading}
           loading={isAppleLoading}
           leftIcon={<Ionicons name="logo-apple" size={22} color={colors.text.primary} />}
+          accessibilityLabel={`${actionLabel} with Apple`}
         >
           {actionLabel} with Apple
         </Button>

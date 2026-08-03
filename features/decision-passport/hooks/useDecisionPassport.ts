@@ -23,8 +23,12 @@ import { selectTodayTimeBudget } from '@/features/decision/services/today-sectio
 import { useSettingsStore } from '@/shared/stores/settings.store';
 
 import { newlyUnlockedAchievementDates } from '../services/passport-achievements.service';
-import { buildPassportExportStub } from '../services/passport-export.service';
+import {
+  buildPassportExportPackage,
+  sharePassportExport,
+} from '../services/passport-export.service';
 import { buildDecisionPassportProfile } from '../services/passport-profile.service';
+import { deriveSystemCredentials } from '../services/passport.service';
 import { useDecisionPassportStore } from '../stores/passport.store';
 import type { PassportTab } from '../types/passport.types';
 
@@ -43,6 +47,7 @@ export function useDecisionPassport() {
   const lastAction = useDecisionPassportStore((s) => s.lastAction);
   const unlockedAchievementDates = useDecisionPassportStore((s) => s.unlockedAchievementDates);
   const syncAchievementDates = useDecisionPassportStore((s) => s.syncAchievementDates);
+  const syncDerivedCredentials = useDecisionPassportStore((s) => s.syncDerivedCredentials);
 
   const mentorQuery = useTradingMentor();
   const memoryQuery = useTraderMemory();
@@ -117,6 +122,26 @@ export function useDecisionPassport() {
   ]);
 
   useEffect(() => {
+    const replayCount =
+      recordsQuery.data?.filter((r) => r.action === 'replay_completed').length ?? 0;
+    const derived = deriveSystemCredentials({
+      journalCount: journalEntries.length,
+      academyCompleted: completedCount,
+      replayCount,
+      labClosedCount: labStats.tradesClosed,
+      labAvgProcessScore: labStats.avgProcessScore,
+    });
+    syncDerivedCredentials(derived);
+  }, [
+    journalEntries.length,
+    completedCount,
+    recordsQuery.data,
+    labStats.tradesClosed,
+    labStats.avgProcessScore,
+    syncDerivedCredentials,
+  ]);
+
+  useEffect(() => {
     if (!profile) return;
     const existing = useDecisionPassportStore.getState().unlockedAchievementDates;
     const next = newlyUnlockedAchievementDates(
@@ -127,16 +152,24 @@ export function useDecisionPassport() {
     syncAchievementDates(next);
   }, [profile, syncAchievementDates]);
 
-  const exportStub = useMemo(
-    () => (profile ? buildPassportExportStub(profile) : null),
+  const exportPackage = useMemo(
+    () => (profile ? buildPassportExportPackage(profile) : null),
     [profile],
   );
+
+  const shareExport = async () => {
+    if (!exportPackage) return;
+    await sharePassportExport(exportPackage);
+  };
 
   return {
     tab,
     setTab,
     profile,
-    exportStub,
+    exportPackage,
+    /** @deprecated use exportPackage */
+    exportStub: exportPackage,
+    shareExport,
     isLoading:
       recordsQuery.isLoading ||
       (mentorQuery.isLoading && !mentorQuery.data && !recordsQuery.data),

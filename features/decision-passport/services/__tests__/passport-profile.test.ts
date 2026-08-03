@@ -98,7 +98,7 @@ describe('decision passport profile', () => {
     expect(profile.monthlySummaries.length).toBe(6);
     expect(profile.yearlySummaries.length).toBe(3);
     expect(profile.achievements.length).toBeGreaterThan(5);
-    expect(profile.exportReady.status).toBe('stub');
+    expect(profile.exportReady.status).toBe('ready');
     expect(JSON.stringify(profile).toLowerCase()).not.toMatch(/winning trades|profitability report/);
   });
 
@@ -133,7 +133,7 @@ describe('decision passport profile', () => {
     expect(achievements.find((a) => a.id === 'checklist_streak_7')?.unlocked).toBe(true);
   });
 
-  it('builds monthly summaries and export stub for future PDF', () => {
+  it('builds monthly summaries and a shareable passport JSON package', () => {
     const records = [
       makeRecord('researched', 0),
       makeRecord('journaled', 1),
@@ -154,8 +154,10 @@ describe('decision passport profile', () => {
       nowMs: Date.UTC(2026, 6, 20),
     });
     const stub = buildPassportExportStub(profile);
-    expect(stub.status).toBe('coming_soon');
+    expect(stub.status).toBe('ready');
     expect(stub.suggestedFilename).toContain('decision-passport');
+    expect(stub.suggestedFilename.endsWith('.json')).toBe(true);
     expect(stub.sections).toContain('Trading DNA');
+    expect(profile.exportReady.status).toBe('ready');
   });
 });

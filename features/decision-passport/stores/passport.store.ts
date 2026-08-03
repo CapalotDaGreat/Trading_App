@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
 import {
+  buildLabProcessCredential,
   buildPassportCredential,
   summarizePassport,
   type DecisionPassportSnapshot,
@@ -9,6 +10,19 @@ import {
 } from '@/features/decision-passport/services/passport.service';
 import type { SimulatorAction, SimulatorScores } from '@/features/decision-simulator/types/simulator.types';
 import { createPersistedStorage } from '@/shared/stores/create-persisted-storage';
+
+function mergeCredentials(
+  existing: PassportCredential[],
+  incoming: PassportCredential[],
+): PassportCredential[] {
+  const byId = new Map(existing.map((c) => [c.id, c]));
+  for (const cred of incoming) {
+    if (!byId.has(cred.id)) byId.set(cred.id, cred);
+  }
+  return Array.from(byId.values())
+    .sort((a, b) => b.earnedAt - a.earnedAt)
+    .slice(0, 40);
+}
 
 interface PassportState {
   credentials: PassportCredential[];
@@ -21,6 +35,13 @@ interface PassportState {
     action: SimulatorAction;
     scores: SimulatorScores;
   }) => PassportCredential | null;
+  recordLabResult: (input: {
+    symbol: string;
+    processScore: number;
+    stopHonored: boolean;
+    journaled: boolean;
+  }) => PassportCredential | null;
+  syncDerivedCredentials: (derived: PassportCredential[]) => void;
   syncAchievementDates: (next: Record<string, number>) => void;
   getSnapshot: () => DecisionPassportSnapshot;
 }
@@ -38,10 +59,33 @@ export const useDecisionPassportStore = create<PassportState>()(
           processScores: [scores.processScore, ...get().processScores].slice(0, 100),
           lastAction: action,
           credentials: credential
-            ? [credential, ...get().credentials].slice(0, 30)
+            ? mergeCredentials(get().credentials, [credential])
             : get().credentials,
         });
         return credential;
+      },
+      recordLabResult: ({ symbol, processScore, stopHonored, journaled }) => {
+        const credential = buildLabProcessCredential({
+          symbol,
+          processScore,
+          stopHonored,
+          journaled,
+        });
+        set({
+          processScores: [processScore, ...get().processScores].slice(0, 100),
+          credentials: credential
+            ? mergeCredentials(get().credentials, [credential])
+            : get().credentials,
+        });
+        return credential;
+      },
+      syncDerivedCredentials: (derived) => {
+        if (!derived.length) return;
+        const prev = get().credentials;
+        const merged = mergeCredentials(prev, derived);
+        const changed =
+          merged.length !== prev.length || merged.some((c) => !prev.find((p) => p.id === c.id));
+        if (changed) set({ credentials: merged });
       },
       syncAchievementDates: (next) => {
         const prev = get().unlockedAchievementDates;
