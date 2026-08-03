@@ -11,6 +11,7 @@ import type {
   AiSentiment,
 } from '../types/ai.types';
 import { getPrimaryIndicator, getPrimaryPattern } from './ai-context.service';
+import { buildAiTrustPayload } from './ai-trust.service';
 
 function todayKey(): string {
   return new Date().toISOString().split('T')[0] ?? '';
@@ -24,6 +25,10 @@ function buildMetadata(
   context: AiEnrichedContext,
   confidence: number,
   extraCitations: AiCitation[] = [],
+  options?: {
+    sentiment?: AiSentiment;
+    action?: 'research' | 'watch' | 'skip';
+  },
 ): AiAnalysisMetadata {
   const citations: AiCitation[] = [
     {
@@ -31,7 +36,6 @@ function buildMetadata(
       value: new Date(context.assembledAt).toLocaleString(),
       timestamp: context.assembledAt,
     },
-    ...extraCitations,
   ];
 
   if (context.symbol) {
@@ -53,14 +57,22 @@ function buildMetadata(
   if (context.trend) {
     citations.push({ label: 'Trend', value: context.trend });
   }
+  citations.push(...extraCitations);
+
+  const trust = buildAiTrustPayload(context, {
+    sentiment: options?.sentiment,
+    action: options?.action,
+    citations,
+  });
 
   return {
     source: 'engine',
-    confidence: clamp(Math.round(confidence), 35, 92),
+    confidence: trust.confidence.overall,
     dataAsOf: context.assembledAt,
-    citations: [...citations, ...extraCitations],
+    citations,
     symbol: context.symbol,
-    modelVersion: 'tradevision-engine-1.0',
+    modelVersion: 'tradevision-engine-2.0',
+    trust,
   };
 }
 
@@ -165,7 +177,7 @@ function buildTradeSuggestion(context: AiEnrichedContext): AiAnalysisResult {
       timeframe: '1–3 weeks (daily chart)',
     },
     generatedAt: Date.now(),
-    metadata: buildMetadata(context, confidence),
+    metadata: buildMetadata(context, confidence, [], { sentiment: bias, action }),
   };
 }
 

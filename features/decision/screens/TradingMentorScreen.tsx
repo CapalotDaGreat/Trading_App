@@ -129,13 +129,43 @@ export function TradingMentorScreen() {
                 accessibilityRole="button"
                 accessibilityLabel="Open Trading DNA memory"
                 className="mt-3 min-h-11 flex-row items-center"
-                onPress={() => router.push('/decision/memory' as never)}
+                onPress={() => router.push('/decision/intelligence' as never)}
               >
                 <Text variant="label" className="text-info">
-                  View full Trading DNA →
+                  View Personal Intelligence & DNA →
                 </Text>
               </Pressable>
             </GlassCard>
+
+            {data.coachingReferences?.length ? (
+              <GlassCard className="p-4">
+                <Text variant="caption" className="mb-2 font-semibold uppercase tracking-wide text-text-tertiary">
+                  Mentor references
+                </Text>
+                <Text variant="body-sm" className="mb-3 text-text-secondary">
+                  Passport · Replay · Academy · Journal · Decision Graph · DNA · Heatmap · Decision Log
+                </Text>
+                <View className="gap-2">
+                  {data.coachingReferences.map((ref) => (
+                    <Pressable
+                      key={ref.id}
+                      accessibilityRole="button"
+                      accessibilityLabel={ref.label}
+                      testID={`mentor-ref-${ref.id}`}
+                      onPress={() => router.push(ref.href as never)}
+                      className="rounded-xl bg-surface px-3 py-3"
+                    >
+                      <Text variant="label" className="text-accent">
+                        {ref.label}
+                      </Text>
+                      <Text variant="caption" className="mt-1 text-text-secondary">
+                        {ref.reason}
+                      </Text>
+                    </Pressable>
+                  ))}
+                </View>
+              </GlassCard>
+            ) : null}
 
             {data.weekly.academyRecommendation ? (
               <Pressable

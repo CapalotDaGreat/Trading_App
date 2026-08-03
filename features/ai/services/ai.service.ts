@@ -25,6 +25,7 @@ import type {
 } from '../types/ai.types';
 import { enrichRequestContext } from './ai-context.service';
 import { generateEngineAnalysis, generateEngineChatResponse } from './ai-engine.service';
+import { attachWhyChanged } from './ai-trust.service';
 
 const AI_USAGE_KEY = 'tradevision-ai-usage';
 
@@ -175,6 +176,15 @@ async function requestAnalysis(
   if (accessError) throw accessError;
 
   const engineResult = await generateEngineAnalysis(type, enrichedContext);
+  const enriched = enrichedContext.enriched;
+  if (engineResult.metadata?.trust && enriched?.symbol) {
+    const trust = await attachWhyChanged(
+      enriched,
+      engineResult.metadata.trust,
+      engineResult.tradeSuggestion?.action,
+    );
+    engineResult.metadata = { ...engineResult.metadata, trust, confidence: trust.confidence.overall };
+  }
   await recordServerAiUsage();
   await incrementUsage();
   return engineResult;
@@ -232,16 +242,22 @@ export const aiService = {
     if (accessError) throw accessError;
 
     const engineResponse = generateEngineChatResponse(prompt, enrichedContext);
+    const enriched = enrichedContext.enriched;
+    let trust = engineResponse.metadata.trust;
+    if (trust && enriched?.symbol) {
+      trust = await attachWhyChanged(enriched, trust, undefined);
+    }
     const message: AiMessage = {
       id: generateId(),
       role: 'assistant',
       content: engineResponse.content,
       timestamp: Date.now(),
       metadata: {
-        symbol: enrichedContext.symbol,
+        symbol: enriched?.symbol ?? enrichedContext.symbol,
         source: 'engine',
-        confidence: engineResponse.metadata.confidence,
+        confidence: trust?.confidence.overall ?? engineResponse.metadata.confidence,
         citations: engineResponse.metadata.citations,
+        trust,
       },
     };
 

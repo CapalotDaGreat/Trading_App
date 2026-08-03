@@ -102,7 +102,7 @@ export function SettingsScreen() {
       </GlassCard>
 
       <Text variant="label" className="mb-2 mt-6 px-1">
-        Learning
+        Learning & AI
       </Text>
       <GlassCard className="overflow-hidden">
         <SettingsRow
@@ -112,12 +112,26 @@ export function SettingsScreen() {
           showChevron
           onPress={() => router.push('/settings/educational-mode' as never)}
         />
+        <SettingsRow
+          icon="sparkles-outline"
+          label="AI"
+          description="Limitations, insights toggle, and memory links"
+          showChevron
+          onPress={() => router.push('/settings/ai' as never)}
+        />
       </GlassCard>
 
       <Text variant="label" className="mb-2 mt-6 px-1">
-        Preferences
+        Accessibility & Preferences
       </Text>
       <GlassCard className="overflow-hidden">
+        <SettingsRow
+          icon="accessibility-outline"
+          label="Accessibility"
+          description="Reduce Motion, Dynamic Type, VoiceOver / TalkBack"
+          showChevron
+          onPress={() => router.push('/settings/accessibility' as never)}
+        />
         <SettingsRow
           icon="phone-portrait-outline"
           label="Haptic Feedback"

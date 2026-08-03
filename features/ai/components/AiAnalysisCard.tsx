@@ -11,6 +11,7 @@ import { formatRelativeTime } from '@/shared/utils/date';
 import type { AiAnalysisResult } from '../types/ai.types';
 import { LOCAL_ANALYSIS_LABEL } from '../constants/ai-release';
 import { AiDisclaimer } from './AiDisclaimer';
+import { AiTrustPanel } from './AiTrustPanel';
 
 interface AiAnalysisCardProps {
   result: AiAnalysisResult;
@@ -32,7 +33,9 @@ export function AiAnalysisCard({ result }: AiAnalysisCardProps) {
                 variant="default"
                 size="sm"
               />
-              <Text variant="caption">{meta.confidence}% output quality</Text>
+              <Text variant="caption">
+                {meta.trust?.confidence.overall ?? meta.confidence}% evidence quality
+              </Text>
               <Text variant="caption">· {formatRelativeTime(meta.dataAsOf)}</Text>
             </View>
           ) : null}
@@ -66,7 +69,9 @@ export function AiAnalysisCard({ result }: AiAnalysisCardProps) {
       {result.portfolioReview ? <PortfolioSection data={result.portfolioReview} /> : null}
       {result.psychologyCoach ? <PsychologySection data={result.psychologyCoach} /> : null}
 
-      {meta?.citations && meta.citations.length > 0 ? (
+      {meta?.trust ? (
+        <AiTrustPanel trust={meta.trust} />
+      ) : meta?.citations && meta.citations.length > 0 ? (
         <View className="mt-3 rounded-xl border border-border/60 bg-surface/20 p-3">
           <Text variant="caption" className="mb-2 font-semibold uppercase tracking-wide">
             Data Sources

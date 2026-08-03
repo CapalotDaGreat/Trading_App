@@ -20,10 +20,12 @@ import { useSubscriptionStore } from '@/shared/stores/subscription.store';
 
 import { AiChatBubble } from '../components/AiChatBubble';
 import { AiDisclaimer } from '../components/AiDisclaimer';
+import { AiMemoryInsightCard } from '../components/AiMemoryInsightCard';
 import { AiUsageBanner } from '../components/AiUsageBanner';
 import { DEFAULT_CHAT_PROMPTS, PromptSuggestions } from '../components/PromptSuggestions';
 import { useAiChat } from '../hooks/useAiChat';
 import { useAiAnalysis } from '../hooks/useAiAnalysis';
+import { useAiLearningMemory } from '../hooks/useAiLearningMemory';
 import { aiService } from '../services/ai.service';
 import type { AiMessage } from '../types/ai.types';
 
@@ -37,6 +39,7 @@ export function AiChatScreen({ symbol }: AiChatScreenProps) {
   const { colors } = useTheme();
   const isPremium = useSubscriptionStore((s) => s.isPremium);
   const { usage } = useAiAnalysis();
+  const memoryQuery = useAiLearningMemory();
   const { messages, sendMessage, clearChat, isSending, error } = useAiChat(
     symbol ? { symbol } : undefined,
   );
@@ -85,7 +88,12 @@ export function AiChatScreen({ symbol }: AiChatScreenProps) {
           renderItem={({ item }) => <AiChatBubble message={item} />}
           contentContainerStyle={{ padding: 16, paddingBottom: 8 }}
           onContentSizeChange={() => listRef.current?.scrollToEnd({ animated: false })}
-          ListHeaderComponent={<AiDisclaimer className="mb-4" />}
+          ListHeaderComponent={
+            <View className="mb-4 gap-3">
+              <AiDisclaimer />
+              {memoryQuery.data ? <AiMemoryInsightCard memory={memoryQuery.data} /> : null}
+            </View>
+          }
         />
 
         {errorMessage ? (

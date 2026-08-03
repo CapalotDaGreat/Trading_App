@@ -111,6 +111,18 @@ describe('trading mentor composer', () => {
     expect(brief.weekly.replayRecommendation.href).toContain('decision-replay');
     expect(brief.learningStreakDays).toBe(5);
     expect(brief.identity.styleLabel.length).toBeGreaterThan(3);
+    expect(brief.coachingReferences.map((r) => r.id)).toEqual(
+      expect.arrayContaining([
+        'passport',
+        'replay',
+        'academy',
+        'journal',
+        'decisionGraph',
+        'dna',
+        'heatmap',
+        'decisionLog',
+      ]),
+    );
     expect(`${brief.daily.headline} ${brief.daily.detail}`.toLowerCase()).not.toMatch(
       /buy now|moon|guaranteed/,
     );

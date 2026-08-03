@@ -1,8 +1,10 @@
-import { type ReactNode } from 'react';
+import { type ReactNode, useEffect } from 'react';
 import { ScrollView, View, type ScrollViewProps, type ViewProps } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { OfflineBanner } from '@/shared/components/feedback/OfflineBanner';
 import { useResponsiveLayout } from '@/shared/hooks/useResponsiveLayout';
+import { announceForAccessibility } from '@/shared/utils/accessibility';
 import { cn } from '@/shared/utils/cn';
 
 interface ScreenProps extends ViewProps {
@@ -14,6 +16,10 @@ interface ScreenProps extends ViewProps {
   padded?: boolean;
   /** Constrain readable content width on tablet / landscape. Defaults to true. */
   constrainWidth?: boolean;
+  /** Announced once when the screen mounts (VoiceOver / TalkBack). */
+  accessibilityTitle?: string;
+  /** Show global offline chip above content. */
+  showOfflineBanner?: boolean;
   className?: string;
   contentClassName?: string;
 }
@@ -26,6 +32,8 @@ export function Screen({
   safeBottom = true,
   padded = true,
   constrainWidth = true,
+  accessibilityTitle,
+  showOfflineBanner = true,
   className,
   contentClassName,
   style,
@@ -34,10 +42,14 @@ export function Screen({
   const insets = useSafeAreaInsets();
   const layout = useResponsiveLayout();
 
-  const paddingStyle = {
-    paddingTop: safeTop ? insets.top : 0,
-    paddingBottom: safeBottom ? insets.bottom : 0,
-  };
+  useEffect(() => {
+    if (accessibilityTitle) {
+      announceForAccessibility(accessibilityTitle);
+    }
+  }, [accessibilityTitle]);
+
+  const topPad = safeTop ? insets.top : 0;
+  const bottomPad = safeBottom ? insets.bottom : 0;
 
   const widthConstraint =
     constrainWidth && layout.isTablet
@@ -48,13 +60,28 @@ export function Screen({
         }
       : undefined;
 
+  const banner = showOfflineBanner ? (
+    <View style={{ paddingTop: topPad }}>
+      <OfflineBanner />
+    </View>
+  ) : null;
+
   if (scrollable) {
     return (
-      <View className={cn('flex-1 bg-background-secondary', className)} style={style} {...props}>
+      <View
+        accessibilityLabel={accessibilityTitle}
+        className={cn('flex-1 bg-background-secondary', className)}
+        style={style}
+        {...props}
+      >
+        {banner}
         <ScrollView
           className={cn('flex-1', contentClassName)}
           contentContainerStyle={[
-            paddingStyle,
+            {
+              paddingTop: showOfflineBanner ? 0 : topPad,
+              paddingBottom: bottomPad,
+            },
             padded && { paddingHorizontal: layout.gutter },
             widthConstraint,
             scrollViewProps?.contentContainerStyle,
@@ -71,10 +98,19 @@ export function Screen({
 
   return (
     <View
+      accessibilityLabel={accessibilityTitle}
       className={cn('flex-1 bg-background-secondary', padded && 'px-5', className)}
-      style={[paddingStyle, widthConstraint, style]}
+      style={[
+        {
+          paddingTop: showOfflineBanner ? 0 : topPad,
+          paddingBottom: bottomPad,
+        },
+        widthConstraint,
+        style,
+      ]}
       {...props}
     >
+      {banner}
       {children}
     </View>
   );

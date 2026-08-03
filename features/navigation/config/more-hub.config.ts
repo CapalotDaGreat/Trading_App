@@ -101,6 +101,13 @@ export const MORE_HUB_SECTIONS: MoreHubSection[] = [
         testID: 'more-decision-simulator',
       },
       {
+        href: '/decision/intelligence',
+        title: 'Personal Intelligence',
+        description: 'Trading DNA, Decision Graph, and who you are becoming',
+        icon: 'analytics-outline',
+        testID: 'more-personal-intelligence',
+      },
+      {
         href: '/decision/passport',
         title: 'Decision Passport',
         description: 'Process credentials from practice loops',

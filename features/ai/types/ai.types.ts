@@ -1,3 +1,5 @@
+import type { AiTrustPayload } from './ai-trust.types';
+
 export type AiDataSource = 'cloud' | 'engine';
 
 export interface AiCitation {
@@ -14,6 +16,8 @@ export interface AiAnalysisMetadata {
   citations: AiCitation[];
   symbol?: string;
   modelVersion?: string;
+  /** Phase 2 trust payload — breakdown, evidence, counterfactuals, why-changed. */
+  trust?: AiTrustPayload;
 }
 
 export type AiSentiment = 'bullish' | 'bearish' | 'neutral';
@@ -42,6 +46,7 @@ export interface AiMessage {
     source?: AiDataSource;
     confidence?: number;
     citations?: AiCitation[];
+    trust?: AiTrustPayload;
   };
 }
 

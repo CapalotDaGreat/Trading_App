@@ -60,10 +60,11 @@ export function MentorCard({ brief, isLoading }: MentorCardProps) {
           <MetaChip label={`${brief.learningStreakDays}d streak`} />
           <MetaChip label={`Process ${brief.processScoreWeek}`} />
           <MetaChip label={`${brief.loopStepsCompletedToday}/3 loop`} />
+          <MetaChip label={brief.identity.styleLabel} />
         </View>
 
         <Text variant="caption" className="mt-3 text-info">
-          Open mentor · focus, weekly progress, identity
+          Open mentor · DNA, graph, passport, replay, academy
         </Text>
       </GlassCard>
     </Pressable>

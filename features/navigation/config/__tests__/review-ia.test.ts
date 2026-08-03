@@ -31,17 +31,20 @@ describe('review information architecture', () => {
     ]);
   });
 
-  it('keeps Mentor, Simulator, Passport, Lab and Learn in Practice', () => {
+  it('keeps Mentor, Simulator, Personal Intelligence, Passport, Lab and Learn in Practice', () => {
     const practice = MORE_HUB_SECTIONS.find((section) => section.title === 'Practice');
     expect(practice?.items.map((item) => item.href)).toEqual([
       '/decision/mentor',
       '/decision/simulator',
+      '/decision/intelligence',
       '/decision/passport',
       '/decision/lab',
       '/analysis/backtest',
       '/academy',
     ]);
-    expect(practice?.items[4]?.title).toBe('Strategy sandbox — sample data');
+    expect(practice?.items.find((item) => item.href === '/analysis/backtest')?.title).toBe(
+      'Strategy sandbox — sample data',
+    );
   });
 
   it('defines clear Process Tape and Chart Replay segments', () => {

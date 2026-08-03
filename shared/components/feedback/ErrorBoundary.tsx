@@ -1,9 +1,8 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react';
 import { View } from 'react-native';
 
-import { Button } from '@/shared/components/ui/Button';
-import { GlassCard } from '@/shared/components/ui/GlassCard';
-import { Text } from '@/shared/components/ui/Text';
+import { ErrorState } from '@/shared/components/feedback/ErrorState';
+import { mapRecoverableError } from '@/shared/utils/error-recovery';
 import { captureException } from '@/shared/services/observability';
 
 interface ErrorBoundaryProps {
@@ -45,20 +44,17 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
         return this.props.fallback;
       }
 
+      const mapped = mapRecoverableError(this.state.error);
+
       return (
         <View className="flex-1 items-center justify-center bg-background px-6">
-          <GlassCard className="w-full p-6">
-            <Text variant="h3" className="mb-2 text-center">
-              Something went wrong
-            </Text>
-            <Text variant="body-sm" className="mb-6 text-center">
-              Something unexpected happened. Your data was not sent off-device unless crash
-              reporting is enabled. Try again.
-            </Text>
-            <Button onPress={this.handleReset} fullWidth>
-              Try Again
-            </Button>
-          </GlassCard>
+          <ErrorState
+            title={mapped.title}
+            description={mapped.why}
+            recovery={mapped.recovery}
+            actionLabel={mapped.actionLabel}
+            onAction={this.handleReset}
+          />
         </View>
       );
     }

@@ -39,10 +39,15 @@ export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
       <Text variant="h3" className="mb-2 text-center">
         Something went wrong
       </Text>
-      <Text variant="body-sm" className="mb-6 text-center">
-        This error is not sent off-device unless you enabled crash reporting.
+      <Text variant="body-sm" className="mb-2 text-center text-text-secondary">
+        Why: an unexpected render error interrupted this screen.
       </Text>
-      <Button onPress={retry}>Try Again</Button>
+      <Text variant="body-sm" className="mb-6 text-center text-text-secondary">
+        Recover: try again. This is not sent off-device unless crash reporting is enabled in Privacy.
+      </Text>
+      <Button onPress={retry} accessibilityHint="Retries the last failed screen">
+        Try Again
+      </Button>
     </View>
   );
 }

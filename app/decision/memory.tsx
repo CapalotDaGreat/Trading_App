@@ -1,6 +1,8 @@
 import { useRouter } from 'expo-router';
 import { RefreshControl, View } from 'react-native';
 
+import { AiMemoryInsightCard } from '@/features/ai/components/AiMemoryInsightCard';
+import { useAiLearningMemory } from '@/features/ai/hooks/useAiLearningMemory';
 import { TraderMemoryCard } from '@/features/decision/components/TraderMemoryCard';
 import { useTraderMemory } from '@/features/decision/hooks/useDecision';
 import { Header } from '@/shared/components/layout/Header';
@@ -14,6 +16,7 @@ export default function MemoryScreen() {
   const router = useRouter();
   const { colors } = useTheme();
   const { data, isLoading, isRefetching, refetch } = useTraderMemory();
+  const learningMemory = useAiLearningMemory();
 
   return (
     <Screen
@@ -42,6 +45,7 @@ export default function MemoryScreen() {
         </GlassCard>
         {isLoading && !data ? <Skeleton height={200} rounded="lg" /> : null}
         {data ? <TraderMemoryCard memory={data} /> : null}
+        {learningMemory.data ? <AiMemoryInsightCard memory={learningMemory.data} /> : null}
       </View>
     </Screen>
   );

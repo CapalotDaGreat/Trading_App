@@ -46,6 +46,7 @@ export const USER_LOCAL_STORAGE_KEYS = [
   'tradevision-decision-passport-v1',
   'tradevision-brief-logged-day',
   'tradevision-portfolio-reviewed-day',
+  'tradevision-ai-recommendation-history-v1',
 ] as const;
 
 export interface ClearUserLocalStateOptions {

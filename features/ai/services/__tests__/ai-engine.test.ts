@@ -1,3 +1,20 @@
+jest.mock('@/shared/services/firebase/callable-proxy', () => ({
+  canUseVendorProxy: () => false,
+  allowDevDirectVendors: () => false,
+  callProxy: jest.fn(),
+  ProxyError: class ProxyError extends Error {
+    code: string;
+    constructor(code: string, message: string) {
+      super(message);
+      this.code = code;
+    }
+  },
+}));
+
+jest.mock('@/features/news/services/news.service', () => ({
+  fetchFinancialNews: jest.fn(async () => ({ articles: [], totalResults: 0, source: 'rss' })),
+}));
+
 import { generateEngineAnalysis } from '@/features/ai/services/ai-engine.service';
 import type { AiEnrichedContext } from '@/features/ai/types/ai.types';
 
@@ -29,6 +46,8 @@ describe('ai-engine', () => {
     expect(result.tradeSuggestion?.observationZone).toBeDefined();
     expect(result.tradeSuggestion?.invalidationLevel).toBeDefined();
     expect(result.tradeSuggestion?.nextResearchLevel).toBeDefined();
+    expect(result.metadata?.trust?.confidence.pillars.length).toBeGreaterThanOrEqual(9);
+    expect(result.metadata?.modelVersion).toBe('tradevision-engine-2.0');
   });
 
   it('generates risk analysis with ATR-based factors', async () => {

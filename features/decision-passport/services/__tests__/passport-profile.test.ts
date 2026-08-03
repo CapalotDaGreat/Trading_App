@@ -87,6 +87,7 @@ describe('decision passport profile', () => {
         processScoreWeek: 71,
         regimeLabel: 'Trending',
         evidenceNotes: [],
+        coachingReferences: [],
       },
       nowMs: Date.UTC(2026, 6, 20),
     });

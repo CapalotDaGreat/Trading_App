@@ -36,6 +36,21 @@ export interface MentorTradingIdentity {
   riskTolerance: string;
 }
 
+export interface MentorCoachingReference {
+  id:
+    | 'passport'
+    | 'replay'
+    | 'academy'
+    | 'journal'
+    | 'decisionGraph'
+    | 'dna'
+    | 'heatmap'
+    | 'decisionLog';
+  label: string;
+  reason: string;
+  href: string;
+}
+
 export interface TradingMentorBrief {
   generatedAt: number;
   daily: MentorDailyBriefing;
@@ -47,4 +62,6 @@ export interface TradingMentorBrief {
   processScoreWeek: number;
   regimeLabel: string;
   evidenceNotes: string[];
+  /** Deep links into Passport, Replay, Academy, Journal, Graph, DNA, Heatmap, Log. */
+  coachingReferences: MentorCoachingReference[];
 }

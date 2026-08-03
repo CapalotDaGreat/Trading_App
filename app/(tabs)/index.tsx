@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Pressable, RefreshControl, View } from 'react-native';
 
 import { EducationalModeBadge } from '@/features/educational/components/EducationalModeBadge';
@@ -12,6 +12,7 @@ import { MentorCard } from '@/features/decision/components/MentorCard';
 import { RegimeCard } from '@/features/decision/components/RegimeCard';
 import { ResearchQueueCard } from '@/features/decision/components/ResearchQueueCard';
 import { StartHereCard } from '@/features/decision/components/StartHereCard';
+import { TradingDayPlanCard } from '@/features/decision/components/TradingDayPlanCard';
 import { useDecisionBrief } from '@/features/decision/hooks/useDecision';
 import { useTradingMentor } from '@/features/decision/hooks/useTradingMentor';
 import {
@@ -22,6 +23,8 @@ import {
 import {
   reviewAccessLabel,
   selectTodayTimeBudget,
+  visibleTodaySections,
+  type TodaySection,
 } from '@/features/decision/services/today-sections.service';
 import type { DecisionBrief, DisciplineStreak } from '@/features/decision/types/decision.types';
 import { DecisionLogCard } from '@/features/decision-log/components/DecisionLogCard';
@@ -31,16 +34,18 @@ import {
 } from '@/features/decision-log/hooks/useDecisionLog';
 import { ensureDemoDecisionTape } from '@/features/decision-replay/services/demo-tape.service';
 import { ensureDemoSeedData } from '@/features/onboarding/services/demo-seed.service';
+import { AdaptiveGoalsCard } from '@/features/personal-intelligence/components/AdaptiveGoalsCard';
+import { DynamicTodayHero } from '@/features/personal-intelligence/components/DynamicTodayHero';
+import { TradingDnaCard } from '@/features/personal-intelligence/components/TradingDnaCard';
+import { usePersonalIntelligence } from '@/features/personal-intelligence/hooks/usePersonalIntelligence';
+import { RecoverableErrorState } from '@/shared/components/feedback/RecoverableErrorState';
 import { Screen } from '@/shared/components/layout/Screen';
-import { Button } from '@/shared/components/ui/Button';
 import { GlassCard } from '@/shared/components/ui/GlassCard';
 import { Skeleton } from '@/shared/components/ui/Skeleton';
 import { Text } from '@/shared/components/ui/Text';
-import { useResponsiveLayout } from '@/shared/hooks/useResponsiveLayout';
 import { useTheme } from '@/shared/hooks/useTheme';
 import { useSettingsStore } from '@/shared/stores/settings.store';
 import { useSubscriptionStore } from '@/shared/stores/subscription.store';
-import { cn } from '@/shared/utils/cn';
 
 const EMPTY_BRIEF: DecisionBrief = {
   greeting: 'Loading',
@@ -68,10 +73,14 @@ const EMPTY_BRIEF: DecisionBrief = {
 
 function TodayHeader({
   streak,
+  becomingLabel,
   onAskAi,
+  onOpenIntelligence,
 }: {
   streak: DisciplineStreak | null;
+  becomingLabel?: string;
   onAskAi: () => void;
+  onOpenIntelligence: () => void;
 }) {
   const { colors } = useTheme();
   const completed = streak ? Object.values(streak.completedToday).filter(Boolean).length : 0;
@@ -82,20 +91,33 @@ function TodayHeader({
         <View className="flex-1 pr-3">
           <Text variant="h1">Today</Text>
           <Text variant="caption" className="mt-1 text-text-secondary">
-            {streak
-              ? `${streak.days}d discipline streak · ${completed}/3 loop steps`
-              : 'Your decision loop'}
+            {becomingLabel
+              ? `Becoming: ${becomingLabel}`
+              : streak
+                ? `${streak.days}d discipline streak · ${completed}/3 loop steps`
+                : 'Your decision loop'}
           </Text>
         </View>
-        <Pressable
-          onPress={onAskAi}
-          className="h-11 w-11 items-center justify-center rounded-full bg-surface"
-          accessibilityRole="button"
-          accessibilityLabel="Ask AI"
-          testID="today-ask-ai"
-        >
-          <Ionicons name="sparkles" size={20} color={colors.accent.primary} />
-        </Pressable>
+        <View className="flex-row gap-2">
+          <Pressable
+            onPress={onOpenIntelligence}
+            className="h-11 w-11 items-center justify-center rounded-full bg-surface"
+            accessibilityRole="button"
+            accessibilityLabel="Personal Intelligence"
+            testID="today-open-intelligence"
+          >
+            <Ionicons name="analytics-outline" size={20} color={colors.accent.primary} />
+          </Pressable>
+          <Pressable
+            onPress={onAskAi}
+            className="h-11 w-11 items-center justify-center rounded-full bg-surface"
+            accessibilityRole="button"
+            accessibilityLabel="Ask AI"
+            testID="today-ask-ai"
+          >
+            <Ionicons name="sparkles" size={20} color={colors.accent.primary} />
+          </Pressable>
+        </View>
       </View>
       <EducationalModeBadge className="mt-3" />
     </View>
@@ -156,12 +178,12 @@ function CloseLoopCard({
 export default function DecisionBriefScreen() {
   const router = useRouter();
   const { colors } = useTheme();
-  const layout = useResponsiveLayout();
   const [streak, setStreak] = useState<DisciplineStreak | null>(null);
   const timeBudgetMinutes = useSettingsStore(selectTodayTimeBudget);
   const tier = useSubscriptionStore((state) => state.tier);
   const briefQuery = useDecisionBrief(timeBudgetMinutes);
   const mentorQuery = useTradingMentor();
+  const intelligenceQuery = usePersonalIntelligence('weekly');
   const { summary: logSummary } = useDecisionLog();
   const { mutateAsync: appendDecision } = useAppendDecisionRecord();
 
@@ -190,6 +212,7 @@ export default function DecisionBriefScreen() {
   }, [appendDecision, briefQuery.data]);
 
   const brief = briefQuery.data;
+  const intel = intelligenceQuery.data;
   const startHereSymbol = brief?.startHereSymbol;
   const startHereSetup = brief?.topSetups.find(
     (setup) => setup.symbol.toUpperCase() === startHereSymbol?.toUpperCase(),
@@ -197,125 +220,177 @@ export default function DecisionBriefScreen() {
   const startHereQueueItem = brief?.researchQueue?.find(
     (item) => item.symbol.toUpperCase() === startHereSymbol?.toUpperCase(),
   );
-  const refreshing = briefQuery.isRefetching;
+  const refreshing = briefQuery.isRefetching || intelligenceQuery.isRefetching;
+
+  const sections = useMemo(() => {
+    return visibleTodaySections({
+      hasBrief: Boolean(brief),
+      hasMentor: Boolean(mentorQuery.data),
+      hasStartHere: Boolean(startHereSymbol),
+      hasResearchQueue: Boolean(brief?.researchQueue?.length),
+      hasWhyNot: Boolean(brief?.skipSuggestions?.length),
+      hasDecisionLog: Boolean(logSummary),
+      hasRegime: Boolean(brief?.regimeSnapshot),
+      hasGoals: Boolean(intel?.goals.length),
+      hasDayPlan: Boolean(brief?.tradingDayPlan?.items.length),
+      hasDnaPulse: Boolean(intel?.dna),
+      hasDynamicToday: Boolean(intel?.today),
+      tier,
+      preferredOrder: intel?.today.sectionOrder,
+      archetype: intel?.today.archetype,
+    });
+  }, [brief, mentorQuery.data, startHereSymbol, logSummary, intel, tier]);
+
+  const renderSection = (section: TodaySection): ReactNode => {
+    switch (section) {
+      case 'header':
+        return (
+          <TodayHeader
+            key={section}
+            streak={streak}
+            becomingLabel={intel?.dna.becomingLabel}
+            onAskAi={() => router.push('/ai' as never)}
+            onOpenIntelligence={() => router.push('/decision/intelligence' as never)}
+          />
+        );
+      case 'dynamicToday':
+        return intel?.today ? (
+          <DynamicTodayHero
+            key={section}
+            focus={intel.today}
+            becomingQuestion={intel.becomingQuestion}
+          />
+        ) : null;
+      case 'morningBrief':
+        return (
+          <View key={section} testID="today-section-morning-brief">
+            {briefQuery.isLoading && !brief ? (
+              <DecisionBriefHeader brief={EMPTY_BRIEF} isLoading />
+            ) : brief ? (
+              <DecisionBriefHeader brief={brief} />
+            ) : (
+              <RecoverableErrorState
+                error={briefQuery.error ?? new Error('Could not load today’s brief')}
+                onRetry={() => void briefQuery.refetch()}
+              />
+            )}
+          </View>
+        );
+      case 'mentor':
+        return (
+          <View key={section} testID="today-section-mentor">
+            <MentorCard brief={mentorQuery.data} isLoading={mentorQuery.isLoading} />
+          </View>
+        );
+      case 'goals':
+        return intel?.goals?.length ? (
+          <AdaptiveGoalsCard key={section} goals={intel.goals} />
+        ) : null;
+      case 'dayPlan':
+        return brief?.tradingDayPlan ? (
+          <View key={section} testID="today-section-day-plan">
+            <TradingDayPlanCard plan={brief.tradingDayPlan} />
+          </View>
+        ) : null;
+      case 'dnaPulse':
+        return intel?.dna ? <TradingDnaCard key={section} dna={intel.dna} compact /> : null;
+      case 'startHere':
+        return brief && startHereSymbol ? (
+          <StartHereCard
+            key={section}
+            symbol={startHereSymbol}
+            setup={startHereSetup}
+            queueItem={startHereQueueItem}
+            regime={brief.regimeLabel}
+            onOutcome={(action) => {
+              void markDisciplineAction('researchPlan').then(setStreak);
+              if (action === 'skipped') void toggleQueueSymbol(startHereSymbol);
+            }}
+          />
+        ) : null;
+      case 'researchQueue':
+        return (
+          <View key={section} testID="today-section-research-queue">
+            {brief?.researchQueue?.length ? (
+              <>
+                <ResearchQueueCard
+                  queue={brief.researchQueue}
+                  regime={brief.regimeLabel}
+                  freeItemLimit={3}
+                  onOutcome={() => void markDisciplineAction('researchPlan').then(setStreak)}
+                />
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="See all setups in Radar"
+                  testID="today-see-all-setups"
+                  onPress={() => router.push('/decision/radar' as never)}
+                  className="mt-2 min-h-11 items-center justify-center rounded-xl bg-surface px-4"
+                >
+                  <Text variant="label" className="text-accent">
+                    See all setups in Radar
+                  </Text>
+                </Pressable>
+              </>
+            ) : briefQuery.isLoading ? (
+              <Skeleton height={110} rounded="lg" />
+            ) : null}
+          </View>
+        );
+      case 'whyNot':
+        return brief?.skipSuggestions?.length ? (
+          <View key={section} testID="today-section-why-not">
+            <WhyNotCard items={brief.skipSuggestions} regime={brief.regimeLabel} />
+          </View>
+        ) : null;
+      case 'decisionLog':
+        return logSummary ? (
+          <View key={section} testID="today-section-decision-log">
+            <DecisionLogCard summary={logSummary} />
+          </View>
+        ) : null;
+      case 'regime':
+        return brief?.regimeSnapshot ? (
+          <View key={section} testID="today-section-regime">
+            <RegimeCard regime={brief.regimeSnapshot} />
+          </View>
+        ) : null;
+      case 'closeLoop':
+        return (
+          <CloseLoopCard
+            key={section}
+            tier={tier}
+            onJournal={() => {
+              void markDisciplineAction('journal').then(setStreak);
+              useAcademyProgressStore.getState().markDisciplineAction('journal');
+              router.push('/journal' as never);
+            }}
+            onReview={() => router.push('/decision/decision-replay' as never)}
+          />
+        );
+      default:
+        return null;
+    }
+  };
 
   return (
     <Screen
       scrollable
+      accessibilityTitle="Today"
       scrollViewProps={{
         refreshControl: (
           <RefreshControl
             refreshing={refreshing}
-            onRefresh={() => void briefQuery.refetch()}
+            onRefresh={() => {
+              void briefQuery.refetch();
+              void intelligenceQuery.refetch();
+              void mentorQuery.refetch();
+            }}
             tintColor={colors.accent.primary}
           />
         ),
       }}
     >
-      <View className="gap-4 pb-8 pt-4">
-        <TodayHeader streak={streak} onAskAi={() => router.push('/ai' as never)} />
-
-        <View className={cn(layout.columns === 2 && 'flex-row gap-4')}>
-          <View className={cn('gap-4', layout.columns === 2 && 'flex-1')}>
-            <View testID="today-section-morning-brief">
-              {briefQuery.isLoading && !brief ? (
-                <DecisionBriefHeader brief={EMPTY_BRIEF} isLoading />
-              ) : brief ? (
-                <DecisionBriefHeader brief={brief} />
-              ) : (
-                <GlassCard className="p-4">
-                  <Text variant="h3">Couldn’t load today’s brief</Text>
-                  <Text variant="body-sm" className="mt-2 text-text-secondary">
-                    No score or setup has been invented. Check your market-data connection and try
-                    again.
-                  </Text>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="mt-3 self-start"
-                    onPress={() => void briefQuery.refetch()}
-                  >
-                    Retry brief
-                  </Button>
-                </GlassCard>
-              )}
-            </View>
-
-            <View testID="today-section-mentor">
-              <MentorCard brief={mentorQuery.data} isLoading={mentorQuery.isLoading} />
-            </View>
-
-            {brief && startHereSymbol ? (
-              <StartHereCard
-                symbol={startHereSymbol}
-                setup={startHereSetup}
-                queueItem={startHereQueueItem}
-                regime={brief.regimeLabel}
-                onOutcome={(action) => {
-                  void markDisciplineAction('researchPlan').then(setStreak);
-                  if (action === 'skipped') void toggleQueueSymbol(startHereSymbol);
-                }}
-              />
-            ) : null}
-
-            <View testID="today-section-research-queue">
-              {brief?.researchQueue?.length ? (
-                <>
-                  <ResearchQueueCard
-                    queue={brief.researchQueue}
-                    regime={brief.regimeLabel}
-                    freeItemLimit={3}
-                    onOutcome={() => void markDisciplineAction('researchPlan').then(setStreak)}
-                  />
-                  <Pressable
-                    accessibilityRole="button"
-                    accessibilityLabel="See all setups in Radar"
-                    testID="today-see-all-setups"
-                    onPress={() => router.push('/decision/radar' as never)}
-                    className="mt-2 min-h-11 items-center justify-center rounded-xl bg-surface px-4"
-                  >
-                    <Text variant="label" className="text-accent">
-                      See all setups in Radar
-                    </Text>
-                  </Pressable>
-                </>
-              ) : briefQuery.isLoading ? (
-                <Skeleton height={110} rounded="lg" />
-              ) : null}
-            </View>
-          </View>
-
-          <View className={cn('gap-4', layout.columns === 2 && 'flex-1')}>
-            {brief?.skipSuggestions?.length ? (
-              <View testID="today-section-why-not">
-                <WhyNotCard items={brief.skipSuggestions} regime={brief.regimeLabel} />
-              </View>
-            ) : null}
-
-            {logSummary ? (
-              <View testID="today-section-decision-log">
-                <DecisionLogCard summary={logSummary} />
-              </View>
-            ) : null}
-
-            {brief?.regimeSnapshot ? (
-              <View testID="today-section-regime">
-                <RegimeCard regime={brief.regimeSnapshot} />
-              </View>
-            ) : null}
-
-            <CloseLoopCard
-              tier={tier}
-              onJournal={() => {
-                void markDisciplineAction('journal').then(setStreak);
-                useAcademyProgressStore.getState().markDisciplineAction('journal');
-                router.push('/journal' as never);
-              }}
-              onReview={() => router.push('/decision/decision-replay' as never)}
-            />
-          </View>
-        </View>
-      </View>
+      <View className="gap-4 pb-8 pt-4">{sections.map((section) => renderSection(section))}</View>
     </Screen>
   );
 }

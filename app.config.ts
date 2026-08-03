@@ -91,6 +91,13 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     '@sentry/react-native',
     'expo-secure-store',
     [
+      'expo-local-authentication',
+      {
+        faceIDPermission:
+          'TradeVision AI uses Face ID to unlock the app after idle timeout. Biometrics never authorize trades.',
+      },
+    ],
+    [
       'expo-splash-screen',
       {
         image: './assets/images/splash-icon.png',

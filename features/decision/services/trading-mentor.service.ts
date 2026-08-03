@@ -13,6 +13,7 @@ import type {
   TraderMemory,
 } from '@/features/decision/types/decision.types';
 import type { TradingMentorBrief } from '@/features/decision/types/mentor.types';
+import { buildCoachingReferences } from '@/features/personal-intelligence/services/personal-intelligence.service';
 
 export interface TradingMentorInput {
   brief?: DecisionBrief | null;
@@ -251,5 +252,10 @@ export function buildTradingMentorBrief(input: TradingMentorInput): TradingMento
     processScoreWeek,
     regimeLabel: input.brief?.regimeLabel ?? input.brief?.regimeSnapshot?.label ?? 'Unknown',
     evidenceNotes,
+    coachingReferences: buildCoachingReferences({
+      dnaLabel: dna?.styleLabel ?? input.memory?.tradingStyle ?? 'Process trader',
+      debt: input.brief?.decisionDebt,
+      academyNextTitle: academyRecommendation?.title ?? null,
+    }),
   };
 }
