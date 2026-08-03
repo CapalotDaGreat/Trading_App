@@ -1,11 +1,18 @@
 import { apiRequest, ApiError } from '@/shared/services/api/api-client';
+import {
+  allowDevDirectVendors,
+  canUseVendorProxy,
+} from '@/shared/services/firebase/callable-proxy';
 import type { Asset, MarketType } from '@/shared/types/market';
 
 import { POPULAR_SYMBOLS } from '@/shared/constants/markets';
 
 import { buildAssetFromSymbol } from './market-data.service';
+import { proxyMarketSearch } from './market-proxy.service';
 
-const FINNHUB_KEY = process.env.EXPO_PUBLIC_FINNHUB_API_KEY ?? '';
+const FINNHUB_KEY = allowDevDirectVendors()
+  ? (process.env.EXPO_PUBLIC_FINNHUB_API_KEY ?? '')
+  : '';
 const COINGECKO_BASE = 'https://api.coingecko.com/api/v3';
 const FINNHUB_BASE = 'https://finnhub.io/api/v1';
 
@@ -43,6 +50,27 @@ async function searchCrypto(query: string, limit: number): Promise<SearchResult[
 }
 
 async function searchStocks(query: string, limit: number): Promise<SearchResult[]> {
+  if (canUseVendorProxy()) {
+    try {
+      const proxied = await proxyMarketSearch(query);
+      if (proxied?.results.length) {
+        return proxied.results.slice(0, limit).map((item, index) => ({
+          id: item.symbol,
+          symbol: item.symbol,
+          name: item.description,
+          marketType: 'stocks' as const,
+          assetClass: item.type === 'ETP' ? ('etf' as const) : ('equity' as const),
+          currency: 'USD',
+          exchange: item.type,
+          isActive: true,
+          relevance: limit - index,
+        }));
+      }
+    } catch {
+      // Fall through to popular symbols / local.
+    }
+  }
+
   if (!FINNHUB_KEY) return [];
 
   const data = await apiRequest<{

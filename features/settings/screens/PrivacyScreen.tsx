@@ -118,6 +118,24 @@ export function PrivacyScreen() {
       </GlassCard>
 
       <Text variant="label" className="mb-2 px-1">
+        Sessions on this device
+      </Text>
+      <GlassCard className="mb-4 p-4">
+        <Text variant="body-sm" className="mb-1">
+          {user?.email ?? user?.displayName ?? 'Signed-in session'}
+        </Text>
+        <Text variant="caption" className="text-text-secondary">
+          UID: {user?.uid ?? 'guest'} · Multi-device revoke inventory arrives in a later release.
+          Sign out clears local caches on this device.
+        </Text>
+        <View className="mt-3">
+          <Button size="sm" variant="secondary" onPress={() => void signOut()}>
+            Sign out this device
+          </Button>
+        </View>
+      </GlassCard>
+
+      <Text variant="label" className="mb-2 px-1">
         Security on this device
       </Text>
       <GlassCard className="mb-4 overflow-hidden">
@@ -130,8 +148,8 @@ export function PrivacyScreen() {
         />
         <SettingsRow
           icon="finger-print-outline"
-          label="Biometric unlock preference"
-          description="Use device biometrics when available"
+          label="Biometric unlock"
+          description="Require Face ID / fingerprint after backgrounding"
           toggle
           toggleValue={settings.biometricAuthEnabled}
           onToggle={(value) => void updateSettings({ biometricAuthEnabled: value })}

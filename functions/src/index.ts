@@ -1,10 +1,21 @@
-/** Firebase functions for server-owned subscriptions and account deletion. */
+/** Firebase functions: subscriptions, account deletion, vendor proxies, AI quotas. */
 import { timingSafeEqual } from 'crypto';
 
 import * as admin from 'firebase-admin';
 import * as functions from 'firebase-functions';
 
 admin.initializeApp();
+
+export {
+  aiAnalysis,
+  economicCalendar,
+  getAiQuota,
+  marketCandles,
+  marketQuote,
+  marketSearch,
+  newsHeadlines,
+  recordAiUsage,
+} from './proxies';
 
 const PREMIUM_ENTITLEMENT_ID = process.env.REVENUECAT_ENTITLEMENT_ID ?? 'premium';
 const MONTHLY_PRODUCT_ID = 'tradevision_premium_monthly';

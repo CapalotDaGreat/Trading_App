@@ -5,17 +5,24 @@ import { useAuth } from '@/features/auth/hooks/useAuth';
 import { DEMO_USER_UID } from '@/firebase/config';
 import { useSettingsStore } from '@/shared/stores/settings.store';
 
+let lastInteractionMs = Date.now();
+
+/** Call on user interaction (root touch capture) to reset idle clock. */
+export function markSessionActive(): void {
+  lastInteractionMs = Date.now();
+}
+
 /**
- * Optional idle session timeout. Skips demo guest. Signs out after configured idle minutes.
+ * Optional idle session timeout. Skips demo guest.
+ * Uses true idle time: last interaction (or resume) vs configured minutes.
  */
 export function useSessionTimeout() {
   const { user, signOut, status } = useAuth();
   const sessionTimeoutMinutes = useSettingsStore((s) => s.sessionTimeoutMinutes);
-  const lastActiveRef = useRef(Date.now());
   const appStateRef = useRef<AppStateStatus>(AppState.currentState);
 
   useEffect(() => {
-    lastActiveRef.current = Date.now();
+    markSessionActive();
   }, [user?.uid, sessionTimeoutMinutes]);
 
   useEffect(() => {
@@ -29,26 +36,20 @@ export function useSessionTimeout() {
       appStateRef.current = next;
 
       if (previous.match(/inactive|background/) && next === 'active') {
-        if (Date.now() - lastActiveRef.current >= timeoutMs) {
+        if (Date.now() - lastInteractionMs >= timeoutMs) {
           void signOut();
           return;
         }
-      }
-
-      if (next === 'active') {
-        lastActiveRef.current = Date.now();
+        markSessionActive();
       }
     };
 
     const sub = AppState.addEventListener('change', onChange);
     const tick = setInterval(() => {
-      if (appStateRef.current !== 'active') return;
-      if (Date.now() - lastActiveRef.current >= timeoutMs) {
+      if (Date.now() - lastInteractionMs >= timeoutMs) {
         void signOut();
-      } else {
-        lastActiveRef.current = Date.now();
       }
-    }, 60_000);
+    }, 30_000);
 
     return () => {
       sub.remove();

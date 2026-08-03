@@ -1,9 +1,12 @@
 import { useEffect } from 'react';
+import { View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { useAlertEvaluator } from '@/features/alerts/hooks/useAlertEvaluator';
 import { AuthProvider, useAuth } from '@/features/auth/hooks/useAuth';
+import { BiometricGate } from '@/features/settings/components/BiometricGate';
+import { markSessionActive } from '@/features/settings/hooks/useSessionTimeout';
 import { useSubscription } from '@/features/subscription/hooks/useSubscription';
 import { ToastProvider } from '@/shared/components/feedback/Toast';
 import { QueryProvider } from '@/shared/providers/QueryProvider';
@@ -64,7 +67,13 @@ export function AppProviders({ children }: AppProvidersProps) {
               <ObservabilityBootstrap>
                 <ToastProvider>
                   <SubscriptionBootstrap>
-                    <AlertEvaluationBootstrap>{children}</AlertEvaluationBootstrap>
+                    <AlertEvaluationBootstrap>
+                      <BiometricGate>
+                        <View className="flex-1" onTouchStart={markSessionActive}>
+                          {children}
+                        </View>
+                      </BiometricGate>
+                    </AlertEvaluationBootstrap>
                   </SubscriptionBootstrap>
                 </ToastProvider>
               </ObservabilityBootstrap>

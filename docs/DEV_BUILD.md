@@ -15,7 +15,22 @@ eas build --profile development --platform android
 3. **IAP** — RevenueCat / `react-native-purchases` with product IDs in `shared/constants/subscription.ts`
 4. **Widgets** — `expo-widgets` or native modules for Today headline + top setup
 
-Set `EXPO_PUBLIC_AI_API_URL` to the deployed `functions` URL for Premium cloud AI with citations.
+Cloud AI remains disabled (`CLOUD_AI_ENABLED=false`) until provider approval. Deployed Functions
+expose `aiAnalysis` (stub), `recordAiUsage`, and `getAiQuota` with Auth + App Check + quotas.
+
+## App Check (Expo Go / EAS)
+
+1. Enable App Check in Firebase Console for your project.
+2. In `__DEV__`, the app sets `FIREBASE_APPCHECK_DEBUG_TOKEN` — copy the logged token into
+   Firebase Console → App Check → Manage debug tokens (or set `EXPO_PUBLIC_APPCHECK_DEBUG_TOKEN`).
+3. Functions call `requireAppCheck` (soft-fail when `APP_CHECK_ENFORCE=false` for Expo Go rollout).
+4. Production EAS builds should move to DeviceCheck / Play Integrity native providers when ready;
+   until then keep debug tokens registered only for internal builds.
+
+## Vendor API secrets (Functions only)
+
+Set `FINNHUB_API_KEY`, `ALPHA_VANTAGE_API_KEY`, and `NEWS_API_KEY` as Cloud Functions secrets —
+never as `EXPO_PUBLIC_*` in production EAS profiles. Guest/demo uses sample/public sources.
 
 ## RevenueCat subscriptions
 

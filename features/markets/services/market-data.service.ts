@@ -1,22 +1,32 @@
 import { apiRequest, ApiError } from '@/shared/services/api/api-client';
+import {
+  allowDevDirectVendors,
+  canUseVendorProxy,
+} from '@/shared/services/firebase/callable-proxy';
 import { marketDataScheduler } from '@/shared/services/market-data/market-data-scheduler';
 import { logger } from '@/shared/services/observability/logger';
 import type { Asset, Candle, CandleInterval, MarketType, Quote } from '@/shared/types/market';
 
 import type { DataSourceKind } from '../constants/data-source';
 import { MARKET_DATA_POLICY } from '../constants/freshness';
+import { proxyFetchCandles, proxyFetchQuote } from './market-proxy.service';
 
 const COINGECKO_BASE = 'https://api.coingecko.com/api/v3';
 const EXCHANGE_RATE_BASE = 'https://api.open.er-api.com/v6/latest';
 const FINNHUB_BASE = 'https://finnhub.io/api/v1';
 const ALPHA_VANTAGE_BASE = 'https://www.alphavantage.co/query';
-export const USE_DIRECT_MARKET_DATA = process.env.EXPO_PUBLIC_MARKET_DATA_DIRECT === 'true';
+/** Dev-only direct vendor bypass. Production must use Cloud Functions proxies. */
+export const USE_DIRECT_MARKET_DATA =
+  allowDevDirectVendors() && process.env.EXPO_PUBLIC_MARKET_DATA_DIRECT === 'true';
 
+/** Dev-only keys — never relied on in production release profiles. */
 function getFinnhubKey(): string {
+  if (!allowDevDirectVendors()) return '';
   return process.env.EXPO_PUBLIC_FINNHUB_API_KEY ?? '';
 }
 
 function getAlphaVantageKey(): string {
+  if (!allowDevDirectVendors()) return '';
   return process.env.EXPO_PUBLIC_ALPHA_VANTAGE_API_KEY ?? '';
 }
 
@@ -370,23 +380,58 @@ export async function fetchQuoteWithMetadataDirect(
     case 'stocks':
     case 'indices':
     case 'commodities': {
+      if (canUseVendorProxy()) {
+        try {
+          const proxied = await proxyFetchQuote(symbol, type);
+          if (proxied) return proxied;
+        } catch (error) {
+          logger.warn('market_data.proxy_quote_failed', {
+            symbol,
+            message: error instanceof Error ? error.message : 'unknown',
+          });
+        }
+      }
       const finnhubQuote = await fetchFinnhubQuote(symbol);
       if (finnhubQuote) {
         return { quote: finnhubQuote, provider: 'finnhub', fetchedAt: Date.now(), kind: 'delayed' };
       }
+      if (getAlphaVantageKey()) {
+        return {
+          quote: await fetchAlphaVantageQuote(symbol),
+          provider: 'alpha-vantage',
+          fetchedAt: Date.now(),
+          kind: 'delayed',
+        };
+      }
+      // Guest / demo / unsigned: honest sample path (no vendor secrets).
+      const seed = [...symbol.toUpperCase()].reduce((a, c) => a + c.charCodeAt(0), 0);
+      const price = 80 + (seed % 120);
       return {
-        quote: await fetchAlphaVantageQuote(symbol),
-        provider: 'alpha-vantage',
+        quote: {
+          symbol,
+          price,
+          change: ((seed % 9) - 4) * 0.15,
+          changePercent: ((seed % 9) - 4) * 0.12,
+          open: price * 0.995,
+          high: price * 1.01,
+          low: price * 0.99,
+          previousClose: price * 0.997,
+          volume: 1_000_000 + seed * 100,
+          timestamp: Date.now(),
+          status: 'open',
+          currency: 'USD',
+        },
+        provider: 'sample',
         fetchedAt: Date.now(),
-        kind: 'delayed',
+        kind: 'sample',
       };
     }
     default:
       return {
         quote: await fetchStockQuote(symbol),
-        provider: getFinnhubKey() ? 'finnhub' : 'alpha-vantage',
+        provider: getFinnhubKey() ? 'finnhub' : 'sample',
         fetchedAt: Date.now(),
-        kind: 'delayed',
+        kind: getFinnhubKey() ? 'delayed' : 'sample',
       };
   }
 }
@@ -663,6 +708,23 @@ async function fetchStockLikeCandles(
   interval: CandleInterval,
   limit: number,
 ): Promise<CandleResult> {
+  if (canUseVendorProxy()) {
+    try {
+      const proxied = await proxyFetchCandles({
+        symbol,
+        marketType: 'stocks',
+        interval,
+        limit,
+      });
+      if (proxied?.candles.length) return proxied;
+    } catch (error) {
+      logger.warn('market_data.proxy_candles_failed', {
+        symbol,
+        message: error instanceof Error ? error.message : 'unknown',
+      });
+    }
+  }
+
   const finnhubCandles = await fetchFinnhubCandles(symbol, interval, limit);
   if (finnhubCandles?.length) {
     return {
@@ -715,13 +777,30 @@ export async function fetchCandlesWithMetadataDirect(
         fetchedAt: Date.now(),
         kind: 'approximate',
       };
-    case 'forex':
+    case 'forex': {
+      if (canUseVendorProxy()) {
+        try {
+          const proxied = await proxyFetchCandles({
+            symbol,
+            marketType: 'forex',
+            interval,
+            limit,
+          });
+          if (proxied?.candles.length) return proxied;
+        } catch (error) {
+          logger.warn('market_data.proxy_forex_candles_failed', {
+            symbol,
+            message: error instanceof Error ? error.message : 'unknown',
+          });
+        }
+      }
       return {
         candles: await fetchForexCandles(symbol, interval, limit),
         provider: 'finnhub',
         fetchedAt: Date.now(),
         kind: 'delayed',
       };
+    }
     case 'stocks':
     case 'indices':
     case 'commodities':

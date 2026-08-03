@@ -68,6 +68,15 @@ if (isFirebaseConfigured()) {
   db = getFirestore(firebaseApp);
   functions = getFunctions(firebaseApp);
   storage = getStorage(firebaseApp);
+  try {
+    // Lazy require avoids bundling App Check when Firebase is unconfigured.
+    const { initializeFirebaseAppCheck } = require('./app-check') as {
+      initializeFirebaseAppCheck: (app: FirebaseApp) => unknown;
+    };
+    initializeFirebaseAppCheck(firebaseApp);
+  } catch {
+    // App Check optional during early boot / web SSR.
+  }
 }
 
 export function requireAuth(): Auth {

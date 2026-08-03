@@ -79,6 +79,16 @@ function buildUrl(path: string, params?: ApiRequestConfig['params']): string {
 }
 
 async function getAuthToken(): Promise<string | null> {
+  try {
+    const { auth } = await import('@/firebase/config');
+    const user = auth?.currentUser;
+    if (user) {
+      return await user.getIdToken();
+    }
+  } catch {
+    // Firebase unavailable — fall through.
+  }
+  // Legacy SecureStore path (unused by Firebase Auth; kept for optional API gateways).
   return secureStorageService.getItem(SecureStorageKeys.AUTH_TOKEN);
 }
 

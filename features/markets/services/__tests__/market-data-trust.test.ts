@@ -9,6 +9,26 @@ jest.mock('@/shared/services/api/api-client', () => ({
   },
 }));
 
+jest.mock('@/shared/services/firebase/callable-proxy', () => ({
+  canUseVendorProxy: () => false,
+  allowDevDirectVendors: () => true,
+  callProxy: jest.fn(),
+  ProxyError: class ProxyError extends Error {
+    code: string;
+    constructor(code: string, message: string) {
+      super(message);
+      this.code = code;
+    }
+  },
+}));
+
+jest.mock('../market-proxy.service', () => ({
+  proxyFetchQuote: jest.fn(async () => null),
+  proxyFetchCandles: jest.fn(async () => null),
+  proxyMarketSearch: jest.fn(async () => null),
+  proxyEconomicCalendar: jest.fn(async () => null),
+}));
+
 import { apiRequest, ApiError } from '@/shared/services/api/api-client';
 
 import { fetchCandlesWithMetadata } from '../market-data.service';
@@ -18,9 +38,11 @@ const mockedApiRequest = apiRequest as jest.MockedFunction<typeof apiRequest>;
 describe('market data provenance', () => {
   const originalFinnhub = process.env.EXPO_PUBLIC_FINNHUB_API_KEY;
   const originalAlpha = process.env.EXPO_PUBLIC_ALPHA_VANTAGE_API_KEY;
+  const originalDirect = process.env.EXPO_PUBLIC_MARKET_DATA_DIRECT;
 
   beforeEach(() => {
     mockedApiRequest.mockReset();
+    process.env.EXPO_PUBLIC_MARKET_DATA_DIRECT = 'true';
     process.env.EXPO_PUBLIC_FINNHUB_API_KEY = 'test-finnhub';
     process.env.EXPO_PUBLIC_ALPHA_VANTAGE_API_KEY = '';
   });
@@ -28,6 +50,7 @@ describe('market data provenance', () => {
   afterAll(() => {
     process.env.EXPO_PUBLIC_FINNHUB_API_KEY = originalFinnhub;
     process.env.EXPO_PUBLIC_ALPHA_VANTAGE_API_KEY = originalAlpha;
+    process.env.EXPO_PUBLIC_MARKET_DATA_DIRECT = originalDirect;
   });
 
   it('labels CoinGecko chart points as approximate and records fetch time', async () => {

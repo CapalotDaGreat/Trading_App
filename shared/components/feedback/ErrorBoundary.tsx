@@ -52,7 +52,8 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
               Something went wrong
             </Text>
             <Text variant="body-sm" className="mb-6 text-center">
-              {this.state.error?.message ?? 'An unexpected error occurred.'}
+              Something unexpected happened. Your data was not sent off-device unless crash
+              reporting is enabled. Try again.
             </Text>
             <Button onPress={this.handleReset} fullWidth>
               Try Again

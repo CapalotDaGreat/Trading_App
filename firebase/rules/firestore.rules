@@ -229,6 +229,22 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    // Server-owned daily usage ledger (Cloud Functions only).
+    match /usage/{userId} {
+      allow read: if isOwner(userId);
+      allow write: if false;
+
+      match /daily/{dayId} {
+        allow read: if isOwner(userId);
+        allow write: if false;
+      }
+    }
+
+    // Abuse / security telemetry — admin/Functions only.
+    match /securityEvents/{eventId} {
+      allow read, write: if false;
+    }
+
     match /userSettings/{userId} {
       allow read: if isOwner(userId);
       allow create, update: if isOwner(userId) && isVerifiedUser() && isValidUserSettings();

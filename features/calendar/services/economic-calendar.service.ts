@@ -1,3 +1,6 @@
+import { proxyEconomicCalendar } from '@/features/markets/services/market-proxy.service';
+import { allowDevDirectVendors, canUseVendorProxy } from '@/shared/services/firebase/callable-proxy';
+
 export type EventImpact = 'high' | 'medium' | 'low';
 export type EventCategory =
   | 'employment'
@@ -32,7 +35,9 @@ export interface CalendarFilter {
   to?: number;
 }
 
-const FINNHUB_API_KEY = process.env.EXPO_PUBLIC_FINNHUB_API_KEY ?? '';
+const FINNHUB_API_KEY = allowDevDirectVendors()
+  ? (process.env.EXPO_PUBLIC_FINNHUB_API_KEY ?? '')
+  : '';
 const FINNHUB_BASE = 'https://finnhub.io/api/v1';
 
 interface FinnhubCalendarEvent {
@@ -209,6 +214,36 @@ export async function fetchEconomicCalendar(filter?: CalendarFilter): Promise<Ec
   const toMs = filter?.to ?? now + 7 * 24 * 60 * 60 * 1000;
   const fromDate = new Date(fromMs).toISOString().split('T')[0] ?? '';
   const toDate = new Date(toMs).toISOString().split('T')[0] ?? '';
+
+  if (canUseVendorProxy()) {
+    try {
+      const proxied = await proxyEconomicCalendar(fromDate, toDate);
+      if (proxied?.events.length) {
+        const events: EconomicEvent[] = proxied.events.map((event) => {
+          const title = event.event ?? 'Economic Event';
+          const scheduledAt = event.time ? Date.parse(event.time) : Date.now();
+          const country = event.country ?? 'Unknown';
+          return {
+            id: hashEventId(title, scheduledAt, country),
+            title,
+            country,
+            countryCode: country.slice(0, 2).toUpperCase(),
+            category: mapCategory(title),
+            impact: mapImpact(event.impact),
+            actual: event.actual,
+            forecast: event.estimate,
+            previous: event.prev,
+            unit: event.unit,
+            scheduledAt,
+            source: 'finnhub',
+          };
+        });
+        return applyFilter(events, filter);
+      }
+    } catch {
+      // Fall through to mock / dev direct.
+    }
+  }
 
   if (FINNHUB_API_KEY) {
     try {

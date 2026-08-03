@@ -92,9 +92,13 @@ export function MfaSettingsScreen() {
                 className="rounded-xl border border-border px-4 py-3 text-text-primary"
               />
               <Button
-                disabled={!password || busy}
+                disabled={password.trim().length < 8 || busy}
                 loading={busy}
-                onPress={() => void runReauthentication(() => reauthenticatePassword(password))}
+                onPress={() => {
+                  const next = password.trim();
+                  if (next.length < 8 || next.length > 128) return;
+                  void runReauthentication(() => reauthenticatePassword(next));
+                }}
               >
                 Reauthenticate
               </Button>

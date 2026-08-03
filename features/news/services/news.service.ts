@@ -1,3 +1,9 @@
+import {
+  allowDevDirectVendors,
+  callProxy,
+  canUseVendorProxy,
+} from '@/shared/services/firebase/callable-proxy';
+
 export interface NewsArticle {
   id: string;
   title: string;
@@ -23,7 +29,9 @@ export interface NewsFeedResult {
   source: 'newsapi' | 'rss';
 }
 
-const NEWS_API_KEY = process.env.EXPO_PUBLIC_NEWS_API_KEY ?? '';
+const NEWS_API_KEY = allowDevDirectVendors()
+  ? (process.env.EXPO_PUBLIC_NEWS_API_KEY ?? '')
+  : '';
 const NEWS_API_BASE = 'https://newsapi.org/v2';
 const RSS_FEED_URL =
   process.env.EXPO_PUBLIC_NEWS_RSS_URL ??
@@ -168,6 +176,36 @@ async function fetchFromRss(params: NewsFeedParams): Promise<NewsFeedResult> {
 }
 
 export async function fetchFinancialNews(params: NewsFeedParams = {}): Promise<NewsFeedResult> {
+  if (canUseVendorProxy()) {
+    try {
+      const data = await callProxy<
+        {
+          query?: string;
+          category?: string;
+          pageSize?: number;
+          page?: number;
+        },
+        {
+          articles: NewsArticle[];
+          totalResults: number;
+          source: 'newsapi';
+        }
+      >('newsHeadlines', {
+        query: params.query,
+        category: params.category,
+        pageSize: params.pageSize,
+        page: params.page,
+      });
+      return {
+        articles: data.articles,
+        totalResults: data.totalResults,
+        source: 'newsapi',
+      };
+    } catch {
+      return fetchFromRss(params);
+    }
+  }
+
   if (NEWS_API_KEY) {
     try {
       return await fetchFromNewsApi(params);

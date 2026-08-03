@@ -36,3 +36,24 @@ Verified from the codebase only. Companion interactive report:
 ## App Store / Play readiness
 
 Suitable for store submission with caveats: keep crash reporting opt-in, account deletion path live, and avoid embedding vendor API keys in release binaries when a backend proxy is available.
+
+---
+
+## Phase 1 baseline (2026-08-03) — OWASP Mobile mapping
+
+| ID | Finding | Severity | OWASP | Status |
+|----|---------|----------|-------|--------|
+| P1-01 | Vendor API keys in `EXPO_PUBLIC_*` (Finnhub, Alpha Vantage, NewsAPI) | High | M8 Misconfiguration / M2 Data Storage | Fixed in Phase 1 — Cloud Functions proxy; prod must omit keys |
+| P1-02 | No Firebase App Check | High | M8 Misconfiguration | Fixed in Phase 1 — client init + Function enforce (soft flag for Expo Go) |
+| P1-03 | Premium / AI quotas client-trusted only | Medium | M7 Client Code Quality | Fixed in Phase 1 — Firestore usage ledger + callable checks |
+| P1-04 | Cloud AI provider path deferred | Medium | M8 | Stub `aiAnalysis` with auth/quota; `CLOUD_AI_ENABLED=false` |
+| P1-05 | Biometric unlock preference-only | Medium | M3 Insecure Auth | Fixed in Phase 1 — `expo-local-authentication` gate |
+| P1-06 | Session timeout reset on foreground tick | Medium | M3 | Fixed in Phase 1 — true idle countdown |
+| P1-07 | Dead SecureStore AUTH_TOKEN path in api-client | Low | M2 | Fixed — use Firebase ID token when available |
+| P1-08 | Nested ErrorBoundary unused | Low | M7 | Fixed — wrap heavy routes |
+| P1-09 | Guest/demo without Firebase Auth | Info | — | Accepted — sample/public data only; no vendor secrets |
+| P1-10 | Firebase Auth persistence on AsyncStorage | Medium | M2 | Deferred — platform constraint; document residual |
+| P1-11 | Multi-device session revoke | Low | M3 | Deferred P2 — Privacy Dashboard shows current session metadata |
+| P1-12 | Certificate pinning | Low | M5 | Deferred — Expo managed |
+
+See also [PHASE1_SECURITY_HARDENING_REPORT.md](./PHASE1_SECURITY_HARDENING_REPORT.md).

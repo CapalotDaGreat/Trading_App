@@ -6,6 +6,11 @@ import {
   isNearAiDailyLimit,
   type SubscriptionTier,
 } from '@/shared/constants/subscription';
+import {
+  callProxy,
+  canUseVendorProxy,
+  ProxyError,
+} from '@/shared/services/firebase/callable-proxy';
 import { aiRateLimiter } from '@/shared/services/rate-limit/rate-limiter';
 
 import type {
@@ -58,6 +63,24 @@ async function incrementUsage(): Promise<number> {
 }
 
 export async function getAiUsage(tier: SubscriptionTier): Promise<AiUsageStats> {
+  if (canUseVendorProxy()) {
+    try {
+      const remote = await callProxy<
+        Record<string, never>,
+        { usedToday: number; limit: number; remaining: number; resetsAt: number }
+      >('getAiQuota', {});
+      return {
+        usedToday: remote.usedToday,
+        limit: remote.limit,
+        resetsAt: remote.resetsAt,
+        isNearLimit: isNearAiDailyLimit(remote.usedToday, remote.limit),
+        isAtLimit: hasReachedLimit(remote.usedToday, remote.limit),
+      };
+    } catch {
+      // Fall back to local counter for offline / App Check soft failures.
+    }
+  }
+
   const usage = await getStoredUsage();
   const limit = getTierLimits(tier).aiAnalysisPerDay;
   const usedToday = usage.count;
@@ -68,6 +91,18 @@ export async function getAiUsage(tier: SubscriptionTier): Promise<AiUsageStats> 
     isNearLimit: isNearAiDailyLimit(usedToday, limit),
     isAtLimit: hasReachedLimit(usedToday, limit),
   };
+}
+
+async function recordServerAiUsage(): Promise<void> {
+  if (!canUseVendorProxy()) return;
+  try {
+    await callProxy('recordAiUsage', {});
+  } catch (error) {
+    if (error instanceof ProxyError && error.isQuota) {
+      throw createAiError('DAILY_LIMIT_REACHED', error.message);
+    }
+    // Local engine still works offline — local counter remains source for demo.
+  }
 }
 
 function createAiError(
@@ -135,11 +170,12 @@ async function requestAnalysis(
 ): Promise<AiAnalysisResult> {
   assertAiBurstLimit(`analysis:${tier}`);
   const enrichedContext = await enrichRequestContext(context);
-  const usage = await getStoredUsage();
-  const accessError = checkAiAccess(tier, usage.count, requiresPremium);
+  const usageStats = await getAiUsage(tier);
+  const accessError = checkAiAccess(tier, usageStats.usedToday, requiresPremium);
   if (accessError) throw accessError;
 
   const engineResult = await generateEngineAnalysis(type, enrichedContext);
+  await recordServerAiUsage();
   await incrementUsage();
   return engineResult;
 }
@@ -185,12 +221,17 @@ export const aiService = {
 
   chat: async (request: AiChatRequest, tier: SubscriptionTier): Promise<AiChatResponse> => {
     assertAiBurstLimit(`chat:${tier}`);
+    const prompt = request.message?.trim() ?? '';
+    if (prompt.length < 1 || prompt.length > 4000) {
+      throw createAiError('API_ERROR', 'Message must be between 1 and 4000 characters.');
+    }
+
     const enrichedContext = await enrichRequestContext(request.context ?? {});
-    const usage = await getStoredUsage();
-    const accessError = checkAiAccess(tier, usage.count);
+    const usageStats = await getAiUsage(tier);
+    const accessError = checkAiAccess(tier, usageStats.usedToday);
     if (accessError) throw accessError;
 
-    const engineResponse = generateEngineChatResponse(request.message, enrichedContext);
+    const engineResponse = generateEngineChatResponse(prompt, enrichedContext);
     const message: AiMessage = {
       id: generateId(),
       role: 'assistant',
@@ -204,6 +245,7 @@ export const aiService = {
       },
     };
 
+    await recordServerAiUsage();
     await incrementUsage();
 
     return {
