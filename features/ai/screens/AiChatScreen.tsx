@@ -9,7 +9,9 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
+import { useFeatureFlag } from '@/features/ops-config/hooks/useOpsConfig';
 import { EducationalModeBadge } from '@/features/educational/components/EducationalModeBadge';
+import { EmptyState } from '@/shared/components/feedback/EmptyState';
 import { Header } from '@/shared/components/layout/Header';
 import { Screen } from '@/shared/components/layout/Screen';
 import { IconButton } from '@/shared/components/ui/IconButton';
@@ -34,6 +36,7 @@ interface AiChatScreenProps {
 }
 
 export function AiChatScreen({ symbol }: AiChatScreenProps) {
+  const aiChatEnabled = useFeatureFlag('aiChatEnabled');
   const [input, setInput] = useState('');
   const listRef = useRef<FlatList<AiMessage>>(null);
   const { colors } = useTheme();
@@ -43,6 +46,17 @@ export function AiChatScreen({ symbol }: AiChatScreenProps) {
   const { messages, sendMessage, clearChat, isSending, error } = useAiChat(
     symbol ? { symbol } : undefined,
   );
+
+  if (!aiChatEnabled) {
+    return (
+      <EmptyState
+        title="Ask AI temporarily unavailable"
+        description="This surface is disabled by a remote kill switch or feature flag. Today, research, and journal still work."
+        iconName="cloud-offline-outline"
+        testID="ai-chat-flag-disabled"
+      />
+    );
+  }
 
   const handleSend = useCallback(async () => {
     const text = input.trim();

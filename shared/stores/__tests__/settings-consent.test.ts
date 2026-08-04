@@ -1,25 +1,29 @@
+import { PRODUCT_ANALYTICS_CONSENT_VERSION } from '@/shared/services/analytics/events';
+
 import {
   CRASH_REPORTING_CONSENT_VERSION,
   migrateSettingsState,
   useSettingsStore,
 } from '../settings.store';
 
-describe('crash reporting consent', () => {
+describe('privacy consents', () => {
   beforeEach(() => {
     useSettingsStore.getState().reset();
   });
 
-  it('defaults to disabled and records explicit changes', () => {
+  it('defaults crash reporting and analytics to disabled', () => {
     expect(useSettingsStore.getState().crashReportingEnabled).toBe(false);
-    expect(useSettingsStore.getState().crashReportingConsentUpdatedAt).toBeNull();
+    expect(useSettingsStore.getState().productAnalyticsEnabled).toBe(false);
 
     useSettingsStore.getState().setCrashReportingEnabled(true);
+    useSettingsStore.getState().setProductAnalyticsEnabled(true);
 
     expect(useSettingsStore.getState()).toMatchObject({
       crashReportingEnabled: true,
       crashReportingConsentVersion: CRASH_REPORTING_CONSENT_VERSION,
+      productAnalyticsEnabled: true,
+      productAnalyticsConsentVersion: PRODUCT_ANALYTICS_CONSENT_VERSION,
     });
-    expect(useSettingsStore.getState().crashReportingConsentUpdatedAt).toEqual(expect.any(String));
   });
 
   it('does not inherit opt-in from legacy settings', () => {
@@ -27,6 +31,13 @@ describe('crash reporting consent', () => {
       crashReportingEnabled: false,
       crashReportingConsentVersion: CRASH_REPORTING_CONSENT_VERSION,
       crashReportingConsentUpdatedAt: null,
+    });
+    expect(
+      migrateSettingsState({ productAnalyticsEnabled: true } as never, 4),
+    ).toMatchObject({
+      productAnalyticsEnabled: false,
+      productAnalyticsConsentVersion: PRODUCT_ANALYTICS_CONSENT_VERSION,
+      productAnalyticsConsentUpdatedAt: null,
     });
   });
 });

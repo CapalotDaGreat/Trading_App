@@ -1,0 +1,79 @@
+/** Server-side mirror of client safe defaults (schema v1). */
+export const SERVER_DEFAULT_FLAGS = {
+  globalKill: {
+    key: 'globalKill',
+    kind: 'kill',
+    enabled: false,
+    percentage: 100,
+  },
+  aiChatEnabled: { key: 'aiChatEnabled', kind: 'boolean', enabled: true, percentage: 100 },
+  aiTrustPanelsEnabled: {
+    key: 'aiTrustPanelsEnabled',
+    kind: 'boolean',
+    enabled: true,
+    percentage: 100,
+  },
+  personalIntelligenceEnabled: {
+    key: 'personalIntelligenceEnabled',
+    kind: 'boolean',
+    enabled: true,
+    percentage: 100,
+  },
+  decisionGraphEnabled: {
+    key: 'decisionGraphEnabled',
+    kind: 'boolean',
+    enabled: true,
+    percentage: 100,
+  },
+  mentorEnabled: { key: 'mentorEnabled', kind: 'boolean', enabled: true, percentage: 100 },
+  academyEnabled: { key: 'academyEnabled', kind: 'boolean', enabled: true, percentage: 100 },
+  paywallExperimentsEnabled: {
+    key: 'paywallExperimentsEnabled',
+    kind: 'percentage',
+    enabled: false,
+    percentage: 0,
+  },
+  aggressiveMarketPollingEnabled: {
+    key: 'aggressiveMarketPollingEnabled',
+    kind: 'boolean',
+    enabled: false,
+    percentage: 100,
+  },
+  betaReplayStudioEnabled: {
+    key: 'betaReplayStudioEnabled',
+    kind: 'beta',
+    enabled: false,
+    percentage: 100,
+  },
+  internalDiagnosticsEnabled: {
+    key: 'internalDiagnosticsEnabled',
+    kind: 'internal',
+    enabled: false,
+    percentage: 100,
+  },
+};
+
+export const SERVER_DEFAULT_REMOTE = {
+  schemaVersion: 1,
+  aiModel: 'tradevision-engine-2.0',
+  aiDailyLimitFree: 10,
+  aiDailyLimitPremium: 100,
+  marketQuotePollMs: 45_000,
+  marketCandlePollMs: 120_000,
+  alertEvalIntervalMs: 45_000,
+  academyContentEnabled: true,
+  mentorWeeklyChallengeEnabled: true,
+  decisionBriefMaxSetups: 5,
+  decisionBriefMinRvs: 40,
+  notificationQuietHoursStart: 22,
+  notificationQuietHoursEnd: 7,
+  marketRefreshAggressiveness: 'balanced',
+  storePromoMessage:
+    'Upgrade for deeper radar, DNA, and coaching — educational process tools only.',
+  storePromoEnabled: false,
+  analyticsSampleRate: 1,
+  perfSampleRate: 0.2,
+  sentryTracesSampleRate: 0.05,
+  spikeAlertSecurityEventsPerHour: 200,
+  backupRetentionDays: 30,
+};

@@ -26,6 +26,10 @@ export interface PrivacySettings {
   crashReportingEnabled: boolean;
   crashReportingConsentVersion: number;
   crashReportingConsentUpdatedAt: string | null;
+  /** Opt-in first-party product analytics (aggregates only). Off by default. */
+  productAnalyticsEnabled: boolean;
+  productAnalyticsConsentVersion: number;
+  productAnalyticsConsentUpdatedAt: string | null;
   /** Prefer clearing local user caches on every sign-out (always on for security). */
   clearLocalDataOnSignOut: boolean;
   /** Auto sign-out after idle period (minutes). 0 disables. */

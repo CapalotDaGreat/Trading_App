@@ -1,6 +1,7 @@
 import { doc, getDoc, serverTimestamp, setDoc } from 'firebase/firestore';
 
 import { canUseFirestore, requireDb } from '@/firebase/config';
+import { PRODUCT_ANALYTICS_CONSENT_VERSION } from '@/shared/services/analytics/events';
 import { CRASH_REPORTING_CONSENT_VERSION, useSettingsStore } from '@/shared/stores/settings.store';
 import { useThemeStore } from '@/shared/stores/theme.store';
 import { DEFAULT_USER_PREFERENCES } from '@/shared/types/user';
@@ -24,6 +25,9 @@ const DEFAULT_NOTIFICATIONS: NotificationSettings = {
 
 const DEFAULT_PRIVACY: PrivacySettings = {
   crashReportingEnabled: false,
+  productAnalyticsEnabled: false,
+  productAnalyticsConsentVersion: PRODUCT_ANALYTICS_CONSENT_VERSION,
+  productAnalyticsConsentUpdatedAt: null,
   crashReportingConsentVersion: CRASH_REPORTING_CONSENT_VERSION,
   crashReportingConsentUpdatedAt: null,
   clearLocalDataOnSignOut: true,
@@ -114,6 +118,9 @@ class SettingsServiceImpl implements SettingsService {
       crashReportingEnabled: settings.crashReportingEnabled,
       crashReportingConsentVersion: settings.crashReportingConsentVersion,
       crashReportingConsentUpdatedAt: settings.crashReportingConsentUpdatedAt,
+      productAnalyticsEnabled: settings.productAnalyticsEnabled,
+      productAnalyticsConsentVersion: settings.productAnalyticsConsentVersion,
+      productAnalyticsConsentUpdatedAt: settings.productAnalyticsConsentUpdatedAt,
       clearLocalDataOnSignOut: settings.clearLocalDataOnSignOut,
       sessionTimeoutMinutes: settings.sessionTimeoutMinutes,
       marketingEmailsEnabled: settings.marketingEmailsEnabled,
@@ -125,6 +132,9 @@ class SettingsServiceImpl implements SettingsService {
 
     if (updates.crashReportingEnabled !== undefined) {
       settingsStore.setCrashReportingEnabled(updates.crashReportingEnabled);
+    }
+    if (updates.productAnalyticsEnabled !== undefined) {
+      settingsStore.setProductAnalyticsEnabled(updates.productAnalyticsEnabled);
     }
     if (updates.clearLocalDataOnSignOut !== undefined) {
       // Local wipe on sign-out stays enforced for shared-device safety.

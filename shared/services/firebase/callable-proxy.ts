@@ -2,6 +2,7 @@ import { httpsCallable, type HttpsCallableResult } from 'firebase/functions';
 import { FirebaseError } from 'firebase/app';
 
 import { auth, canUseFirestore, DEMO_USER_UID, requireFunctions } from '@/firebase/config';
+import { captureException } from '@/shared/services/observability';
 import { logger } from '@/shared/services/observability/logger';
 
 export class ProxyError extends Error {
@@ -63,8 +64,10 @@ export async function callProxy<TData, TResult>(
           ? 'Couldn’t verify this app installation. Update the app or try again later.'
           : error.message.replace(/^Firebase:\s*/i, '').replace(/\s*\([^)]*\)\s*$/, '');
       logger.warn('callable_proxy.failed', { name, code: error.code });
+      captureException(error, { boundary: 'callable-proxy', name, code: error.code });
       throw new ProxyError(error.code.replace(/^functions\//, ''), message);
     }
+    captureException(error, { boundary: 'callable-proxy', name });
     throw error;
   }
 }

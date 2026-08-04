@@ -51,8 +51,10 @@ We **do not** intentionally collect:
 
 - government ID numbers, biometric templates (beyond optional OS biometric unlock you enable on-device), precise continuous GPS tracking, health data, or children’s data;
 - advertising identifiers for cross-app tracking;
-- general product analytics or behavioural advertising profiles;
+- behavioural advertising profiles or cross-app tracking;
 - payment card numbers (billing is handled by Apple/Google).
+
+Optional **product analytics** (screen/feature aggregates only) is **off by default** and requires explicit consent. We never intentionally collect journal text, AI conversation content, passwords, or portfolio monetary values in analytics.
 
 Market quotes and news are **market data**, not personal data about you, though requests may be associated with your session/account for rate limiting and service delivery.
 
@@ -67,11 +69,12 @@ Market quotes and news are **market data**, not personal data about you, though 
 | Sync your content to Firestore when signed in and verified | Contract |
 | Send price-alert / transactional notifications you enable | Contract; consent where required for push on the OS |
 | Optional crash diagnostics to Sentry | **Consent** (Art. 6(1)(a)); off by default |
+| Optional first-party product analytics (allowlisted aggregates) | **Consent** (Art. 6(1)(a)); off by default |
 | Security, abuse prevention, MFA, deletion throttling | Legitimate interests (Art. 6(1)(f)); legal obligation where applicable |
 | Comply with law, respond to lawful requests, enforce Terms | Legal obligation (Art. 6(1)(c)); legitimate interests |
-| Improve reliability of the service using aggregated, non-identifying signals where available | Legitimate interests — **no** general analytics product ships in this release |
+| Improve reliability using consented, aggregated, non-identifying product signals | Consent when analytics enabled; otherwise not collected |
 
-You may withdraw consent for crash reporting at any time in **Settings → Privacy & Security** without affecting other processing that does not rely on that consent.
+You may withdraw consent for crash reporting or product analytics at any time in **Settings → Privacy** without affecting other processing that does not rely on that consent.
 
 ---
 

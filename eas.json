@@ -12,9 +12,22 @@
         "buildType": "apk"
       }
     },
+    "internal": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "channel": "internal",
+      "android": {
+        "buildType": "apk"
+      }
+    },
     "preview": {
       "distribution": "internal",
       "channel": "preview"
+    },
+    "beta": {
+      "distribution": "internal",
+      "channel": "beta",
+      "autoIncrement": true
     },
     "production": {
       "channel": "production",
@@ -22,6 +35,11 @@
     }
   },
   "submit": {
-    "production": {}
+    "production": {},
+    "beta": {
+      "ios": {
+        "ascAppId": "REPLACE_WITH_ASC_APP_ID"
+      }
+    }
   }
 }

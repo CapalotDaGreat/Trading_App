@@ -4,10 +4,12 @@ import { Pressable, View } from 'react-native';
 
 import { EducationalModeBadge } from '@/features/educational/components/EducationalModeBadge';
 import type { TradingMentorBrief } from '@/features/decision/types/mentor.types';
+import { useFeatureFlag } from '@/features/ops-config/hooks/useOpsConfig';
 import { GlassCard } from '@/shared/components/ui/GlassCard';
 import { Text } from '@/shared/components/ui/Text';
 import { useTheme } from '@/shared/hooks/useTheme';
 import { Skeleton } from '@/shared/components/ui/Skeleton';
+import { trackFeatureUse } from '@/shared/services/analytics';
 
 interface MentorCardProps {
   brief?: TradingMentorBrief | null;
@@ -18,12 +20,13 @@ interface MentorCardProps {
 export function MentorCard({ brief, isLoading }: MentorCardProps) {
   const router = useRouter();
   const { colors } = useTheme();
+  const mentorEnabled = useFeatureFlag('mentorEnabled');
 
   if (isLoading && !brief) {
     return <Skeleton height={160} rounded="lg" testID="mentor-card-loading" />;
   }
 
-  if (!brief) return null;
+  if (!brief || !mentorEnabled) return null;
 
   return (
     <Pressable
@@ -31,7 +34,10 @@ export function MentorCard({ brief, isLoading }: MentorCardProps) {
       accessibilityLabel="Open Trading Mentor"
       accessibilityHint="Expands today's coaching focus into the full mentor page"
       testID="mentor-card"
-      onPress={() => router.push('/decision/mentor' as never)}
+      onPress={() => {
+        trackFeatureUse('mentor');
+        router.push('/decision/mentor' as never);
+      }}
       className="active:opacity-90"
     >
       <GlassCard className="p-4" bordered>

@@ -20,6 +20,7 @@ import { Button } from '@/shared/components/ui/Button';
 import { Text } from '@/shared/components/ui/Text';
 import { AppProviders } from '@/shared/providers/AppProviders';
 import { useTheme } from '@/shared/hooks/useTheme';
+import { trackScreenOpen } from '@/shared/services/analytics';
 import {
   addBreadcrumb,
   captureException,
@@ -101,6 +102,7 @@ function RootLayoutNav() {
     const route = `/${segments.join('/')}`;
     setObservabilityRoute(route);
     addBreadcrumb('navigation.route_changed', { route });
+    trackScreenOpen(route);
   }, [segments]);
 
   useEffect(() => {

@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
+import { PRODUCT_ANALYTICS_CONSENT_VERSION } from '@/shared/services/analytics/events';
 import { createPersistedStorage } from '@/shared/stores/create-persisted-storage';
 import { DEFAULT_USER_PREFERENCES, type UserPreferences } from '@/shared/types/user';
 
@@ -10,6 +11,9 @@ interface SettingsState {
   crashReportingEnabled: boolean;
   crashReportingConsentVersion: number;
   crashReportingConsentUpdatedAt: string | null;
+  productAnalyticsEnabled: boolean;
+  productAnalyticsConsentVersion: number;
+  productAnalyticsConsentUpdatedAt: string | null;
   clearLocalDataOnSignOut: boolean;
   sessionTimeoutMinutes: 0 | 15 | 30 | 60 | 120;
   marketingEmailsEnabled: boolean;
@@ -19,6 +23,7 @@ interface SettingsState {
   setPreferences: (preferences: Partial<UserPreferences>) => void;
   setHapticsEnabled: (enabled: boolean) => void;
   setCrashReportingEnabled: (enabled: boolean) => void;
+  setProductAnalyticsEnabled: (enabled: boolean) => void;
   setClearLocalDataOnSignOut: (enabled: boolean) => void;
   setSessionTimeoutMinutes: (minutes: 0 | 15 | 30 | 60 | 120) => void;
   setMarketingEmailsEnabled: (enabled: boolean) => void;
@@ -35,6 +40,9 @@ const initialState = {
   crashReportingEnabled: false,
   crashReportingConsentVersion: CRASH_REPORTING_CONSENT_VERSION,
   crashReportingConsentUpdatedAt: null,
+  productAnalyticsEnabled: false,
+  productAnalyticsConsentVersion: PRODUCT_ANALYTICS_CONSENT_VERSION,
+  productAnalyticsConsentUpdatedAt: null,
   clearLocalDataOnSignOut: true,
   sessionTimeoutMinutes: 0 as 0 | 15 | 30 | 60 | 120,
   marketingEmailsEnabled: false,
@@ -65,6 +73,14 @@ export function migrateSettingsState(
       marketingEmailsEnabled: next.marketingEmailsEnabled ?? false,
     };
   }
+  if (version < 5) {
+    next = {
+      ...next,
+      productAnalyticsEnabled: false,
+      productAnalyticsConsentVersion: PRODUCT_ANALYTICS_CONSENT_VERSION,
+      productAnalyticsConsentUpdatedAt: null,
+    };
+  }
   return next;
 }
 
@@ -83,6 +99,12 @@ export const useSettingsStore = create<SettingsState>()(
           crashReportingConsentVersion: CRASH_REPORTING_CONSENT_VERSION,
           crashReportingConsentUpdatedAt: new Date().toISOString(),
         }),
+      setProductAnalyticsEnabled: (productAnalyticsEnabled) =>
+        set({
+          productAnalyticsEnabled,
+          productAnalyticsConsentVersion: PRODUCT_ANALYTICS_CONSENT_VERSION,
+          productAnalyticsConsentUpdatedAt: new Date().toISOString(),
+        }),
       setClearLocalDataOnSignOut: (clearLocalDataOnSignOut) => set({ clearLocalDataOnSignOut }),
       setSessionTimeoutMinutes: (sessionTimeoutMinutes) => set({ sessionTimeoutMinutes }),
       setMarketingEmailsEnabled: (marketingEmailsEnabled) => set({ marketingEmailsEnabled }),
@@ -92,7 +114,7 @@ export const useSettingsStore = create<SettingsState>()(
     }),
     {
       name: 'tradevision-settings',
-      version: 4,
+      version: 5,
       storage: createPersistedStorage(),
       partialize: (state) => {
         const { hasHydrated: _, ...persisted } = state;

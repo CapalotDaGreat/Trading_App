@@ -201,6 +201,14 @@ export function PrivacyScreen() {
           onToggle={(value) => void updatePrivacy({ crashReportingEnabled: value })}
         />
         <SettingsRow
+          icon="stats-chart-outline"
+          label="Product analytics"
+          description="Allowlisted usage aggregates only — never journals, AI chats, or portfolio values"
+          toggle
+          toggleValue={privacy.productAnalyticsEnabled}
+          onToggle={(value) => void updatePrivacy({ productAnalyticsEnabled: value })}
+        />
+        <SettingsRow
           icon="mail-outline"
           label="Product emails"
           description="Optional digests — never used for trade signals"
@@ -211,10 +219,15 @@ export function PrivacyScreen() {
       </GlassCard>
 
       <Text variant="caption" className="mb-4 text-text-tertiary">
-        Consent version {privacy.crashReportingConsentVersion}
+        Crash consent v{privacy.crashReportingConsentVersion}
         {privacy.crashReportingConsentUpdatedAt
-          ? ` · Updated ${new Date(privacy.crashReportingConsentUpdatedAt).toLocaleDateString()}`
-          : ' · Crash reporting not yet granted'}
+          ? ` · ${new Date(privacy.crashReportingConsentUpdatedAt).toLocaleDateString()}`
+          : ' · not granted'}
+        {' · '}
+        Analytics consent v{privacy.productAnalyticsConsentVersion}
+        {privacy.productAnalyticsConsentUpdatedAt
+          ? ` · ${new Date(privacy.productAnalyticsConsentUpdatedAt).toLocaleDateString()}`
+          : ' · not granted'}
       </Text>
 
       <Text variant="label" className="mb-2 px-1">

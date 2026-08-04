@@ -5,15 +5,19 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { useAlertEvaluator } from '@/features/alerts/hooks/useAlertEvaluator';
 import { AuthProvider, useAuth } from '@/features/auth/hooks/useAuth';
+import { useOpsConfigBootstrap } from '@/features/ops-config/hooks/useOpsConfig';
 import { BiometricGate } from '@/features/settings/components/BiometricGate';
 import { markSessionActive } from '@/features/settings/hooks/useSessionTimeout';
 import { useSubscription } from '@/features/subscription/hooks/useSubscription';
 import { ToastProvider } from '@/shared/components/feedback/Toast';
 import { QueryProvider } from '@/shared/providers/QueryProvider';
 import { ThemeProvider } from '@/shared/providers/ThemeProvider';
+import { trackEvent } from '@/shared/services/analytics';
 import { configureObservability, setObservabilityUser } from '@/shared/services/observability';
 import { logger } from '@/shared/services/observability/logger';
+import { configurePerformanceAnalytics } from '@/shared/services/performance';
 import { useSettingsStore } from '@/shared/stores/settings.store';
+import { useOpsConfigStore } from '@/features/ops-config/stores/ops-config.store';
 
 interface AppProvidersProps {
   children: React.ReactNode;
@@ -40,6 +44,7 @@ function ObservabilityBootstrap({ children }: AppProvidersProps) {
   const { user } = useAuth();
   const hasHydrated = useSettingsStore((state) => state.hasHydrated);
   const enabled = useSettingsStore((state) => state.crashReportingEnabled);
+  const analyticsEnabled = useSettingsStore((state) => state.productAnalyticsEnabled);
 
   useEffect(() => {
     if (!hasHydrated) return;
@@ -54,6 +59,29 @@ function ObservabilityBootstrap({ children }: AppProvidersProps) {
     };
   }, [enabled, hasHydrated, user?.uid]);
 
+  useEffect(() => {
+    if (!hasHydrated || !analyticsEnabled) return;
+    void trackEvent('app_launch');
+  }, [hasHydrated, analyticsEnabled]);
+
+  useEffect(() => {
+    if (!hasHydrated) return;
+    const sampleRate = useOpsConfigStore.getState().snapshot.remote.perfSampleRate;
+    configurePerformanceAnalytics(
+      analyticsEnabled
+        ? (name, props) => {
+            void trackEvent(name, props);
+          }
+        : null,
+      sampleRate,
+    );
+  }, [hasHydrated, analyticsEnabled]);
+
+  return children;
+}
+
+function OpsConfigBootstrap({ children }: AppProvidersProps) {
+  useOpsConfigBootstrap();
   return children;
 }
 
@@ -65,17 +93,19 @@ export function AppProviders({ children }: AppProvidersProps) {
           <ThemeProvider>
             <AuthProvider>
               <ObservabilityBootstrap>
-                <ToastProvider>
-                  <SubscriptionBootstrap>
-                    <AlertEvaluationBootstrap>
-                      <BiometricGate>
-                        <View className="flex-1" onTouchStart={markSessionActive}>
-                          {children}
-                        </View>
-                      </BiometricGate>
-                    </AlertEvaluationBootstrap>
-                  </SubscriptionBootstrap>
-                </ToastProvider>
+                <OpsConfigBootstrap>
+                  <ToastProvider>
+                    <SubscriptionBootstrap>
+                      <AlertEvaluationBootstrap>
+                        <BiometricGate>
+                          <View className="flex-1" onTouchStart={markSessionActive}>
+                            {children}
+                          </View>
+                        </BiometricGate>
+                      </AlertEvaluationBootstrap>
+                    </SubscriptionBootstrap>
+                  </ToastProvider>
+                </OpsConfigBootstrap>
               </ObservabilityBootstrap>
             </AuthProvider>
           </ThemeProvider>

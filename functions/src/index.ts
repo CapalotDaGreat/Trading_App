@@ -17,6 +17,10 @@ export {
   recordAiUsage,
 } from './proxies';
 
+export { getOpsBootstrap, upsertOpsConfig } from './ops/bootstrap';
+export { trackProductEvent } from './ops/analytics';
+export { opsHealthSnapshot, getOpsDashboard } from './ops/health';
+export { opsBackupExport } from './ops/backup';
 const PREMIUM_ENTITLEMENT_ID = process.env.REVENUECAT_ENTITLEMENT_ID ?? 'premium';
 const MONTHLY_PRODUCT_ID = 'tradevision_premium_monthly';
 const YEARLY_PRODUCT_ID = 'tradevision_premium_yearly';
@@ -321,6 +325,16 @@ export const revenueCatWebhook = functions.https.onRequest(async (req, res) => {
     });
     res.status(500).send('Webhook processing failed');
     return;
+  }
+
+  try {
+    const { mapWebhookTypeToSubOps, recordSubscriptionOps } = await import('./ops/subs-ops');
+    const opsEvent = mapWebhookTypeToSubOps(event.type);
+    if (opsEvent) {
+      await recordSubscriptionOps(opsEvent, update.planId);
+    }
+  } catch (error) {
+    functions.logger.warn('ops.subs_rollup_failed', { error });
   }
 
   res.status(200).send('ok');

@@ -2,6 +2,8 @@
 
 Repository checks are documented in [QA.md](./QA.md). Phase 4 polish scores and
 the production checklist live in [PHASE4_PRODUCT_POLISH_REPORT.md](./PHASE4_PRODUCT_POLISH_REPORT.md).
+Phase 5 ops readiness lives in [PHASE5_OPS_PLATFORM_REPORT.md](./PHASE5_OPS_PLATFORM_REPORT.md)
+and [ops/PRODUCTION_CHECKLIST.md](./ops/PRODUCTION_CHECKLIST.md).
 The remaining items must be completed in the named external console before submission.
 
 ## Expo and push

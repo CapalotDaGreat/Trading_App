@@ -36,6 +36,16 @@ export interface PerformanceSnapshot {
   counters: Readonly<Partial<Record<PerformanceCounter, number>>>;
 }
 
+export type PerformanceAnalyticsSink = (
+  name:
+    | 'perf_cold_start'
+    | 'perf_warm_start'
+    | 'perf_screen_load'
+    | 'perf_api_latency'
+    | 'perf_cache_hit',
+  props?: { durationMs?: number; latencyMs?: number; screen?: string; feature?: string; count?: number; cacheResult?: string },
+) => void;
+
 type UnsafeMetadata = PerformanceMetadata & Record<string, unknown>;
 
 const ALLOWED_METADATA_VALUES = {
@@ -44,6 +54,18 @@ const ALLOWED_METADATA_VALUES = {
   appState: new Set(['active', 'inactive']),
   outcome: new Set(['success', 'failure']),
 } as const;
+
+let analyticsSink: PerformanceAnalyticsSink | null = null;
+let analyticsSampleRate = 0.2;
+
+/** Wire from AppProviders to avoid Firebase imports in unit tests. */
+export function configurePerformanceAnalytics(
+  sink: PerformanceAnalyticsSink | null,
+  sampleRate = 0.2,
+): void {
+  analyticsSink = sink;
+  analyticsSampleRate = sampleRate;
+}
 
 function sanitizeMetadata(metadata?: UnsafeMetadata): PerformanceMetadata | undefined {
   if (!metadata) return undefined;
@@ -63,17 +85,33 @@ function sanitizeMetadata(metadata?: UnsafeMetadata): PerformanceMetadata | unde
   return Object.keys(sanitized).length ? (sanitized as PerformanceMetadata) : undefined;
 }
 
+function emitSample(
+  name: Parameters<PerformanceAnalyticsSink>[0],
+  props?: Parameters<PerformanceAnalyticsSink>[1],
+): void {
+  if (!analyticsSink) return;
+  if (Math.random() > analyticsSampleRate) return;
+  analyticsSink(name, props);
+}
+
 export class PerformanceDiagnostics {
   private readonly events: PerformanceEvent[] = [];
   private readonly counters: Partial<Record<PerformanceCounter, number>> = {};
+  private startupBeginAt: number | null = null;
 
   constructor(
-    private readonly enabled: boolean,
+    private readonly alwaysRecord: boolean,
     private readonly now: () => number = Date.now,
   ) {}
 
   mark(name: PerformanceMark, metadata?: PerformanceMetadata): void {
-    if (!this.enabled) return;
+    if (name === 'startup.begin') this.startupBeginAt = this.now();
+    if (name === 'startup.ready' && this.startupBeginAt != null) {
+      const durationMs = this.now() - this.startupBeginAt;
+      emitSample(durationMs > 3_000 ? 'perf_cold_start' : 'perf_warm_start', { durationMs });
+    }
+
+    if (!this.alwaysRecord) return;
     this.events.push({
       name,
       at: this.now(),
@@ -82,32 +120,40 @@ export class PerformanceDiagnostics {
   }
 
   increment(counter: PerformanceCounter, amount = 1): void {
-    if (!this.enabled) return;
+    if (counter === 'market.request.cache_hit') {
+      emitSample('perf_cache_hit', { count: amount, cacheResult: 'hit' });
+    }
+    if (!this.alwaysRecord) return;
     this.counters[counter] = (this.counters[counter] ?? 0) + amount;
   }
 
   measure<T>(window: PerformanceWindow, operation: () => T, metadata?: PerformanceMetadata): T {
-    if (!this.enabled) return operation();
     const startedAt = this.now();
-    this.mark(`${window}.begin`, metadata);
+    if (this.alwaysRecord) this.mark(`${window}.begin`, metadata);
     try {
       const result = operation();
-      const endedAt = this.now();
-      this.events.push({
-        name: `${window}.end`,
-        at: endedAt,
-        durationMs: endedAt - startedAt,
-        metadata: sanitizeMetadata({ ...metadata, outcome: 'success' }),
-      });
+      const durationMs = this.now() - startedAt;
+      if (this.alwaysRecord) {
+        this.events.push({
+          name: `${window}.end`,
+          at: this.now(),
+          durationMs,
+          metadata: sanitizeMetadata({ ...metadata, outcome: 'success' }),
+        });
+      }
+      if (window === 'brief.build') {
+        emitSample('perf_screen_load', { screen: 'brief', durationMs });
+      }
       return result;
     } catch (error) {
-      const endedAt = this.now();
-      this.events.push({
-        name: `${window}.end`,
-        at: endedAt,
-        durationMs: endedAt - startedAt,
-        metadata: sanitizeMetadata({ ...metadata, outcome: 'failure' }),
-      });
+      if (this.alwaysRecord) {
+        this.events.push({
+          name: `${window}.end`,
+          at: this.now(),
+          durationMs: this.now() - startedAt,
+          metadata: sanitizeMetadata({ ...metadata, outcome: 'failure' }),
+        });
+      }
       throw error;
     }
   }
@@ -117,38 +163,43 @@ export class PerformanceDiagnostics {
     operation: () => Promise<T>,
     metadata?: PerformanceMetadata,
   ): Promise<T> {
-    if (!this.enabled) return operation();
     const startedAt = this.now();
-    this.mark(`${window}.begin`, metadata);
+    if (this.alwaysRecord) this.mark(`${window}.begin`, metadata);
     try {
       const result = await operation();
-      const endedAt = this.now();
-      this.events.push({
-        name: `${window}.end`,
-        at: endedAt,
-        durationMs: endedAt - startedAt,
-        metadata: sanitizeMetadata({ ...metadata, outcome: 'success' }),
-      });
+      const durationMs = this.now() - startedAt;
+      if (this.alwaysRecord) {
+        this.events.push({
+          name: `${window}.end`,
+          at: this.now(),
+          durationMs,
+          metadata: sanitizeMetadata({ ...metadata, outcome: 'success' }),
+        });
+      }
+      if (window === 'brief.build' || metadata?.requestType) {
+        emitSample('perf_api_latency', { latencyMs: durationMs, feature: window });
+      }
       return result;
     } catch (error) {
-      const endedAt = this.now();
-      this.events.push({
-        name: `${window}.end`,
-        at: endedAt,
-        durationMs: endedAt - startedAt,
-        metadata: sanitizeMetadata({ ...metadata, outcome: 'failure' }),
-      });
+      if (this.alwaysRecord) {
+        this.events.push({
+          name: `${window}.end`,
+          at: this.now(),
+          durationMs: this.now() - startedAt,
+          metadata: sanitizeMetadata({ ...metadata, outcome: 'failure' }),
+        });
+      }
       throw error;
     }
   }
 
   snapshot(): PerformanceSnapshot {
-    if (!this.enabled) return { events: [], counters: {} };
+    if (!this.alwaysRecord) return { events: [], counters: {} };
     return { events: [...this.events], counters: { ...this.counters } };
   }
 
   reset(): void {
-    if (!this.enabled) return;
+    if (!this.alwaysRecord) return;
     this.events.length = 0;
     for (const counter of Object.keys(this.counters) as PerformanceCounter[]) {
       delete this.counters[counter];
@@ -156,4 +207,5 @@ export class PerformanceDiagnostics {
   }
 }
 
+/** Always record in __DEV__; production emits via configurePerformanceAnalytics sink. */
 export const performanceDiagnostics = new PerformanceDiagnostics(__DEV__);

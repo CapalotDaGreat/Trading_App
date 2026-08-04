@@ -22,24 +22,32 @@ export const sentryObservabilityProvider: ObservabilityProvider = {
   async initialize() {
     if (!dsn) return false;
 
+    const tracesSampleRate = Math.min(
+      0.2,
+      Math.max(0, Number(process.env.EXPO_PUBLIC_SENTRY_TRACES_SAMPLE_RATE ?? 0.05)),
+    );
+
     Sentry.init({
       dsn,
       enabled: true,
       sendDefaultPii: false,
-      tracesSampleRate: 0,
-      enableAutoSessionTracking: false,
+      tracesSampleRate,
+      enableAutoSessionTracking: true,
       release: releaseName(),
       dist: Application.nativeBuildVersion ?? undefined,
       beforeSend: (event) => redact(event) as typeof event,
       beforeBreadcrumb: (breadcrumb) => redact(breadcrumb) as typeof breadcrumb,
     });
 
+    Sentry.setTag('channel', Updates.channel ?? 'unknown');
+    Sentry.setTag('platform', Constants.platform?.ios ? 'ios' : Constants.platform?.android ? 'android' : 'unknown');
     Sentry.setContext('release', {
       applicationId: Application.applicationId,
       version: Application.nativeApplicationVersion,
       build: Application.nativeBuildVersion,
       updateId: Updates.updateId,
       embeddedUpdate: Updates.isEmbeddedLaunch,
+      channel: Updates.channel ?? 'unknown',
     });
     Sentry.setContext('device', {
       brand: Device.brand,

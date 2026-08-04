@@ -26,6 +26,8 @@ import {
   finnhubSearch,
   newsApiHeadlines,
 } from './vendors';
+import { recordAiOps } from './ops/ai-ops';
+import { SERVER_DEFAULT_REMOTE } from './ops/defaults';
 
 const callableOpts = {
   // Soft-enforce via requireAppCheck when APP_CHECK_ENFORCE=false (Expo Go rollout).
@@ -198,15 +200,56 @@ export const newsHeadlines = onCall(callableOpts, async (request) => {
   }
 });
 
+async function loadAiLimits(): Promise<{ free: number; premium: number; model: string }> {
+  try {
+    const snap = await admin
+      .firestore()
+      .collection('ops')
+      .doc('config')
+      .collection('docs')
+      .doc('remote')
+      .get();
+    const data = snap.data() ?? {};
+    return {
+      free:
+        typeof data.aiDailyLimitFree === 'number'
+          ? data.aiDailyLimitFree
+          : SERVER_DEFAULT_REMOTE.aiDailyLimitFree,
+      premium:
+        typeof data.aiDailyLimitPremium === 'number'
+          ? data.aiDailyLimitPremium
+          : SERVER_DEFAULT_REMOTE.aiDailyLimitPremium,
+      model:
+        typeof data.aiModel === 'string' ? data.aiModel : SERVER_DEFAULT_REMOTE.aiModel,
+    };
+  } catch {
+    return {
+      free: SERVER_DEFAULT_REMOTE.aiDailyLimitFree,
+      premium: SERVER_DEFAULT_REMOTE.aiDailyLimitPremium,
+      model: SERVER_DEFAULT_REMOTE.aiModel,
+    };
+  }
+}
+
 /**
  * Cloud AI stub — auth, App Check, premium, and quota enforced.
  * Returns failed-precondition until a provider is approved (CLOUD_AI server flag).
+ * Records metadata-only AI ops (never prompts).
  */
 export const aiAnalysis = onCall(callableOpts, async (request) => {
+  const started = Date.now();
   requireAppCheck(request);
   const uid = requireAuth(request);
   await requirePremium(uid);
   await consumeQuota(uid, 'ai');
+  const limits = await loadAiLimits();
+  await recordAiOps({
+    ok: false,
+    latencyMs: Date.now() - started,
+    model: limits.model,
+    category: 'cloud_stub',
+    fallback: true,
+  });
   throw new functions.https.HttpsError(
     'failed-precondition',
     'Cloud AI is not enabled for this release. Local educational analysis remains available in the app.',
@@ -215,9 +258,23 @@ export const aiAnalysis = onCall(callableOpts, async (request) => {
 
 /** Record local-engine AI usage against the server ledger when signed in. */
 export const recordAiUsage = onCall(callableOpts, async (request) => {
+  const started = Date.now();
   requireAppCheck(request);
   const uid = requireAuth(request);
   const quota = await consumeQuota(uid, 'ai');
+  const limits = await loadAiLimits();
+  const category =
+    typeof request.data?.category === 'string'
+      ? String(request.data.category).slice(0, 40)
+      : 'local_engine';
+  await recordAiOps({
+    ok: true,
+    latencyMs: Date.now() - started,
+    model: limits.model,
+    category,
+    fallback: false,
+    estTokens: typeof request.data?.estTokens === 'number' ? request.data.estTokens : undefined,
+  });
   return { ok: true, quota };
 });
 
@@ -234,11 +291,13 @@ export const getAiQuota = onCall(callableOpts, async (request) => {
     .get();
   const used = (snap.data()?.counts as Record<string, number> | undefined)?.ai ?? 0;
   const premium = await isPremiumUser(uid);
-  const limit = premium ? 100 : 10;
+  const limits = await loadAiLimits();
+  const limit = premium ? limits.premium : limits.free;
   return {
     usedToday: used,
     limit,
     remaining: Math.max(0, limit - used),
     resetsAt: new Date(`${day}T24:00:00.000Z`).getTime(),
+    model: limits.model,
   };
 });

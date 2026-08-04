@@ -245,6 +245,17 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
+    // Ops platform — Cloud Functions / Admin SDK only (no client user access).
+    match /ops/{document=**} {
+      allow read, write: if false;
+    }
+
+    // Internal ops admin allowlist — readable by the signed-in admin doc owner only.
+    match /opsAdmins/{userId} {
+      allow read: if isOwner(userId);
+      allow write: if false;
+    }
+
     match /userSettings/{userId} {
       allow read: if isOwner(userId);
       allow create, update: if isOwner(userId) && isVerifiedUser() && isValidUserSettings();
