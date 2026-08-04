@@ -23,7 +23,8 @@ export type PassportAchievementId =
   | 'patience_25'
   | 'risk_manager_10'
   | 'simulator_process_10'
-  | 'heatmap_consistency_60';
+  | 'heatmap_consistency_60'
+  | 'replay_tv_5';
 
 export interface PassportAchievement {
   id: PassportAchievementId;
@@ -82,6 +83,8 @@ export interface PassportCounts {
   simulatorSessions: number;
   labCloses: number;
   researchSessions: number;
+  /** Decision Replay TV episode completions (process-only). */
+  replayTvEpisodes: number;
 }
 
 export interface PassportLearningJourney {

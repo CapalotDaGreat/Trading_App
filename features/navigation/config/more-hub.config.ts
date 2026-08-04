@@ -101,6 +101,13 @@ export const MORE_HUB_SECTIONS: MoreHubSection[] = [
         testID: 'more-decision-simulator',
       },
       {
+        href: '/decision/replay-tv',
+        title: 'Decision Replay TV',
+        description: 'Famous historical episodes — blind tape, process scores',
+        icon: 'film-outline',
+        testID: 'more-replay-tv',
+      },
+      {
         href: '/decision/intelligence',
         title: 'Personal Intelligence',
         description: 'Trading DNA, Decision Graph, and who you are becoming',

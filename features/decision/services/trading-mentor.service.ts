@@ -222,10 +222,10 @@ export function buildTradingMentorBrief(input: TradingMentorInput): TradingMento
       challenge,
       academyRecommendation,
       replayRecommendation: {
-        href: '/decision/decision-replay',
-        label: 'Open Decision Replay',
+        href: '/decision/replay-tv',
+        label: 'Open Decision Replay TV',
         reason: sanitizeMentorCopy(
-          'Ask “What did you learn?” on one Process Tape frame — not whether you made money.',
+          'Replay one historical episode with future candles hidden — grade your process, not the outcome.',
         ),
       },
     },

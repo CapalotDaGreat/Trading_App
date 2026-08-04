@@ -27,7 +27,7 @@ const METRIC_HREF: Record<DecisionGraphMetricId, string> = {
   learning: '/academy',
   risk: '/decision/risk',
   journal: '/journal',
-  replay: '/decision/decision-replay',
+  replay: '/decision/replay-tv',
   academy: '/academy',
   mentor: '/decision/mentor',
 };

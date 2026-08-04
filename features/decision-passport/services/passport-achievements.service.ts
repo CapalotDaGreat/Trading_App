@@ -96,6 +96,15 @@ const DEFS: AchievementDef[] = [
     celebrateCopy: 'Showing up regularly beats occasional heroics.',
     progressOf: (_c, extras) => extras.consistency,
   },
+  {
+    id: 'replay_tv_5',
+    title: 'Replay TV Historian',
+    detail: 'Complete five Decision Replay TV episodes under a blind tape.',
+    category: 'replay',
+    target: 5,
+    celebrateCopy: 'Historical mastery is process practice — never a P&L contest.',
+    progressOf: (c) => c.replayTvEpisodes,
+  },
 ];
 
 /**

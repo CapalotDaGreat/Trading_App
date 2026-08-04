@@ -294,6 +294,7 @@ function JourneyTab({
           />
           <MiniStat label="Journals" value={String(profile.learningJourney.journalCount)} />
           <MiniStat label="Replays" value={String(profile.learningJourney.replayCount)} />
+          <MiniStat label="Replay TV" value={String(profile.counts.replayTvEpisodes)} />
           <MiniStat label="Lab closes" value={String(profile.learningJourney.labCloses)} />
           <MiniStat
             label="Simulator"

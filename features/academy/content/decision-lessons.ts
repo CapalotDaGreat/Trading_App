@@ -118,6 +118,11 @@ export const DECISION_LESSONS: Lesson[] = [
     practiceLinks: [
       { label: 'Market condition', href: '/decision/regime', description: 'See current regime label' },
       { label: 'Chart Replay', href: '/decision/replay', description: 'Practice labeling regimes bar by bar' },
+      {
+        label: 'Decision Replay TV',
+        href: '/decision/replay-tv',
+        description: 'Blind historical episodes for regime process practice',
+      },
     ],
     sections: [
       {
@@ -243,6 +248,11 @@ export const DECISION_LESSONS: Lesson[] = [
     relatedLessonIds: ['dec-setup-quality', 'risk-position-sizing', 'ta-structure'],
     practiceLinks: [
       { label: 'Chart Replay', href: '/decision/replay' },
+      {
+        label: 'Decision Replay TV',
+        href: '/decision/replay-tv',
+        description: 'Name invalidation on a blind historical tape',
+      },
       { label: 'Pre-trade checklist', href: '/academy' },
     ],
     sections: [

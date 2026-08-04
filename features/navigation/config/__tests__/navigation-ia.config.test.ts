@@ -35,6 +35,7 @@ describe('navigation information architecture', () => {
     expect(researchHrefs).toContain('/markets');
     expect(reviewHrefs).toContain('/journal');
     expect(reviewHrefs).toContain('/decision/decision-replay?segment=process');
+    expect(reviewHrefs).toContain('/decision/replay-tv');
     expect(reviewHrefs).toContain('/decision/heatmap');
   });
 });

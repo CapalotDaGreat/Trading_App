@@ -38,9 +38,9 @@ export function buildCoachingReferences(input: {
     },
     {
       id: 'replay',
-      label: 'Decision Replay',
-      reason: 'Reflect on Process Tape — learning over outcomes.',
-      href: '/decision/decision-replay',
+      label: 'Decision Replay TV',
+      reason: 'Blind historical episodes — process practice without hindsight.',
+      href: '/decision/replay-tv',
     },
     {
       id: 'academy',

@@ -108,7 +108,7 @@ describe('trading mentor composer', () => {
     expect(brief.weekly.mostImprovedHabit.toLowerCase()).toContain('brief');
     expect(brief.weekly.greatestStrength.length).toBeGreaterThan(5);
     expect(brief.weekly.challenge.length).toBeGreaterThan(5);
-    expect(brief.weekly.replayRecommendation.href).toContain('decision-replay');
+    expect(brief.weekly.replayRecommendation.href).toContain('replay-tv');
     expect(brief.learningStreakDays).toBe(5);
     expect(brief.identity.styleLabel.length).toBeGreaterThan(3);
     expect(brief.coachingReferences.map((r) => r.id)).toEqual(

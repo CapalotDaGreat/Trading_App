@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Platform, Share } from 'react-native';
 
 import { useAuth } from '@/features/auth/hooks/useAuth';
-import { appendDecisionRecord } from '@/features/decision-log/services/decision-log.service';
+import { useAppendDecisionRecord } from '@/features/decision-log/hooks/useDecisionLog';
 import { canAccessFeature } from '@/shared/constants/subscription';
 import { useSubscriptionStore } from '@/shared/stores/subscription.store';
 
@@ -19,12 +19,22 @@ import type { CreateJournalEntryInput, UpdateJournalEntryInput } from '../types/
 
 const journalQueryKey = (uid: string | undefined) => ['journal', uid] as const;
 
+function invalidateLearningQueries(queryClient: ReturnType<typeof useQueryClient>) {
+  void queryClient.invalidateQueries({ queryKey: ['decision-log'] });
+  void queryClient.invalidateQueries({ queryKey: ['journal-learning-journey'] });
+  void queryClient.invalidateQueries({ queryKey: ['personal-intelligence'] });
+  void queryClient.invalidateQueries({ queryKey: ['decision-passport'] });
+  void queryClient.invalidateQueries({ queryKey: ['decision-heatmap'] });
+  void queryClient.invalidateQueries({ queryKey: ['decision', 'journal-coach'] });
+}
+
 export function useJournal() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const uid = user?.uid;
   const tier = useSubscriptionStore((s) => s.tier);
   const canExport = canAccessFeature(tier, 'exportData');
+  const appendDecision = useAppendDecisionRecord();
 
   const entriesQuery = useQuery({
     queryKey: journalQueryKey(uid),
@@ -38,15 +48,23 @@ export function useJournal() {
   const createMutation = useMutation({
     mutationFn: (input: CreateJournalEntryInput) => createJournalEntry(uid!, input),
     onSuccess: (entry) => {
-      void appendDecisionRecord(uid, {
+      void appendDecision.mutateAsync({
         symbol: entry.symbol,
-        regime: 'journal',
+        regime: entry.regimeNote?.trim() || 'journal',
         action: 'journaled',
-        note: entry.notes,
+        note: [
+          entry.notes,
+          entry.lessonsLearned ? `Lesson: ${entry.lessonsLearned}` : null,
+          entry.emotion ? `Emotion: ${entry.emotion}` : null,
+          entry.improvementCommitment ? `Commit: ${entry.improvementCommitment}` : null,
+        ]
+          .filter(Boolean)
+          .join(' · '),
         eventKey: `journal:${entry.id}`,
+        decisionQualityScore: entry.planAdhered === false ? 45 : entry.planAdhered ? 72 : undefined,
       });
       void queryClient.invalidateQueries({ queryKey: journalQueryKey(uid) });
-      void queryClient.invalidateQueries({ queryKey: ['decision-log'] });
+      invalidateLearningQueries(queryClient);
     },
   });
 
@@ -60,6 +78,7 @@ export function useJournal() {
     }) => updateJournalEntry(uid!, entryId, updates),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: journalQueryKey(uid) });
+      invalidateLearningQueries(queryClient);
     },
   });
 
@@ -67,6 +86,7 @@ export function useJournal() {
     mutationFn: (entryId: string) => deleteJournalEntry(uid!, entryId),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: journalQueryKey(uid) });
+      invalidateLearningQueries(queryClient);
     },
   });
 

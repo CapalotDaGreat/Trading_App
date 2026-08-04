@@ -82,9 +82,17 @@ function toJournalEntry(id: string, data: DocumentData): JournalEntry {
     strategy: (data.strategy as string | undefined) ?? undefined,
     tags: (data.tags as string[]) ?? [],
     emotion: (data.emotion as JournalEntry['emotion']) ?? undefined,
+    emotionIntensity: (data.emotionIntensity as JournalEntry['emotionIntensity']) ?? undefined,
     notes: (data.notes as string) ?? '',
     lessonsLearned: (data.lessonsLearned as string | undefined) ?? undefined,
     screenshotUrls: (data.screenshotUrls as string[] | undefined) ?? undefined,
+    planAdhered: (data.planAdhered as boolean | undefined) ?? undefined,
+    mistakeCategory: (data.mistakeCategory as JournalEntry['mistakeCategory']) ?? undefined,
+    regimeNote: (data.regimeNote as string | undefined) ?? undefined,
+    improvementCommitment: (data.improvementCommitment as string | undefined) ?? undefined,
+    linkedDecisionRecordId: (data.linkedDecisionRecordId as string | undefined) ?? undefined,
+    linkedReplayHref: (data.linkedReplayHref as string | undefined) ?? undefined,
+    linkedAcademyLessonIds: (data.linkedAcademyLessonIds as string[] | undefined) ?? undefined,
     tradedAt: serializeTimestamp(data.tradedAt),
     closedAt: data.closedAt ? serializeTimestamp(data.closedAt) : undefined,
     createdAt: serializeTimestamp(data.createdAt),
@@ -112,9 +120,17 @@ function toLocalJournalEntry(data: Partial<JournalEntry> & { id: string }): Jour
     strategy: data.strategy,
     tags: data.tags ?? [],
     emotion: data.emotion,
+    emotionIntensity: data.emotionIntensity,
     notes: data.notes ?? '',
     lessonsLearned: data.lessonsLearned,
     screenshotUrls: data.screenshotUrls,
+    planAdhered: data.planAdhered,
+    mistakeCategory: data.mistakeCategory,
+    regimeNote: data.regimeNote,
+    improvementCommitment: data.improvementCommitment,
+    linkedDecisionRecordId: data.linkedDecisionRecordId,
+    linkedReplayHref: data.linkedReplayHref,
+    linkedAcademyLessonIds: data.linkedAcademyLessonIds,
     tradedAt: data.tradedAt ?? createdAt,
     closedAt: data.closedAt,
     createdAt,
@@ -138,6 +154,11 @@ export function calculateJournalStats(entries: JournalEntry[]): JournalStats {
   const grossLoss = Math.abs(losses.reduce((sum, e) => sum + (e.pnl ?? 0), 0));
   const profitFactor = grossLoss > 0 ? grossProfit / grossLoss : grossProfit > 0 ? Infinity : 0;
 
+  const withEmotion = entries.filter((e) => Boolean(e.emotion)).length;
+  const withLessons = entries.filter((e) => Boolean(e.lessonsLearned?.trim())).length;
+  const planTagged = entries.filter((e) => typeof e.planAdhered === 'boolean');
+  const planOk = planTagged.filter((e) => e.planAdhered).length;
+
   return {
     totalTrades: closed.length,
     winRate: closed.length > 0 ? (wins.length / closed.length) * 100 : 0,
@@ -145,6 +166,9 @@ export function calculateJournalStats(entries: JournalEntry[]): JournalStats {
     avgWin,
     avgLoss,
     profitFactor,
+    emotionTaggedRate: entries.length ? (withEmotion / entries.length) * 100 : 0,
+    lessonsRate: entries.length ? (withLessons / entries.length) * 100 : 0,
+    planAdherenceRate: planTagged.length ? (planOk / planTagged.length) * 100 : 0,
   };
 }
 
@@ -195,8 +219,16 @@ export async function createJournalEntry(
     strategy: input.strategy,
     tags: input.tags ?? [],
     emotion: input.emotion,
+    emotionIntensity: input.emotionIntensity,
     notes: input.notes,
     lessonsLearned: input.lessonsLearned,
+    planAdhered: input.planAdhered,
+    mistakeCategory: input.mistakeCategory,
+    regimeNote: input.regimeNote,
+    improvementCommitment: input.improvementCommitment,
+    linkedDecisionRecordId: input.linkedDecisionRecordId,
+    linkedReplayHref: input.linkedReplayHref,
+    linkedAcademyLessonIds: input.linkedAcademyLessonIds,
     tradedAt,
     closedAt: input.closedAt ?? (input.exitPrice ? now : undefined),
     createdAt: now,
@@ -256,6 +288,10 @@ export function entriesToExportRows(entries: JournalEntry[]): JournalExportRow[]
     pnlPercent: entry.pnlPercent ?? null,
     strategy: entry.strategy ?? null,
     tags: entry.tags.join('; '),
+    emotion: entry.emotion ?? null,
+    lessonsLearned: entry.lessonsLearned ?? null,
+    planAdhered: typeof entry.planAdhered === 'boolean' ? entry.planAdhered : null,
+    mistakeCategory: entry.mistakeCategory ?? null,
     notes: entry.notes,
     tradedAt: entry.tradedAt,
     closedAt: entry.closedAt ?? null,
@@ -276,6 +312,10 @@ export function exportJournalToCsv(entries: JournalEntry[]): string {
     'pnlPercent',
     'strategy',
     'tags',
+    'emotion',
+    'lessonsLearned',
+    'planAdhered',
+    'mistakeCategory',
     'notes',
     'tradedAt',
     'closedAt',

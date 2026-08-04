@@ -60,12 +60,14 @@ export function countPassportActivity(input: {
   let patience = 0;
   let research = 0;
   let journalsFromLog = 0;
+  let replayTvEpisodes = 0;
 
   for (const record of input.records) {
     if (record.eventKey) {
       if (seen.has(record.eventKey)) continue;
       seen.add(record.eventKey);
     }
+    if (record.eventKey?.startsWith('replay-tv:')) replayTvEpisodes += 1;
     if (record.action === 'replay_completed') replays += 1;
     if (record.action === 'checklist_done') checklist += 1;
     if (record.action === 'skipped' || record.action === 'ignored') {
@@ -96,6 +98,7 @@ export function countPassportActivity(input: {
     simulatorSessions: input.simulatorSessions,
     labCloses: input.labCloses,
     researchSessions: research,
+    replayTvEpisodes,
   };
 }
 
@@ -220,6 +223,35 @@ export function buildYearlySummaries(records: DecisionRecord[], nowMs: number, c
     const toMs = Date.UTC(y, 11, 31, 23, 59, 59, 999);
     summaries.push(summarizePeriod(records, yearKey(fromMs), String(y), fromMs, Math.min(toMs, nowMs)));
   }
+  return summaries;
+}
+
+/** Calendar quarters (UTC) for Passport / Journal learning chapters. */
+export function buildQuarterlySummaries(
+  records: DecisionRecord[],
+  nowMs: number,
+  count = 4,
+): PassportPeriodSummary[] {
+  const summaries: PassportPeriodSummary[] = [];
+  const now = new Date(nowMs);
+  const currentQuarter = Math.floor(now.getUTCMonth() / 3);
+  let year = now.getUTCFullYear();
+  let quarter = currentQuarter;
+
+  for (let i = 0; i < count; i += 1) {
+    const startMonth = quarter * 3;
+    const fromMs = Date.UTC(year, startMonth, 1);
+    const toMs = Date.UTC(year, startMonth + 3, 0, 23, 59, 59, 999);
+    const key = `${year}-Q${quarter + 1}`;
+    const label = `Q${quarter + 1} ${year}`;
+    summaries.unshift(summarizePeriod(records, key, label, fromMs, Math.min(toMs, nowMs)));
+    quarter -= 1;
+    if (quarter < 0) {
+      quarter = 3;
+      year -= 1;
+    }
+  }
+
   return summaries;
 }
 
@@ -363,6 +395,7 @@ export function buildDecisionPassportProfile(input: BuildPassportProfileInput): 
   const learningMilestones: string[] = [];
   if (counts.journals >= 10) learningMilestones.push('Double-digit journaling habit');
   if (counts.replays >= 5) learningMilestones.push('Replay loop established');
+  if (counts.replayTvEpisodes >= 1) learningMilestones.push('Replay TV historian started');
   if (counts.academyLessonsPracticed >= 3) learningMilestones.push('Academy practice gates used');
   if (counts.simulatorSessions >= 3) learningMilestones.push('Simulator decision reps started');
   if ((input.labStats?.tradesClosed ?? 0) >= 3) learningMilestones.push('Decision Lab reps logged');

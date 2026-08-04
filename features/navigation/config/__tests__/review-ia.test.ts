@@ -36,6 +36,7 @@ describe('review information architecture', () => {
     expect(practice?.items.map((item) => item.href)).toEqual([
       '/decision/mentor',
       '/decision/simulator',
+      '/decision/replay-tv',
       '/decision/intelligence',
       '/decision/passport',
       '/decision/lab',
