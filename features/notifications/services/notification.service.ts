@@ -1,3 +1,4 @@
+import Constants from 'expo-constants';
 import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
 import * as SecureStore from 'expo-secure-store';
@@ -44,6 +45,12 @@ export interface NotificationService {
     body: string,
     data?: Record<string, unknown>,
     triggerSeconds?: number,
+  ): Promise<string>;
+  /** Immediate local notification — preferred from background alert evaluation. */
+  presentLocalNotification(
+    title: string,
+    body: string,
+    data?: Record<string, unknown>,
   ): Promise<string>;
   cancelAllScheduled(): Promise<void>;
   setBadgeCount(count: number): Promise<void>;
@@ -116,15 +123,25 @@ class NotificationServiceImpl implements NotificationService {
     if (!Device.isDevice) return null;
 
     const projectId =
-      process.env.EXPO_PUBLIC_EAS_PROJECT_ID ?? process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID;
+      process.env.EXPO_PUBLIC_EAS_PROJECT_ID ??
+      // EAS project id from app config (Dev Client / production) — required for
+      // real APNs/FCM tokens; Expo Go may still resolve via the Expo push proxy.
+      (Constants.expoConfig?.extra as { eas?: { projectId?: string } } | undefined)?.eas
+        ?.projectId ??
+      Constants.easConfig?.projectId ??
+      process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID;
 
     try {
       const token = await Notifications.getExpoPushTokenAsync(
         projectId ? { projectId } : undefined,
       );
+      logger.debug('push.token_acquired', {
+        projectIdPresent: Boolean(projectId),
+        tokenPrefix: token.data.slice(0, 12),
+      });
       return token.data;
     } catch (error) {
-      logger.warn('push.token_unavailable', { error });
+      logger.warn('push.token_unavailable', { error, projectIdPresent: Boolean(projectId) });
       return null;
     }
   }
@@ -192,6 +209,17 @@ class NotificationServiceImpl implements NotificationService {
         type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
         seconds: triggerSeconds,
       },
+    });
+  }
+
+  async presentLocalNotification(
+    title: string,
+    body: string,
+    data?: Record<string, unknown>,
+  ): Promise<string> {
+    return Notifications.scheduleNotificationAsync({
+      content: { title, body, data, sound: true },
+      trigger: null,
     });
   }
 

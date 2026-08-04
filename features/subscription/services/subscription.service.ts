@@ -24,7 +24,8 @@ import type {
 } from '../types/subscription.types';
 
 const SUBSCRIPTIONS_COLLECTION = 'subscriptions';
-const POLL_DELAYS_MS = [500, 1_000, 2_000, 3_000];
+/** Post-purchase webhook lag — keep UX optimistic via RC customerInfo when possible. */
+const POLL_DELAYS_MS = [400, 800, 1_500, 2_500, 4_000, 6_000];
 
 const DEFAULT_PLANS: SubscriptionPlan[] = [
   {
@@ -229,11 +230,42 @@ class SubscriptionServiceImpl implements SubscriptionService {
     return Boolean((await this.getSubscription(uid))?.isPremium);
   }
 
+  private recordFromCustomerInfo(
+    uid: string,
+    customerInfo: {
+      entitlements: { active: Record<string, { productIdentifier?: string; expirationDate?: string | null }> };
+    },
+  ): SubscriptionRecord | null {
+    const entitlement = customerInfo.entitlements.active[REVENUECAT_ENTITLEMENT_ID];
+    if (!entitlement) return null;
+    return withEffectiveAccess({
+      ...buildFreeSubscription(uid),
+      tier: 'premium',
+      isPremium: true,
+      status: 'active',
+      productId: entitlement.productIdentifier ?? null,
+      planId:
+        entitlement.productIdentifier === PREMIUM_PRODUCT_IDS.yearly
+          ? 'yearly'
+          : entitlement.productIdentifier === PREMIUM_PRODUCT_IDS.monthly
+            ? 'monthly'
+            : null,
+      expiresAt: entitlement.expirationDate ?? null,
+      willRenew: true,
+      source: 'revenuecat',
+      lastSyncedAt: new Date().toISOString(),
+    });
+  }
+
   async syncFromRevenueCat(uid: string): Promise<SubscriptionRecord> {
     const Purchases = getPurchases();
     if (Purchases && (await this.configureForUser(uid))) {
       await Purchases.invalidateCustomerInfoCache();
-      await Purchases.getCustomerInfo();
+      const customerInfo = await Purchases.getCustomerInfo();
+      const firestore = await this.getSubscription(uid);
+      if (firestore?.isPremium) return firestore;
+      const fromRc = this.recordFromCustomerInfo(uid, customerInfo);
+      if (fromRc) return fromRc;
     }
     return (await this.getSubscription(uid)) ?? buildFreeSubscription(uid);
   }
@@ -266,8 +298,10 @@ class SubscriptionServiceImpl implements SubscriptionService {
       throw new Error('This subscription is not available from the store right now.');
     }
 
+    let optimistic: SubscriptionRecord | null = null;
     try {
-      await Purchases.purchasePackage(selectedPackage);
+      const result = await Purchases.purchasePackage(selectedPackage);
+      optimistic = this.recordFromCustomerInfo(uid, result.customerInfo);
     } catch (error) {
       const purchaseError = error as { userCancelled?: boolean };
       if (purchaseError.userCancelled) {
@@ -281,14 +315,20 @@ class SubscriptionServiceImpl implements SubscriptionService {
       throw error;
     }
 
+    // Prefer Firestore webhook authority, but don't strand the UI if it lags.
     const subscription = await this.waitForServerRecord(uid, before?.lastEventId ?? null);
+    const effective =
+      subscription.isPremium || !optimistic
+        ? subscription
+        : withEffectiveAccess({ ...optimistic, lastSyncedAt: new Date().toISOString() });
+
     return {
-      success: subscription.isPremium,
+      success: effective.isPremium,
       requiresWebCheckout: false,
-      message: subscription.isPremium
+      message: effective.isPremium
         ? 'Premium activated.'
         : 'Purchase received. Your access will update after store verification.',
-      subscription,
+      subscription: effective,
     };
   }
 
@@ -298,8 +338,11 @@ class SubscriptionServiceImpl implements SubscriptionService {
       throw new Error('Restore requires an EAS development or production build.');
     }
     const before = await this.getSubscription(uid);
-    await Purchases.restorePurchases();
-    return this.waitForServerRecord(uid, before?.lastEventId ?? null);
+    const customerInfo = await Purchases.restorePurchases();
+    const optimistic = this.recordFromCustomerInfo(uid, customerInfo);
+    const subscription = await this.waitForServerRecord(uid, before?.lastEventId ?? null);
+    if (subscription.isPremium || !optimistic) return subscription;
+    return withEffectiveAccess({ ...optimistic, lastSyncedAt: new Date().toISOString() });
   }
 
   async manageSubscription(record: SubscriptionRecord | null): Promise<void> {

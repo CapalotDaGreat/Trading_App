@@ -41,6 +41,12 @@ prediction of price direction. Preserve this framing in all new work.
 
 ## Native vs Expo Go
 
-Some capabilities require an **EAS dev client** (see `docs/DEV_BUILD.md`): native IAP,
-reliable background alert evaluation / push, and home-screen widgets. In Expo Go the alert
-evaluator only runs in the foreground (~45s poll).
+Some capabilities require an **EAS Dev Client** or production build (see `docs/DEV_BUILD.md`):
+native IAP, OS-scheduled background alert evaluation, production push credentials, and
+home-screen widgets.
+
+- **Expo Go:** foreground alert poll (~45s) only; IAP hard-disabled; push via Expo proxy.
+- **Dev Client / production:** background task may wake the app on an **inexact** OS schedule
+  (often ≥15 minutes — never promise instant alerts). Use capability-aware copy from
+  `getAlertDeliveryCapability()` — do not blanket-claim background delivery.
+- Prefer `npm run start:dev-client` when touching alerts, IAP, or push.

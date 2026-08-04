@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { AlertCard } from '@/features/alerts/components/AlertCard';
 import { CreateAlertForm } from '@/features/alerts/components/CreateAlertForm';
+import { useAlertDeliveryCapability } from '@/features/alerts/hooks/useAlertDeliveryCapability';
 import { useAlerts } from '@/features/alerts/hooks/useAlerts';
 import { EVALUATION_INTERVAL_MS } from '@/features/alerts/services/alert-evaluator.service';
 import { notificationService } from '@/features/notifications/services/notification.service';
@@ -20,6 +21,7 @@ export default function AlertsScreen() {
   const router = useRouter();
   const { colors } = useTheme();
   const primedRef = useRef(false);
+  const capabilityQuery = useAlertDeliveryCapability();
   const {
     alerts,
     alertLimit,
@@ -30,6 +32,11 @@ export default function AlertsScreen() {
     deleteAlert,
     isCreating,
   } = useAlerts();
+
+  const capability = capabilityQuery.data;
+  const summary =
+    capability?.summary ??
+    `Alerts are checked about every ${EVAL_SECONDS}s while the app is open. Background delivery depends on your build.`;
 
   // Permission priming: ask at the moment the user creates their first alert,
   // not on app launch, to improve opt-in rates.
@@ -59,12 +66,22 @@ export default function AlertsScreen() {
       <Header title="Price Alerts" onBack={() => router.back()} />
 
       <View className="mt-4 gap-4">
-        <View className="flex-row gap-3 rounded-2xl bg-accent-muted p-3">
-          <Ionicons name="information-circle-outline" size={18} color={colors.accent.primary} />
+        <View
+          className="flex-row gap-3 rounded-2xl bg-accent-muted p-3"
+          accessibilityRole="text"
+          accessibilityLabel={summary}
+        >
+          <Ionicons
+            name={
+              capability?.backgroundEvaluation
+                ? 'notifications-outline'
+                : 'information-circle-outline'
+            }
+            size={18}
+            color={colors.accent.primary}
+          />
           <Text variant="caption" className="flex-1 leading-relaxed text-text-secondary">
-            Alerts are checked about every {EVAL_SECONDS}s while the app is open. Background alerts
-            (when the app is closed) aren&apos;t available in this build yet — keep TradeVision open
-            to be notified.
+            {summary}
           </Text>
         </View>
 
@@ -79,6 +96,13 @@ export default function AlertsScreen() {
           }}
           isSubmitting={isCreating}
           disabled={!canCreateAlert}
+          deliveryHint={
+            capability && !capability.backgroundEvaluation
+              ? 'This build only notifies while TradeVision is open.'
+              : capability?.backgroundEvaluation
+                ? 'Background checks are OS-scheduled (often 15+ minutes) — not instant.'
+                : undefined
+          }
         />
 
         {!canCreateAlert ? (

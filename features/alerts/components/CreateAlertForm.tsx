@@ -24,9 +24,16 @@ interface CreateAlertFormProps {
   onSubmit: (input: CreateAlertInput) => Promise<void>;
   isSubmitting?: boolean;
   disabled?: boolean;
+  /** Capability-aware delivery note shown at create time. */
+  deliveryHint?: string;
 }
 
-export function CreateAlertForm({ onSubmit, isSubmitting, disabled }: CreateAlertFormProps) {
+export function CreateAlertForm({
+  onSubmit,
+  isSubmitting,
+  disabled,
+  deliveryHint,
+}: CreateAlertFormProps) {
   const {
     control,
     handleSubmit,
@@ -141,6 +148,12 @@ export function CreateAlertForm({ onSubmit, isSubmitting, disabled }: CreateAler
           )}
         />
       </View>
+
+      {deliveryHint ? (
+        <Text variant="caption" className="mt-3 leading-relaxed text-text-tertiary">
+          {deliveryHint}
+        </Text>
+      ) : null}
 
       <Button
         className="mt-4"

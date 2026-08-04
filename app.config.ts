@@ -34,7 +34,9 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     buildNumber: '1',
     associatedDomains: ['applinks:tradevision.ai', 'applinks:www.tradevision.ai'],
     infoPlist: {
-      UIBackgroundModes: ['remote-notification'],
+      // remote-notification = push; processing = expo-background-task (BGTaskScheduler)
+      UIBackgroundModes: ['remote-notification', 'processing'],
+      BGTaskSchedulerPermittedIdentifiers: ['com.expo.modules.backgroundtask.processing'],
       CFBundleURLTypes: [
         {
           CFBundleURLSchemes: [APP_SCHEME],
@@ -78,7 +80,11 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         category: ['BROWSABLE', 'DEFAULT'],
       },
     ],
-    permissions: ['android.permission.VIBRATE'],
+    permissions: [
+      'android.permission.VIBRATE',
+      'android.permission.RECEIVE_BOOT_COMPLETED',
+      'android.permission.WAKE_LOCK',
+    ],
   },
   web: {
     bundler: 'metro',
@@ -118,6 +124,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         sounds: [],
       },
     ],
+    'expo-background-task',
     'expo-font',
     'expo-web-browser',
   ],

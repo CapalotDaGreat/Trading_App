@@ -5,8 +5,9 @@ It helps discretionary traders decide *"should I spend time researching this?"* 
 broker and does **not** produce buy/sell signals. Setup confidence is a **decision-quality score**,
 not a price prediction.
 
-Runs in **Expo Go** for development; a few capabilities (native IAP, background alerts, widgets)
-require an EAS dev client — see [`docs/DEV_BUILD.md`](docs/DEV_BUILD.md).
+Runs in **Expo Go** for most UI work; native IAP, OS-scheduled background alerts, production
+push, and widgets require an EAS Dev Client / production build — see
+[`docs/DEV_BUILD.md`](docs/DEV_BUILD.md).
 
 ## What's inside
 

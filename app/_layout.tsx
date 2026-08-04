@@ -6,6 +6,8 @@ import { ActivityIndicator, View } from 'react-native';
 import 'react-native-reanimated';
 import '../global.css';
 
+// Global-scope TaskManager.defineTask for OS-scheduled alert evaluation.
+import '@/features/alerts/services/alert-background.task';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import {
   initializePushNotifications,

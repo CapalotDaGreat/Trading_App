@@ -11,13 +11,23 @@ const EVALUATION_INTERVAL_MS = 45_000;
 
 export { shouldTriggerAlert } from './alert-rules';
 
+export interface EvaluateAlertsOptions {
+  /**
+   * When true, evaluate even if the app is inactive (background task path).
+   * Foreground loop keeps the active-only guard.
+   */
+  allowInactive?: boolean;
+}
+
 function isAppActive(): boolean {
-  if (process.env.NODE_ENV === 'test') return true;
   return AppState.currentState === 'active';
 }
 
-export async function evaluateAlertsForUser(uid: string): Promise<number> {
-  if (!isAppActive()) return 0;
+export async function evaluateAlertsForUser(
+  uid: string,
+  options: EvaluateAlertsOptions = {},
+): Promise<number> {
+  if (!options.allowInactive && !isAppActive()) return 0;
 
   const alerts = await getAlerts(uid);
   const active = alerts.filter((a) => a.isActive && !a.triggeredAt);
@@ -42,12 +52,12 @@ export async function evaluateAlertsForUser(uid: string): Promise<number> {
     if (!shouldTriggerAlert(alert, price)) continue;
 
     await markAlertTriggered(uid, alert.id);
-    await notificationService.scheduleLocalNotification(
-      `${alert.symbol} alert`,
-      `Price ${alert.condition === 'above' ? 'reached' : 'fell to'} ${price.toFixed(2)} (target ${alert.targetPrice})`,
-      { screen: 'markets', symbol: alert.symbol, type: 'price_alert' },
-      1,
-    );
+    const title = `${alert.symbol} alert`;
+    const body = `Price ${alert.condition === 'above' ? 'reached' : 'fell to'} ${price.toFixed(2)} (target ${alert.targetPrice})`;
+    const data = { screen: 'markets', symbol: alert.symbol, type: 'price_alert' };
+
+    // Immediate present works from background wakes; scheduled delay was foreground-oriented.
+    await notificationService.presentLocalNotification(title, body, data);
     triggered += 1;
   }
 
