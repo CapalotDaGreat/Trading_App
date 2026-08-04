@@ -16,6 +16,7 @@ import {
   learningEventsFromAcademyLessons,
 } from '@/features/decision-heatmap/services/heatmap.service';
 import { useAcademyProgressStore } from '@/features/academy/stores/academy-progress.store';
+import { buildLabStats } from '@/features/decision-lab/services/lab-stats.service';
 import { useDecisionLabStore } from '@/features/decision-lab/stores/lab.store';
 import { useSimulatorStore } from '@/features/decision-simulator/stores/simulator.store';
 import { useJournal } from '@/features/journal/hooks/useJournal';
@@ -54,8 +55,8 @@ export function useDecisionPassport() {
   const { summary: logSummary } = useDecisionLog();
   const { entries: journalEntries } = useJournal();
   const { completedCount, practicedCount, totalCount } = useAcademy();
-  const getLabStats = useDecisionLabStore((s) => s.getStats);
-  const labStats = getLabStats();
+  const labPositions = useDecisionLabStore((s) => s.positions);
+  const labStats = useMemo(() => buildLabStats(labPositions), [labPositions]);
   const riskQuery = useRiskCenter();
   const timeBudgetMinutes = useSettingsStore(selectTodayTimeBudget);
   const briefQuery = useDecisionBrief(timeBudgetMinutes);

@@ -17,6 +17,7 @@ import { buildTradingMentorBrief } from '@/features/decision/services/trading-me
 import type { TradingMentorBrief } from '@/features/decision/types/mentor.types';
 import { useDecisionLog } from '@/features/decision-log/hooks/useDecisionLog';
 import { useWeeklyGameTape } from '@/features/decision-replay/hooks/useDecisionReplay';
+import { buildLabStats } from '@/features/decision-lab/services/lab-stats.service';
 import { useDecisionLabStore } from '@/features/decision-lab/stores/lab.store';
 import { useAlerts } from '@/features/alerts/hooks/useAlerts';
 import { useSettingsStore } from '@/shared/stores/settings.store';
@@ -40,8 +41,9 @@ export function useTradingMentor() {
   const memoryQuery = useTraderMemory();
   const tapeQuery = useWeeklyGameTape();
   const riskQuery = useRiskCenter();
-  const getLabStats = useDecisionLabStore((s) => s.getStats);
-  const labStats = getLabStats();
+  // Subscribe to stable store slices — never call getters that allocate inside selectors.
+  const labPositions = useDecisionLabStore((s) => s.positions);
+  const labStats = useMemo(() => buildLabStats(labPositions), [labPositions]);
   const { practicedCount, totalCount } = useAcademy();
   const { records } = useDecisionLog();
   const { alerts } = useAlerts();
@@ -71,8 +73,8 @@ export function useTradingMentor() {
     staleTime: 30_000,
   });
 
-  // Keep academy store streak available as secondary signal without merging stores.
-  const academyStreak = useAcademyProgressStore((s) => s.getDisciplineStreak());
+  // Primitive selector — getDisciplineStreak() allocates a new object every call and loops React 19.
+  const academyStreakDays = useAcademyProgressStore((s) => s.disciplineStreakDays);
 
   const signature = [
     briefQuery.dataUpdatedAt,
@@ -85,13 +87,14 @@ export function useTradingMentor() {
     streakQuery.dataUpdatedAt,
     academyRecommendation?.lesson.id ?? 'none',
     labStats.tradesClosed,
+    academyStreakDays,
   ].join(':');
 
   const query = useQuery({
     queryKey: tradingMentorKeys.brief(signature),
     queryFn: async (): Promise<TradingMentorBrief> => {
       const streak = streakQuery.data ?? (await loadDisciplineStreak());
-      const learningDays = Math.max(streak.days, academyStreak.days);
+      const learningDays = Math.max(streak.days, academyStreakDays);
       return buildTradingMentorBrief({
         brief: briefQuery.data,
         logSummary,

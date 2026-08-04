@@ -9,6 +9,7 @@ import {
   getDecisionRecords,
   summarizeDecisionLog,
 } from '@/features/decision-log/services/decision-log.service';
+import { summarizePassport } from '@/features/decision-passport/services/passport.service';
 import { useDecisionPassportStore } from '@/features/decision-passport/stores/passport.store';
 import { useSimulatorStore } from '@/features/decision-simulator/stores/simulator.store';
 
@@ -35,7 +36,13 @@ export function useDecisionHeatmap(initialPeriod: HeatmapPeriod = 'weekly') {
 
   const lessons = useAcademyProgressStore((s) => s.lessons);
   const simulatorHistory = useSimulatorStore((s) => s.history);
-  const passport = useDecisionPassportStore((s) => s.getSnapshot());
+  const processScores = useDecisionPassportStore((s) => s.processScores);
+  const credentials = useDecisionPassportStore((s) => s.credentials);
+  const lastAction = useDecisionPassportStore((s) => s.lastAction);
+  const passport = useMemo(
+    () => summarizePassport({ processScores, credentials, lastAction }),
+    [processScores, credentials, lastAction],
+  );
   const memoryQuery = useTraderMemory();
 
   const learningEvents = useMemo(() => learningEventsFromAcademyLessons(lessons), [lessons]);

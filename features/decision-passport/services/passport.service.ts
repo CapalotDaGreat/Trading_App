@@ -187,6 +187,7 @@ export function summarizePassport(input: {
     averageProcessScore,
     credentials: input.credentials.slice(0, 20),
     lastAction: input.lastAction,
-    updatedAt: Date.now(),
+    // Stable for React/Zustand consumers — do not stamp Date.now() here.
+    updatedAt: 0,
   };
 }

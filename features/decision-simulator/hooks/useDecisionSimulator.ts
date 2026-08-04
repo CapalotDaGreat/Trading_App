@@ -1,7 +1,9 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMemo } from 'react';
 
 import { useTraderMemory, useRegime } from '@/features/decision/hooks/useDecision';
 import { useAppendDecisionRecord } from '@/features/decision-log/hooks/useDecisionLog';
+import { summarizePassport } from '@/features/decision-passport/services/passport.service';
 import { useDecisionPassportStore } from '@/features/decision-passport/stores/passport.store';
 import { createSimulatorSession } from '@/features/decision-simulator/services/simulator-session.service';
 import { useSimulatorStore } from '@/features/decision-simulator/stores/simulator.store';
@@ -22,7 +24,13 @@ export function useDecisionSimulator() {
   const submitDecision = useSimulatorStore((s) => s.submitDecision);
   const clearActive = useSimulatorStore((s) => s.clearActive);
   const recordPassport = useDecisionPassportStore((s) => s.recordSimulatorResult);
-  const passport = useDecisionPassportStore((s) => s.getSnapshot());
+  const processScores = useDecisionPassportStore((s) => s.processScores);
+  const credentials = useDecisionPassportStore((s) => s.credentials);
+  const lastAction = useDecisionPassportStore((s) => s.lastAction);
+  const passport = useMemo(
+    () => summarizePassport({ processScores, credentials, lastAction }),
+    [processScores, credentials, lastAction],
+  );
 
   const regimeQuery = useRegime();
   const memoryQuery = useTraderMemory();
