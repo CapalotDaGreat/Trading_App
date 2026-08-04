@@ -124,7 +124,7 @@ export function aggregateHeatmapDays(input: {
     return row;
   };
 
-  for (const record of input.records) {
+  for (const record of input.records ?? []) {
     if (record.createdAt < input.fromMs || record.createdAt > input.toMs) continue;
     if (record.eventKey) {
       if (seenKeys.has(record.eventKey)) continue;

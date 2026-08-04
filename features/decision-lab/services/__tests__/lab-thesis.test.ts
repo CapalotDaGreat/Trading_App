@@ -139,6 +139,6 @@ describe('decision-lab thesis', () => {
     expect(challenges.find((c) => c.id === 'stops-five')?.progress).toBe(1);
     const stats = buildLabStats([closed]);
     expect(stats.tradesClosed).toBe(1);
-    expect(stats.simulatedPnlNote.toLowerCase()).toContain('secondary');
+    expect(stats.simulatedPnlNote.toLowerCase()).toContain('process adherence');
   });
 });

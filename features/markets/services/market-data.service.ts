@@ -158,95 +158,157 @@ function alphaInterval(interval: CandleInterval): string {
   return map[interval];
 }
 
-async function fetchCryptoQuote(symbol: string): Promise<Quote> {
-  const coinId = getCryptoId(symbol);
-  const data = await apiRequest<{
-    [id: string]: {
-      usd: number;
-      usd_24h_change: number;
-      usd_24h_vol: number;
-      usd_market_cap: number;
-    };
-  }>(`${COINGECKO_BASE}/simple/price`, {
-    skipAuth: true,
-    rateLimitKey: 'coingecko',
-    params: {
-      ids: coinId,
-      vs_currencies: 'usd',
-      include_24hr_change: true,
-      include_24hr_vol: true,
-      include_market_cap: true,
-    },
-  });
-
-  const coin = data[coinId];
-  if (!coin) {
-    throw new ApiError(`Crypto asset not found: ${symbol}`, 404);
-  }
-
-  const changePercent = coin.usd_24h_change ?? 0;
-  const price = coin.usd;
-  const change = (price * changePercent) / 100;
-  const previousClose = price - change;
+/** Deterministic sample quote when live vendors are slow/unreachable (Expo Go / demo). */
+function buildSampleQuote(symbol: string, currency = 'USD'): Quote {
+  const seed = [...symbol.toUpperCase()].reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  const upper = symbol.toUpperCase();
+  const basePrice = upper.includes('BTC')
+    ? 60_000 + (seed % 5_000)
+    : upper.includes('ETH')
+      ? 2_500 + (seed % 400)
+      : upper.includes('/')
+        ? 0.85 + (seed % 50) / 100
+        : 80 + (seed % 120);
+  const changePercent = ((seed % 9) - 4) * 0.12;
+  const change = (basePrice * changePercent) / 100;
+  const previousClose = basePrice - change;
 
   return {
     symbol,
-    price,
+    price: basePrice,
     change,
     changePercent,
     open: previousClose,
-    high: price,
-    low: price,
+    high: Math.max(basePrice, previousClose) * 1.005,
+    low: Math.min(basePrice, previousClose) * 0.995,
     previousClose,
-    volume: coin.usd_24h_vol ?? 0,
-    marketCap: coin.usd_market_cap,
+    volume: 1_000_000 + seed * 100,
     timestamp: Date.now(),
     status: 'open',
-    currency: 'USD',
+    currency,
   };
 }
 
-async function fetchForexQuote(symbol: string): Promise<Quote> {
-  const [base, quote = 'USD'] = symbol.split('/');
-  const data = await apiRequest<{
-    rates: Record<string, number>;
-    time_last_update_unix: number;
-  }>(`${EXCHANGE_RATE_BASE}/${base}`, {
-    skipAuth: true,
-    rateLimitKey: 'forex',
-  });
+async function fetchCryptoQuote(symbol: string): Promise<{ quote: Quote; sample: boolean }> {
+  const coinId = getCryptoId(symbol);
+  try {
+    const data = await apiRequest<{
+      [id: string]: {
+        usd: number;
+        usd_24h_change: number;
+        usd_24h_vol: number;
+        usd_market_cap: number;
+      };
+    }>(`${COINGECKO_BASE}/simple/price`, {
+      skipAuth: true,
+      rateLimitKey: 'coingecko',
+      timeout: 4_000,
+      retries: 0,
+      failureLog: 'warn',
+      params: {
+        ids: coinId,
+        vs_currencies: 'usd',
+        include_24hr_change: true,
+        include_24hr_vol: true,
+        include_market_cap: true,
+      },
+    });
 
-  const rate = data.rates[quote];
-  if (!rate) {
-    throw new ApiError(`Forex pair not found: ${symbol}`, 404);
+    const coin = data[coinId];
+    if (!coin) {
+      throw new ApiError(`Crypto asset not found: ${symbol}`, 404);
+    }
+
+    const changePercent = coin.usd_24h_change ?? 0;
+    const price = coin.usd;
+    const change = (price * changePercent) / 100;
+    const previousClose = price - change;
+
+    return {
+      quote: {
+        symbol,
+        price,
+        change,
+        changePercent,
+        open: previousClose,
+        high: price,
+        low: price,
+        previousClose,
+        volume: coin.usd_24h_vol ?? 0,
+        marketCap: coin.usd_market_cap,
+        timestamp: Date.now(),
+        status: 'open',
+        currency: 'USD',
+      },
+      sample: false,
+    };
+  } catch (error) {
+    logger.warn('market_data.crypto_quote_fallback_sample', {
+      symbol,
+      message: error instanceof Error ? error.message : 'unknown',
+    });
+    return { quote: buildSampleQuote(symbol), sample: true };
   }
+}
 
-  const inverseData = await apiRequest<{
-    rates: Record<string, number>;
-  }>(`${EXCHANGE_RATE_BASE}/${quote}`, {
-    skipAuth: true,
-    rateLimitKey: 'forex',
-  });
+async function fetchForexQuote(symbol: string): Promise<{ quote: Quote; sample: boolean }> {
+  const [base, quoteCurrency = 'USD'] = symbol.split('/');
+  try {
+    const data = await apiRequest<{
+      rates: Record<string, number>;
+      time_last_update_unix: number;
+    }>(`${EXCHANGE_RATE_BASE}/${base}`, {
+      skipAuth: true,
+      rateLimitKey: 'forex',
+      timeout: 4_000,
+      retries: 0,
+      failureLog: 'warn',
+    });
 
-  const previousRate = inverseData.rates[base];
-  const previousClose = previousRate ? 1 / previousRate : rate;
-  const change = rate - previousClose;
-  const changePercent = previousClose !== 0 ? (change / previousClose) * 100 : 0;
+    const rate = data.rates[quoteCurrency];
+    if (!rate) {
+      throw new ApiError(`Forex pair not found: ${symbol}`, 404);
+    }
 
-  return {
-    symbol,
-    price: rate,
-    change,
-    changePercent,
-    open: previousClose,
-    high: Math.max(rate, previousClose),
-    low: Math.min(rate, previousClose),
-    previousClose,
-    volume: 0,
-    timestamp: (data.time_last_update_unix ?? Date.now() / 1000) * 1000,
-    status: 'open',
-    currency: quote,
-  };
+    const inverseData = await apiRequest<{
+      rates: Record<string, number>;
+    }>(`${EXCHANGE_RATE_BASE}/${quoteCurrency}`, {
+      skipAuth: true,
+      rateLimitKey: 'forex',
+      timeout: 4_000,
+      retries: 0,
+      failureLog: 'warn',
+    });
+
+    const previousRate = inverseData.rates[base];
+    const previousClose = previousRate ? 1 / previousRate : rate;
+    const change = rate - previousClose;
+    const changePercent = previousClose !== 0 ? (change / previousClose) * 100 : 0;
+
+    return {
+      quote: {
+        symbol,
+        price: rate,
+        change,
+        changePercent,
+        open: previousClose,
+        high: Math.max(rate, previousClose),
+        low: Math.min(rate, previousClose),
+        previousClose,
+        volume: 0,
+        timestamp: (data.time_last_update_unix ?? Date.now() / 1000) * 1000,
+        status: 'open',
+        currency: quoteCurrency,
+      },
+      sample: false,
+    };
+  } catch (error) {
+    logger.warn('market_data.forex_quote_fallback_sample', {
+      symbol,
+      message: error instanceof Error ? error.message : 'unknown',
+    });
+    return { quote: buildSampleQuote(symbol, quoteCurrency), sample: true };
+  }
 }
 
 async function fetchFinnhubQuote(symbol: string): Promise<Quote | null> {
@@ -363,20 +425,41 @@ export async function fetchQuoteWithMetadataDirect(
   const type = marketType ?? detectMarketType(symbol);
 
   switch (type) {
-    case 'crypto':
+    case 'crypto': {
+      if (!canUseVendorProxy() && !allowDevDirectVendors()) {
+        return {
+          quote: buildSampleQuote(symbol),
+          provider: 'sample',
+          fetchedAt: Date.now(),
+          kind: 'sample',
+        };
+      }
+      const result = await fetchCryptoQuote(symbol);
       return {
-        quote: await fetchCryptoQuote(symbol),
-        provider: 'coingecko',
+        quote: result.quote,
+        provider: result.sample ? 'sample' : 'coingecko',
         fetchedAt: Date.now(),
-        kind: 'delayed',
+        kind: result.sample ? 'sample' : 'delayed',
       };
-    case 'forex':
+    }
+    case 'forex': {
+      if (!canUseVendorProxy() && !allowDevDirectVendors()) {
+        const [, quoteCurrency = 'USD'] = symbol.split('/');
+        return {
+          quote: buildSampleQuote(symbol, quoteCurrency),
+          provider: 'sample',
+          fetchedAt: Date.now(),
+          kind: 'sample',
+        };
+      }
+      const result = await fetchForexQuote(symbol);
       return {
-        quote: await fetchForexQuote(symbol),
-        provider: 'exchange-rate-api',
+        quote: result.quote,
+        provider: result.sample ? 'sample' : 'exchange-rate-api',
         fetchedAt: Date.now(),
-        kind: 'delayed',
+        kind: result.sample ? 'sample' : 'delayed',
       };
+    }
     case 'stocks':
     case 'indices':
     case 'commodities': {
@@ -404,23 +487,8 @@ export async function fetchQuoteWithMetadataDirect(
         };
       }
       // Guest / demo / unsigned: honest sample path (no vendor secrets).
-      const seed = [...symbol.toUpperCase()].reduce((a, c) => a + c.charCodeAt(0), 0);
-      const price = 80 + (seed % 120);
       return {
-        quote: {
-          symbol,
-          price,
-          change: ((seed % 9) - 4) * 0.15,
-          changePercent: ((seed % 9) - 4) * 0.12,
-          open: price * 0.995,
-          high: price * 1.01,
-          low: price * 0.99,
-          previousClose: price * 0.997,
-          volume: 1_000_000 + seed * 100,
-          timestamp: Date.now(),
-          status: 'open',
-          currency: 'USD',
-        },
+        quote: buildSampleQuote(symbol),
         provider: 'sample',
         fetchedAt: Date.now(),
         kind: 'sample',
@@ -456,36 +524,47 @@ async function fetchCryptoCandles(
   symbol: string,
   interval: CandleInterval,
   limit: number,
-): Promise<Candle[]> {
+): Promise<{ candles: Candle[]; sample: boolean }> {
   const coinId = getCryptoId(symbol);
   const days = intervalToDays(interval, limit);
 
-  const data = await apiRequest<{
-    prices: [number, number][];
-    total_volumes: [number, number][];
-  }>(`${COINGECKO_BASE}/coins/${coinId}/market_chart`, {
-    skipAuth: true,
-    rateLimitKey: 'coingecko',
-    params: {
-      vs_currency: 'usd',
-      days: String(days),
-    },
-  });
+  try {
+    const data = await apiRequest<{
+      prices: [number, number][];
+      total_volumes: [number, number][];
+    }>(`${COINGECKO_BASE}/coins/${coinId}/market_chart`, {
+      skipAuth: true,
+      rateLimitKey: 'coingecko',
+      timeout: 4_000,
+      retries: 0,
+      failureLog: 'warn',
+      params: {
+        vs_currency: 'usd',
+        days: String(days),
+      },
+    });
 
-  const volumes = new Map(data.total_volumes.map(([ts, vol]) => [ts, vol]));
-  const candles: Candle[] = data.prices.map(([timestamp, price], index) => {
-    const prevPrice = index > 0 ? data.prices[index - 1][1] : price;
-    return {
-      timestamp,
-      open: prevPrice,
-      high: Math.max(prevPrice, price),
-      low: Math.min(prevPrice, price),
-      close: price,
-      volume: volumes.get(timestamp) ?? 0,
-    };
-  });
+    const volumes = new Map(data.total_volumes.map(([ts, vol]) => [ts, vol]));
+    const candles: Candle[] = data.prices.map(([timestamp, price], index) => {
+      const prevPrice = index > 0 ? data.prices[index - 1][1] : price;
+      return {
+        timestamp,
+        open: prevPrice,
+        high: Math.max(prevPrice, price),
+        low: Math.min(prevPrice, price),
+        close: price,
+        volume: volumes.get(timestamp) ?? 0,
+      };
+    });
 
-  return candles.slice(-limit);
+    return { candles: candles.slice(-limit), sample: false };
+  } catch (error) {
+    logger.warn('market_data.crypto_candles_fallback_sample', {
+      symbol,
+      message: error instanceof Error ? error.message : 'unknown',
+    });
+    return { candles: buildSampleEquityCandles(symbol, interval, limit), sample: true };
+  }
 }
 
 async function fetchFinnhubCandles(
@@ -649,14 +728,12 @@ async function fetchForexCandles(
   symbol: string,
   interval: CandleInterval,
   limit: number,
-): Promise<Candle[]> {
+): Promise<{ candles: Candle[]; sample: boolean }> {
   const finnhub = await fetchFinnhubForexCandles(symbol, interval, limit);
-  if (finnhub?.length) return finnhub;
+  if (finnhub?.length) return { candles: finnhub, sample: false };
 
-  throw new ApiError(
-    `Forex OHLC unavailable for ${symbol}. Configure Finnhub for real FX candles.`,
-    503,
-  );
+  logger.warn('market_data.forex_candles_fallback_sample', { symbol, interval, limit });
+  return { candles: buildSampleEquityCandles(symbol, interval, limit), sample: true };
 }
 
 /** Deterministic sample equity path for demo when live OHLC providers fail. Never used for FX. */
@@ -770,13 +847,23 @@ export async function fetchCandlesWithMetadataDirect(
   const type = marketType ?? detectMarketType(symbol);
 
   switch (type) {
-    case 'crypto':
+    case 'crypto': {
+      if (!canUseVendorProxy() && !allowDevDirectVendors()) {
+        return {
+          candles: buildSampleEquityCandles(symbol, interval, limit),
+          provider: 'sample',
+          fetchedAt: Date.now(),
+          kind: 'sample',
+        };
+      }
+      const result = await fetchCryptoCandles(symbol, interval, limit);
       return {
-        candles: await fetchCryptoCandles(symbol, interval, limit),
-        provider: 'coingecko',
+        candles: result.candles,
+        provider: result.sample ? 'sample' : 'coingecko',
         fetchedAt: Date.now(),
-        kind: 'approximate',
+        kind: result.sample ? 'sample' : 'approximate',
       };
+    }
     case 'forex': {
       if (canUseVendorProxy()) {
         try {
@@ -794,11 +881,20 @@ export async function fetchCandlesWithMetadataDirect(
           });
         }
       }
+      if (!allowDevDirectVendors()) {
+        return {
+          candles: buildSampleEquityCandles(symbol, interval, limit),
+          provider: 'sample',
+          fetchedAt: Date.now(),
+          kind: 'sample',
+        };
+      }
+      const result = await fetchForexCandles(symbol, interval, limit);
       return {
-        candles: await fetchForexCandles(symbol, interval, limit),
-        provider: 'finnhub',
+        candles: result.candles,
+        provider: result.sample ? 'sample' : 'finnhub',
         fetchedAt: Date.now(),
-        kind: 'delayed',
+        kind: result.sample ? 'sample' : 'delayed',
       };
     }
     case 'stocks':
@@ -870,6 +966,9 @@ export async function fetchFearGreedIndex(): Promise<FearGreedData> {
   }>('https://api.alternative.me/fng/?limit=1', {
     skipAuth: true,
     rateLimitKey: 'feargreed',
+    timeout: 3_000,
+    retries: 0,
+    failureLog: 'warn',
   });
 
   const latest = data.data[0];

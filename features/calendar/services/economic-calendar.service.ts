@@ -152,34 +152,40 @@ async function fetchFromFinnhub(from: string, to: string): Promise<EconomicEvent
   url.searchParams.set('to', to);
   url.searchParams.set('token', FINNHUB_API_KEY);
 
-  const response = await fetch(url.toString());
-  if (!response.ok) {
-    throw new Error(`Finnhub calendar error: ${response.status}`);
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 5_000);
+  try {
+    const response = await fetch(url.toString(), { signal: controller.signal });
+    if (!response.ok) {
+      throw new Error(`Finnhub calendar error: ${response.status}`);
+    }
+
+    const data = (await response.json()) as FinnhubCalendarResponse;
+    const raw = data.economicCalendar ?? [];
+
+    return raw.map((event) => {
+      const title = event.event ?? 'Economic Event';
+      const scheduledAt = event.time ? Date.parse(event.time) : Date.now();
+      const country = event.country ?? 'Unknown';
+
+      return {
+        id: hashEventId(title, scheduledAt, country),
+        title,
+        country,
+        countryCode: country.slice(0, 2).toUpperCase(),
+        category: mapCategory(title),
+        impact: mapImpact(event.impact),
+        actual: event.actual,
+        forecast: event.estimate,
+        previous: event.prev,
+        unit: event.unit,
+        scheduledAt,
+        source: 'finnhub',
+      };
+    });
+  } finally {
+    clearTimeout(timeoutId);
   }
-
-  const data = (await response.json()) as FinnhubCalendarResponse;
-  const raw = data.economicCalendar ?? [];
-
-  return raw.map((event) => {
-    const title = event.event ?? 'Economic Event';
-    const scheduledAt = event.time ? Date.parse(event.time) : Date.now();
-    const country = event.country ?? 'Unknown';
-
-    return {
-      id: hashEventId(title, scheduledAt, country),
-      title,
-      country,
-      countryCode: country.slice(0, 2).toUpperCase(),
-      category: mapCategory(title),
-      impact: mapImpact(event.impact),
-      actual: event.actual,
-      forecast: event.estimate,
-      previous: event.prev,
-      unit: event.unit,
-      scheduledAt,
-      source: 'finnhub',
-    };
-  });
 }
 
 function applyFilter(events: EconomicEvent[], filter?: CalendarFilter): EconomicEvent[] {

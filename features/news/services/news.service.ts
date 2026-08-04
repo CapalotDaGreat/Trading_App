@@ -61,6 +61,21 @@ function hashString(value: string): string {
   return Math.abs(hash).toString(36);
 }
 
+async function fetchWithTimeout(url: string, timeoutMs = 5_000): Promise<Response> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await Promise.race([
+      fetch(url, { signal: controller.signal }),
+      new Promise<Response>((_, reject) => {
+        setTimeout(() => reject(new Error(`Request timed out after ${timeoutMs}ms`)), timeoutMs + 50);
+      }),
+    ]);
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
 function parseRssItems(xml: string): NewsArticle[] {
   const items: NewsArticle[] = [];
   const itemRegex = /<item>([\s\S]*?)<\/item>/gi;
@@ -119,7 +134,7 @@ async function fetchFromNewsApi(params: NewsFeedParams): Promise<NewsFeedResult>
   url.searchParams.set('page', String(page));
   url.searchParams.set('apiKey', NEWS_API_KEY);
 
-  const response = await fetch(url.toString());
+  const response = await fetchWithTimeout(url.toString(), 5_000);
   if (!response.ok) {
     throw new Error(`NewsAPI error: ${response.status}`);
   }
@@ -148,7 +163,7 @@ async function fetchFromNewsApi(params: NewsFeedParams): Promise<NewsFeedResult>
 }
 
 async function fetchFromRss(params: NewsFeedParams): Promise<NewsFeedResult> {
-  const response = await fetch(RSS_FEED_URL);
+  const response = await fetchWithTimeout(RSS_FEED_URL, 5_000);
   if (!response.ok) {
     throw new Error(`RSS fetch error: ${response.status}`);
   }
@@ -176,6 +191,8 @@ async function fetchFromRss(params: NewsFeedParams): Promise<NewsFeedResult> {
 }
 
 export async function fetchFinancialNews(params: NewsFeedParams = {}): Promise<NewsFeedResult> {
+  const empty: NewsFeedResult = { articles: [], totalResults: 0, source: 'rss' };
+
   if (canUseVendorProxy()) {
     try {
       const data = await callProxy<
@@ -202,7 +219,11 @@ export async function fetchFinancialNews(params: NewsFeedParams = {}): Promise<N
         source: 'newsapi',
       };
     } catch {
-      return fetchFromRss(params);
+      try {
+        return await fetchFromRss(params);
+      } catch {
+        return empty;
+      }
     }
   }
 
@@ -210,11 +231,19 @@ export async function fetchFinancialNews(params: NewsFeedParams = {}): Promise<N
     try {
       return await fetchFromNewsApi(params);
     } catch {
-      return fetchFromRss(params);
+      try {
+        return await fetchFromRss(params);
+      } catch {
+        return empty;
+      }
     }
   }
 
-  return fetchFromRss(params);
+  try {
+    return await fetchFromRss(params);
+  } catch {
+    return empty;
+  }
 }
 
 export async function fetchNewsBySymbol(symbol: string, pageSize = 10): Promise<NewsFeedResult> {

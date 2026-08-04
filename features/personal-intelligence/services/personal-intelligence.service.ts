@@ -111,8 +111,9 @@ export function buildPersonalIntelligence(
   input: PersonalIntelligenceInput,
 ): PersonalIntelligenceSnapshot {
   const nowMs = input.nowMs ?? Date.now();
+  const records = input.records ?? [];
   const heatmap = buildDecisionHeatmap({
-    records: input.records,
+    records,
     period: 'weekly',
     nowMs,
     learningEvents: input.learningEvents,
@@ -120,7 +121,7 @@ export function buildPersonalIntelligence(
 
   const dna = buildTradingDnaTraits({
     memory: input.memory,
-    records: input.records,
+    records,
     heatmapScores: heatmap.scores,
     journalCoach: input.journalCoach,
     processScoreWeek: input.processScoreWeek ?? input.logSummary?.processScore,
@@ -128,7 +129,7 @@ export function buildPersonalIntelligence(
   });
 
   const evolution = buildDnaEvolution({
-    records: input.records,
+    records,
     dna,
     nowMs,
   });
@@ -144,7 +145,7 @@ export function buildPersonalIntelligence(
   });
 
   const graph = buildDecisionGraph({
-    records: input.records,
+    records,
     dna,
     period: input.graphPeriod ?? 'weekly',
     academyEvents: input.learningEvents?.length ?? input.academyPracticed ?? 0,
@@ -155,13 +156,13 @@ export function buildPersonalIntelligence(
   const memoryTimeline = buildAiMemoryTimeline({
     dna,
     evolution,
-    records: input.records,
+    records,
     aiMemory: input.aiMemory,
     nowMs,
   });
 
   const goals = buildAdaptiveGoals({
-    records: input.records,
+    records,
     dna,
     today,
     debt: input.debt,

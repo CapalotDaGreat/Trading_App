@@ -114,7 +114,13 @@ async function fetchWithTimeout(
   const timeoutId = setTimeout(() => controller.abort(), timeout);
 
   try {
-    return await fetch(url, { ...init, signal: controller.signal });
+    // Race so callers unblock even if the underlying fetch ignores abort (seen in some Jest/Node runs).
+    return await Promise.race([
+      fetch(url, { ...init, signal: controller.signal }),
+      new Promise<Response>((_, reject) => {
+        setTimeout(() => reject(new Error(`Request timed out after ${timeout}ms`)), timeout + 50);
+      }),
+    ]);
   } finally {
     clearTimeout(timeoutId);
   }

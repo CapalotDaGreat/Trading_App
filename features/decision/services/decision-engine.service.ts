@@ -63,6 +63,22 @@ function round(n: number, d = 2): number {
   return Math.round(n * f) / f;
 }
 
+/** Keep optional vendor probes from blocking the Today brief indefinitely. */
+function withBudget<T>(promise: Promise<T>, ms: number, fallback: T): Promise<T> {
+  return new Promise<T>((resolve) => {
+    const timer = setTimeout(() => resolve(fallback), ms);
+    promise
+      .then((value) => {
+        clearTimeout(timer);
+        resolve(value);
+      })
+      .catch(() => {
+        clearTimeout(timer);
+        resolve(fallback);
+      });
+  });
+}
+
 async function safeQuotes(symbols: string[]): Promise<LiveQuote[]> {
   const results = await Promise.allSettled(symbols.map((symbol) => fetchQuoteWithMetadata(symbol)));
   return results
@@ -93,8 +109,10 @@ export async function detectRegime(prefetchedQuotes?: LiveQuote[]): Promise<Regi
     ? quotesForBenchmarks(prefetchedQuotes)
     : undefined;
   const [quotes, fearGreed] = await Promise.all([
-    benchmarkQuotes?.length ? Promise.resolve(benchmarkQuotes) : safeQuotes([...CORE_BENCHMARKS]),
-    fetchFearGreedIndex().catch(() => null),
+    benchmarkQuotes?.length
+      ? Promise.resolve(benchmarkQuotes)
+      : withBudget(safeQuotes([...CORE_BENCHMARKS]), 6_000, []),
+    withBudget(fetchFearGreedIndex().then((v) => v).catch(() => null), 3_000, null),
   ]);
 
   const avg = avgChange(quotes);
@@ -353,21 +371,48 @@ async function buildDecisionBriefInternal(input?: {
 
   const now = Date.now();
   // One shared quote batch feeds regime + radar; candle lifecycle reuses radar series.
-  const quotes = await safeQuotes([...CORE_BENCHMARKS, ...watch.slice(0, 8)]);
+  const quotes = await withBudget(
+    safeQuotes([...CORE_BENCHMARKS, ...watch.slice(0, 8)]),
+    8_000,
+    [],
+  );
   const [regime, calendarEvents, news, setups, logRecords] = await Promise.all([
-    detectRegime(quotes),
-    fetchEconomicCalendar({
-      from: now - 12 * 60 * 60 * 1000,
-      to: now + 48 * 60 * 60 * 1000,
-      impact: ['high', 'medium'],
-    }).catch(() => []),
-    fetchFinancialNews({ pageSize: 4 }).catch(() => ({
-      articles: [] as { id: string; title: string }[],
-      totalResults: 0,
-      source: 'rss' as const,
-    })),
-    buildSetupRadar(watch, quotes),
-    getDecisionRecords(input?.uid).catch(() => []),
+    withBudget(detectRegime(quotes), 8_000, {
+      regime: 'ranging' as const,
+      label: 'Range / mixed',
+      volatility: 'medium' as const,
+      trend: 'neutral' as const,
+      liquidity: 'medium' as const,
+      bestStrategies: ['Mean reversion', 'Support/resistance fades'],
+      avoidStrategies: ['Breakout chasing'],
+      asOf: Date.now(),
+      explainability: buildExplainability({
+        confidence: 40,
+        factors: [],
+        dataAsOf: Date.now(),
+        reasoning: 'Regime probe timed out — using neutral range assumption.',
+      }),
+    }),
+    withBudget(
+      fetchEconomicCalendar({
+        from: now - 12 * 60 * 60 * 1000,
+        to: now + 48 * 60 * 60 * 1000,
+        impact: ['high', 'medium'],
+      }),
+      6_000,
+      [],
+    ),
+    withBudget(
+      fetchFinancialNews({ pageSize: 4 }),
+      6_000,
+      {
+        articles: [],
+        totalResults: 0,
+        source: 'rss' as const,
+      },
+    ),
+    withBudget(buildSetupRadar(watch, quotes), 12_000, []),
+    withBudget(getDecisionRecords(input?.uid), 4_000, []),
   ]);
 
   const logSummary = summarizeDecisionLog(logRecords);
