@@ -46,5 +46,7 @@
 ## Follow-ups
 
 1. Server-side alert evaluator (Cloud Function + push) if client miss-rate is high  
-2. Invalidation-linked alerts (after delivery is proven)  
-3. Home-screen widgets once Dev Client pipeline is habitual  
+2. Invalidation-linked alerts (after delivery is proven) — see [PRODUCT_REDESIGN_SPEC.md](./PRODUCT_REDESIGN_SPEC.md) R3  
+3. Home-screen widgets once Dev Client pipeline is habitual — see redesign spec R4  
+
+Product experience / IA next: [PRODUCT_REDESIGN_SPEC.md](./PRODUCT_REDESIGN_SPEC.md) (R0 spec freeze).

@@ -1,6 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useState } from 'react';
-import { Pressable, View } from 'react-native';
+import { View } from 'react-native';
 
 import { EducationalInsightFooter } from '@/features/educational/components/EducationalInsightFooter';
 import { Badge } from '@/shared/components/ui/Badge';
@@ -10,7 +9,7 @@ import { cn } from '@/shared/utils/cn';
 import { formatRelativeTime } from '@/shared/utils/date';
 
 import type { AiMessage } from '../types/ai.types';
-import { AiTrustPanel } from './AiTrustPanel';
+import { AiTrustCenter } from './AiTrustCenter';
 
 interface AiChatBubbleProps {
   message: AiMessage;
@@ -19,58 +18,52 @@ interface AiChatBubbleProps {
 export function AiChatBubble({ message }: AiChatBubbleProps) {
   const isUser = message.role === 'user';
   const { colors } = useTheme();
-  const [showTrust, setShowTrust] = useState(false);
   const trust = message.metadata?.trust;
 
   return (
-    <View className={cn('mb-3 flex-row', isUser ? 'justify-end' : 'justify-start')}>
+    <View className={cn('mb-4 flex-row', isUser ? 'justify-end' : 'justify-start')}>
       {!isUser ? (
-        <View className="mr-2 mt-1 h-7 w-7 items-center justify-center rounded-full bg-accent-muted">
-          <Ionicons name="sparkles" size={14} color={colors.accent.primary} />
+        <View className="mr-2 mt-1 h-8 w-8 items-center justify-center rounded-full bg-accent-muted">
+          <Ionicons name="library-outline" size={15} color={colors.accent.primary} />
         </View>
       ) : null}
 
       <View
         className={cn(
-          isUser ? 'max-w-[80%]' : 'max-w-[92%]',
-          'rounded-2xl px-4 py-3',
+          isUser ? 'max-w-[80%]' : 'max-w-[94%]',
+          'rounded-2xl px-4 py-3.5',
           isUser
             ? 'rounded-br-sm bg-accent'
-            : 'rounded-bl-sm border border-border bg-surface-glass',
+            : 'rounded-bl-sm border border-border bg-background-elevated',
         )}
       >
         <Text
           variant="body-sm"
-          className={cn('leading-relaxed', isUser ? 'text-text-on-accent' : 'text-text-primary')}
+          className={cn('leading-6', isUser ? 'text-text-on-accent' : 'text-text-primary')}
         >
           {message.content}
         </Text>
 
         {!isUser && message.metadata?.source ? (
-          <View className="mt-2 flex-row flex-wrap items-center gap-2">
-            <Badge label="Local rules engine" variant="default" size="sm" />
-            {message.metadata.confidence ? (
-              <Text variant="caption">
-                {message.metadata.confidence}% evidence quality
+          <View className="mt-2.5 flex-row flex-wrap items-center gap-2">
+            <Badge label="Research engine" variant="default" size="sm" />
+            {message.metadata.confidence != null || trust?.confidence.overall != null ? (
+              <Text variant="caption" className="text-text-tertiary">
+                {trust?.confidence.overall ?? message.metadata.confidence}% evidence quality
               </Text>
             ) : null}
-            {trust ? (
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel={showTrust ? 'Hide trust details' : 'Show trust details'}
-                onPress={() => setShowTrust((v) => !v)}
-              >
-                <Text variant="caption" className="text-accent">
-                  {showTrust ? 'Hide why' : 'Why / evidence'}
-                </Text>
-              </Pressable>
-            ) : null}
+            <Text variant="caption" className="text-text-tertiary">
+              {formatRelativeTime(message.timestamp)}
+            </Text>
           </View>
         ) : null}
 
-        {!isUser && showTrust && trust ? <AiTrustPanel trust={trust} compact /> : null}
+        {/* Phase B: trust chrome is default-visible on every assistant answer with a payload */}
+        {!isUser && trust ? (
+          <AiTrustCenter trust={trust} compact showTitle />
+        ) : null}
 
-        {!isUser && !showTrust && message.metadata?.citations?.length ? (
+        {!isUser && !trust && message.metadata?.citations?.length ? (
           <View className="mt-2 gap-0.5">
             {message.metadata.citations.slice(0, 3).map((c) => (
               <Text key={`${c.label}-${c.value}`} variant="caption" className="text-text-tertiary">
@@ -82,12 +75,11 @@ export function AiChatBubble({ message }: AiChatBubbleProps) {
 
         {!isUser ? <EducationalInsightFooter compact /> : null}
 
-        <Text
-          variant="caption"
-          className={cn('mt-1.5', isUser ? 'text-text-on-accent' : 'text-text-tertiary')}
-        >
-          {formatRelativeTime(message.timestamp)}
-        </Text>
+        {isUser ? (
+          <Text variant="caption" className="mt-1.5 text-text-on-accent">
+            {formatRelativeTime(message.timestamp)}
+          </Text>
+        ) : null}
       </View>
     </View>
   );

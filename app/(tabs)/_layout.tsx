@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
-import { Platform } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
 
 import { IA_GLOSSARY } from '@/features/navigation/config/navigation-ia.config';
 import { ErrorBoundary } from '@/shared/components/feedback/ErrorBoundary';
@@ -24,17 +24,21 @@ export default function TabLayout() {
           tabBarInactiveTintColor: colors.text.tertiary,
           tabBarStyle: {
             backgroundColor: colors.background.primary,
-            borderTopColor: 'transparent',
-            borderTopWidth: 0,
-            height: Platform.OS === 'ios' ? 88 : 64,
-            paddingBottom: Platform.OS === 'ios' ? 28 : 8,
-            paddingTop: 8,
+            borderTopColor: colors.border.default,
+            borderTopWidth: StyleSheet.hairlineWidth,
+            height: Platform.OS === 'ios' ? 88 : 68,
+            paddingBottom: Platform.OS === 'ios' ? 28 : 10,
+            paddingTop: 10,
             elevation: 0,
             shadowOpacity: 0,
           },
           tabBarLabelStyle: {
-            fontSize: 11,
-            fontWeight: '600',
+            fontSize: 10,
+            fontWeight: '500',
+            letterSpacing: 0.2,
+          },
+          tabBarItemStyle: {
+            minHeight: 44,
           },
         }}
       >

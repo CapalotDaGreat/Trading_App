@@ -35,20 +35,20 @@ export function EmptyState({
       accessibilityRole="summary"
       accessibilityLabel={`${title}${description ? `. ${description}` : ''}`}
       testID={testID}
-      className={cn('flex-1 items-center justify-center px-8 py-12', className)}
+      className={cn('flex-1 items-center justify-center px-10 py-16', className)}
     >
       {icon ? (
-        <View className="mb-4 opacity-60">{icon}</View>
+        <View className="mb-6 opacity-50">{icon}</View>
       ) : (
-        <View className="mb-4 h-12 w-12 items-center justify-center rounded-2xl bg-surface">
-          <Ionicons name={iconName} size={24} color={colors.text.tertiary} />
+        <View className="mb-6 h-14 w-14 items-center justify-center rounded-panel bg-surface">
+          <Ionicons name={iconName} size={26} color={colors.text.tertiary} />
         </View>
       )}
-      <Text variant="h3" className="mb-2 text-center">
+      <Text variant="h3" className="mb-3 text-center tracking-tight">
         {title}
       </Text>
       {description ? (
-        <Text variant="body-sm" className="mb-6 max-w-xs text-center text-text-secondary">
+        <Text variant="body-sm" className="mb-8 max-w-sm text-center leading-6 text-text-secondary">
           {description}
         </Text>
       ) : null}

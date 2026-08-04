@@ -12,12 +12,13 @@ interface AiMemoryInsightCardProps {
 /** Privacy-safe learning memory — no account PII. */
 export function AiMemoryInsightCard({ memory }: AiMemoryInsightCardProps) {
   return (
-    <GlassCard className="p-4">
-      <Text variant="caption" className="font-semibold uppercase tracking-wide text-text-tertiary">
-        AI learning memory
+    <GlassCard className="p-5">
+      <Text variant="caption" className="font-medium tracking-wide text-text-tertiary">
+        AI memory timeline (process traits)
       </Text>
-      <Text variant="body-sm" className="mt-1 text-text-secondary">
-        Process traits from Trader Memory / DNA — never personal identity data.
+      <Text variant="body-sm" className="mt-1.5 leading-6 text-text-secondary">
+        How your research habits shape coaching — never identity data, journal text, or portfolio
+        values.
       </Text>
 
       <View className="mt-3 gap-2">

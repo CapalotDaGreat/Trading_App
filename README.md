@@ -130,11 +130,14 @@ Premium status syncs from the RevenueCat REST API to Firestore on login and afte
 |-----------------------|-----------------------------------------------------|
 | Subscriptions         | Web checkout via RevenueCat REST + Firestore sync   |
 | Notifications         | Expo push tokens saved to Firestore                 |
-| Price alerts          | Foreground-only evaluation (~45s poll while open)   |
+| Price alerts          | Foreground ~45s poll; background needs Dev Client   |
 | Settings              | Full local + Firestore sync                         |
 
-Background alert evaluation, native IAP, and widgets require an EAS dev client — see
-[`docs/DEV_BUILD.md`](docs/DEV_BUILD.md).
+Background alert evaluation, native IAP, and widgets require an EAS Dev Client — see
+[`docs/DEV_BUILD.md`](docs/DEV_BUILD.md). Product experience roadmap:
+[`docs/PRODUCT_REDESIGN_SPEC.md`](docs/PRODUCT_REDESIGN_SPEC.md). Calm UI system:
+[`docs/PHASE_A_PRODUCT_EXCELLENCE.md`](docs/PHASE_A_PRODUCT_EXCELLENCE.md). AI Trust Center:
+[`docs/PHASE_B_AI_TRUST_CENTER.md`](docs/PHASE_B_AI_TRUST_CENTER.md).
 
 ## Project structure
 

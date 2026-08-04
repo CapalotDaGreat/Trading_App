@@ -2,6 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import type {
   AiChangeDriverDetail,
+  AiConfidenceHistoryPoint,
   AiRecommendationSnapshot,
   AiWhyChanged,
 } from '../types/ai-trust.types';
@@ -141,4 +142,23 @@ export async function getAiWhyChanged(symbol: string): Promise<AiWhyChanged | nu
     reason: drivers[0]?.detail ?? 'Context updated.',
     drivers,
   };
+}
+
+/** Confidence / priority history for Trust Center — process quality only. */
+export async function getAiConfidenceHistory(
+  symbol: string,
+  limit = 8,
+): Promise<AiConfidenceHistoryPoint[]> {
+  const store = await loadStore();
+  const list = store[symbol.toUpperCase()] ?? [];
+  return list
+    .slice(-limit)
+    .reverse()
+    .map((s) => ({
+      at: s.at,
+      overallConfidence: s.overallConfidence,
+      action: s.action,
+      bias: s.bias,
+      summary: summarizeSnapshot(s),
+    }));
 }

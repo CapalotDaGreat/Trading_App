@@ -70,7 +70,7 @@ export function Screen({
     return (
       <View
         accessibilityLabel={accessibilityTitle}
-        className={cn('flex-1 bg-background-secondary', className)}
+        className={cn('flex-1 bg-background', className)}
         style={style}
         {...props}
       >
@@ -99,7 +99,7 @@ export function Screen({
   return (
     <View
       accessibilityLabel={accessibilityTitle}
-      className={cn('flex-1 bg-background-secondary', padded && 'px-5', className)}
+      className={cn('flex-1 bg-background', padded && 'px-6', className)}
       style={[
         {
           paddingTop: showOfflineBanner ? 0 : topPad,

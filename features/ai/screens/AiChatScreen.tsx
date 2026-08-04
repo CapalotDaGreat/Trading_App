@@ -9,8 +9,10 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-import { useFeatureFlag } from '@/features/ops-config/hooks/useOpsConfig';
 import { EducationalModeBadge } from '@/features/educational/components/EducationalModeBadge';
+import { useFeatureFlag } from '@/features/ops-config/hooks/useOpsConfig';
+import { AiMemoryTimeline } from '@/features/personal-intelligence/components/AiMemoryTimeline';
+import { usePersonalIntelligence } from '@/features/personal-intelligence/hooks/usePersonalIntelligence';
 import { EmptyState } from '@/shared/components/feedback/EmptyState';
 import { Header } from '@/shared/components/layout/Header';
 import { Screen } from '@/shared/components/layout/Screen';
@@ -25,8 +27,8 @@ import { AiDisclaimer } from '../components/AiDisclaimer';
 import { AiMemoryInsightCard } from '../components/AiMemoryInsightCard';
 import { AiUsageBanner } from '../components/AiUsageBanner';
 import { DEFAULT_CHAT_PROMPTS, PromptSuggestions } from '../components/PromptSuggestions';
-import { useAiChat } from '../hooks/useAiChat';
 import { useAiAnalysis } from '../hooks/useAiAnalysis';
+import { useAiChat } from '../hooks/useAiChat';
 import { useAiLearningMemory } from '../hooks/useAiLearningMemory';
 import { aiService } from '../services/ai.service';
 import type { AiMessage } from '../types/ai.types';
@@ -43,9 +45,11 @@ export function AiChatScreen({ symbol }: AiChatScreenProps) {
   const isPremium = useSubscriptionStore((s) => s.isPremium);
   const { usage } = useAiAnalysis();
   const memoryQuery = useAiLearningMemory();
+  const intelligenceQuery = usePersonalIntelligence('weekly');
   const { messages, sendMessage, clearChat, isSending, error } = useAiChat(
     symbol ? { symbol } : undefined,
   );
+  const memoryTimeline = intelligenceQuery.data?.memoryTimeline?.slice(0, 4) ?? [];
 
   if (!aiChatEnabled) {
     return (
@@ -74,8 +78,8 @@ export function AiChatScreen({ symbol }: AiChatScreenProps) {
         title="Ask"
         subtitle={
           symbol
-            ? `Educational research context for ${symbol}`
-            : 'Research opportunities & explainability — not trade signals'
+            ? `Why this for ${symbol}? Evidence first — not signals.`
+            : 'What should I understand? Evidence first — not signals.'
         }
         rightAction={
           <IconButton
@@ -103,9 +107,20 @@ export function AiChatScreen({ symbol }: AiChatScreenProps) {
           contentContainerStyle={{ padding: 16, paddingBottom: 8 }}
           onContentSizeChange={() => listRef.current?.scrollToEnd({ animated: false })}
           ListHeaderComponent={
-            <View className="mb-4 gap-3">
+            <View className="mb-5 gap-4">
               <AiDisclaimer />
+              <View className="rounded-panel border border-border bg-background-elevated px-4 py-3.5">
+                <Text variant="caption" className="font-medium text-accent">
+                  Trust Center
+                </Text>
+                <Text variant="caption" className="mt-1.5 leading-5 text-text-secondary">
+                  Each answer should include what supports it, what contradicts it, unknowns, risk
+                  factors, evidence quality, freshness, and sources. Expand Evidence Inspector for
+                  pillars, invalidation, and model limits.
+                </Text>
+              </View>
               {memoryQuery.data ? <AiMemoryInsightCard memory={memoryQuery.data} /> : null}
+              {memoryTimeline.length ? <AiMemoryTimeline events={memoryTimeline} /> : null}
             </View>
           }
         />

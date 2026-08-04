@@ -26,7 +26,7 @@ export function CollapsibleSection({
 
   return (
     <View
-      className={cn('overflow-hidden rounded-card bg-background-elevated', className)}
+      className={cn('overflow-hidden rounded-panel bg-background-elevated', className)}
       {...props}
     >
       <Pressable
@@ -35,14 +35,14 @@ export function CollapsibleSection({
         accessibilityHint={expanded ? 'Collapses this section' : 'Expands this section'}
         accessibilityState={{ expanded }}
         onPress={() => setExpanded((value) => !value)}
-        className="min-h-11 flex-row items-center px-4 py-3"
+        className="min-h-13 flex-row items-center px-4 py-3.5"
       >
         <View className="flex-1 pr-3">
           <Text variant="label" className="text-text-primary">
             {title}
           </Text>
-          {description ? (
-            <Text variant="caption" className="mt-0.5">
+          {description && !expanded ? (
+            <Text variant="caption" className="mt-1 leading-5">
               {description}
             </Text>
           ) : null}
@@ -53,7 +53,9 @@ export function CollapsibleSection({
           color={colors.text.tertiary}
         />
       </Pressable>
-      {expanded ? <View className="border-t border-border px-4 py-3">{children}</View> : null}
+      {expanded ? (
+        <View className="gap-4 border-t border-border px-4 py-4">{children}</View>
+      ) : null}
     </View>
   );
 }

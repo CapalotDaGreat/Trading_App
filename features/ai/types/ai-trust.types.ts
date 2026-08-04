@@ -109,6 +109,35 @@ export interface AiTrustMeta {
   dataKind: DataSourceKind;
   citations: AiCitation[];
   educationalReminder: string;
+  /** Indicator / module citations for Evidence Inspector. */
+  indicatorCitations: AiCitation[];
+}
+
+/** Phase B — always-on research analyst briefing (never signal language). */
+export interface AiTrustBriefing {
+  /** One-line reliability answer: “How reliable is this?” */
+  reliabilitySummary: string;
+  supports: string[];
+  contradicts: string[];
+  unknowns: string[];
+  riskFactors: string[];
+  assumptions: string[];
+  missingInformation: string[];
+  /** “What would invalidate this?” */
+  invalidateQuestions: string[];
+  freshnessExplanation: string;
+  dataQualityExplanation: string;
+  modelLimitations: string[];
+  uncertaintyNote: string;
+  alternativeViewpoint: string;
+}
+
+export interface AiConfidenceHistoryPoint {
+  at: number;
+  overallConfidence: number;
+  action?: 'research' | 'watch' | 'skip';
+  bias?: 'bullish' | 'bearish' | 'neutral';
+  summary: string;
 }
 
 /** Full trust payload attached to AI analysis / chat. */
@@ -116,7 +145,9 @@ export interface AiTrustPayload {
   confidence: ConfidenceBreakdown;
   evidence: EvidencePack;
   counterfactuals: AiCounterfactual[];
+  briefing: AiTrustBriefing;
   whyChanged?: AiWhyChanged | null;
+  confidenceHistory?: AiConfidenceHistoryPoint[];
   meta: AiTrustMeta;
 }
 

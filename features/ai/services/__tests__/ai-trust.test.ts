@@ -72,4 +72,23 @@ describe('ai trust engine', () => {
     expect(trust.counterfactuals.length).toBeGreaterThan(0);
     expect(['live', 'recent', 'stale', 'unknown']).toContain(trust.meta.freshness);
   });
+
+  it('Phase B briefing includes supports, contradicts, unknowns, and reliability', () => {
+    const trust = buildAiTrustPayload(context, { sentiment: 'bullish', action: 'research' });
+    const { briefing } = trust;
+    expect(briefing.reliabilitySummary.toLowerCase()).toMatch(/reliab|caution|quality/);
+    expect(briefing.supports.length).toBeGreaterThan(0);
+    expect(briefing.contradicts.length).toBeGreaterThan(0);
+    expect(briefing.unknowns.length).toBeGreaterThan(0);
+    expect(briefing.riskFactors.length).toBeGreaterThan(0);
+    expect(briefing.assumptions.length).toBeGreaterThan(0);
+    expect(briefing.missingInformation.length).toBeGreaterThan(0);
+    expect(briefing.invalidateQuestions.length).toBeGreaterThan(0);
+    expect(briefing.freshnessExplanation.length).toBeGreaterThan(10);
+    expect(briefing.dataQualityExplanation.length).toBeGreaterThan(10);
+    expect(briefing.modelLimitations.length).toBeGreaterThan(2);
+    expect(briefing.uncertaintyNote.toLowerCase()).toMatch(/uncertain|process/);
+    expect(briefing.alternativeViewpoint.length).toBeGreaterThan(10);
+    expect(JSON.stringify(briefing).toLowerCase()).not.toMatch(/buy now|sell now|guaranteed/);
+  });
 });

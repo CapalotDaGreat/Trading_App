@@ -16,15 +16,15 @@ export interface CardProps extends Omit<ComponentProps<typeof View>, 'children'>
 }
 
 const variantStyles: Record<CardVariant, string> = {
-  default: 'bg-surface',
+  default: 'bg-background-elevated',
   elevated: 'bg-background-elevated',
-  outlined: 'border border-border-strong bg-background-elevated',
+  outlined: 'border border-border bg-background-elevated',
 };
 
 const paddingStyles: Record<CardPadding, string> = {
   none: '',
-  sm: 'p-3',
-  md: 'p-4',
+  sm: 'p-3.5',
+  md: 'p-5',
   lg: 'p-6',
 };
 

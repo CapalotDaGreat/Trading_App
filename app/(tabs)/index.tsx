@@ -39,13 +39,26 @@ import { DynamicTodayHero } from '@/features/personal-intelligence/components/Dy
 import { TradingDnaCard } from '@/features/personal-intelligence/components/TradingDnaCard';
 import { usePersonalIntelligence } from '@/features/personal-intelligence/hooks/usePersonalIntelligence';
 import { RecoverableErrorState } from '@/shared/components/feedback/RecoverableErrorState';
+import { FocusStack } from '@/shared/components/layout/FocusStack';
 import { Screen } from '@/shared/components/layout/Screen';
+import { ScreenQuestion } from '@/shared/components/layout/ScreenQuestion';
+import { CollapsibleSection } from '@/shared/components/patterns/CollapsibleSection';
 import { GlassCard } from '@/shared/components/ui/GlassCard';
 import { Skeleton } from '@/shared/components/ui/Skeleton';
 import { Text } from '@/shared/components/ui/Text';
 import { useTheme } from '@/shared/hooks/useTheme';
 import { useSettingsStore } from '@/shared/stores/settings.store';
 import { useSubscriptionStore } from '@/shared/stores/subscription.store';
+
+/** First-viewport focus — everything else lives under progressive disclosure. */
+const TODAY_FOCUS_SECTIONS = new Set<TodaySection>([
+  'dynamicToday',
+  'startHere',
+  'dayPlan',
+  'researchQueue',
+  'whyNot',
+  'closeLoop',
+]);
 
 const EMPTY_BRIEF: DecisionBrief = {
   greeting: 'Loading',
@@ -84,42 +97,42 @@ function TodayHeader({
 }) {
   const { colors } = useTheme();
   const completed = streak ? Object.values(streak.completedToday).filter(Boolean).length : 0;
+  const support = becomingLabel
+    ? `Becoming: ${becomingLabel}`
+    : streak
+      ? `${streak.days}d discipline · ${completed}/3 loop steps`
+      : 'One calm session. Protect attention.';
 
   return (
     <View testID="today-section-header">
-      <View className="flex-row items-center justify-between">
-        <View className="flex-1 pr-3">
-          <Text variant="h1">Today</Text>
-          <Text variant="caption" className="mt-1 text-text-secondary">
-            {becomingLabel
-              ? `Becoming: ${becomingLabel}`
-              : streak
-                ? `${streak.days}d discipline streak · ${completed}/3 loop steps`
-                : 'Your decision loop'}
-          </Text>
-        </View>
-        <View className="flex-row gap-2">
-          <Pressable
-            onPress={onOpenIntelligence}
-            className="h-11 w-11 items-center justify-center rounded-full bg-surface"
-            accessibilityRole="button"
-            accessibilityLabel="Personal Intelligence"
-            testID="today-open-intelligence"
-          >
-            <Ionicons name="analytics-outline" size={20} color={colors.accent.primary} />
-          </Pressable>
-          <Pressable
-            onPress={onAskAi}
-            className="h-11 w-11 items-center justify-center rounded-full bg-surface"
-            accessibilityRole="button"
-            accessibilityLabel="Ask AI"
-            testID="today-ask-ai"
-          >
-            <Ionicons name="sparkles" size={20} color={colors.accent.primary} />
-          </Pressable>
-        </View>
-      </View>
-      <EducationalModeBadge className="mt-3" />
+      <ScreenQuestion
+        eyebrow="Today"
+        question="What deserves your attention?"
+        support={support}
+        trailing={
+          <View className="flex-row gap-2">
+            <Pressable
+              onPress={onOpenIntelligence}
+              className="h-12 w-12 items-center justify-center rounded-full bg-surface"
+              accessibilityRole="button"
+              accessibilityLabel="Trading DNA"
+              testID="today-open-intelligence"
+            >
+              <Ionicons name="finger-print-outline" size={20} color={colors.accent.primary} />
+            </Pressable>
+            <Pressable
+              onPress={onAskAi}
+              className="h-12 w-12 items-center justify-center rounded-full bg-surface"
+              accessibilityRole="button"
+              accessibilityLabel="Ask AI"
+              testID="today-ask-ai"
+            >
+              <Ionicons name="sparkles-outline" size={20} color={colors.accent.primary} />
+            </Pressable>
+          </View>
+        }
+      />
+      <EducationalModeBadge className="-mt-3 mb-1" />
     </View>
   );
 }
@@ -135,23 +148,23 @@ function CloseLoopCard({
 }) {
   const { colors } = useTheme();
   return (
-    <GlassCard className="p-4" testID="today-section-close-loop">
-      <Text variant="caption" className="mb-1 font-semibold text-text-tertiary">
-        CLOSE THE LOOP
+    <GlassCard className="p-5" testID="today-section-close-loop">
+      <Text variant="caption" className="mb-1.5 font-medium text-text-tertiary">
+        Close the loop
       </Text>
-      <Text variant="h3" className="mb-1">
+      <Text variant="h3" className="mb-1.5 tracking-tight">
         Journal or review
       </Text>
-      <Text variant="caption" className="mb-3 text-text-secondary">
-        Record what you researched or skipped. Weekly patterns belong in Review.
+      <Text variant="caption" className="mb-5 leading-5 text-text-secondary">
+        Record what you researched or skipped. Patterns belong in Review.
       </Text>
-      <View className="flex-row gap-2">
+      <View className="flex-row gap-3">
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Journal today's decisions"
           testID="today-close-loop-journal"
           onPress={onJournal}
-          className="min-h-11 flex-1 flex-row items-center justify-center gap-2 rounded-xl bg-accent px-3"
+          className="min-h-13 flex-1 flex-row items-center justify-center gap-2 rounded-xl bg-accent px-3"
         >
           <Ionicons name="book-outline" size={17} color={colors.text.inverse} />
           <Text variant="label" className="text-text-inverse">
@@ -163,7 +176,7 @@ function CloseLoopCard({
           accessibilityLabel={reviewAccessLabel(tier)}
           testID="today-close-loop-review"
           onPress={onReview}
-          className="min-h-11 flex-1 flex-row items-center justify-center gap-2 rounded-xl bg-accent-muted px-3"
+          className="min-h-13 flex-1 flex-row items-center justify-center gap-2 rounded-xl bg-accent-muted px-3"
         >
           <Ionicons name="film-outline" size={17} color={colors.accent.primary} />
           <Text variant="label" className="text-accent">
@@ -372,10 +385,18 @@ export default function DecisionBriefScreen() {
     }
   };
 
+  const focusSections = sections.filter(
+    (section) => section === 'header' || TODAY_FOCUS_SECTIONS.has(section),
+  );
+  const moreSections = sections.filter(
+    (section) => section !== 'header' && !TODAY_FOCUS_SECTIONS.has(section),
+  );
+
   return (
     <Screen
       scrollable
       accessibilityTitle="Today"
+      contentClassName="pb-12 pt-2"
       scrollViewProps={{
         refreshControl: (
           <RefreshControl
@@ -390,7 +411,19 @@ export default function DecisionBriefScreen() {
         ),
       }}
     >
-      <View className="gap-4 pb-8 pt-4">{sections.map((section) => renderSection(section))}</View>
+      <FocusStack density="focus">
+        {focusSections.map((section) => renderSection(section))}
+        {moreSections.length > 0 ? (
+          <CollapsibleSection
+            title="More for this session"
+            description="Brief detail, mentor, DNA, regime, and log — when you want them."
+            defaultExpanded={false}
+            testID="today-more-disclosure"
+          >
+            {moreSections.map((section) => renderSection(section))}
+          </CollapsibleSection>
+        ) : null}
+      </FocusStack>
     </Screen>
   );
 }

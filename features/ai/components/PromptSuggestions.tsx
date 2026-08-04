@@ -45,18 +45,19 @@ export function PromptSuggestions({
   );
 }
 
+/** Credibility-first prompts — research desk, not signal bot. */
 export const DEFAULT_CHAT_PROMPTS = [
-  'What evidence deserves attention today?',
-  'Explain support and resistance',
-  'Help me review concentration risk',
-  'Summarize SPY technical context',
-  'What could invalidate this thesis?',
+  'What supports vs contradicts this idea?',
+  'What evidence is missing?',
+  'What would invalidate this thesis?',
+  'How reliable is this research pack?',
+  'Help me write a why-not skip',
 ];
 
 export const DEFAULT_ANALYSIS_PROMPTS = [
-  'Daily market summary',
-  'Risk analysis for NVDA',
-  'Explain ascending triangle pattern',
-  'Portfolio diversification tips',
-  'Trading psychology after losses',
+  'Daily research desk summary',
+  'Risk process check for NVDA',
+  'Explain ascending triangle (educational)',
+  'Portfolio concentration risks',
+  'Psychology after a process break',
 ];

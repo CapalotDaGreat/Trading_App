@@ -15,7 +15,7 @@ const WELCOME_MESSAGE: AiMessage = {
   id: 'welcome',
   role: 'assistant',
   content:
-    "Hi! I'm your TradeVision AI assistant. Ask me about markets, technical analysis, risk management, or trading psychology. I provide educational research context and explainability — not financial advice, price predictions, or buy/sell signals.",
+    'TradeVision research desk. Ask about process, evidence, risk, or psychology. Every answer should show what supports it, what contradicts it, and what is missing — never a buy/sell signal or price prediction.',
   timestamp: Date.now(),
 };
 

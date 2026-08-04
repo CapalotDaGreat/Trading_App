@@ -1,21 +1,22 @@
 export const colors = {
   background: {
-    primary: '#070B12',
-    secondary: '#0C1220',
-    tertiary: '#141C2C',
-    elevated: '#1A2438',
+    /** Calmer near-black — less navy noise than prior secondary stack. */
+    primary: '#080A0E',
+    secondary: '#0B0E14',
+    tertiary: '#12161F',
+    elevated: '#161B26',
   },
   surface: {
-    default: 'rgba(255, 255, 255, 0.045)',
-    hover: 'rgba(255, 255, 255, 0.07)',
-    active: 'rgba(255, 255, 255, 0.1)',
-    glass: 'rgba(18, 26, 40, 0.88)',
+    default: 'rgba(255, 255, 255, 0.03)',
+    hover: 'rgba(255, 255, 255, 0.05)',
+    active: 'rgba(255, 255, 255, 0.075)',
+    glass: 'rgba(14, 18, 28, 0.92)',
   },
   accent: {
     primary: '#2DD4BF',
     light: '#5EEAD4',
     dark: '#14B8A6',
-    muted: 'rgba(45, 212, 191, 0.14)',
+    muted: 'rgba(45, 212, 191, 0.1)',
   },
   bullish: {
     primary: '#34D399',
@@ -48,36 +49,36 @@ export const colors = {
     neutral: '#CBD5E1',
   },
   border: {
-    default: 'rgba(148, 163, 184, 0.06)',
-    strong: 'rgba(148, 163, 184, 0.12)',
-    accent: 'rgba(45, 212, 191, 0.2)',
+    default: 'rgba(148, 163, 184, 0.05)',
+    strong: 'rgba(148, 163, 184, 0.1)',
+    accent: 'rgba(45, 212, 191, 0.16)',
   },
   text: {
-    primary: '#F8FAFC',
+    primary: '#F1F5F9',
     secondary: '#94A3B8',
-    tertiary: '#7C8BA1',
+    tertiary: '#6B7A90',
     inverse: '#0B1220',
     onAccent: '#06201D',
     onDanger: '#270707',
   },
   light: {
     background: {
-      primary: '#F7F8FA',
-      secondary: '#EEF1F6',
-      tertiary: '#E4E9F0',
+      primary: '#F8F9FB',
+      secondary: '#F1F3F7',
+      tertiary: '#E8ECF2',
       elevated: '#FFFFFF',
     },
     surface: {
-      default: 'rgba(15, 23, 42, 0.035)',
-      hover: 'rgba(15, 23, 42, 0.055)',
-      active: 'rgba(15, 23, 42, 0.08)',
-      glass: 'rgba(255, 255, 255, 0.96)',
+      default: 'rgba(15, 23, 42, 0.028)',
+      hover: 'rgba(15, 23, 42, 0.045)',
+      active: 'rgba(15, 23, 42, 0.065)',
+      glass: 'rgba(255, 255, 255, 0.97)',
     },
     accent: {
       primary: '#0F766E',
       light: '#0D9488',
       dark: '#115E59',
-      muted: 'rgba(15, 118, 110, 0.12)',
+      muted: 'rgba(15, 118, 110, 0.1)',
     },
     bullish: {
       primary: '#059669',
@@ -136,6 +137,17 @@ export const spacing = {
   '4xl': 40,
   '5xl': 48,
   '6xl': 64,
+  /** Phase A calm rhythm — prefer these over ad-hoc gaps. */
+  focus: 28,
+  section: 36,
+  screenX: 24,
+  screenY: 20,
+} as const;
+
+/** Minimum interactive target (Apple HIG / Material). */
+export const touchTarget = {
+  min: 44,
+  comfortable: 52,
 } as const;
 
 export const typography = {
@@ -168,40 +180,48 @@ export const typography = {
 } as const;
 
 export const shadows = {
+  /** Quiet elevation — prefer fill hierarchy over heavy shadow. */
   glass: {
     shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.28,
-    shadowRadius: 20,
-    elevation: 8,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.14,
+    shadowRadius: 12,
+    elevation: 3,
   },
   glassLight: {
     shadowColor: '#0F172A',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.06,
-    shadowRadius: 16,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.04,
+    shadowRadius: 10,
+    elevation: 1,
   },
   glow: {
     shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.32,
-    shadowRadius: 22,
-    elevation: 10,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.18,
+    shadowRadius: 14,
+    elevation: 4,
   },
   card: {
     shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.22,
-    shadowRadius: 14,
-    elevation: 5,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.12,
+    shadowRadius: 10,
+    elevation: 2,
   },
   sm: {
     shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.12,
-    shadowRadius: 6,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 1,
+  },
+  none: {
+    shadowColor: 'transparent',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0,
+    shadowRadius: 0,
+    elevation: 0,
   },
 } as const;
 

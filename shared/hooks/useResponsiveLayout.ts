@@ -23,7 +23,7 @@ export function resolveResponsiveLayout(width: number, height: number): Responsi
   const isLandscape = width > height;
   const columns: 1 | 2 = isTablet ? 2 : 1;
   const contentMaxWidth = breakpoint === 'expanded' ? 1100 : breakpoint === 'medium' ? 840 : width;
-  const gutter = breakpoint === 'compact' ? 20 : 24;
+  const gutter = breakpoint === 'compact' ? 24 : 28;
 
   return {
     width,

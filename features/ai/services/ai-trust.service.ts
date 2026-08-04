@@ -4,10 +4,15 @@ import { NON_PREDICTION_COPY } from '@/shared/constants/trust-language';
 
 import type { AiAnalysisMetadata, AiEnrichedContext, AiSentiment } from '../types/ai.types';
 import type { AiTrustPayload } from '../types/ai-trust.types';
-import { getAiWhyChanged, recordAiRecommendationSnapshot } from './ai-change-history.service';
+import {
+  getAiConfidenceHistory,
+  getAiWhyChanged,
+  recordAiRecommendationSnapshot,
+} from './ai-change-history.service';
 import { buildAiCounterfactuals } from './ai-counterfactual.service';
 import { buildConfidenceBreakdown } from './ai-confidence.service';
 import { buildEvidencePack } from './ai-evidence.service';
+import { buildAiTrustBriefing } from './ai-trust-briefing.service';
 
 export function buildAiTrustPayload(
   context: AiEnrichedContext,
@@ -16,32 +21,48 @@ export function buildAiTrustPayload(
     action?: 'research' | 'watch' | 'skip';
     citations?: AiAnalysisMetadata['citations'];
     whyChanged?: AiTrustPayload['whyChanged'];
+    confidenceHistory?: AiTrustPayload['confidenceHistory'];
   },
 ): AiTrustPayload {
   const confidence = buildConfidenceBreakdown(context);
   const evidence = buildEvidencePack(context, input?.sentiment);
   const counterfactuals = buildAiCounterfactuals(context, confidence);
   const freshness = getDataFreshness(context.assembledAt);
+  const citations = input?.citations ?? [];
+  const indicatorCitations = citations.filter((c) =>
+    /rsi|macd|adx|atr|trend|volume|support|resistance|sma|ema/i.test(c.label),
+  );
+
+  const briefing = buildAiTrustBriefing({
+    context,
+    confidence,
+    evidence,
+    counterfactuals,
+    freshness,
+  });
 
   return {
     confidence,
     evidence,
     counterfactuals,
+    briefing,
     whyChanged: input?.whyChanged ?? null,
+    confidenceHistory: input?.confidenceHistory,
     meta: {
       dataAsOf: context.assembledAt,
       freshness,
       providerLabel: LOCAL_ANALYSIS_LABEL,
       source: 'engine',
       dataKind: freshness === 'stale' || freshness === 'unknown' ? 'approximate' : 'delayed',
-      citations: input?.citations ?? [],
+      citations,
+      indicatorCitations,
       educationalReminder: NON_PREDICTION_COPY,
     },
   };
 }
 
 /**
- * Persist a recommendation snapshot and return why-changed vs previous.
+ * Persist a recommendation snapshot and attach why-changed + confidence history.
  */
 export async function attachWhyChanged(
   context: AiEnrichedContext,
@@ -64,5 +85,10 @@ export async function attachWhyChanged(
     note: trust.evidence.observation.slice(0, 160),
   });
 
-  return { ...trust, whyChanged: whyChanged ?? (await getAiWhyChanged(symbol)) };
+  const confidenceHistory = await getAiConfidenceHistory(symbol);
+  return {
+    ...trust,
+    whyChanged: whyChanged ?? (await getAiWhyChanged(symbol)),
+    confidenceHistory,
+  };
 }

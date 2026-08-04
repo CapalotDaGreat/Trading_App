@@ -28,11 +28,11 @@ export function Header({
 
   return (
     <View
-      className={cn('px-4 pb-4', !transparent && 'bg-background', className)}
-      style={{ paddingTop: insets.top + 8 }}
+      className={cn('px-6 pb-5', !transparent && 'bg-background', className)}
+      style={{ paddingTop: insets.top + 10 }}
     >
       <View className="flex-row items-center justify-between">
-        <View className="min-w-[40px] items-start">
+        <View className="min-w-[44px] items-start">
           {leftAction ??
             (onBack ? (
               <IconButton
@@ -44,18 +44,18 @@ export function Header({
             ) : null)}
         </View>
 
-        <View className="flex-1 items-center px-2">
-          <Text variant="h3" numberOfLines={1} className="text-center">
+        <View className="flex-1 items-center px-3">
+          <Text variant="h3" numberOfLines={1} className="text-center tracking-tight">
             {title}
           </Text>
           {subtitle ? (
-            <Text variant="caption" numberOfLines={1} className="mt-0.5 text-center">
+            <Text variant="caption" numberOfLines={2} className="mt-1 text-center leading-5">
               {subtitle}
             </Text>
           ) : null}
         </View>
 
-        <View className="min-w-[40px] items-end">{rightAction}</View>
+        <View className="min-w-[44px] items-end">{rightAction}</View>
       </View>
     </View>
   );

@@ -65,9 +65,9 @@ export default function AlertsScreen() {
     <Screen scrollable contentClassName="pb-8">
       <Header title="Price Alerts" onBack={() => router.back()} />
 
-      <View className="mt-4 gap-4">
+      <View className="mt-2 gap-7">
         <View
-          className="flex-row gap-3 rounded-2xl bg-accent-muted p-3"
+          className="flex-row gap-3 rounded-panel bg-accent-muted p-4"
           accessibilityRole="text"
           accessibilityLabel={summary}
         >

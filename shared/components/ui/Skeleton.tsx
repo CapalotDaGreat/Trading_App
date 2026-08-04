@@ -41,7 +41,7 @@ export function Skeleton({
       opacity.value = 0.55;
       return;
     }
-    opacity.value = withRepeat(withTiming(0.8, { duration: 900 }), -1, true);
+    opacity.value = withRepeat(withTiming(0.72, { duration: 1200 }), -1, true);
   }, [opacity, reduceMotion]);
 
   const animatedStyle = useAnimatedStyle(() => ({

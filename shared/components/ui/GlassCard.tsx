@@ -17,7 +17,7 @@ interface GlassCardProps extends ViewProps {
 
 export function GlassCard({
   children,
-  intensity = 36,
+  intensity = 22,
   bordered = false,
   glow = false,
   className,
@@ -25,14 +25,15 @@ export function GlassCard({
   ...props
 }: GlassCardProps) {
   const { isDark } = useTheme();
-  const cardShadow = isDark ? shadows.glass : shadows.glassLight;
+  // Phase A: quiet cards — fill first, soft shadow only when glow is explicit.
+  const cardShadow = glow ? (isDark ? shadows.glass : shadows.glassLight) : shadows.none;
   const elevatedShadow = glow ? shadows.card : undefined;
 
   if (Platform.OS === 'web') {
     return (
       <View
         className={cn(
-          'overflow-hidden rounded-2xl bg-surface-glass',
+          'overflow-hidden rounded-panel bg-background-elevated',
           bordered && 'border border-border',
           className,
         )}
@@ -46,14 +47,17 @@ export function GlassCard({
 
   return (
     <View
-      className={cn('overflow-hidden rounded-2xl', className)}
+      className={cn('overflow-hidden rounded-panel', className)}
       style={[cardShadow, elevatedShadow, style]}
       {...props}
     >
       <BlurView
-        intensity={isDark ? intensity : Math.min(intensity + 10, 52)}
+        intensity={isDark ? intensity : Math.min(intensity + 8, 40)}
         tint={isDark ? 'dark' : 'light'}
-        className={cn('bg-surface-glass', bordered && 'border border-border')}
+        className={cn(
+          'bg-background-elevated/95',
+          bordered && 'border border-border',
+        )}
       >
         {children}
       </BlurView>

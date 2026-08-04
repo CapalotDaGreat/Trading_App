@@ -20,11 +20,13 @@ export function SectionHeader({
   ...props
 }: SectionHeaderProps) {
   return (
-    <View className={cn('flex-row items-start justify-between', className)} {...props}>
+    <View className={cn('mb-1 flex-row items-start justify-between', className)} {...props}>
       <View className="mr-4 flex-1">
-        <Text variant="h3">{title}</Text>
+        <Text variant="h3" className="tracking-tight">
+          {title}
+        </Text>
         {description ? (
-          <Text variant="body-sm" className="mt-1">
+          <Text variant="body-sm" className="mt-1.5 leading-6">
             {description}
           </Text>
         ) : null}
@@ -34,7 +36,7 @@ export function SectionHeader({
           accessibilityRole="button"
           accessibilityLabel={actionLabel}
           onPress={onAction}
-          className="min-h-11 justify-center rounded-pill px-3 active:bg-surface"
+          className="min-h-13 justify-center rounded-pill px-3 active:bg-surface"
         >
           <Text variant="label" className="text-accent">
             {actionLabel}

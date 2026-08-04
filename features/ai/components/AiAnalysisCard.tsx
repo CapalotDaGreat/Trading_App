@@ -21,7 +21,7 @@ export function AiAnalysisCard({ result }: AiAnalysisCardProps) {
   const meta = result.metadata;
 
   return (
-    <GlassCard className="p-4" glow>
+    <GlassCard className="p-5">
       <View className="mb-3 flex-row items-start justify-between gap-2">
         <View className="flex-1">
           <EducationalModeBadge className="mb-2" />
