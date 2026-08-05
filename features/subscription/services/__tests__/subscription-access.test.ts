@@ -35,4 +35,8 @@ describe('hasEffectivePremiumAccess', () => {
       ),
     ).toBe(false);
   });
+
+  it('grants lifetime access when status is active and expiry is null', () => {
+    expect(hasEffectivePremiumAccess({ status: 'active', expiresAt: null }, now)).toBe(true);
+  });
 });

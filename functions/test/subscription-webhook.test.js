@@ -13,8 +13,8 @@ const {
 const baseEvent = {
   id: 'event-1',
   app_user_id: 'firebase-uid',
-  product_id: 'tradevision_premium_yearly',
-  entitlement_ids: ['premium'],
+  product_id: 'yearly',
+  entitlement_ids: ['Aithera Pro'],
   store: 'PLAY_STORE',
   event_timestamp_ms: Date.parse('2026-07-21T12:00:00.000Z'),
   purchased_at_ms: Date.parse('2026-07-01T12:00:00.000Z'),
@@ -42,9 +42,20 @@ test('maps purchase, cancellation, expiration, refund, grace, and product change
   const changed = mapRevenueCatEvent({
     ...baseEvent,
     type: 'PRODUCT_CHANGE',
-    new_product_id: 'tradevision_premium_monthly',
+    new_product_id: 'monthly',
   });
   assert.equal(changed.planId, 'monthly');
+
+  const lifetime = mapRevenueCatEvent({
+    ...baseEvent,
+    type: 'NON_RENEWING_PURCHASE',
+    product_id: 'lifetime',
+    expiration_at_ms: null,
+  });
+  assert.equal(lifetime.status, 'active');
+  assert.equal(lifetime.isPremium, true);
+  assert.equal(lifetime.planId, 'lifetime');
+  assert.equal(lifetime.willRenew, false);
 });
 
 test('verifies exact raw or bearer webhook authorization', () => {

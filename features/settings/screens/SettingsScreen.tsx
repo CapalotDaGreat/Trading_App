@@ -1,6 +1,6 @@
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Linking, TextInput, View } from 'react-native';
+import { TextInput, View } from 'react-native';
 
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { SettingsRow } from '@/features/settings/components/SettingsRow';
@@ -15,11 +15,13 @@ import { Button } from '@/shared/components/ui/Button';
 import { GlassCard } from '@/shared/components/ui/GlassCard';
 import { Text } from '@/shared/components/ui/Text';
 import { LEGAL_URLS } from '@/shared/constants/legal';
+import { openExternalUrl } from '@/shared/utils/open-url';
 
 export function SettingsScreen() {
   const router = useRouter();
   const { user, signOut, deleteAccount } = useAuth();
-  const { isPremium, manage } = useSubscription();
+  const { isPremium, manage, openCustomerCenter, presentPaywall, nativeBillingAvailable } =
+    useSubscription();
   const { settings, updateSettings, sync } = useSettings();
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [deletePhrase, setDeletePhrase] = useState('');
@@ -52,13 +54,22 @@ export function SettingsScreen() {
           <View className="flex-row items-center justify-between">
             <View className="flex-1 pr-4">
               <Text variant="h3">Upgrade to Premium</Text>
-              <Text variant="body-sm" className="mt-1">
+              <Text variant="body-sm" className="mt-1 text-text-secondary">
                 Faster refresh, trader DNA, process coaching, and full radar depth.
               </Text>
             </View>
             <PremiumBadge size="md" />
           </View>
-          <Button className="mt-4" onPress={() => router.push('/subscription')}>
+          <Button
+            className="mt-4"
+            onPress={() => {
+              if (nativeBillingAvailable) {
+                void presentPaywall().catch(() => router.push('/subscription'));
+                return;
+              }
+              router.push('/subscription');
+            }}
+          >
             View Plans
           </Button>
         </GlassCard>
@@ -154,8 +165,24 @@ export function SettingsScreen() {
       <GlassCard className="overflow-hidden">
         <SettingsRow
           icon="diamond-outline"
+          label="Aithera Pro"
+          value={isPremium ? 'Active' : 'Free'}
+          showChevron
+          onPress={() => router.push('/subscription')}
+        />
+        {isPremium ? (
+          <SettingsRow
+            icon="person-circle-outline"
+            label="Customer Center"
+            description="Billing, restore, and cancellation help"
+            showChevron
+            onPress={() => void openCustomerCenter().catch(() => void manage())}
+          />
+        ) : null}
+        <SettingsRow
+          icon="card-outline"
           label="Manage Subscription"
-          value={isPremium ? 'Premium' : 'Free'}
+          value={isPremium ? 'Store billing' : 'Free'}
           showChevron
           onPress={() => void manage()}
         />
@@ -199,7 +226,7 @@ export function SettingsScreen() {
           icon="help-circle-outline"
           label="Support"
           showChevron
-          onPress={() => void Linking.openURL(LEGAL_URLS.support)}
+          onPress={() => void openExternalUrl(LEGAL_URLS.support)}
         />
       </GlassCard>
 

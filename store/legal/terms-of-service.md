@@ -65,7 +65,7 @@ Refunds are handled by Apple, Google, or the payment provider under their polici
 
 ### Illustrative plan identifiers
 
-Product IDs (subject to store configuration): `tradevision_premium_monthly`, `tradevision_premium_yearly`. Displayed prices control over any marketing copy.
+Product IDs (subject to store configuration): `monthly`, `yearly`, `lifetime` (Aithera Pro entitlement). Displayed prices control over any marketing copy.
 
 ---
 

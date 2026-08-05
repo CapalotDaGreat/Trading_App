@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
-import { AccessibilityInfo, ActivityIndicator, Linking, Pressable, View } from 'react-native';
+import { AccessibilityInfo, ActivityIndicator, Pressable, View } from 'react-native';
 
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useSubscription } from '@/features/subscription/hooks/useSubscription';
@@ -16,6 +16,7 @@ import { SUBSCRIPTION_TIERS } from '@/shared/constants/subscription';
 import { useResponsiveLayout } from '@/shared/hooks/useResponsiveLayout';
 import { useTheme } from '@/shared/hooks/useTheme';
 import { cn } from '@/shared/utils/cn';
+import { openExternalUrl } from '@/shared/utils/open-url';
 
 import { PremiumBadge } from './PremiumBadge';
 
@@ -42,18 +43,21 @@ export function PaywallScreen() {
     subscription,
     isLoading,
     purchase,
+    presentPaywall,
     isPurchasing,
     restore,
     isRestoring,
     refresh,
     isRefreshing,
     manage,
+    openCustomerCenter,
     nativeBillingAvailable,
   } = useSubscription();
 
   const defaultPlan = plans.find((p) => p.isPopular)?.id ?? 'yearly';
   const [selectedPlan, setSelectedPlan] = useState<SubscriptionPlanId>(defaultPlan);
   const [actionMessage, setActionMessage] = useState<string | null>(null);
+  const [useNativePaywall, setUseNativePaywall] = useState(true);
 
   useEffect(() => {
     if (actionMessage) AccessibilityInfo.announceForAccessibility(actionMessage);
@@ -63,6 +67,25 @@ export function PaywallScreen() {
     () => plans.find((p) => p.id === selectedPlan) ?? plans[0],
     [plans, selectedPlan],
   );
+
+  const handlePresentPaywall = async () => {
+    setActionMessage(null);
+    try {
+      const result = await presentPaywall();
+      setActionMessage(result.message);
+      if (result.paywallResult === 'error' || result.paywallResult === 'not_presented') {
+        setUseNativePaywall(false);
+      }
+      await refresh();
+    } catch (error) {
+      setUseNativePaywall(false);
+      setActionMessage(
+        error instanceof Error
+          ? error.message
+          : 'RevenueCat Paywall unavailable. Choose a plan below.',
+      );
+    }
+  };
 
   const handlePurchase = async () => {
     setActionMessage(null);
@@ -84,27 +107,29 @@ export function PaywallScreen() {
   }
 
   if (isPremium) {
+    const isLifetime = subscription?.planId === 'lifetime' || !subscription?.expiresAt;
     const expiryLabel = subscription?.expiresAt
       ? new Date(subscription.expiresAt).toLocaleDateString()
       : null;
-    const statusText =
-      subscription?.status === 'cancelled'
-        ? `Cancelled — Premium remains active until ${expiryLabel ?? 'the end of the paid period'}.`
+    const statusText = isLifetime
+      ? 'Aithera Pro Lifetime is active.'
+      : subscription?.status === 'cancelled'
+        ? `Cancelled — Aithera Pro remains active until ${expiryLabel ?? 'the end of the paid period'}.`
         : subscription?.status === 'grace_period' || subscription?.status === 'billing_issue'
-          ? `Payment issue — Premium remains available until ${expiryLabel ?? 'the grace period ends'}.`
+          ? `Payment issue — Aithera Pro remains available until ${expiryLabel ?? 'the grace period ends'}.`
           : subscription?.willRenew
             ? `Renews ${expiryLabel ? `on ${expiryLabel}` : 'automatically'}.`
             : expiryLabel
-              ? `Premium active until ${expiryLabel}.`
-              : 'Premium is active.';
+              ? `Aithera Pro active until ${expiryLabel}.`
+              : 'Aithera Pro is active.';
 
     return (
       <Screen scrollable>
-        <Header title="Premium" onBack={() => router.back()} />
+        <Header title="Aithera Pro" onBack={() => router.back()} />
         <View className="items-center py-10">
           <PremiumBadge size="md" />
           <Text variant="h2" className="mt-4 text-center">
-            You&apos;re Premium
+            You&apos;re on Aithera Pro
           </Text>
           <Text variant="body-sm" className="mt-2 text-center">
             Enjoy deeper queue, portfolio, review, practice, and export capabilities.
@@ -112,8 +137,21 @@ export function PaywallScreen() {
           <Text variant="body-sm" className="mt-3 text-center text-text-secondary">
             {statusText}
           </Text>
-          <Button variant="outline" className="mt-6" onPress={() => void manage()}>
-            {subscription?.status === 'cancelled' ? 'Resume Subscription' : 'Manage Subscription'}
+          <Button
+            variant="outline"
+            className="mt-6"
+            onPress={() =>
+              void openCustomerCenter().catch((error: unknown) =>
+                setActionMessage(
+                  error instanceof Error ? error.message : 'Could not open Customer Center.',
+                ),
+              )
+            }
+          >
+            {subscription?.status === 'cancelled' ? 'Resume in Customer Center' : 'Customer Center'}
+          </Button>
+          <Button variant="ghost" className="mt-3" onPress={() => void manage()}>
+            Manage Subscription
           </Button>
           <Button
             variant="secondary"
@@ -123,30 +161,37 @@ export function PaywallScreen() {
           >
             Refresh Status
           </Button>
+          {actionMessage ? (
+            <Text variant="body-sm" className="mt-4 text-center text-text-secondary">
+              {actionMessage}
+            </Text>
+          ) : null}
         </View>
       </Screen>
     );
   }
 
   const ctaLabel =
-    selected?.trialDays && selectedPlan === 'yearly'
-      ? `Start ${selected.trialLabel ?? `${selected.trialDays}-day free trial`}`
-      : `Continue with ${selected?.title ?? 'Premium'}`;
+    selected?.isLifetime
+      ? 'Unlock Lifetime Access'
+      : selected?.trialDays && selectedPlan === 'yearly'
+        ? `Start ${selected.trialLabel ?? `${selected.trialDays}-day free trial`}`
+        : `Continue with ${selected?.title ?? 'Aithera Pro'}`;
 
   return (
     <Screen scrollable contentClassName="pb-8">
-      <Header title="Go Premium" onBack={() => router.back()} />
+      <Header title="Aithera Pro" onBack={() => router.back()} />
 
       <View className="items-center py-6">
         <View className="mb-3 h-16 w-16 items-center justify-center rounded-full bg-accent-muted">
           <Ionicons name="diamond" size={32} color={colors.accent.primary} />
         </View>
         <Text variant="h1" className="text-center">
-          TradeVision AI Premium
+          Aithera Pro
         </Text>
         <Text variant="body-sm" className="mt-2 max-w-xs text-center">
-          Keep the Brief, top-three queue, journal, and basic Review free. Upgrade for the deeper
-          tools listed below.
+          Keep the Brief, top-three queue, journal, and basic Review free. Upgrade for deeper
+          decision tools.
         </Text>
       </View>
 
@@ -166,7 +211,7 @@ export function PaywallScreen() {
           </Text>
           <Text variant="body-sm" className="mt-1">
             Subscriptions require an account for users who are at least 18 (or the age of majority
-            where you live) so Premium can be restored across devices. Guest mode stays local and
+            where you live) so Aithera Pro can be restored across devices. Guest mode stays local and
             free to explore.
           </Text>
         </View>
@@ -178,119 +223,147 @@ export function PaywallScreen() {
         </Text>
       ) : null}
 
-      {/* Billing period toggle + features */}
-      <View className={cn(layout.columns === 2 && 'flex-row items-start gap-4')}>
-        <View className={cn(layout.columns === 2 && 'flex-1')}>
-          <View className="mb-5 flex-row rounded-2xl bg-surface p-1">
-            {plans.map((plan) => {
-              const active = selectedPlan === plan.id;
-              return (
-                <Pressable
-                  key={plan.id}
-                  accessibilityRole="radio"
-                  accessibilityLabel={`${plan.title}, ${plan.price}${plan.pricePerMonth ? `, ${plan.pricePerMonth}` : ''}${plan.trialLabel ? `, ${plan.trialLabel}` : ''}`}
-                  accessibilityState={{ checked: active }}
-                  onPress={() => setSelectedPlan(plan.id)}
-                  className={cn(
-                    'min-h-11 flex-1 items-center justify-center rounded-xl px-2 py-3',
-                    active && 'bg-background-elevated',
-                  )}
-                >
-                  <Text
-                    variant="body-sm"
+      {nativeBillingAvailable && !isGuest && useNativePaywall ? (
+        <View className="mb-5">
+          <Button
+            fullWidth
+            size="lg"
+            loading={isPurchasing}
+            onPress={() => void handlePresentPaywall()}
+          >
+            View Plans
+          </Button>
+          <Button
+            variant="ghost"
+            className="mt-2"
+            fullWidth
+            onPress={() => setUseNativePaywall(false)}
+          >
+            Choose a plan manually
+          </Button>
+        </View>
+      ) : null}
+
+      {(!useNativePaywall || !nativeBillingAvailable || isGuest) && (
+        <View className={cn(layout.columns === 2 && 'flex-row items-start gap-4')}>
+          <View className={cn(layout.columns === 2 && 'flex-1')}>
+            <View className="mb-5 flex-row flex-wrap rounded-2xl bg-surface p-1">
+              {plans.map((plan) => {
+                const active = selectedPlan === plan.id;
+                return (
+                  <Pressable
+                    key={plan.id}
+                    accessibilityRole="radio"
+                    accessibilityLabel={`${plan.title}, ${plan.price}${plan.pricePerMonth ? `, ${plan.pricePerMonth}` : ''}${plan.trialLabel ? `, ${plan.trialLabel}` : ''}`}
+                    accessibilityState={{ checked: active }}
+                    onPress={() => setSelectedPlan(plan.id)}
                     className={cn(
-                      'font-semibold',
-                      active ? 'text-text-primary' : 'text-text-secondary',
+                      'min-h-11 min-w-[30%] flex-1 items-center justify-center rounded-xl px-2 py-3',
+                      active && 'bg-background-elevated',
                     )}
                   >
-                    {plan.title}
+                    <Text
+                      variant="body-sm"
+                      className={cn(
+                        'font-semibold',
+                        active ? 'text-text-primary' : 'text-text-secondary',
+                      )}
+                    >
+                      {plan.title}
+                    </Text>
+                    {plan.badge ? (
+                      <Text
+                        variant="caption"
+                        className={active ? 'text-accent' : 'text-text-tertiary'}
+                      >
+                        {plan.badge}
+                      </Text>
+                    ) : plan.trialLabel ? (
+                      <Text
+                        variant="caption"
+                        className={active ? 'text-accent' : 'text-text-tertiary'}
+                      >
+                        {plan.trialLabel}
+                      </Text>
+                    ) : (
+                      <Text variant="caption" className="text-text-tertiary">
+                        Flexible
+                      </Text>
+                    )}
+                  </Pressable>
+                );
+              })}
+            </View>
+
+            <View className="mb-5 rounded-2xl bg-background-elevated p-5">
+              <View className="flex-row items-end justify-between">
+                <View className="flex-1 pr-3">
+                  <Text variant="h3">
+                    {selected?.title} {selected?.isLifetime ? '' : 'Pro'}
                   </Text>
-                  {plan.badge ? (
-                    <Text
-                      variant="caption"
-                      className={active ? 'text-accent' : 'text-text-tertiary'}
-                    >
-                      {plan.badge}
+                  <Text variant="body-sm" className="mt-1 text-text-secondary">
+                    {selected?.description}
+                  </Text>
+                  {selected?.trialLabel ? (
+                    <Text variant="caption" className="mt-2 text-accent">
+                      Includes {selected.trialLabel} — cancel anytime before it ends
                     </Text>
-                  ) : plan.trialLabel ? (
-                    <Text
-                      variant="caption"
-                      className={active ? 'text-accent' : 'text-text-tertiary'}
-                    >
-                      {plan.trialLabel}
+                  ) : null}
+                  {selected?.savingsPercent && !selected.trialLabel ? (
+                    <Text variant="caption" className="mt-2 text-accent">
+                      Save {selected.savingsPercent}% vs monthly
                     </Text>
-                  ) : (
-                    <Text variant="caption" className="text-text-tertiary">
-                      Flexible
+                  ) : null}
+                </View>
+                <View className="items-end">
+                  <Text variant="price">{selected?.price}</Text>
+                  {selected?.pricePerMonth ? (
+                    <Text variant="caption" className="mt-0.5 text-text-secondary">
+                      {selected.pricePerMonth}
                     </Text>
-                  )}
-                </Pressable>
-              );
-            })}
+                  ) : null}
+                </View>
+              </View>
+            </View>
           </View>
 
-          <View className="mb-5 rounded-2xl bg-background-elevated p-5">
-            <View className="flex-row items-end justify-between">
-              <View className="flex-1 pr-3">
-                <Text variant="h3">{selected?.title} Premium</Text>
-                <Text variant="body-sm" className="mt-1 text-text-secondary">
-                  {selected?.description}
+          <View
+            className={cn(
+              'mb-6 rounded-2xl bg-background-elevated p-4',
+              layout.columns === 2 && 'mb-5 flex-1',
+            )}
+          >
+            <Text variant="label" className="mb-3 text-text-tertiary">
+              EVERYTHING IN AITHERA PRO
+            </Text>
+            {PREMIUM_FEATURES.map((feature) => (
+              <View key={feature.label} className="mb-3 flex-row items-center last:mb-0">
+                <View className="mr-3 h-8 w-8 items-center justify-center rounded-full bg-accent-muted">
+                  <Ionicons name={feature.icon} size={16} color={colors.accent.primary} />
+                </View>
+                <Text variant="body" className="flex-1">
+                  {feature.label}
                 </Text>
-                {selected?.trialLabel ? (
-                  <Text variant="caption" className="mt-2 text-accent">
-                    Includes {selected.trialLabel} — cancel anytime before it ends
-                  </Text>
-                ) : null}
-                {selected?.savingsPercent && !selected.trialLabel ? (
-                  <Text variant="caption" className="mt-2 text-accent">
-                    Save {selected.savingsPercent}% vs monthly
-                  </Text>
-                ) : null}
               </View>
-              <View className="items-end">
-                <Text variant="price">{selected?.price}</Text>
-                {selected?.pricePerMonth ? (
-                  <Text variant="caption" className="mt-0.5 text-text-secondary">
-                    {selected.pricePerMonth}
-                  </Text>
-                ) : null}
-              </View>
-            </View>
+            ))}
           </View>
         </View>
+      )}
 
-        <View
-          className={cn(
-            'mb-6 rounded-2xl bg-background-elevated p-4',
-            layout.columns === 2 && 'mb-5 flex-1',
-          )}
+      {(!useNativePaywall || !nativeBillingAvailable || isGuest) && (
+        <Button
+          className="mt-1"
+          fullWidth
+          size="lg"
+          loading={isPurchasing}
+          disabled={!isGuest && !nativeBillingAvailable}
+          onPress={() =>
+            isGuest ? router.push('/(auth)/register' as never) : void handlePurchase()
+          }
         >
-          <Text variant="label" className="mb-3 text-text-tertiary">
-            EVERYTHING IN PREMIUM
-          </Text>
-          {PREMIUM_FEATURES.map((feature) => (
-            <View key={feature.label} className="mb-3 flex-row items-center last:mb-0">
-              <View className="mr-3 h-8 w-8 items-center justify-center rounded-full bg-accent-muted">
-                <Ionicons name={feature.icon} size={16} color={colors.accent.primary} />
-              </View>
-              <Text variant="body" className="flex-1">
-                {feature.label}
-              </Text>
-            </View>
-          ))}
-        </View>
-      </View>
-
-      <Button
-        className="mt-1"
-        fullWidth
-        size="lg"
-        loading={isPurchasing}
-        disabled={!isGuest && !nativeBillingAvailable}
-        onPress={() => (isGuest ? router.push('/(auth)/register' as never) : void handlePurchase())}
-      >
-        {isGuest ? 'Create account to subscribe' : ctaLabel}
-      </Button>
+          {isGuest ? 'Create account to subscribe' : ctaLabel}
+        </Button>
+      )}
 
       <Button
         variant="ghost"
@@ -332,11 +405,12 @@ export function PaywallScreen() {
       <Text variant="caption" className="mt-4 text-center leading-5 text-text-secondary">
         Payment is charged to your Apple ID or Google Play account at confirmation. Subscriptions
         auto-renew unless cancelled at least 24 hours before the end of the current period in your
-        store account settings. After a free trial, the listed plan price is charged. Cancelling
-        stops renewal; Premium remains available until the paid-through date. Prices shown come from
-        the store when available. Premium does not provide brokerage execution or exchange-tick
-        realtime data. Free includes {SUBSCRIPTION_TIERS.free.aiAnalysisPerDay} AI analyses/day and
-        up to {SUBSCRIPTION_TIERS.free.watchlistMax} watchlist symbols.
+        store account settings. Lifetime is a one-time purchase and does not renew. After a free
+        trial, the listed plan price is charged. Cancelling stops renewal; Aithera Pro remains
+        available until the paid-through date. Prices shown come from the store when available.
+        Aithera Pro does not provide brokerage execution or exchange-tick realtime data. Free
+        includes {SUBSCRIPTION_TIERS.free.aiAnalysisPerDay} AI analyses/day and up to{' '}
+        {SUBSCRIPTION_TIERS.free.watchlistMax} watchlist symbols.
       </Text>
 
       <View className="mt-3 flex-row flex-wrap items-center justify-center gap-x-3 gap-y-2 pb-4">
@@ -366,7 +440,7 @@ export function PaywallScreen() {
         </Pressable>
         <Pressable
           accessibilityRole="link"
-          onPress={() => void Linking.openURL(LEGAL_URLS.support)}
+          onPress={() => void openExternalUrl(LEGAL_URLS.support)}
         >
           <Text variant="caption" className="text-accent">
             Support

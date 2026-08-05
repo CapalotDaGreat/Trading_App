@@ -77,10 +77,11 @@ EXPO_PUBLIC_FIREBASE_MEASUREMENT_ID=
 EXPO_PUBLIC_FINNHUB_API_KEY=
 EXPO_PUBLIC_ALPHA_VANTAGE_API_KEY=
 
-# RevenueCat (REST API — works in Expo Go)
+# RevenueCat native SDK (EAS Dev Client / production — not Expo Go IAP)
 EXPO_PUBLIC_REVENUECAT_API_KEY=
-EXPO_PUBLIC_REVENUECAT_ENTITLEMENT_ID=premium
-EXPO_PUBLIC_REVENUECAT_WEB_CHECKOUT_URL=https://pay.rev.cat/checkout
+EXPO_PUBLIC_REVENUECAT_IOS_API_KEY=
+EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY=
+EXPO_PUBLIC_REVENUECAT_ENTITLEMENT_ID=Aithera Pro
 
 # Cloud AI (optional — Premium; falls back to the local engine)
 EXPO_PUBLIC_AI_API_URL=
@@ -111,18 +112,19 @@ firebase deploy --only firestore:rules
 | `subscriptions` | `{uid}`     | Premium status synced from RevenueCat     |
 | `userSettings`  | `{uid}`     | App settings backup                       |
 
-## RevenueCat setup (Expo Go)
+## RevenueCat setup (EAS Dev Client / production)
 
 1. Create a project at [app.revenuecat.com](https://app.revenuecat.com)
-2. Add products: `tradevision_premium_monthly` ($9.99), `tradevision_premium_yearly` ($71.99)
+2. Add products: `monthly`, `yearly`, `lifetime` (match App Store Connect / Play Console IDs)
 3. Attach a **7-day free trial** introductory offer to the yearly product
-4. Create a `premium` entitlement and attach both products
-5. Copy the **Public API Key** to `EXPO_PUBLIC_REVENUECAT_API_KEY`
-6. Configure the web checkout URL for Expo Go purchases
+4. Create an **`Aithera Pro`** entitlement and attach all three products
+5. Build a Paywall on the **current** offering and enable **Customer Center**
+6. Copy the **Public SDK keys** to `.env`:
+   - `EXPO_PUBLIC_REVENUECAT_API_KEY` (test/shared), and/or
+   - `EXPO_PUBLIC_REVENUECAT_IOS_API_KEY` / `EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY`
+7. Set Functions `REVENUECAT_ENTITLEMENT_ID=Aithera Pro` for the webhook
 
-Do **not** create a lifetime SKU for early development — billing is monthly + yearly only.
-
-Premium status syncs from the RevenueCat REST API to Firestore on login and after purchase.
+Native IAP uses `react-native-purchases` + `react-native-purchases-ui`. Expo Go cannot complete store purchases; use an EAS development build (see `docs/DEV_BUILD.md`). Firestore `subscriptions/{uid}` is updated by the verified webhook.
 
 ## Expo Go vs dev client
 
@@ -134,7 +136,8 @@ Premium status syncs from the RevenueCat REST API to Firestore on login and afte
 | Settings              | Full local + Firestore sync                         |
 
 Background alert evaluation, native IAP, and widgets require an EAS Dev Client — see
-[`docs/DEV_BUILD.md`](docs/DEV_BUILD.md). Product experience roadmap:
+[`docs/DEV_BUILD.md`](docs/DEV_BUILD.md). **Store launch status (done vs manual):**
+[`docs/STORE_LAUNCH_CHECKLIST.md`](docs/STORE_LAUNCH_CHECKLIST.md). Product experience roadmap:
 [`docs/PRODUCT_REDESIGN_SPEC.md`](docs/PRODUCT_REDESIGN_SPEC.md). Calm UI system:
 [`docs/PHASE_A_PRODUCT_EXCELLENCE.md`](docs/PHASE_A_PRODUCT_EXCELLENCE.md). AI Trust Center:
 [`docs/PHASE_B_AI_TRUST_CENTER.md`](docs/PHASE_B_AI_TRUST_CENTER.md).

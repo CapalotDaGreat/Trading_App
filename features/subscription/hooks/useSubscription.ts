@@ -35,6 +35,26 @@ export function useSubscription() {
     void subscriptionService.configureForUser(uid);
   }, [ownerUid, uid, reset, queryClient]);
 
+  const applyRecord = useCallback(
+    (record: SubscriptionRecord) => {
+      setPremium(
+        record.isPremium,
+        record.productId ?? undefined,
+        record.expiresAt ?? undefined,
+        uid ?? undefined,
+      );
+      if (uid) {
+        queryClient.setQueryData<SubscriptionRecord | null>([SUBSCRIPTION_QUERY_KEY, uid], record);
+      }
+    },
+    [setPremium, queryClient, uid],
+  );
+
+  useEffect(() => {
+    if (!uid || !subscriptionService.isNativeBillingAvailable()) return;
+    return subscriptionService.addCustomerInfoListener(uid, applyRecord);
+  }, [uid, applyRecord]);
+
   const plansQuery = useQuery({
     queryKey: [SUBSCRIPTION_QUERY_KEY, 'plans', uid],
     queryFn: () => subscriptionService.getStorePlans(),
@@ -69,18 +89,22 @@ export function useSubscription() {
 
   const purchaseMutation = useMutation({
     mutationFn: (planId: SubscriptionPlanId) => {
-      if (!uid) throw new Error('Sign in to purchase premium.');
+      if (!uid) throw new Error('Sign in to purchase Aithera Pro.');
       return subscriptionService.purchasePlan(uid, planId);
     },
     onSuccess: (result) => {
-      if (result.subscription) {
-        setPremium(
-          result.subscription.isPremium,
-          result.subscription.productId ?? undefined,
-          result.subscription.expiresAt ?? undefined,
-          uid ?? undefined,
-        );
-      }
+      if (result.subscription) applyRecord(result.subscription);
+      void queryClient.invalidateQueries({ queryKey: [SUBSCRIPTION_QUERY_KEY, uid] });
+    },
+  });
+
+  const paywallMutation = useMutation({
+    mutationFn: () => {
+      if (!uid) throw new Error('Sign in to purchase Aithera Pro.');
+      return subscriptionService.presentPaywall(uid);
+    },
+    onSuccess: (result) => {
+      if (result.subscription) applyRecord(result.subscription);
       void queryClient.invalidateQueries({ queryKey: [SUBSCRIPTION_QUERY_KEY, uid] });
     },
   });
@@ -91,12 +115,7 @@ export function useSubscription() {
       return subscriptionService.restorePurchases(uid);
     },
     onSuccess: (record) => {
-      setPremium(
-        record.isPremium,
-        record.productId ?? undefined,
-        record.expiresAt ?? undefined,
-        uid ?? undefined,
-      );
+      applyRecord(record);
       void queryClient.invalidateQueries({ queryKey: [SUBSCRIPTION_QUERY_KEY, uid] });
     },
   });
@@ -106,22 +125,36 @@ export function useSubscription() {
     setLoading(true);
     try {
       const record = await subscriptionService.syncFromRevenueCat(uid);
-      setPremium(
-        record.isPremium,
-        record.productId ?? undefined,
-        record.expiresAt ?? undefined,
-        uid,
-      );
+      applyRecord(record);
       await queryClient.invalidateQueries({ queryKey: [SUBSCRIPTION_QUERY_KEY, uid] });
     } finally {
       setLoading(false);
     }
-  }, [uid, setPremium, setLoading, queryClient]);
+  }, [uid, applyRecord, setLoading, queryClient]);
 
   const manage = useCallback(
     () => subscriptionService.manageSubscription(subscriptionQuery.data ?? null),
     [subscriptionQuery.data],
   );
+
+  const openCustomerCenter = useCallback(async () => {
+    if (!uid) throw new Error('Sign in to manage your subscription.');
+    await subscriptionService.presentCustomerCenter(uid);
+    await refresh();
+  }, [uid, refresh]);
+
+  const presentPaywall = useCallback(async () => {
+    if (!uid) throw new Error('Sign in to purchase Aithera Pro.');
+    return paywallMutation.mutateAsync();
+  }, [uid, paywallMutation]);
+
+  const presentPaywallIfNeeded = useCallback(async () => {
+    if (!uid) throw new Error('Sign in to purchase Aithera Pro.');
+    const result = await subscriptionService.presentPaywallIfNeeded(uid);
+    if (result.subscription) applyRecord(result.subscription);
+    void queryClient.invalidateQueries({ queryKey: [SUBSCRIPTION_QUERY_KEY, uid] });
+    return result;
+  }, [uid, applyRecord, queryClient]);
 
   useEffect(() => {
     const expiresAt = subscriptionQuery.data?.expiresAt;
@@ -154,6 +187,7 @@ export function useSubscription() {
     plans: plansQuery.data ?? subscriptionService.getPlans(),
     subscription: subscriptionQuery.data,
     isPremium: subscriptionQuery.data?.isPremium ?? cachedPremium,
+    hasAitheraPro: subscriptionQuery.data?.isPremium ?? cachedPremium,
     tier: subscriptionQuery.data?.tier ?? (cachedPremium ? tier : 'free'),
     expirationDate: subscriptionQuery.data?.expiresAt ?? expirationDate,
     productId: subscriptionQuery.data?.productId ?? productId,
@@ -161,12 +195,15 @@ export function useSubscription() {
     isRefreshing: subscriptionQuery.isFetching,
     error: subscriptionQuery.error,
     purchase: purchaseMutation.mutateAsync,
-    isPurchasing: purchaseMutation.isPending,
-    purchaseError: purchaseMutation.error,
+    isPurchasing: purchaseMutation.isPending || paywallMutation.isPending,
+    purchaseError: purchaseMutation.error ?? paywallMutation.error,
+    presentPaywall,
+    presentPaywallIfNeeded,
     restore: restoreMutation.mutateAsync,
     isRestoring: restoreMutation.isPending,
     restoreError: restoreMutation.error,
     manage,
+    openCustomerCenter,
     nativeBillingAvailable: subscriptionService.isNativeBillingAvailable(),
     refresh,
   };

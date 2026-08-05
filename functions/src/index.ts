@@ -21,9 +21,10 @@ export { getOpsBootstrap, upsertOpsConfig } from './ops/bootstrap';
 export { trackProductEvent } from './ops/analytics';
 export { opsHealthSnapshot, getOpsDashboard } from './ops/health';
 export { opsBackupExport } from './ops/backup';
-const PREMIUM_ENTITLEMENT_ID = process.env.REVENUECAT_ENTITLEMENT_ID ?? 'premium';
-const MONTHLY_PRODUCT_ID = 'tradevision_premium_monthly';
-const YEARLY_PRODUCT_ID = 'tradevision_premium_yearly';
+const PREMIUM_ENTITLEMENT_ID = process.env.REVENUECAT_ENTITLEMENT_ID ?? 'Aithera Pro';
+const MONTHLY_PRODUCT_ID = process.env.REVENUECAT_PRODUCT_MONTHLY ?? 'monthly';
+const YEARLY_PRODUCT_ID = process.env.REVENUECAT_PRODUCT_YEARLY ?? 'yearly';
+const LIFETIME_PRODUCT_ID = process.env.REVENUECAT_PRODUCT_LIFETIME ?? 'lifetime';
 const DELETION_ATTEMPT_COOLDOWN_MS = 60 * 1000;
 const DELETION_AUDIT_RETENTION_MS = 30 * 24 * 60 * 60 * 1000;
 
@@ -49,7 +50,7 @@ export interface SubscriptionEventUpdate {
   isPremium: boolean;
   willRenew: boolean;
   productId: string | null;
-  planId: 'monthly' | 'yearly' | null;
+  planId: 'monthly' | 'yearly' | 'lifetime' | null;
   store: 'app_store' | 'play_store' | 'stripe' | 'promotional' | 'unknown';
   purchasedAt: Date | null;
   expiresAt: Date | null;
@@ -61,9 +62,14 @@ function dateFromMs(value: number | null | undefined): Date | null {
 }
 
 function planFromProduct(productId: string | null): SubscriptionEventUpdate['planId'] {
-  if (productId === MONTHLY_PRODUCT_ID) return 'monthly';
-  if (productId === YEARLY_PRODUCT_ID) return 'yearly';
+  if (productId === LIFETIME_PRODUCT_ID || productId?.includes('lifetime')) return 'lifetime';
+  if (productId === YEARLY_PRODUCT_ID || productId?.includes('yearly')) return 'yearly';
+  if (productId === MONTHLY_PRODUCT_ID || productId?.includes('monthly')) return 'monthly';
   return null;
+}
+
+function isLifetimeProduct(productId: string | null): boolean {
+  return planFromProduct(productId) === 'lifetime';
 }
 
 function normalizeStore(store?: string): SubscriptionEventUpdate['store'] {
@@ -105,7 +111,8 @@ export function mapRevenueCatEvent(event: RevenueCatWebhookEvent): SubscriptionE
     store: normalizeStore(event.store),
     purchasedAt,
   };
-  const canGrantWithoutExpiry = isExplicitPromotionalGrant(event);
+  const lifetime = isLifetimeProduct(productId);
+  const canGrantWithoutExpiry = lifetime || isExplicitPromotionalGrant(event);
 
   const failClosedWithoutExpiry = (update: SubscriptionEventUpdate): SubscriptionEventUpdate => {
     if (!update.isPremium || update.expiresAt || canGrantWithoutExpiry) return update;
@@ -121,6 +128,7 @@ export function mapRevenueCatEvent(event: RevenueCatWebhookEvent): SubscriptionE
 
   switch (event.type) {
     case 'INITIAL_PURCHASE':
+    case 'NON_RENEWING_PURCHASE':
     case 'RENEWAL':
     case 'UNCANCELLATION':
     case 'PRODUCT_CHANGE':
@@ -129,7 +137,7 @@ export function mapRevenueCatEvent(event: RevenueCatWebhookEvent): SubscriptionE
         status: 'active',
         tier: 'premium',
         isPremium: true,
-        willRenew: true,
+        willRenew: lifetime ? false : true,
         expiresAt: normalExpiry,
         cancelledAt: null,
       });

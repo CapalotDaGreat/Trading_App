@@ -38,8 +38,10 @@ direction.
 
 Product identifiers:
 
-- `tradevision_premium_monthly`
-- `tradevision_premium_yearly`
+- Entitlement: `Aithera Pro`
+- `monthly`
+- `yearly`
+- `lifetime`
 
 The configured seven-day trial applies only to the yearly product and must
 match the platform-console offer.

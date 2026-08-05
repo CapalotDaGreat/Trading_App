@@ -116,11 +116,12 @@ rates — do not treat task-manager alone as the final reliability answer.
 
 ## IAP checklist (Dev Client / production)
 
-1. RevenueCat `premium` entitlement + monthly/yearly products (see README).
-2. Platform SDK keys: `EXPO_PUBLIC_REVENUECAT_IOS_API_KEY` / `_ANDROID_…` (never secret keys in `EXPO_PUBLIC_*`).
-3. Sandbox (iOS) / license testers (Android): purchase → Premium unlocks (RC customerInfo optimistic + webhook Firestore).
-4. Kill app → relaunch → still Premium; restore on fresh install.
-5. Webhook → `subscriptions/{uid}` remains authority; client polls after purchase and falls back to RC entitlements if webhook lags.
+1. RevenueCat `Aithera Pro` entitlement + `monthly` / `yearly` / `lifetime` products (see README).
+2. Platform SDK keys: `EXPO_PUBLIC_REVENUECAT_IOS_API_KEY` / `_ANDROID_…` (or shared `EXPO_PUBLIC_REVENUECAT_API_KEY` for test keys). Never put secret API keys in `EXPO_PUBLIC_*`.
+3. Configure a Paywall + Customer Center on the current offering in the RevenueCat dashboard.
+4. Sandbox (iOS) / license testers (Android): purchase → Aithera Pro unlocks (RC customerInfo optimistic + webhook Firestore).
+5. Kill app → relaunch → still Pro; restore on fresh install; Customer Center opens for active subscribers.
+6. Webhook → `subscriptions/{uid}` remains authority; client polls after purchase and falls back to RC entitlements if webhook lags.
 
 ## App Check
 
@@ -137,13 +138,16 @@ never as `EXPO_PUBLIC_*` in production EAS profiles. Guest/demo uses sample/publ
 ## RevenueCat subscriptions
 
 1. Set platform-specific public SDK keys (above).
-2. Configure the `premium` entitlement and attach
-   `tradevision_premium_monthly` and `tradevision_premium_yearly`.
-3. Webhook → `revenueCatWebhook` with `REVENUECAT_WEBHOOK_AUTH_TOKEN`.
-4. App user ID = Firebase uid (automatic in Dev Client / production).
+2. Configure the `Aithera Pro` entitlement and attach `monthly`, `yearly`, and `lifetime`.
+3. Attach a Paywall to the current offering; enable Customer Center for management.
+4. Webhook → `revenueCatWebhook` with `REVENUECAT_WEBHOOK_AUTH_TOKEN`.
+   Set Functions `REVENUECAT_ENTITLEMENT_ID=Aithera Pro` to match.
+5. App user ID = Firebase uid (automatic in Dev Client / production).
 
-Firestore `subscriptions/{uid}` is written only by the verified webhook. Expo Go and
-unconfigured demo sessions remain on the free tier.
+Client uses `react-native-purchases` + `react-native-purchases-ui`
+(`RevenueCatUI.presentPaywall` / `presentCustomerCenter`). Expo Go and
+unconfigured demo sessions remain on the free tier. Firestore
+`subscriptions/{uid}` is written only by the verified webhook.
 
 ## Out of scope here (next)
 

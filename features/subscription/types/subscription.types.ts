@@ -1,6 +1,6 @@
 import type { SubscriptionTier } from '@/shared/constants/subscription';
 
-export type SubscriptionPlanId = 'monthly' | 'yearly';
+export type SubscriptionPlanId = 'monthly' | 'yearly' | 'lifetime';
 
 export type SubscriptionStatus =
   | 'active'
@@ -10,6 +10,13 @@ export type SubscriptionStatus =
   | 'billing_issue'
   | 'refunded'
   | 'none';
+
+export type PaywallPresentationResult =
+  | 'purchased'
+  | 'restored'
+  | 'cancelled'
+  | 'not_presented'
+  | 'error';
 
 export interface SubscriptionPlan {
   id: SubscriptionPlanId;
@@ -21,6 +28,8 @@ export interface SubscriptionPlan {
   badge?: string;
   savingsPercent?: number;
   isPopular?: boolean;
+  /** One-time purchase — never renews. */
+  isLifetime?: boolean;
   /** Intro free-trial days (configure matching offer in RevenueCat / store consoles). */
   trialDays?: number;
   trialLabel?: string;
@@ -59,6 +68,7 @@ export interface PurchaseResult {
   requiresWebCheckout: false;
   message: string;
   subscription?: SubscriptionRecord;
+  paywallResult?: PaywallPresentationResult;
 }
 
 export interface RevenueCatSubscriberResponse {
@@ -92,10 +102,18 @@ export interface SubscriptionService {
   getStorePlans(): Promise<SubscriptionPlan[]>;
   getSubscription(uid: string): Promise<SubscriptionRecord | null>;
   checkPremiumStatus(uid: string): Promise<boolean>;
+  hasAitheraProEntitlement(uid: string): Promise<boolean>;
   syncFromRevenueCat(uid: string): Promise<SubscriptionRecord>;
   purchasePlan(uid: string, planId: SubscriptionPlanId): Promise<PurchaseResult>;
+  presentPaywall(uid: string): Promise<PurchaseResult>;
+  presentPaywallIfNeeded(uid: string): Promise<PurchaseResult>;
+  presentCustomerCenter(uid: string): Promise<void>;
   restorePurchases(uid: string): Promise<SubscriptionRecord>;
   configureForUser(uid: string | null): Promise<boolean>;
   manageSubscription(record: SubscriptionRecord | null): Promise<void>;
   isNativeBillingAvailable(): boolean;
+  addCustomerInfoListener(
+    uid: string,
+    onUpdate: (record: SubscriptionRecord) => void,
+  ): () => void;
 }

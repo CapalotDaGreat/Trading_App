@@ -12,7 +12,7 @@ export type SubOpsEvent =
 /** Subscription funnel counters — product class only, never receipts or PII. */
 export async function recordSubscriptionOps(
   event: SubOpsEvent,
-  planId: 'monthly' | 'yearly' | null,
+  planId: 'monthly' | 'yearly' | 'lifetime' | null,
 ): Promise<void> {
   const fields: Record<string, number> = {
     events: 1,
@@ -25,6 +25,7 @@ export async function recordSubscriptionOps(
 export function mapWebhookTypeToSubOps(type: string): SubOpsEvent | null {
   switch (type) {
     case 'INITIAL_PURCHASE':
+    case 'NON_RENEWING_PURCHASE':
       return 'initial_purchase';
     case 'RENEWAL':
       return 'renew';

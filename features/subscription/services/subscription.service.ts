@@ -1,20 +1,22 @@
 import Constants, { ExecutionEnvironment } from 'expo-constants';
-import * as Linking from 'expo-linking';
 import { doc, getDoc, type DocumentData } from 'firebase/firestore';
 import { Platform } from 'react-native';
 import type PurchasesType from 'react-native-purchases';
-import type { PurchasesPackage } from 'react-native-purchases';
+import type { CustomerInfo, PurchasesPackage } from 'react-native-purchases';
 
 import { canUseFirestore, requireDb } from '@/firebase/config';
 import {
   PREMIUM_PRODUCT_IDS,
   REVENUECAT_ENTITLEMENT_ID,
   YEARLY_TRIAL_DAYS,
+  planIdFromProductId,
   type SubscriptionTier,
 } from '@/shared/constants/subscription';
+import { openExternalUrl } from '@/shared/utils/open-url';
 
 import { withEffectiveAccess } from './subscription-access';
 import type {
+  PaywallPresentationResult,
   PurchaseResult,
   SubscriptionPlan,
   SubscriptionPlanId,
@@ -32,7 +34,7 @@ const DEFAULT_PLANS: SubscriptionPlan[] = [
     id: 'monthly',
     productId: PREMIUM_PRODUCT_IDS.monthly,
     title: 'Monthly',
-    description: 'Full access, billed monthly. Cancel anytime.',
+    description: 'Full Aithera Pro access, billed monthly. Cancel anytime.',
     price: '$9.99',
     pricePerMonth: '$9.99/mo',
   },
@@ -49,10 +51,21 @@ const DEFAULT_PLANS: SubscriptionPlan[] = [
     trialDays: YEARLY_TRIAL_DAYS,
     trialLabel: `${YEARLY_TRIAL_DAYS}-day free trial`,
   },
+  {
+    id: 'lifetime',
+    productId: PREMIUM_PRODUCT_IDS.lifetime,
+    title: 'Lifetime',
+    description: 'One-time purchase. Permanent Aithera Pro access.',
+    price: '$149.99',
+    badge: 'Pay once',
+    isLifetime: true,
+  },
 ];
 
 let purchasesModule: typeof PurchasesType | null | undefined;
+let purchasesUiModule: typeof import('react-native-purchases-ui') | null | undefined;
 let configuredUserId: string | null = null;
+let logLevelConfigured = false;
 
 function getPurchases(): typeof PurchasesType | null {
   if (purchasesModule !== undefined) return purchasesModule;
@@ -73,10 +86,37 @@ function getPurchases(): typeof PurchasesType | null {
   return purchasesModule;
 }
 
+function getPurchasesUi(): typeof import('react-native-purchases-ui') | null {
+  if (purchasesUiModule !== undefined) return purchasesUiModule;
+  if (
+    Platform.OS === 'web' ||
+    Constants.executionEnvironment === ExecutionEnvironment.StoreClient
+  ) {
+    purchasesUiModule = null;
+    return null;
+  }
+
+  try {
+    purchasesUiModule = require('react-native-purchases-ui') as typeof import('react-native-purchases-ui');
+  } catch {
+    purchasesUiModule = null;
+  }
+  return purchasesUiModule;
+}
+
+/**
+ * Prefer platform-specific public SDK keys. Falls back to a shared test/public key
+ * (`EXPO_PUBLIC_REVENUECAT_API_KEY`) for local sandbox wiring.
+ */
 function getPublicSdkKey(): string {
-  if (Platform.OS === 'ios') return process.env.EXPO_PUBLIC_REVENUECAT_IOS_API_KEY ?? '';
-  if (Platform.OS === 'android') return process.env.EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY ?? '';
-  return '';
+  const shared = process.env.EXPO_PUBLIC_REVENUECAT_API_KEY?.trim() ?? '';
+  if (Platform.OS === 'ios') {
+    return process.env.EXPO_PUBLIC_REVENUECAT_IOS_API_KEY?.trim() || shared;
+  }
+  if (Platform.OS === 'android') {
+    return process.env.EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY?.trim() || shared;
+  }
+  return shared;
 }
 
 function serializeDate(value: unknown): string | null {
@@ -146,6 +186,21 @@ function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+function mapPaywallResult(result: string): PaywallPresentationResult {
+  switch (result) {
+    case 'PURCHASED':
+      return 'purchased';
+    case 'RESTORED':
+      return 'restored';
+    case 'CANCELLED':
+      return 'cancelled';
+    case 'NOT_PRESENTED':
+      return 'not_presented';
+    default:
+      return 'error';
+  }
+}
+
 class SubscriptionServiceImpl implements SubscriptionService {
   getPlans(): SubscriptionPlan[] {
     return DEFAULT_PLANS;
@@ -165,7 +220,10 @@ class SubscriptionServiceImpl implements SubscriptionService {
 
       return DEFAULT_PLANS.map((plan) => {
         const storePackage = packages.find(
-          (item: PurchasesPackage) => item.product.identifier === plan.productId,
+          (item: PurchasesPackage) =>
+            item.product.identifier === plan.productId ||
+            item.identifier === plan.productId ||
+            item.product.identifier.endsWith(`.${plan.productId}`),
         );
         if (!storePackage) return plan;
 
@@ -174,7 +232,7 @@ class SubscriptionServiceImpl implements SubscriptionService {
           ...plan,
           price: priceString,
           pricePerMonth:
-            plan.id === 'yearly'
+            plan.id === 'yearly' || plan.id === 'lifetime'
               ? plan.pricePerMonth
               : priceString
                 ? `${priceString}/mo`
@@ -198,6 +256,11 @@ class SubscriptionServiceImpl implements SubscriptionService {
     if (!Purchases || !apiKey) {
       configuredUserId = null;
       return false;
+    }
+
+    if (__DEV__ && !logLevelConfigured) {
+      Purchases.setLogLevel(Purchases.LOG_LEVEL.DEBUG);
+      logLevelConfigured = true;
     }
 
     const isConfigured = await Purchases.isConfigured();
@@ -230,28 +293,39 @@ class SubscriptionServiceImpl implements SubscriptionService {
     return Boolean((await this.getSubscription(uid))?.isPremium);
   }
 
-  private recordFromCustomerInfo(
-    uid: string,
-    customerInfo: {
-      entitlements: { active: Record<string, { productIdentifier?: string; expirationDate?: string | null }> };
-    },
-  ): SubscriptionRecord | null {
+  async hasAitheraProEntitlement(uid: string): Promise<boolean> {
+    const Purchases = getPurchases();
+    if (!Purchases || !(await this.configureForUser(uid))) {
+      return this.checkPremiumStatus(uid);
+    }
+
+    try {
+      const customerInfo = await Purchases.getCustomerInfo();
+      return Boolean(customerInfo.entitlements.active[REVENUECAT_ENTITLEMENT_ID]);
+    } catch {
+      return this.checkPremiumStatus(uid);
+    }
+  }
+
+  private recordFromCustomerInfo(uid: string, customerInfo: CustomerInfo): SubscriptionRecord | null {
     const entitlement = customerInfo.entitlements.active[REVENUECAT_ENTITLEMENT_ID];
     if (!entitlement) return null;
+
+    const productId = entitlement.productIdentifier ?? null;
+    const planId = planIdFromProductId(productId);
+    const isLifetime = planId === 'lifetime' || entitlement.expirationDate == null;
+
     return withEffectiveAccess({
       ...buildFreeSubscription(uid),
       tier: 'premium',
       isPremium: true,
       status: 'active',
-      productId: entitlement.productIdentifier ?? null,
-      planId:
-        entitlement.productIdentifier === PREMIUM_PRODUCT_IDS.yearly
-          ? 'yearly'
-          : entitlement.productIdentifier === PREMIUM_PRODUCT_IDS.monthly
-            ? 'monthly'
-            : null,
+      productId,
+      planId,
       expiresAt: entitlement.expirationDate ?? null,
-      willRenew: true,
+      willRenew: isLifetime ? false : Boolean(entitlement.willRenew),
+      store: mapStore(entitlement.store),
+      purchasedAt: entitlement.latestPurchaseDate ?? null,
       source: 'revenuecat',
       lastSyncedAt: new Date().toISOString(),
     });
@@ -282,6 +356,29 @@ class SubscriptionServiceImpl implements SubscriptionService {
     return (await this.getSubscription(uid)) ?? buildFreeSubscription(uid);
   }
 
+  private async finalizeAfterCustomerInfo(
+    uid: string,
+    customerInfo: CustomerInfo,
+    previousEventId: string | null,
+    successMessage: string,
+  ): Promise<PurchaseResult> {
+    const optimistic = this.recordFromCustomerInfo(uid, customerInfo);
+    const subscription = await this.waitForServerRecord(uid, previousEventId);
+    const effective =
+      subscription.isPremium || !optimistic
+        ? subscription
+        : withEffectiveAccess({ ...optimistic, lastSyncedAt: new Date().toISOString() });
+
+    return {
+      success: effective.isPremium,
+      requiresWebCheckout: false,
+      message: effective.isPremium
+        ? successMessage
+        : 'Purchase received. Your access will update after store verification.',
+      subscription: effective,
+    };
+  }
+
   async purchasePlan(uid: string, planId: SubscriptionPlanId): Promise<PurchaseResult> {
     const Purchases = getPurchases();
     if (!Purchases || !(await this.configureForUser(uid))) {
@@ -292,16 +389,23 @@ class SubscriptionServiceImpl implements SubscriptionService {
     const offerings = await Purchases.getOfferings();
     const productId = DEFAULT_PLANS.find((plan) => plan.id === planId)?.productId;
     const selectedPackage = offerings.current?.availablePackages.find(
-      (item: PurchasesPackage) => item.product.identifier === productId,
+      (item: PurchasesPackage) =>
+        item.product.identifier === productId ||
+        item.identifier === productId ||
+        (productId != null && item.product.identifier.endsWith(`.${productId}`)),
     );
     if (!selectedPackage) {
       throw new Error('This subscription is not available from the store right now.');
     }
 
-    let optimistic: SubscriptionRecord | null = null;
     try {
       const result = await Purchases.purchasePackage(selectedPackage);
-      optimistic = this.recordFromCustomerInfo(uid, result.customerInfo);
+      return this.finalizeAfterCustomerInfo(
+        uid,
+        result.customerInfo,
+        before?.lastEventId ?? null,
+        'Aithera Pro activated.',
+      );
     } catch (error) {
       const purchaseError = error as { userCancelled?: boolean };
       if (purchaseError.userCancelled) {
@@ -310,26 +414,106 @@ class SubscriptionServiceImpl implements SubscriptionService {
           requiresWebCheckout: false,
           message: 'Purchase cancelled.',
           subscription: before ?? undefined,
+          paywallResult: 'cancelled',
         };
       }
       throw error;
     }
+  }
 
-    // Prefer Firestore webhook authority, but don't strand the UI if it lags.
-    const subscription = await this.waitForServerRecord(uid, before?.lastEventId ?? null);
-    const effective =
-      subscription.isPremium || !optimistic
-        ? subscription
-        : withEffectiveAccess({ ...optimistic, lastSyncedAt: new Date().toISOString() });
+  async presentPaywall(uid: string): Promise<PurchaseResult> {
+    const Purchases = getPurchases();
+    const RevenueCatUI = getPurchasesUi()?.default;
+    if (!Purchases || !RevenueCatUI || !(await this.configureForUser(uid))) {
+      throw new Error('Paywalls require an EAS development or production build.');
+    }
 
-    return {
-      success: effective.isPremium,
-      requiresWebCheckout: false,
-      message: effective.isPremium
-        ? 'Premium activated.'
-        : 'Purchase received. Your access will update after store verification.',
-      subscription: effective,
-    };
+    const before = await this.getSubscription(uid);
+    const result = await RevenueCatUI.presentPaywall();
+    const paywallResult = mapPaywallResult(String(result));
+
+    if (paywallResult !== 'purchased' && paywallResult !== 'restored') {
+      return {
+        success: false,
+        requiresWebCheckout: false,
+        message:
+          paywallResult === 'cancelled'
+            ? 'Purchase cancelled.'
+            : paywallResult === 'not_presented'
+              ? 'Paywall could not be presented.'
+              : 'Paywall closed without a purchase.',
+        subscription: before ?? undefined,
+        paywallResult,
+      };
+    }
+
+    const customerInfo = await Purchases.getCustomerInfo();
+    const finalized = await this.finalizeAfterCustomerInfo(
+      uid,
+      customerInfo,
+      before?.lastEventId ?? null,
+      paywallResult === 'restored' ? 'Purchases restored.' : 'Aithera Pro activated.',
+    );
+    return { ...finalized, paywallResult };
+  }
+
+  async presentPaywallIfNeeded(uid: string): Promise<PurchaseResult> {
+    const Purchases = getPurchases();
+    const RevenueCatUI = getPurchasesUi()?.default;
+    if (!Purchases || !RevenueCatUI || !(await this.configureForUser(uid))) {
+      throw new Error('Paywalls require an EAS development or production build.');
+    }
+
+    const before = await this.getSubscription(uid);
+    const result = await RevenueCatUI.presentPaywallIfNeeded({
+      requiredEntitlementIdentifier: REVENUECAT_ENTITLEMENT_ID,
+    });
+    const paywallResult = mapPaywallResult(String(result));
+
+    if (paywallResult === 'not_presented') {
+      const alreadyPro = await this.hasAitheraProEntitlement(uid);
+      return {
+        success: alreadyPro,
+        requiresWebCheckout: false,
+        message: alreadyPro ? 'Aithera Pro is already active.' : 'Paywall was not presented.',
+        subscription: before ?? undefined,
+        paywallResult,
+      };
+    }
+
+    if (paywallResult !== 'purchased' && paywallResult !== 'restored') {
+      return {
+        success: false,
+        requiresWebCheckout: false,
+        message: paywallResult === 'cancelled' ? 'Purchase cancelled.' : 'Paywall closed.',
+        subscription: before ?? undefined,
+        paywallResult,
+      };
+    }
+
+    const customerInfo = await Purchases.getCustomerInfo();
+    const finalized = await this.finalizeAfterCustomerInfo(
+      uid,
+      customerInfo,
+      before?.lastEventId ?? null,
+      'Aithera Pro activated.',
+    );
+    return { ...finalized, paywallResult };
+  }
+
+  async presentCustomerCenter(uid: string): Promise<void> {
+    const RevenueCatUI = getPurchasesUi()?.default;
+    if (!RevenueCatUI || !(await this.configureForUser(uid))) {
+      throw new Error('Customer Center requires an EAS development or production build.');
+    }
+
+    await RevenueCatUI.presentCustomerCenter({
+      callbacks: {
+        onRestoreCompleted: () => {
+          void this.syncFromRevenueCat(uid);
+        },
+      },
+    });
   }
 
   async restorePurchases(uid: string): Promise<SubscriptionRecord> {
@@ -346,6 +530,16 @@ class SubscriptionServiceImpl implements SubscriptionService {
   }
 
   async manageSubscription(record: SubscriptionRecord | null): Promise<void> {
+    const uid = configuredUserId ?? record?.uid ?? null;
+    if (uid && getPurchasesUi()?.default) {
+      try {
+        await this.presentCustomerCenter(uid);
+        return;
+      } catch {
+        // Fall through to native manage / web portals.
+      }
+    }
+
     const Purchases = getPurchases();
     if (Purchases && configuredUserId) {
       try {
@@ -358,30 +552,49 @@ class SubscriptionServiceImpl implements SubscriptionService {
 
     if (record?.store === 'play_store') {
       const sku = record.productId ? `&sku=${encodeURIComponent(record.productId)}` : '';
-      await Linking.openURL(
+      await openExternalUrl(
         `https://play.google.com/store/account/subscriptions?package=ai.tradevision.app${sku}`,
       );
       return;
     }
     if (record?.store === 'stripe' && process.env.EXPO_PUBLIC_SUBSCRIPTION_PORTAL_URL) {
-      await Linking.openURL(process.env.EXPO_PUBLIC_SUBSCRIPTION_PORTAL_URL);
+      await openExternalUrl(process.env.EXPO_PUBLIC_SUBSCRIPTION_PORTAL_URL);
       return;
     }
     if (Platform.OS === 'android') {
-      await Linking.openURL(
+      await openExternalUrl(
         'https://play.google.com/store/account/subscriptions?package=ai.tradevision.app',
       );
       return;
     }
     if (Platform.OS === 'ios') {
-      await Linking.openURL('https://apps.apple.com/account/subscriptions');
+      await openExternalUrl('https://apps.apple.com/account/subscriptions');
       return;
     }
     if (process.env.EXPO_PUBLIC_SUBSCRIPTION_PORTAL_URL) {
-      await Linking.openURL(process.env.EXPO_PUBLIC_SUBSCRIPTION_PORTAL_URL);
+      await openExternalUrl(process.env.EXPO_PUBLIC_SUBSCRIPTION_PORTAL_URL);
       return;
     }
     throw new Error('Manage subscriptions from the iOS or Android app.');
+  }
+
+  addCustomerInfoListener(
+    uid: string,
+    onUpdate: (record: SubscriptionRecord) => void,
+  ): () => void {
+    const Purchases = getPurchases();
+    if (!Purchases) return () => undefined;
+
+    const listener = (customerInfo: CustomerInfo) => {
+      const record = this.recordFromCustomerInfo(uid, customerInfo);
+      if (record) onUpdate(record);
+      else onUpdate(buildFreeSubscription(uid));
+    };
+
+    Purchases.addCustomerInfoUpdateListener(listener);
+    return () => {
+      void Purchases.removeCustomerInfoUpdateListener(listener);
+    };
   }
 }
 
