@@ -105,7 +105,7 @@ export default function JournalScreen() {
             </View>
           ) : (
             <Text variant="caption" className="mt-2 text-text-tertiary">
-              Upgrade to Premium to export journal data.
+              Journal export is included with Premium.
             </Text>
           )}
         </GlassCard>

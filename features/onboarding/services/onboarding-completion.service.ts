@@ -35,9 +35,9 @@ function normalizeCompletionInput(input: OnboardingCompletionInput): OnboardingC
   }
   const selectedUniverse = [
     ...new Set(input.selectedUniverse.map((symbol) => symbol.trim().toUpperCase()).filter(Boolean)),
-  ];
-  if (selectedUniverse.length < 3 || selectedUniverse.length > 5) {
-    throw new Error('Select between 3 and 5 symbols.');
+  ].slice(0, 10);
+  if (selectedUniverse.length < 1 || selectedUniverse.length > 10) {
+    throw new Error('Select between 1 and 10 symbols for your research universe.');
   }
   return { ...input, selectedUniverse };
 }

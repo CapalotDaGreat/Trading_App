@@ -14,6 +14,8 @@ interface RootRouteGateInput {
   firstSegment?: string;
   secondSegment?: string;
   onboarding: OnboardingResolution | null;
+  /** Phase X — when false, completed users may still open Mentor Setup (soft invite). */
+  mentorSetupCompleted?: boolean;
 }
 
 export function resolveRootRedirect({
@@ -22,6 +24,7 @@ export function resolveRootRedirect({
   firstSegment,
   secondSegment,
   onboarding,
+  mentorSetupCompleted = true,
 }: RootRouteGateInput): string | null {
   const inAuth = firstSegment === '(auth)';
   const inOnboarding = firstSegment === 'onboarding';
@@ -42,7 +45,10 @@ export function resolveRootRedirect({
 
   if (status !== 'authenticated') return null;
   if (!onboarding) return null;
+  // New users: Mentor Setup is required before tabs.
   if (!onboarding.completed) return inOnboarding || inActivationCompanion ? null : '/onboarding';
+  // Soft invite path: allow /onboarding until Mentor Setup is finished.
+  if (inOnboarding && !mentorSetupCompleted) return null;
   if (inOnboarding || inAuth) return '/(tabs)';
   return null;
 }

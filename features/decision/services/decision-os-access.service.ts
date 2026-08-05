@@ -1,3 +1,5 @@
+import { canUse } from '@/features/subscription/services/entitlement.service';
+import type { EntitlementCapability } from '@/shared/constants/entitlements';
 import type { SubscriptionTier } from '@/shared/constants/subscription';
 
 /**
@@ -13,18 +15,22 @@ export type DecisionOsFeature =
   | 'convictionDrift'
   | 'decisionLab';
 
-const PREMIUM_OS_FEATURES: DecisionOsFeature[] = [
-  'advancedResearchQueue',
-  'tradingDnaInsights',
-  'weeklyReviews',
-  'portfolioIntelligence',
-  'advancedReplay',
-  'convictionDrift',
-  'decisionLab',
-];
+const FEATURE_CAPABILITY: Record<DecisionOsFeature, EntitlementCapability> = {
+  advancedResearchQueue: 'researchWorkspace',
+  tradingDnaInsights: 'tradingDna',
+  weeklyReviews: 'advancedReviews',
+  portfolioIntelligence: 'portfolioIntelligence',
+  advancedReplay: 'advancedReplayLibrary',
+  convictionDrift: 'decisionGraph',
+  decisionLab: 'strategySandbox',
+};
 
-export function canAccessDecisionOs(tier: SubscriptionTier, _feature: DecisionOsFeature): boolean {
-  return tier === 'premium';
+const PREMIUM_OS_FEATURES: DecisionOsFeature[] = Object.keys(
+  FEATURE_CAPABILITY,
+) as DecisionOsFeature[];
+
+export function canAccessDecisionOs(tier: SubscriptionTier, feature: DecisionOsFeature): boolean {
+  return canUse(FEATURE_CAPABILITY[feature], tier);
 }
 
 export function isPremiumOnlyOsFeature(feature: DecisionOsFeature): boolean {
@@ -34,15 +40,16 @@ export function isPremiumOnlyOsFeature(feature: DecisionOsFeature): boolean {
 export function decisionOsUpsellCopy(feature: DecisionOsFeature): string {
   const map: Record<DecisionOsFeature, string> = {
     advancedResearchQueue:
-      'Unlock ranked research queues with learning value and portfolio relevance.',
-    tradingDnaInsights: 'Unlock full Trading DNA insights from your memory and journals.',
-    weeklyReviews: 'Unlock weekly process reviews built from your recorded decisions.',
-    portfolioIntelligence: 'Unlock portfolio health, stress tests, and concentration intelligence.',
-    advancedReplay: 'Unlock advanced Process Tape insights and graded process comparisons.',
+      'See the complete ranked research queue with learning value and portfolio relevance.',
+    tradingDnaInsights: 'Explore your full Trading DNA insights from memory and journals.',
+    weeklyReviews: 'Continue your growth with weekly process reviews from recorded decisions.',
+    portfolioIntelligence:
+      'Unlock deeper insights into portfolio health, stress tests, and concentration.',
+    advancedReplay: 'View your personalised coaching with advanced Process Tape insights.',
     convictionDrift:
-      'Unlock Research Value, Decision Quality, and process score evolution during replay.',
+      'See Research Value, Decision Quality, and process score evolution during replay.',
     decisionLab:
-      'Unlock Decision Lab challenges, advanced stats, and multi-scenario paper practice.',
+      'Included with Premium — Decision Lab challenges, advanced stats, and multi-scenario practice.',
   };
   return map[feature];
 }

@@ -5,8 +5,11 @@ import { Pressable, RefreshControl, View } from 'react-native';
 import { EducationalModeBadge } from '@/features/educational/components/EducationalModeBadge';
 import { EducationalPanel } from '@/features/educational/components/EducationalPanel';
 import { useTradingMentor } from '@/features/decision/hooks/useTradingMentor';
+import { MentorSetupInviteCard } from '@/features/onboarding/components/MentorSetupInviteCard';
+import { useCoachProfile } from '@/features/onboarding/hooks/useCoachProfile';
 import { Header } from '@/shared/components/layout/Header';
 import { Screen } from '@/shared/components/layout/Screen';
+import { Button } from '@/shared/components/ui/Button';
 import { GlassCard } from '@/shared/components/ui/GlassCard';
 import { Skeleton } from '@/shared/components/ui/Skeleton';
 import { Text } from '@/shared/components/ui/Text';
@@ -16,6 +19,7 @@ export function TradingMentorScreen() {
   const router = useRouter();
   const { colors } = useTheme();
   const { data, isLoading, isRefetching, refetch } = useTradingMentor();
+  const { showMentorSetupInvite, dismissMentorInvite, mentorSetupCompleted } = useCoachProfile();
 
   return (
     <Screen
@@ -38,6 +42,14 @@ export function TradingMentorScreen() {
       />
 
       <View className="mt-4 gap-4">
+        {showMentorSetupInvite ? (
+          <MentorSetupInviteCard onLater={() => void dismissMentorInvite()} />
+        ) : null}
+        {!mentorSetupCompleted && !showMentorSetupInvite ? (
+          <Button variant="outline" onPress={() => router.push('/onboarding' as never)}>
+            Refresh your coach profile
+          </Button>
+        ) : null}
         <EducationalModeBadge size="md" />
 
         {isLoading && !data ? (

@@ -149,12 +149,33 @@ export function buildPersonalizedCurriculum(input: {
     out.push(rec);
   };
 
+  // Beginner Mentor Setup → Foundations first
+  const experienceHint = `${memory?.notes?.join(' ') ?? ''} ${memory?.tradingStyle ?? ''}`;
+  const isBeginner =
+    /completely new|beginner/i.test(experienceHint) ||
+    (memory?.notes ?? []).some((n) => /beginner|completely new/i.test(n));
+  if (isBeginner) {
+    for (const id of ['foundations-1', 'dec-invalidation', 'dec-psychology', 'ta-trend-range']) {
+      const lesson = lessonById(id) ?? ALL_LESSONS.find((l) => /foundation|beginner|basics/i.test(l.title));
+      if (!lesson || isPracticed(lesson.id)) continue;
+      push({
+        lesson,
+        reason: 'Your coach profile suggests Foundations-first learning with clearer explanations.',
+        evidence: ['Mentor Setup · beginner-friendly path'],
+        source: 'path',
+        isPersonalized: true,
+      });
+      break;
+    }
+  }
+
   // DNA weaknesses / typical mistakes
   const dnaSignals = [
     ...(memory?.typicalMistakes ?? []),
     ...(memory?.weakestSetups ?? []),
     ...(memory?.dna?.weaknesses ?? []),
     ...(memory?.dna?.commonMistakes ?? []),
+    ...(memory?.struggles ?? []),
   ];
 
   for (const signal of dnaSignals) {

@@ -141,6 +141,8 @@ function RootLayoutNav() {
     };
   }, [status, user?.uid, localOnboardingCompleted]);
 
+  const mentorSetupCompleted = useSettingsStore((state) => state.mentorSetupCompleted);
+
   useEffect(() => {
     const destination = resolveRootRedirect({
       status,
@@ -148,9 +150,10 @@ function RootLayoutNav() {
       firstSegment: segments[0],
       secondSegment: segments[1],
       onboarding,
+      mentorSetupCompleted,
     });
     if (destination) router.replace(destination as never);
-  }, [status, segments, onboarding, router]);
+  }, [status, segments, onboarding, mentorSetupCompleted, router]);
 
   useEffect(() => {
     if (status === 'authenticated' && user?.uid && user.uid !== DEMO_USER_UID) {

@@ -20,15 +20,24 @@ import { openExternalUrl } from '@/shared/utils/open-url';
 
 import { PremiumBadge } from './PremiumBadge';
 
-const PREMIUM_FEATURES = [
-  { icon: 'analytics' as const, label: 'Expanded Ask allowance (up to 100/day, fair use)' },
-  { icon: 'list' as const, label: 'Research Queue beyond the free top three' },
-  { icon: 'briefcase' as const, label: 'Portfolio health, stress tests & concentration' },
-  { icon: 'play-forward' as const, label: 'Advanced Process Tape insights & score evolution' },
-  { icon: 'finger-print' as const, label: 'Full Trading DNA insights from recorded decisions' },
-  { icon: 'film' as const, label: 'Weekly game tape built from recorded decisions' },
-  { icon: 'flask' as const, label: 'Decision Lab · thesis-first paper practice' },
-  { icon: 'download' as const, label: 'Journal CSV and JSON export' },
+const OUTCOMES = [
+  'Trade with more confidence',
+  'Build better habits',
+  'Improve consistency',
+  'Reduce emotional decisions',
+  'Learn faster',
+  'Become more disciplined',
+] as const;
+
+const FREE_VS_PREMIUM: { label: string; free: string; premium: string }[] = [
+  { label: 'AI Mentor', free: '20 chats / month', premium: 'Unlimited' },
+  { label: 'AI analyses', free: '20 / month', premium: 'Unlimited' },
+  { label: 'Research Queue', free: 'Top 3', premium: 'Full queue' },
+  { label: 'Decision Replay', free: '5 / month', premium: 'Unlimited' },
+  { label: 'Watchlists', free: '1 · 15 symbols', premium: 'Unlimited' },
+  { label: 'Trading DNA & Graph', free: 'Preview', premium: 'Full insights' },
+  { label: 'Academy', free: 'Foundations', premium: 'Advanced paths' },
+  { label: 'Journal export', free: '—', premium: 'CSV & JSON' },
 ];
 
 export function PaywallScreen() {
@@ -173,7 +182,7 @@ export function PaywallScreen() {
 
   const ctaLabel =
     selected?.isLifetime
-      ? 'Unlock Lifetime Access'
+      ? 'Continue with Lifetime'
       : selected?.trialDays && selectedPlan === 'yearly'
         ? `Start ${selected.trialLabel ?? `${selected.trialDays}-day free trial`}`
         : `Continue with ${selected?.title ?? 'Aithera Pro'}`;
@@ -187,12 +196,63 @@ export function PaywallScreen() {
           <Ionicons name="diamond" size={32} color={colors.accent.primary} />
         </View>
         <Text variant="h1" className="text-center">
-          Aithera Pro
+          Grow calmer, clearer decisions
         </Text>
-        <Text variant="body-sm" className="mt-2 max-w-xs text-center">
-          Keep the Brief, top-three queue, journal, and basic Review free. Upgrade for deeper
-          decision tools.
+        <Text variant="body-sm" className="mt-2 max-w-sm text-center text-text-secondary">
+          Free stays useful for a daily habit. Premium deepens coaching, DNA, and practice — never
+          buy/sell signals.
         </Text>
+      </View>
+
+      <View className="mb-5 rounded-2xl bg-accent-muted/50 p-4">
+        <Text variant="label" className="mb-2 text-accent">
+          7-DAY FREE TRIAL ON YEARLY
+        </Text>
+        <Text variant="body-sm" className="text-text-secondary">
+          Try Aithera Pro with no pressure. Free remains available if you cancel before the trial
+          ends. No hidden charges — store prices control.
+        </Text>
+      </View>
+
+      <View className="mb-5 rounded-2xl bg-background-elevated p-4">
+        <Text variant="label" className="mb-3 text-text-tertiary">
+          OUTCOMES WE COACH TOWARD
+        </Text>
+        {OUTCOMES.map((outcome) => (
+          <Text key={outcome} variant="body-sm" className="mb-2 text-text-primary">
+            ✓ {outcome}
+          </Text>
+        ))}
+      </View>
+
+      <View className="mb-5 rounded-2xl bg-surface p-4">
+        <Text variant="label" className="mb-3 text-text-tertiary">
+          FREE VS PREMIUM
+        </Text>
+        <View className="mb-2 flex-row">
+          <Text variant="caption" className="w-[36%] text-text-tertiary">
+            Capability
+          </Text>
+          <Text variant="caption" className="w-[32%] text-text-tertiary">
+            Free
+          </Text>
+          <Text variant="caption" className="w-[32%] text-text-tertiary">
+            Premium
+          </Text>
+        </View>
+        {FREE_VS_PREMIUM.map((row) => (
+          <View key={row.label} className="mb-2 flex-row">
+            <Text variant="caption" className="w-[36%] text-text-primary">
+              {row.label}
+            </Text>
+            <Text variant="caption" className="w-[32%] text-text-secondary">
+              {row.free}
+            </Text>
+            <Text variant="caption" className="w-[32%] text-accent">
+              {row.premium}
+            </Text>
+          </View>
+        ))}
       </View>
 
       {!nativeBillingAvailable ? (
@@ -334,15 +394,15 @@ export function PaywallScreen() {
             )}
           >
             <Text variant="label" className="mb-3 text-text-tertiary">
-              EVERYTHING IN AITHERA PRO
+              WHAT PREMIUM DEEPENS
             </Text>
-            {PREMIUM_FEATURES.map((feature) => (
-              <View key={feature.label} className="mb-3 flex-row items-center last:mb-0">
+            {OUTCOMES.map((outcome) => (
+              <View key={outcome} className="mb-3 flex-row items-center last:mb-0">
                 <View className="mr-3 h-8 w-8 items-center justify-center rounded-full bg-accent-muted">
-                  <Ionicons name={feature.icon} size={16} color={colors.accent.primary} />
+                  <Ionicons name="checkmark" size={16} color={colors.accent.primary} />
                 </View>
                 <Text variant="body" className="flex-1">
-                  {feature.label}
+                  {outcome}
                 </Text>
               </View>
             ))}
@@ -407,10 +467,11 @@ export function PaywallScreen() {
         auto-renew unless cancelled at least 24 hours before the end of the current period in your
         store account settings. Lifetime is a one-time purchase and does not renew. After a free
         trial, the listed plan price is charged. Cancelling stops renewal; Aithera Pro remains
-        available until the paid-through date. Prices shown come from the store when available.
-        Aithera Pro does not provide brokerage execution or exchange-tick realtime data. Free
-        includes {SUBSCRIPTION_TIERS.free.aiAnalysisPerDay} AI analyses/day and up to{' '}
-        {SUBSCRIPTION_TIERS.free.watchlistMax} watchlist symbols.
+        available until the paid-through date. Free remains available afterwards. Prices shown come
+        from the store when available. Aithera Pro does not provide brokerage execution or
+        exchange-tick realtime data. Free includes {SUBSCRIPTION_TIERS.free.aiAnalysisMonthly} AI
+        analyses/month and up to {SUBSCRIPTION_TIERS.free.symbolsPerWatchlist} symbols in one
+        research universe.
       </Text>
 
       <View className="mt-3 flex-row flex-wrap items-center justify-center gap-x-3 gap-y-2 pb-4">

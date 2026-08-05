@@ -1,3 +1,9 @@
+import {
+  FREE_ENTITLEMENTS,
+  PREMIUM_ENTITLEMENTS,
+  isUnlimited as entitlementIsUnlimited,
+} from '@/shared/constants/entitlements';
+
 export type SubscriptionTier = 'free' | 'premium';
 
 export interface TierLimits {
@@ -5,18 +11,22 @@ export interface TierLimits {
   label: string;
   description: string;
   watchlistMax: number;
+  symbolsPerWatchlist: number;
   alertsMax: number;
   /**
-   * Hard daily AI analysis cap.
-   * Premium uses a generous fair-use ceiling (not marketed as infinite compute).
-   * `-1` is reserved for truly unlimited (unused while fair-use is active).
+   * Monthly AI analysis cap (Phase X).
+   * Premium uses unlimited (-1) with fair-use framing in copy.
    */
   aiAnalysisPerDay: number;
+  aiMentorMonthly: number;
+  aiAnalysisMonthly: number;
+  replaySessionsMonthly: number;
+  portfolioPositions: number;
   portfolioTracking: boolean;
   exportData: boolean;
 }
 
-/** Warn the user when usage reaches this fraction of their daily AI cap. */
+/** Warn the user when usage reaches this fraction of their monthly AI cap. */
 export const AI_USAGE_WARN_RATIO = 0.8;
 
 /** Yearly plan intro trial length (configure matching offer in RevenueCat / App Store Connect). */
@@ -26,23 +36,32 @@ export const SUBSCRIPTION_TIERS: Record<SubscriptionTier, TierLimits> = {
   free: {
     tier: 'free',
     label: 'Free',
-    description: 'Build discipline — Today brief, basic radar, journal, limited AI',
-    // Generous enough for a substantive Decision Brief universe before the upsell
-    watchlistMax: 25,
-    alertsMax: 5,
-    aiAnalysisPerDay: 3,
-    portfolioTracking: false,
+    description: 'Build a daily research habit — Brief, top-three queue, journal, mentor basics',
+    watchlistMax: FREE_ENTITLEMENTS.watchlistCount as number,
+    symbolsPerWatchlist: FREE_ENTITLEMENTS.symbolsPerWatchlist as number,
+    alertsMax: FREE_ENTITLEMENTS.alertsMax as number,
+    // Legacy field name kept for callers; value is monthly (Phase X).
+    aiAnalysisPerDay: FREE_ENTITLEMENTS.aiAnalysisMonthly as number,
+    aiMentorMonthly: FREE_ENTITLEMENTS.aiMentorMonthly as number,
+    aiAnalysisMonthly: FREE_ENTITLEMENTS.aiAnalysisMonthly as number,
+    replaySessionsMonthly: FREE_ENTITLEMENTS.replaySessionsMonthly as number,
+    portfolioPositions: FREE_ENTITLEMENTS.portfolioPositions as number,
+    portfolioTracking: true,
     exportData: false,
   },
   premium: {
     tier: 'premium',
     label: 'Aithera Pro',
     description:
-      'Deeper queue and review insights, expanded Ask, portfolio intelligence, practice, and export',
-    watchlistMax: 200,
-    alertsMax: 100,
-    // Fair-use ceiling keeps higher-cost analysis bounded.
-    aiAnalysisPerDay: 100,
+      'Unlimited mentor & analyses, DNA, Decision Graph, advanced reviews, practice, and export',
+    watchlistMax: PREMIUM_ENTITLEMENTS.watchlistCount as number,
+    symbolsPerWatchlist: PREMIUM_ENTITLEMENTS.symbolsPerWatchlist as number,
+    alertsMax: PREMIUM_ENTITLEMENTS.alertsMax as number,
+    aiAnalysisPerDay: PREMIUM_ENTITLEMENTS.aiAnalysisMonthly as number,
+    aiMentorMonthly: PREMIUM_ENTITLEMENTS.aiMentorMonthly as number,
+    aiAnalysisMonthly: PREMIUM_ENTITLEMENTS.aiAnalysisMonthly as number,
+    replaySessionsMonthly: PREMIUM_ENTITLEMENTS.replaySessionsMonthly as number,
+    portfolioPositions: PREMIUM_ENTITLEMENTS.portfolioPositions as number,
     portfolioTracking: true,
     exportData: true,
   },
@@ -70,12 +89,12 @@ export function getTierLimits(tier: SubscriptionTier): TierLimits {
 }
 
 export function isUnlimited(value: number): boolean {
-  return value === -1;
+  return entitlementIsUnlimited(value);
 }
 
 export function canAccessFeature(
   tier: SubscriptionTier,
-  feature: keyof Omit<TierLimits, 'tier' | 'label'>,
+  feature: keyof Omit<TierLimits, 'tier' | 'label' | 'description'>,
 ): boolean {
   const limits = getTierLimits(tier);
   const value = limits[feature];
@@ -91,7 +110,7 @@ export function hasReachedLimit(current: number, max: number): boolean {
   return current >= max;
 }
 
-/** True when the user has used ≥ 80% of their daily AI allowance (but not yet at the hard cap). */
+/** True when the user has used ≥ 80% of their monthly AI allowance (but not yet at the hard cap). */
 export function isNearAiDailyLimit(usedToday: number, limit: number): boolean {
   if (isUnlimited(limit) || limit <= 0) return false;
   if (usedToday >= limit) return false;
@@ -105,7 +124,6 @@ export function planIdFromProductId(
   if (productId === PREMIUM_PRODUCT_IDS.lifetime) return 'lifetime';
   if (productId === PREMIUM_PRODUCT_IDS.yearly) return 'yearly';
   if (productId === PREMIUM_PRODUCT_IDS.monthly) return 'monthly';
-  // Fallback for package identifiers that include the product id as a suffix.
   if (productId.includes('lifetime')) return 'lifetime';
   if (productId.includes('yearly') || productId.includes('annual')) return 'yearly';
   if (productId.includes('monthly')) return 'monthly';

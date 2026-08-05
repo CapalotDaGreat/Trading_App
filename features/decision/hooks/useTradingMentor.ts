@@ -15,6 +15,7 @@ import {
 } from '@/features/decision/hooks/useDecision';
 import { buildTradingMentorBrief } from '@/features/decision/services/trading-mentor.service';
 import type { TradingMentorBrief } from '@/features/decision/types/mentor.types';
+import { useCoachProfileStore } from '@/features/onboarding/stores/coach-profile.store';
 import { useDecisionLog } from '@/features/decision-log/hooks/useDecisionLog';
 import { useWeeklyGameTape } from '@/features/decision-replay/hooks/useDecisionReplay';
 import { buildLabStats } from '@/features/decision-lab/services/lab-stats.service';
@@ -105,6 +106,7 @@ export function useTradingMentor() {
         risk: riskQuery.data,
         streak: { ...streak, days: learningDays },
         academyRecommendation: academyRecommendation ?? null,
+        coachProfile: useCoachProfileStore.getState().profile,
       });
     },
     enabled: Boolean(briefQuery.data || logSummary || journalCoachQuery.data),

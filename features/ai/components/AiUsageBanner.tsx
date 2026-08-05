@@ -11,26 +11,26 @@ interface AiUsageBannerProps {
   className?: string;
 }
 
-/** Soft warning at ≥80% of daily AI quota; hard-limit copy when exhausted. */
+/** Soft warning at ≥80% of monthly AI quota; hard-limit copy when exhausted. */
 export function AiUsageBanner({ usage, isPremium, className }: AiUsageBannerProps) {
   const router = useRouter();
   if (!usage) return null;
 
   const { usedToday, limit, isNearLimit, isAtLimit } = usage;
   const label = isUnlimited(limit)
-    ? `${usedToday} analyses today`
-    : `${usedToday}/${limit} analyses today`;
+    ? `${usedToday} analyses this month`
+    : `${usedToday}/${limit} analyses this month`;
 
   if (isAtLimit) {
     return (
       <View className={className}>
         <Text variant="caption" className="text-center text-bearish">
-          {label} — daily limit reached. Resets at midnight UTC.
+          {label} — monthly allowance reached. Resets next calendar month.
         </Text>
         {!isPremium ? (
           <Pressable onPress={() => router.push('/subscription' as never)}>
             <Text variant="caption" className="mt-1 text-center text-accent">
-              Upgrade to Premium for a higher fair-use allowance →
+              Continue your growth with unlimited Premium analyses →
             </Text>
           </Pressable>
         ) : null}
@@ -42,7 +42,7 @@ export function AiUsageBanner({ usage, isPremium, className }: AiUsageBannerProp
     return (
       <View className={className}>
         <Text variant="caption" className="text-center text-warning">
-          {label} — you&apos;re near today&apos;s AI limit
+          {label} — you&apos;re near this month&apos;s AI allowance
         </Text>
       </View>
     );

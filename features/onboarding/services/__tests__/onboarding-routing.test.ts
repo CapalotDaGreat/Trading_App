@@ -62,6 +62,7 @@ describe('root onboarding route gate', () => {
         firebaseConfigured: true,
         firstSegment: 'onboarding',
         onboarding: complete,
+        mentorSetupCompleted: true,
       }),
     ).toBe('/(tabs)');
     expect(
@@ -70,6 +71,18 @@ describe('root onboarding route gate', () => {
         firebaseConfigured: false,
         firstSegment: '(tabs)',
         onboarding: complete,
+      }),
+    ).toBeNull();
+  });
+
+  it('allows soft-invite Mentor Setup for completed users without mentorSetupCompleted', () => {
+    expect(
+      resolveRootRedirect({
+        status: 'authenticated',
+        firebaseConfigured: true,
+        firstSegment: 'onboarding',
+        onboarding: complete,
+        mentorSetupCompleted: false,
       }),
     ).toBeNull();
   });

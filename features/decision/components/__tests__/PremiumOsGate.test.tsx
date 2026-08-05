@@ -26,7 +26,7 @@ describe('PremiumOsGate', () => {
 
     expect(screen.queryByText('Weekly detail')).toBeNull();
     expect(screen.getByText(/recorded decisions/)).toBeTruthy();
-    await fireEvent.press(screen.getByTestId('premium-os-unlock-weeklyReviews'));
+    await fireEvent.press(screen.getByTestId('premium-os-gate-weeklyReviews-cta'));
     expect(mockPush).toHaveBeenCalledWith('/subscription');
   });
 

@@ -19,6 +19,8 @@ interface SettingsState {
   marketingEmailsEnabled: boolean;
   hasHydrated: boolean;
   hasCompletedOnboarding: boolean;
+  /** Phase X — full AI Mentor Setup + Research Universe completed. */
+  mentorSetupCompleted: boolean;
   lastSyncAt: number | null;
   setPreferences: (preferences: Partial<UserPreferences>) => void;
   setHapticsEnabled: (enabled: boolean) => void;
@@ -28,6 +30,7 @@ interface SettingsState {
   setSessionTimeoutMinutes: (minutes: 0 | 15 | 30 | 60 | 120) => void;
   setMarketingEmailsEnabled: (enabled: boolean) => void;
   setOnboardingCompleted: (completed: boolean) => void;
+  setMentorSetupCompleted: (completed: boolean) => void;
   setLastSyncAt: (timestamp: number) => void;
   reset: () => void;
 }
@@ -48,6 +51,7 @@ const initialState = {
   marketingEmailsEnabled: false,
   hasHydrated: false,
   hasCompletedOnboarding: false,
+  mentorSetupCompleted: false,
   lastSyncAt: null,
 };
 
@@ -81,6 +85,13 @@ export function migrateSettingsState(
       productAnalyticsConsentUpdatedAt: null,
     };
   }
+  if (version < 6) {
+    next = {
+      ...next,
+      // Legacy completed users keep tabs access; Mentor Setup is soft-invited.
+      mentorSetupCompleted: next.mentorSetupCompleted ?? false,
+    };
+  }
   return next;
 }
 
@@ -109,12 +120,13 @@ export const useSettingsStore = create<SettingsState>()(
       setSessionTimeoutMinutes: (sessionTimeoutMinutes) => set({ sessionTimeoutMinutes }),
       setMarketingEmailsEnabled: (marketingEmailsEnabled) => set({ marketingEmailsEnabled }),
       setOnboardingCompleted: (hasCompletedOnboarding) => set({ hasCompletedOnboarding }),
+      setMentorSetupCompleted: (mentorSetupCompleted) => set({ mentorSetupCompleted }),
       setLastSyncAt: (lastSyncAt) => set({ lastSyncAt }),
       reset: () => set({ ...initialState, hasHydrated: true }),
     }),
     {
       name: 'tradevision-settings',
-      version: 5,
+      version: 6,
       storage: createPersistedStorage(),
       partialize: (state) => {
         const { hasHydrated: _, ...persisted } = state;

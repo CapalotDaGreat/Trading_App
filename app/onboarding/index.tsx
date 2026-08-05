@@ -1,1 +1,1 @@
-export { default } from '@/features/onboarding/screens/ActivationScreen';
+export { default } from '@/features/onboarding/screens/MentorSetupScreen';

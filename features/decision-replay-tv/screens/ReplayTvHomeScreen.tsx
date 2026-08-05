@@ -9,9 +9,11 @@ import {
   listEpisodesForCollection,
 } from '@/features/decision-replay-tv/content/replay-tv.catalog';
 import { useReplayTv } from '@/features/decision-replay-tv/hooks/useReplayTv';
+import { rankReplayTvEpisodes } from '@/features/decision-replay-tv/services/replay-tv-rank.service';
 import type { ReplayTvCollectionId } from '@/features/decision-replay-tv/types/replay-tv.types';
 import { EducationalModeBadge } from '@/features/educational/components/EducationalModeBadge';
 import { EducationalPanel } from '@/features/educational/components/EducationalPanel';
+import { useCoachProfile } from '@/features/onboarding/hooks/useCoachProfile';
 import { Header } from '@/shared/components/layout/Header';
 import { Screen } from '@/shared/components/layout/Screen';
 import { Chip } from '@/shared/components/ui/Chip';
@@ -21,15 +23,20 @@ import { Text } from '@/shared/components/ui/Text';
 export function ReplayTvHomeScreen() {
   const router = useRouter();
   const { beginEpisode, isStarting, progress } = useReplayTv();
+  const { profile } = useCoachProfile();
   const [collectionId, setCollectionId] = useState<ReplayTvCollectionId>('featured');
 
-  const episodes = useMemo(
-    () =>
+  const episodes = useMemo(() => {
+    const base =
       collectionId === 'featured'
         ? listEpisodesForCollection('featured')
-        : listEpisodesForCollection(collectionId),
-    [collectionId],
-  );
+        : listEpisodesForCollection(collectionId);
+    return rankReplayTvEpisodes(base, {
+      markets: profile.markets,
+      struggles: profile.struggles,
+      completedIds: progress.completedEpisodeIds,
+    });
+  }, [collectionId, profile.markets, profile.struggles, progress.completedEpisodeIds]);
 
   const collection = REPLAY_TV_COLLECTIONS.find((c) => c.id === collectionId);
 

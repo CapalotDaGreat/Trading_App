@@ -61,15 +61,17 @@ export function buildPersonalizedToday(input: {
   academyPracticed?: number;
   academyNextTitle?: string | null;
   startHereSymbol?: string | null;
+  researchGreeting?: string | null;
 }): PersonalizedTodayFocus {
   const archetype = resolveTodayArchetype(input);
   const becoming = input.dna.becomingLabel;
+  const greet = input.researchGreeting?.trim();
 
   switch (archetype) {
     case 'new_trader':
       return {
         archetype,
-        eyebrow: 'Who you are becoming',
+        eyebrow: greet ?? 'Who you are becoming',
         headline: "Today's lesson",
         detail: input.academyNextTitle
           ? `Start with ${input.academyNextTitle}. Build identity before depth of research.`

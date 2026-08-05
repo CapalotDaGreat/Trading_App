@@ -124,15 +124,15 @@ export function checkAiAccess(
   if (requiresPremium && tier === 'free') {
     return createAiError(
       'SUBSCRIPTION_REQUIRED',
-      'This AI feature requires a Premium subscription.',
+      'This deeper analysis is included with Premium.',
     );
   }
 
-  if (hasReachedLimit(usedToday, limits.aiAnalysisPerDay)) {
+  if (hasReachedLimit(usedToday, limits.aiAnalysisMonthly)) {
     const message =
       tier === 'premium'
-        ? `Daily fair-use AI limit reached (${limits.aiAnalysisPerDay}/day). Resets at midnight UTC.`
-        : `Daily AI limit reached (${limits.aiAnalysisPerDay}/day). Upgrade to Premium for a much higher fair-use allowance.`;
+        ? 'Monthly fair-use AI allowance reached. It resets next calendar month.'
+        : `Monthly AI allowance reached (${limits.aiAnalysisMonthly}/month). Continue your growth with Premium for unlimited analyses.`;
     return createAiError('DAILY_LIMIT_REACHED', message);
   }
 

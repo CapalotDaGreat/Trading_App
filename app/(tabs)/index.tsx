@@ -33,6 +33,8 @@ import {
   useDecisionLog,
 } from '@/features/decision-log/hooks/useDecisionLog';
 import { ensureDemoDecisionTape } from '@/features/decision-replay/services/demo-tape.service';
+import { MentorSetupInviteCard } from '@/features/onboarding/components/MentorSetupInviteCard';
+import { useCoachProfile } from '@/features/onboarding/hooks/useCoachProfile';
 import { ensureDemoSeedData } from '@/features/onboarding/services/demo-seed.service';
 import { AdaptiveGoalsCard } from '@/features/personal-intelligence/components/AdaptiveGoalsCard';
 import { DynamicTodayHero } from '@/features/personal-intelligence/components/DynamicTodayHero';
@@ -194,6 +196,7 @@ export default function DecisionBriefScreen() {
   const [streak, setStreak] = useState<DisciplineStreak | null>(null);
   const timeBudgetMinutes = useSettingsStore(selectTodayTimeBudget);
   const tier = useSubscriptionStore((state) => state.tier);
+  const { showMentorSetupInvite, dismissMentorInvite } = useCoachProfile();
   const briefQuery = useDecisionBrief(timeBudgetMinutes);
   const mentorQuery = useTradingMentor();
   const intelligenceQuery = usePersonalIntelligence('weekly');
@@ -412,6 +415,9 @@ export default function DecisionBriefScreen() {
       }}
     >
       <FocusStack density="focus">
+        {showMentorSetupInvite ? (
+          <MentorSetupInviteCard onLater={() => void dismissMentorInvite()} />
+        ) : null}
         {focusSections.map((section) => renderSection(section))}
         {moreSections.length > 0 ? (
           <CollapsibleSection

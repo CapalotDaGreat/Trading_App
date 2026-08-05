@@ -1,12 +1,12 @@
 import type { ReactNode } from 'react';
-import { Pressable, View } from 'react-native';
-import { useRouter } from 'expo-router';
+import { View } from 'react-native';
 
 import {
   canAccessDecisionOs,
   decisionOsUpsellCopy,
   type DecisionOsFeature,
 } from '@/features/decision/services/decision-os-access.service';
+import { PremiumPreviewCard } from '@/features/subscription/components/PremiumPreviewCard';
 import { Text } from '@/shared/components/ui/Text';
 import { useSubscriptionStore } from '@/shared/stores/subscription.store';
 
@@ -15,14 +15,24 @@ interface PremiumOsGateProps {
   children: ReactNode;
   /** If true, always show children (core free) and skip gate. */
   freeAlways?: boolean;
+  /** Optional teaser for the preview card. */
+  teaser?: string;
 }
 
+const TEASERS: Record<DecisionOsFeature, string> = {
+  advancedResearchQueue: 'Your queue continues beyond the free top three.',
+  tradingDnaInsights: "We've identified recurring strengths in your Trading DNA.",
+  weeklyReviews: 'Your weekly process review has new patterns to explore.',
+  portfolioIntelligence: 'Portfolio concentration and stress insights are ready.',
+  advancedReplay: 'Advanced Process Tape comparisons are available.',
+  convictionDrift: 'Your Decision Graph has updated with new process edges.',
+  decisionLab: 'Decision Lab challenges and advanced stats are ready to practice.',
+};
+
 /**
- * Soft gate: free users see a short upsell instead of advanced OS panels.
- * Core coaching surfaces should pass freeAlways or not use this gate.
+ * Soft gate: free users see a Premium preview instead of a hard lock.
  */
-export function PremiumOsGate({ feature, children, freeAlways }: PremiumOsGateProps) {
-  const router = useRouter();
+export function PremiumOsGate({ feature, children, freeAlways, teaser }: PremiumOsGateProps) {
   const tier = useSubscriptionStore((s) => s.tier);
 
   if (freeAlways || canAccessDecisionOs(tier, feature)) {
@@ -30,27 +40,20 @@ export function PremiumOsGate({ feature, children, freeAlways }: PremiumOsGatePr
   }
 
   return (
-    <View
-      className="rounded-2xl border border-border bg-background-elevated p-4"
+    <PremiumPreviewCard
       testID={`premium-os-gate-${feature}`}
-    >
-      <Text variant="caption" className="mb-1 font-semibold text-text-tertiary">
-        PREMIUM
-      </Text>
-      <Text variant="body-sm" className="mb-3 text-text-secondary">
-        {decisionOsUpsellCopy(feature)}
-      </Text>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={`Unlock Premium: ${decisionOsUpsellCopy(feature)}`}
-        testID={`premium-os-unlock-${feature}`}
-        onPress={() => router.push('/subscription' as never)}
-        className="self-start rounded-full bg-accent-muted px-3 py-1.5"
-      >
-        <Text variant="caption" className="font-semibold text-accent">
-          Unlock Premium
-        </Text>
-      </Pressable>
-    </View>
+      title={decisionOsUpsellCopy(feature)}
+      teaser={teaser ?? TEASERS[feature]}
+      ctaLabel="Unlock deeper insights"
+      preview={
+        <View>
+          <Text variant="body-sm" className="text-text-secondary">
+            Preview · full detail included with Premium
+          </Text>
+          <View className="mt-2 h-10 rounded-lg bg-surface" />
+          <View className="mt-2 h-10 w-2/3 rounded-lg bg-surface" />
+        </View>
+      }
+    />
   );
 }

@@ -203,6 +203,11 @@ export async function enrichRequestContext(
       recommendedFocus: intel.recommendedFocus,
       tradingStyle: memory.tradingStyle,
       typicalMistakes: memory.typicalMistakes.slice(0, 3),
+      coachTone: memory.coachTone,
+      markets: memory.markets?.slice(0, 4),
+      struggles: memory.struggles?.slice(0, 4),
+      researchTimeOfDay: memory.researchTimeOfDay,
+      successDefinitions: memory.successDefinitions?.slice(0, 3),
     };
   } catch {
     // demo / offline — AI still works without DNA

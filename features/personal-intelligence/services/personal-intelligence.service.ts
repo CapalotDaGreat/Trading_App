@@ -21,6 +21,8 @@ import { buildAdaptiveGoals } from './adaptive-goals.service';
 import { buildAiMemoryTimeline } from './ai-memory-timeline.service';
 import { buildDecisionGraph } from './decision-graph.service';
 import { buildDnaEvolution } from './dna-evolution.service';
+import { greetingForResearchTime } from '@/features/onboarding/services/coach-personalisation.service';
+
 import { buildPersonalizedToday } from './personalized-today.service';
 import { buildTradingDnaTraits } from './trading-dna-traits.service';
 
@@ -142,6 +144,7 @@ export function buildPersonalIntelligence(
     academyPracticed: input.academyPracticed,
     academyNextTitle: input.academyNextTitle,
     startHereSymbol: input.startHereSymbol,
+    researchGreeting: greetingForResearchTime(input.memory.researchTimeOfDay),
   });
 
   const graph = buildDecisionGraph({

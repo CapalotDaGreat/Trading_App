@@ -90,16 +90,16 @@ function assertWatchlistLimit(currentCount: number, tier: SubscriptionTier): voi
   const limits = getTierLimits(tier);
   if (hasReachedLimit(currentCount, limits.watchlistMax)) {
     throw new Error(
-      `Watchlist limit reached (${limits.watchlistMax}). Upgrade your plan to add more.`,
+      `Watchlist limit reached (${limits.watchlistMax}). Included with Premium for unlimited lists.`,
     );
   }
 }
 
 function assertSymbolLimit(symbolCount: number, tier: SubscriptionTier): void {
   const limits = getTierLimits(tier);
-  if (hasReachedLimit(symbolCount, limits.watchlistMax)) {
+  if (hasReachedLimit(symbolCount, limits.symbolsPerWatchlist)) {
     throw new Error(
-      `Symbol limit reached (${limits.watchlistMax}). Upgrade your plan to add more symbols.`,
+      `Symbol limit reached (${limits.symbolsPerWatchlist} per list). Included with Premium for larger universes.`,
     );
   }
 }

@@ -245,6 +245,14 @@ export interface TraderMemory {
   notes: string[];
   updatedAt: number;
   dna?: TradingDna;
+  /** Phase X Mentor Setup — optional coach personalisation. */
+  coachTone?: string;
+  markets?: string[];
+  struggles?: string[];
+  researchTimeOfDay?: string;
+  successDefinitions?: string[];
+  tradeFrequency?: string;
+  tradingMotive?: string;
 }
 
 export interface WeeklyReviewInsight {

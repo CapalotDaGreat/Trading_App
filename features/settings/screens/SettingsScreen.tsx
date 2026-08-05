@@ -6,6 +6,8 @@ import { useAuth } from '@/features/auth/hooks/useAuth';
 import { SettingsRow } from '@/features/settings/components/SettingsRow';
 import { ThemeToggle } from '@/features/settings/components/ThemeToggle';
 import { useSettings } from '@/features/settings/hooks/useSettings';
+import { MentorSetupInviteCard } from '@/features/onboarding/components/MentorSetupInviteCard';
+import { useCoachProfile } from '@/features/onboarding/hooks/useCoachProfile';
 import { PremiumBadge } from '@/features/subscription/components/PremiumBadge';
 import { useSubscription } from '@/features/subscription/hooks/useSubscription';
 import { DEMO_USER_UID } from '@/firebase/config';
@@ -22,6 +24,7 @@ export function SettingsScreen() {
   const { user, signOut, deleteAccount } = useAuth();
   const { isPremium, manage, openCustomerCenter, presentPaywall, nativeBillingAvailable } =
     useSubscription();
+  const { showMentorSetupInvite, dismissMentorInvite, mentorSetupCompleted } = useCoachProfile();
   const { settings, updateSettings, sync } = useSettings();
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [deletePhrase, setDeletePhrase] = useState('');
@@ -49,13 +52,29 @@ export function SettingsScreen() {
     <Screen scrollable>
       <Header title="Settings" />
 
+      {showMentorSetupInvite ? (
+        <MentorSetupInviteCard onLater={() => void dismissMentorInvite()} />
+      ) : null}
+
+      {!mentorSetupCompleted && !showMentorSetupInvite ? (
+        <GlassCard className="mb-6 p-4">
+          <Text variant="h3">AI Mentor profile</Text>
+          <Text variant="body-sm" className="mt-1 text-text-secondary">
+            Refresh how your coach prioritises research and learning.
+          </Text>
+          <Button className="mt-4" variant="outline" onPress={() => router.push('/onboarding')}>
+            Personalise your coach
+          </Button>
+        </GlassCard>
+      ) : null}
+
       {!isPremium ? (
         <GlassCard className="mb-6 p-4" glow>
           <View className="flex-row items-center justify-between">
             <View className="flex-1 pr-4">
-              <Text variant="h3">Upgrade to Premium</Text>
+              <Text variant="h3">Continue your growth</Text>
               <Text variant="body-sm" className="mt-1 text-text-secondary">
-                Faster refresh, trader DNA, process coaching, and full radar depth.
+                Deeper DNA, Decision Graph, unlimited mentor coaching, and full research depth.
               </Text>
             </View>
             <PremiumBadge size="md" />

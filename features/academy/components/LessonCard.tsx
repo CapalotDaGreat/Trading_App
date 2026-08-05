@@ -24,7 +24,7 @@ export function LessonCard({ lesson }: LessonCardProps) {
   const router = useRouter();
   const { colors } = useTheme();
   const isPremium = useSubscriptionStore((s) => s.isPremium);
-  const isLocked = lesson.isPremium && !isPremium;
+  const isPremiumLesson = lesson.isPremium && !isPremium;
   const read = useAcademyProgressStore((s) => s.isRead(lesson.id));
   const practiced = useAcademyProgressStore((s) => s.isPracticed(lesson.id));
 
@@ -32,7 +32,7 @@ export function LessonCard({ lesson }: LessonCardProps) {
     <Pressable
       accessibilityRole="button"
       onPress={() => {
-        if (isLocked) {
+        if (isPremiumLesson) {
           router.push('/subscription' as never);
           return;
         }
@@ -43,8 +43,8 @@ export function LessonCard({ lesson }: LessonCardProps) {
       <View className="mr-3 mt-0.5">
         <Ionicons
           name={
-            isLocked
-              ? 'lock-closed-outline'
+            isPremiumLesson
+              ? 'diamond-outline'
               : practiced
                 ? 'ribbon-outline'
                 : read
@@ -57,7 +57,7 @@ export function LessonCard({ lesson }: LessonCardProps) {
               ? colors.accent.primary
               : read
                 ? colors.bullish.primary
-                : isLocked
+                : isPremiumLesson
                   ? colors.text.tertiary
                   : colors.accent.primary
           }
@@ -67,7 +67,9 @@ export function LessonCard({ lesson }: LessonCardProps) {
         <View className="mb-1 flex-row flex-wrap items-center gap-1.5">
           <Badge label={lesson.difficulty} variant={difficultyVariant[lesson.difficulty]} size="sm" />
           <Badge label={CATEGORY_LABELS[lesson.category]} variant="outline" size="sm" />
-          {lesson.isPremium ? <Badge label="Premium" variant="accent" size="sm" /> : null}
+          {lesson.isPremium ? (
+            <Badge label="Included with Premium" variant="accent" size="sm" />
+          ) : null}
           {lesson.track === 'decision' ? (
             <Badge label="Coach" variant="default" size="sm" />
           ) : null}

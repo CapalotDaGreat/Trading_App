@@ -193,6 +193,11 @@ export interface AiEnrichedContext {
     processScoreWeek?: number;
     tradingStyle?: string;
     typicalMistakes?: string[];
+    coachTone?: string;
+    markets?: string[];
+    struggles?: string[];
+    researchTimeOfDay?: string;
+    successDefinitions?: string[];
   };
   assembledAt: number;
 }

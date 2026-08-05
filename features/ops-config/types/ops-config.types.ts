@@ -27,8 +27,19 @@ export interface FeatureFlagDefinition {
 export interface OpsRemoteConfig {
   schemaVersion: number;
   aiModel: string;
+  /** @deprecated Prefer aiAnalysisMonthlyFree — kept for older clients. */
   aiDailyLimitFree: number;
+  /** @deprecated Prefer aiAnalysisMonthlyPremium. */
   aiDailyLimitPremium: number;
+  aiMentorMonthlyFree: number;
+  aiAnalysisMonthlyFree: number;
+  aiAnalysisMonthlyPremium: number;
+  replaySessionsMonthlyFree: number;
+  watchlistCountFree: number;
+  symbolsPerWatchlistFree: number;
+  portfolioPositionsFree: number;
+  alertsMaxFree: number;
+  researchQueueDepthFree: number;
   marketQuotePollMs: number;
   marketCandlePollMs: number;
   alertEvalIntervalMs: number;

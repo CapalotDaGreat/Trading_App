@@ -13,6 +13,8 @@ import type {
   TraderMemory,
 } from '@/features/decision/types/decision.types';
 import type { TradingMentorBrief } from '@/features/decision/types/mentor.types';
+import { pickMentorPersonalisationLine } from '@/features/onboarding/services/coach-personalisation.service';
+import type { CoachProfile } from '@/features/onboarding/types/mentor-setup.types';
 import { buildCoachingReferences } from '@/features/personal-intelligence/services/personal-intelligence.service';
 
 export interface TradingMentorInput {
@@ -25,6 +27,7 @@ export interface TradingMentorInput {
   risk?: RiskCenterSnapshot | null;
   streak?: DisciplineStreak | null;
   academyRecommendation?: CurriculumRecommendation | null;
+  coachProfile?: CoachProfile | null;
   now?: number;
 }
 
@@ -200,12 +203,23 @@ export function buildTradingMentorBrief(input: TradingMentorInput): TradingMento
       : null,
   ].filter((note): note is string => Boolean(note));
 
+  const personalLine = pickMentorPersonalisationLine(
+    input.coachProfile ?? null,
+    input.memory,
+    now,
+  );
+
   return {
     generatedAt: now,
     daily: {
       headline,
       detail: sanitizeMentorCopy(
-        `Coach note: ${mistake}. Focus on process quality — never on predicting the next move.`,
+        [
+          personalLine,
+          `Coach note: ${mistake}. Focus on process quality — never on predicting the next move.`,
+        ]
+          .filter(Boolean)
+          .join(' '),
       ),
       todaysFocus,
       improveNext: sanitizeMentorCopy(
