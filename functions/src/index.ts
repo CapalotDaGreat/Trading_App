@@ -17,6 +17,8 @@ export {
   recordAiUsage,
 } from './proxies';
 
+export { createPortfolioHolding, resolveInstrument } from './portfolio-holdings';
+
 export { getOpsBootstrap, upsertOpsConfig } from './ops/bootstrap';
 export { trackProductEvent } from './ops/analytics';
 export { opsHealthSnapshot, getOpsDashboard } from './ops/health';

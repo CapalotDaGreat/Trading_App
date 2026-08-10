@@ -15,9 +15,13 @@ import { getDecisionRecords } from '@/features/decision-log/services/decision-lo
 import { buildDnaMentorSummary } from '@/features/personal-intelligence/services/dna-mentor-summary.service';
 import { buildDnaChangeInsights } from '@/features/personal-intelligence/services/dna-change.service';
 import { buildTradingDnaTraits } from '@/features/personal-intelligence/services/trading-dna-traits.service';
-import type { Candle } from '@/shared/types/market';
+import type { Candle, MarketType } from '@/shared/types/market';
 
-import type { AiEnrichedContext, AiRequestContext } from '../types/ai.types';
+import type {
+  AiEnrichedContext,
+  AiInstrumentIdentity,
+  AiRequestContext,
+} from '../types/ai.types';
 
 const ALL_INDICATORS: IndicatorType[] = [
   'rsi',
@@ -42,12 +46,17 @@ function latestValue<T extends { value: number }>(values: T[] | undefined): numb
   return values?.[values.length - 1]?.value;
 }
 
-export async function buildSymbolContext(symbol: string): Promise<AiEnrichedContext> {
+export async function buildSymbolContext(
+  symbol: string,
+  instrument?: AiInstrumentIdentity,
+): Promise<AiEnrichedContext> {
+  const asset = buildAssetFromSymbol(symbol);
+  const marketType = (instrument?.marketType as MarketType | undefined) ?? asset.marketType;
   const [quote, candles, fearGreed] = await Promise.all([
     fetchQuote(symbol).catch(() => null),
     fetchCandles({
       symbol,
-      marketType: buildAssetFromSymbol(symbol).marketType,
+      marketType,
       interval: '1d',
       limit: 120,
     }).catch((): Candle[] => []),
@@ -78,6 +87,13 @@ export async function buildSymbolContext(symbol: string): Promise<AiEnrichedCont
 
   return {
     symbol,
+    instrument: instrument ?? {
+      symbol,
+      name: asset.name,
+      assetClass: asset.assetClass,
+      currency: asset.currency,
+      marketType: asset.marketType,
+    },
     quote: quote
       ? {
           price: quote.price,
@@ -159,13 +175,20 @@ export async function enrichRequestContext(
   context: AiRequestContext = {},
 ): Promise<AiRequestContext> {
   const enriched: AiEnrichedContext = context.symbol
-    ? await buildSymbolContext(context.symbol)
+    ? await buildSymbolContext(context.symbol, context.instrument)
     : await buildMarketContext();
 
   if (context.portfolio?.length) {
     const totalValue = context.portfolio.reduce((sum, h) => sum + h.quantity * h.avgCost, 0);
     enriched.portfolioHoldings = context.portfolio.map((h) => ({
-      ...h,
+      symbol: h.symbol,
+      quantity: h.quantity,
+      avgCost: h.avgCost,
+      name: h.name,
+      assetClass: h.assetClass,
+      exchange: h.exchange,
+      currency: h.currency,
+      providerSymbol: h.providerSymbol,
       weight: totalValue > 0 ? round((h.quantity * h.avgCost) / totalValue, 4) : 0,
     }));
   }

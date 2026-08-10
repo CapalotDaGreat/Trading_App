@@ -12,8 +12,11 @@ import {
 } from 'firebase/firestore';
 
 import { requireDb } from '@/firebase/config';
+import { proxyCreatePortfolioHolding } from '@/features/markets/services/market-proxy.service';
+import type { InstrumentProvider } from '@/features/markets/types/instrument.types';
 import { getLimit } from '@/features/subscription/services/entitlement.service';
 import { hasReachedLimit, type SubscriptionTier } from '@/shared/constants/subscription';
+import { canUseVendorProxy } from '@/shared/services/firebase/callable-proxy';
 import { getLocalUserRepository, resolveUserDataBackend } from '@/shared/services/user-data';
 
 import type {
@@ -26,6 +29,7 @@ import type {
   PortfolioSummary,
   UpdateHoldingInput,
 } from '../types/portfolio.types';
+import { DuplicateHoldingError } from '../types/portfolio.types';
 
 const USERS_COLLECTION = 'users';
 const HOLDINGS_SUBCOLLECTION = 'holdings';
@@ -66,9 +70,46 @@ function toHolding(id: string, data: DocumentData): Holding {
     currency: (data.currency as string) ?? 'USD',
     side: (data.side as Holding['side']) ?? 'long',
     notes: (data.notes as string | undefined) ?? undefined,
+    instrumentId: (data.instrumentId as string | undefined) ?? undefined,
+    canonicalSymbol: (data.canonicalSymbol as string | undefined) ?? undefined,
+    provider: (data.provider as InstrumentProvider | undefined) ?? undefined,
+    providerSymbol: (data.providerSymbol as string | undefined) ?? undefined,
+    exchange: (data.exchange as string | undefined) ?? undefined,
     createdAt: serializeTimestamp(data.createdAt),
     updatedAt: serializeTimestamp(data.updatedAt),
   };
+}
+
+function assertResolvedCreateInput(input: CreateHoldingInput): void {
+  if (
+    !input.instrumentId?.trim() ||
+    !input.canonicalSymbol?.trim() ||
+    !input.symbol?.trim() ||
+    !input.name?.trim() ||
+    !input.provider ||
+    !input.providerSymbol?.trim()
+  ) {
+    throw new Error(
+      'Holdings require a resolved market instrument. Search and select an asset first.',
+    );
+  }
+  if (!Number.isFinite(input.currentPrice) || input.currentPrice <= 0) {
+    throw new Error('A valid market price is required — prices are never invented.');
+  }
+}
+
+export function findDuplicateHolding(
+  holdings: Holding[],
+  input: Pick<CreateHoldingInput, 'instrumentId' | 'canonicalSymbol' | 'symbol'>,
+): Holding | undefined {
+  const instrumentId = input.instrumentId.trim();
+  const canonical = input.canonicalSymbol.trim().toUpperCase();
+  const symbol = input.symbol.trim().toUpperCase();
+  return holdings.find((h) => {
+    if (h.instrumentId && h.instrumentId === instrumentId) return true;
+    const existingCanonical = (h.canonicalSymbol ?? h.symbol).toUpperCase();
+    return existingCanonical === canonical || h.symbol.toUpperCase() === symbol;
+  });
 }
 
 export function calculateHoldingPnL(holding: Holding, previousClose?: number): HoldingPnL {
@@ -167,14 +208,22 @@ export async function createHolding(
   input: CreateHoldingInput,
   tier: SubscriptionTier = 'free',
 ): Promise<Holding> {
+  assertResolvedCreateInput(input);
+
   const holdings = await getHoldings(uid);
   const limit = getLimit('portfolioPositions', tier);
   if (hasReachedLimit(holdings.length, limit)) {
     throw new Error(`Portfolio position limit reached (${limit}).`);
   }
+
+  const duplicate = findDuplicateHolding(holdings, input);
+  if (duplicate) {
+    throw new DuplicateHoldingError(duplicate);
+  }
+
   const now = new Date().toISOString();
   const data: HoldingDocument = {
-    symbol: input.symbol.toUpperCase().trim(),
+    symbol: input.symbol.trim(),
     name: input.name.trim(),
     marketType: input.marketType,
     assetClass: input.assetClass,
@@ -184,6 +233,11 @@ export async function createHolding(
     currency: input.currency ?? 'USD',
     side: input.side ?? 'long',
     notes: input.notes,
+    instrumentId: input.instrumentId.trim(),
+    canonicalSymbol: input.canonicalSymbol.trim(),
+    provider: input.provider,
+    providerSymbol: input.providerSymbol.trim(),
+    exchange: input.exchange?.trim() || undefined,
     createdAt: now,
     updatedAt: now,
   };
@@ -192,6 +246,38 @@ export async function createHolding(
     return getLocalUserRepository(uid).create<Holding>('holdings', data);
   }
 
+  // Production Firebase path: server re-validates instrument before write.
+  if (canUseVendorProxy()) {
+    try {
+      const result = await proxyCreatePortfolioHolding({
+        instrumentId: data.instrumentId,
+        symbol: data.symbol,
+        canonicalSymbol: data.canonicalSymbol,
+        name: data.name,
+        marketType: data.marketType,
+        assetClass: data.assetClass,
+        currency: data.currency,
+        exchange: data.exchange,
+        provider: data.provider,
+        providerSymbol: data.providerSymbol,
+        quantity: data.quantity,
+        averageCost: data.averageCost,
+        currentPrice: data.currentPrice,
+        side: data.side,
+        notes: data.notes,
+      });
+      return toHolding(result.holding.id, result.holding);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unable to create holding.';
+      if (/already have this asset|already-exists/i.test(message)) {
+        const again = findDuplicateHolding(await getHoldings(uid), input);
+        if (again) throw new DuplicateHoldingError(again);
+      }
+      throw error instanceof Error ? error : new Error(message);
+    }
+  }
+
+  // Signed-in Firestore without callable proxy: still require resolved shape.
   const ref = await addDoc(holdingsCollection(uid), {
     ...data,
     createdAt: serverTimestamp(),

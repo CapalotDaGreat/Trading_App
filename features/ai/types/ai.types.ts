@@ -159,8 +159,21 @@ export interface AiAnalysisResult {
   metadata?: AiAnalysisMetadata;
 }
 
+/** Structured asset identity for AI — never raw user search text. */
+export interface AiInstrumentIdentity {
+  symbol: string;
+  name: string;
+  assetClass: string;
+  exchange?: string;
+  currency?: string;
+  providerSymbol?: string;
+  marketType?: string;
+}
+
 export interface AiEnrichedContext {
   symbol?: string;
+  /** Canonical instrument fields when known (portfolio / resolver). */
+  instrument?: AiInstrumentIdentity;
   quote?: {
     price: number;
     change: number;
@@ -182,7 +195,17 @@ export interface AiEnrichedContext {
   detectedPatterns?: { name: string; bullish: boolean; confidence: number }[];
   availableIndicators?: string[];
   newsHeadlines?: { id: string; title: string; source: string }[];
-  portfolioHoldings?: { symbol: string; quantity: number; avgCost: number; weight?: number }[];
+  portfolioHoldings?: {
+    symbol: string;
+    quantity: number;
+    avgCost: number;
+    weight?: number;
+    name?: string;
+    assetClass?: string;
+    exchange?: string;
+    currency?: string;
+    providerSymbol?: string;
+  }[];
   fearGreedIndex?: number;
   fearGreedLabel?: string;
   /** Unified Decision Intelligence — AI must not ignore this when present. */
@@ -215,7 +238,18 @@ export interface AiRequestContext {
   symbol?: string;
   indicator?: string;
   pattern?: string;
-  portfolio?: { symbol: string; quantity: number; avgCost: number }[];
+  portfolio?: {
+    symbol: string;
+    quantity: number;
+    avgCost: number;
+    name?: string;
+    assetClass?: string;
+    exchange?: string;
+    currency?: string;
+    providerSymbol?: string;
+  }[];
+  /** Optional pre-resolved instrument identity for the focus symbol. */
+  instrument?: AiInstrumentIdentity;
   newsIds?: string[];
   timeframe?: string;
   customPrompt?: string;

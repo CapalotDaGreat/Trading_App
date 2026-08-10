@@ -1,3 +1,4 @@
+import type { InstrumentProvider } from '@/features/markets/types/instrument.types';
 import type { AssetClass, MarketType } from '@/shared/types/market';
 
 export type HoldingSide = 'long' | 'short';
@@ -14,6 +15,12 @@ export interface Holding {
   currency: string;
   side: HoldingSide;
   notes?: string;
+  /** Canonical instrument identity — required on new creates. */
+  instrumentId?: string;
+  canonicalSymbol?: string;
+  provider?: InstrumentProvider;
+  providerSymbol?: string;
+  exchange?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -29,12 +36,20 @@ export interface HoldingDocument {
   currency: string;
   side: HoldingSide;
   notes?: string;
+  instrumentId: string;
+  canonicalSymbol: string;
+  provider: InstrumentProvider;
+  providerSymbol: string;
+  exchange?: string;
   createdAt: string;
   updatedAt: string;
 }
 
 export interface CreateHoldingInput {
+  /** Resolved instrument id — never raw user search text. */
+  instrumentId: string;
   symbol: string;
+  canonicalSymbol: string;
   name: string;
   marketType: MarketType;
   assetClass: AssetClass;
@@ -44,6 +59,9 @@ export interface CreateHoldingInput {
   currency?: string;
   side?: HoldingSide;
   notes?: string;
+  provider: InstrumentProvider;
+  providerSymbol: string;
+  exchange?: string;
 }
 
 export interface UpdateHoldingInput {
@@ -51,6 +69,16 @@ export interface UpdateHoldingInput {
   averageCost?: number;
   currentPrice?: number;
   notes?: string;
+}
+
+export class DuplicateHoldingError extends Error {
+  readonly holding: Holding;
+
+  constructor(holding: Holding) {
+    super('You already have this asset in your portfolio.');
+    this.name = 'DuplicateHoldingError';
+    this.holding = holding;
+  }
 }
 
 export interface HoldingPnL {

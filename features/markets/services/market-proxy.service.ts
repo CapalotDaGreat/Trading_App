@@ -96,6 +96,28 @@ export async function proxyMarketSearch(query: string): Promise<
   return callProxy('marketSearch', { query });
 }
 
+export async function proxyCreatePortfolioHolding(input: {
+  instrumentId: string;
+  symbol: string;
+  canonicalSymbol: string;
+  name: string;
+  marketType: string;
+  assetClass: string;
+  currency?: string;
+  exchange?: string;
+  provider: string;
+  providerSymbol: string;
+  quantity: number;
+  averageCost: number;
+  currentPrice: number;
+  side?: string;
+  notes?: string;
+}): Promise<{
+  holding: Record<string, unknown> & { id: string };
+}> {
+  return callProxy('createPortfolioHolding', input);
+}
+
 export async function proxyEconomicCalendar(
   from: string,
   to: string,

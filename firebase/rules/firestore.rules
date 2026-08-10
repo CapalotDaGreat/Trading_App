@@ -74,28 +74,73 @@ service cloud.firestore {
         && data.symbols.size() <= 100;
     }
 
-    function isValidHolding() {
-      let data = request.resource.data;
-      return data.keys().hasAll([
-          'symbol', 'name', 'marketType', 'assetClass', 'quantity',
-          'averageCost', 'currentPrice', 'currency', 'side', 'createdAt', 'updatedAt'
-        ])
-        && data.symbol is string
+    function isValidHoldingIdentity(data) {
+      return data.symbol is string
         && data.symbol.size() >= 1
-        && data.symbol.size() <= 20
+        && data.symbol.size() <= 24
         && data.name is string
+        && data.name.size() >= 1
+        && data.name.size() <= 120
         && data.marketType in ['stocks', 'forex', 'crypto', 'commodities', 'indices', 'options']
         && data.assetClass in [
           'equity', 'etf', 'crypto', 'forex', 'commodity',
           'index', 'option', 'bond', 'futures'
         ]
+        && data.currency is string
+        && data.currency.size() == 3
+        && data.side in ['long', 'short']
+        && data.instrumentId is string
+        && data.instrumentId.size() >= 3
+        && data.instrumentId.size() <= 64
+        && data.canonicalSymbol is string
+        && data.canonicalSymbol.size() >= 1
+        && data.canonicalSymbol.size() <= 24
+        && data.provider is string
+        && data.provider in [
+          'finnhub', 'alpha-vantage', 'coingecko', 'exchange-rate-api', 'internal', 'other'
+        ]
+        && data.providerSymbol is string
+        && data.providerSymbol.size() >= 1
+        && data.providerSymbol.size() <= 24;
+    }
+
+    function isValidHoldingCreate() {
+      let data = request.resource.data;
+      return data.keys().hasAll([
+          'symbol', 'name', 'marketType', 'assetClass', 'quantity',
+          'averageCost', 'currentPrice', 'currency', 'side',
+          'instrumentId', 'canonicalSymbol', 'provider', 'providerSymbol',
+          'createdAt', 'updatedAt'
+        ])
+        && isValidHoldingIdentity(data)
         && data.quantity is number
         && data.quantity > 0
         && data.averageCost is number
+        && data.averageCost >= 0
         && data.currentPrice is number
-        && data.currency is string
-        && data.currency.size() == 3
-        && data.side in ['long', 'short'];
+        && data.currentPrice > 0;
+    }
+
+    /** Lot fields only — instrument identity is immutable after create. */
+    function isValidHoldingUpdate() {
+      let data = request.resource.data;
+      let prev = resource.data;
+      return data.quantity is number
+        && data.quantity > 0
+        && data.averageCost is number
+        && data.averageCost >= 0
+        && data.currentPrice is number
+        && data.currentPrice >= 0
+        && data.symbol == prev.symbol
+        && data.name == prev.name
+        && data.marketType == prev.marketType
+        && data.assetClass == prev.assetClass
+        && data.currency == prev.currency
+        && data.side == prev.side
+        && (!('instrumentId' in prev) || data.instrumentId == prev.instrumentId)
+        && (!('canonicalSymbol' in prev) || data.canonicalSymbol == prev.canonicalSymbol)
+        && (!('provider' in prev) || data.provider == prev.provider)
+        && (!('providerSymbol' in prev) || data.providerSymbol == prev.providerSymbol);
     }
 
     function isValidJournalEntry() {
@@ -198,8 +243,10 @@ service cloud.firestore {
 
       match /holdings/{positionId} {
         allow read: if isOwner(userId);
-        allow create: if isOwner(userId) && isVerifiedUser() && isValidHolding() && hasValidTimestamps();
-        allow update: if isOwner(userId) && isVerifiedUser() && isValidHolding();
+        // Creates go through createPortfolioHolding callable (Admin SDK).
+        // Keep a strict create shape for verified clients as defense-in-depth.
+        allow create: if isOwner(userId) && isVerifiedUser() && isValidHoldingCreate() && hasValidTimestamps();
+        allow update: if isOwner(userId) && isVerifiedUser() && isValidHoldingUpdate();
         allow delete: if isOwner(userId) && isVerifiedUser();
       }
 

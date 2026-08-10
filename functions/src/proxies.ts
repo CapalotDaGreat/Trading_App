@@ -134,7 +134,21 @@ export const marketSearch = onCall(callableOpts, async (request) => {
   }
 
   try {
-    const results = await finnhubSearch(query);
+    const results = (await finnhubSearch(query))
+      .filter(
+        (row) =>
+          typeof row.symbol === 'string' &&
+          row.symbol.length >= 1 &&
+          row.symbol.length <= 24 &&
+          typeof row.description === 'string' &&
+          row.description.length >= 1 &&
+          row.description.length <= 120,
+      )
+      .map((row) => ({
+        symbol: row.symbol,
+        description: row.description.slice(0, 120),
+        type: String(row.type ?? 'Common Stock').slice(0, 40),
+      }));
     return { results, provider: 'finnhub' as const, quota };
   } catch (error) {
     if (error instanceof functions.https.HttpsError) throw error;

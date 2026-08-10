@@ -108,13 +108,17 @@ describe('local feature services', () => {
     await deleteJournalEntry(UID, journal.id);
 
     const holding = await createHolding(UID, {
+      instrumentId: 'equity:MSFT',
       symbol: 'MSFT',
+      canonicalSymbol: 'MSFT',
       name: 'Microsoft',
       marketType: 'stocks',
       assetClass: 'equity',
       quantity: 3,
       averageCost: 400,
       currentPrice: 400,
+      provider: 'finnhub',
+      providerSymbol: 'MSFT',
     });
     await updateHolding(UID, holding.id, { quantity: 4 });
     expect((await getHoldings(UID)).find((item) => item.id === holding.id)?.quantity).toBe(4);
