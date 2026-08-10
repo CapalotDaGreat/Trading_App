@@ -18,6 +18,7 @@ import { useWeeklyGameTape } from '@/features/decision-replay/hooks/useDecisionR
 import { buildLabStats } from '@/features/decision-lab/services/lab-stats.service';
 import { useDecisionLabStore } from '@/features/decision-lab/stores/lab.store';
 import { useAlerts } from '@/features/alerts/hooks/useAlerts';
+import { usePersonalIntelligence } from '@/features/personal-intelligence/hooks/usePersonalIntelligence';
 import { useSettingsStore } from '@/shared/stores/settings.store';
 import { loadDisciplineStreak } from '@/features/decision/services/coaching-loop.service';
 import { selectTodayTimeBudget } from '@/features/decision/services/today-sections.service';
@@ -46,6 +47,7 @@ export function useTradingMentor() {
   const { practicedCount, totalCount } = useAcademy();
   const { records } = useDecisionLog();
   const { alerts } = useAlerts();
+  const intelligenceQuery = usePersonalIntelligence('weekly');
   const debt = useMemo(() => {
     const queueLen = briefQuery.data?.researchQueue?.length ?? 0;
     const replayCompletions = records?.filter((r) => r.action === 'replay_completed').length ?? 0;
@@ -95,6 +97,7 @@ export function useTradingMentor() {
     academyStreakDays,
     coachProfile?.uid ?? 'none',
     coachProfile?.updatedAt ?? 0,
+    intelligenceQuery.data?.mentorSummary.observationKey ?? 'none',
   ].join(':');
 
   const query = useQuery({
@@ -113,6 +116,7 @@ export function useTradingMentor() {
         streak: { ...streak, days: learningDays },
         academyRecommendation: academyRecommendation ?? null,
         coachProfile,
+        dnaMentorSummary: intelligenceQuery.data?.mentorSummary ?? null,
       });
     },
     enabled: Boolean(briefQuery.data || logSummary || journalCoachQuery.data),

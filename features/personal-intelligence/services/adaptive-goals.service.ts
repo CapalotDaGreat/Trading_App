@@ -4,16 +4,109 @@ import type { DecisionDebtSnapshot } from '@/features/decision/types/decision.ty
 import type {
   AdaptiveGoal,
   PersonalizedTodayFocus,
+  ProcessGoalId,
   TradingDnaProfile,
 } from '../types/personal-intelligence.types';
+import { PROCESS_GOAL_LABELS } from './dna-mentor-summary.service';
+import { getTraitScore } from './trading-dna-traits.service';
 
 function clamp(n: number, min = 0, max = 100): number {
   return Math.max(min, Math.min(max, Math.round(n)));
 }
 
+const GOAL_TO_TRAIT: Record<ProcessGoalId, Parameters<typeof getTraitScore>[1]> = {
+  improve_patience: 'patience',
+  improve_risk_awareness: 'riskAwareness',
+  reduce_fomo: 'fomoResistance',
+  improve_thesis_clarity: 'thesisClarity',
+  research_efficiency: 'researchEfficiency',
+  build_consistency: 'processConsistency',
+  improve_invalidation: 'invalidationDiscipline',
+  improve_reflection: 'reflectionQuality',
+};
+
+function selectedGoalCard(input: {
+  goalId: ProcessGoalId;
+  records: DecisionRecord[];
+  weekAgo: number;
+  dna: TradingDnaProfile;
+}): AdaptiveGoal {
+  const week = input.records.filter((r) => r.createdAt >= input.weekAgo);
+  const skipped = week.filter((r) => r.action === 'skipped').length;
+  const journaled = week.filter((r) => r.action === 'journaled').length;
+  const replay = week.filter((r) => r.action === 'replay_completed').length;
+  const researched = week.filter((r) => r.action === 'researched').length;
+  const invalidated = week.filter((r) => r.action === 'invalidated').length;
+  const traitScore = getTraitScore(input.dna, GOAL_TO_TRAIT[input.goalId]) ?? 40;
+
+  const progressByGoal: Record<ProcessGoalId, { progress: number; target: number; href: string; detail: string }> =
+    {
+      improve_patience: {
+        progress: Math.min(2, skipped),
+        target: 2,
+        href: '/decision/mentor',
+        detail: 'Skip or defer at least 2 low-clarity setups this week before researching.',
+      },
+      improve_risk_awareness: {
+        progress: Math.min(2, invalidated + journaled),
+        target: 2,
+        href: '/journal',
+        detail: 'Define invalidation or risk notes on two cases this week.',
+      },
+      reduce_fomo: {
+        progress: Math.min(2, skipped),
+        target: 2,
+        href: '/decision/decision-replay',
+        detail: 'Pass on urgency twice — require one extra confirmation.',
+      },
+      improve_thesis_clarity: {
+        progress: Math.min(2, journaled),
+        target: 2,
+        href: '/journal',
+        detail: 'Write a one-sentence thesis on two research loops.',
+      },
+      research_efficiency: {
+        progress: clamp((journaled / Math.max(1, researched)) * 100),
+        target: 100,
+        href: '/decision/radar',
+        detail: 'Match research volume with closed loops and higher research value.',
+      },
+      build_consistency: {
+        progress: Math.min(3, journaled + replay),
+        target: 3,
+        href: '/',
+        detail: 'Complete three process loops this week (research/skip → journal or replay).',
+      },
+      improve_invalidation: {
+        progress: Math.min(2, invalidated),
+        target: 2,
+        href: '/decision/replay-tv',
+        detail: 'Mark invalidation on two cases or practise it in Replay.',
+      },
+      improve_reflection: {
+        progress: Math.min(2, journaled + replay),
+        target: 2,
+        href: '/journal',
+        detail: 'Close two reflections via Journal or Process Tape.',
+      },
+    };
+
+  const spec = progressByGoal[input.goalId];
+  return {
+    id: input.goalId,
+    title: PROCESS_GOAL_LABELS[input.goalId],
+    detail: `${spec.detail} Current ${GOAL_TO_TRAIT[input.goalId]} signal: ${traitScore}.`,
+    progress: spec.progress,
+    target: spec.target,
+    href: spec.href,
+    priority: 'high',
+    selected: true,
+  };
+}
+
 /**
- * Adaptive goals from DNA growth edges, decision debt, and recent log activity.
- * Derived only — no goal store.
+ * Adaptive goals from DNA growth edges, decision debt, selected process goals, and recent log activity.
+ * Derived only — selected goals persist separately in dna-goals.store.
  */
 export function buildAdaptiveGoals(input: {
   records: DecisionRecord[];
@@ -21,6 +114,7 @@ export function buildAdaptiveGoals(input: {
   today: PersonalizedTodayFocus;
   debt?: DecisionDebtSnapshot | null;
   academyNextTitle?: string | null;
+  selectedGoals?: ProcessGoalId[];
   nowMs?: number;
 }): AdaptiveGoal[] {
   const now = input.nowMs ?? Date.now();
@@ -30,11 +124,17 @@ export function buildAdaptiveGoals(input: {
   const journaled = week.filter((r) => r.action === 'journaled').length;
   const researched = week.filter((r) => r.action === 'researched').length;
   const skipped = week.filter((r) => r.action === 'skipped').length;
+  const selected = input.selectedGoals ?? [];
 
-  const patienceScore = input.dna.traits.find((t) => t.id === 'patience')?.score ?? 50;
-  const goals: AdaptiveGoal[] = [];
+  const goals: AdaptiveGoal[] = selected.map((goalId) =>
+    selectedGoalCard({ goalId, records: input.records, weekAgo, dna: input.dna }),
+  );
 
-  if (input.today.archetype === 'experienced' || replay < 3) {
+  const patienceScore = getTraitScore(input.dna, 'patience') ?? 50;
+  const suppressPatienceNag = selected.includes('improve_patience');
+  const suppressOvertradeNag = selected.includes('research_efficiency') || selected.includes('reduce_fomo');
+
+  if (!selected.length && (input.today.archetype === 'experienced' || replay < 3)) {
     goals.push({
       id: 'replay_sessions',
       title: 'Finish 3 replay sessions',
@@ -46,7 +146,10 @@ export function buildAdaptiveGoals(input: {
     });
   }
 
-  if (patienceScore < 70 || input.dna.growthEdges.includes('Patience')) {
+  if (
+    !suppressPatienceNag &&
+    (patienceScore < 70 || input.dna.growthEdges.includes('Patience'))
+  ) {
     goals.push({
       id: 'patience',
       title: 'Improve patience',
@@ -72,7 +175,7 @@ export function buildAdaptiveGoals(input: {
     });
   }
 
-  if (researched >= 5 && journaled < researched * 0.5) {
+  if (!suppressOvertradeNag && researched >= 5 && journaled < researched * 0.5) {
     goals.push({
       id: 'reduce_overtrading',
       title: 'Reduce overtrading research',
@@ -107,12 +210,14 @@ export function buildAdaptiveGoals(input: {
   });
 
   const weakest = input.dna.growthEdges[0];
-  if (weakest) {
+  if (weakest && !selected.length) {
     goals.push({
       id: 'dna_growth',
       title: `Grow ${weakest}`,
       detail: `Your DNA marks ${weakest} as a growth edge — one deliberate session moves the needle.`,
-      progress: clamp(100 - (input.dna.traits.find((t) => t.label === weakest)?.score ?? 50)),
+      progress: clamp(
+        100 - (input.dna.traits.find((t) => t.label === weakest)?.score ?? 50),
+      ),
       target: 100,
       href: '/decision/intelligence',
       priority: 'low',

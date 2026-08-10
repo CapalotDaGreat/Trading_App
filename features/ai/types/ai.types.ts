@@ -198,6 +198,13 @@ export interface AiEnrichedContext {
     struggles?: string[];
     researchTimeOfDay?: string;
     successDefinitions?: string[];
+    /** Aggregated Trading DNA coaching context — never raw journal text. */
+    tradingDna?: {
+      becomingLabel: string;
+      strengths: string[];
+      growthEdges: string[];
+      observationLine: string;
+    };
   };
   assembledAt: number;
 }

@@ -204,10 +204,18 @@ export function PrivacyScreen() {
         <SettingsRow
           icon="stats-chart-outline"
           label="Product analytics"
-          description="Allowlisted usage aggregates only — never journals, AI chats, or portfolio values"
+          description="Allowlisted usage aggregates only — never journals, AI chats, portfolio values, or raw DNA evidence"
           toggle
           toggleValue={privacy.productAnalyticsEnabled}
           onToggle={(value) => void updatePrivacy({ productAnalyticsEnabled: value })}
+        />
+        <SettingsRow
+          icon="finger-print-outline"
+          label="Trading DNA stays on-device"
+          description="Behavioural coaching is personal — never sold, never public, never compared to other traders"
+          toggle
+          toggleValue={privacy.tradingDnaLocalOnly ?? true}
+          onToggle={(value) => void updatePrivacy({ tradingDnaLocalOnly: value })}
         />
         <SettingsRow
           icon="mail-outline"

@@ -33,6 +33,7 @@ const DEFAULT_PRIVACY: PrivacySettings = {
   clearLocalDataOnSignOut: true,
   sessionTimeoutMinutes: 0,
   marketingEmailsEnabled: false,
+  tradingDnaLocalOnly: true,
 };
 
 function getStoreState() {
@@ -124,6 +125,7 @@ class SettingsServiceImpl implements SettingsService {
       clearLocalDataOnSignOut: settings.clearLocalDataOnSignOut,
       sessionTimeoutMinutes: settings.sessionTimeoutMinutes,
       marketingEmailsEnabled: settings.marketingEmailsEnabled,
+      tradingDnaLocalOnly: settings.tradingDnaLocalOnly ?? true,
     };
   }
 
@@ -145,6 +147,9 @@ class SettingsServiceImpl implements SettingsService {
     }
     if (updates.marketingEmailsEnabled !== undefined) {
       settingsStore.setMarketingEmailsEnabled(updates.marketingEmailsEnabled);
+    }
+    if (updates.tradingDnaLocalOnly !== undefined) {
+      settingsStore.setTradingDnaLocalOnly(updates.tradingDnaLocalOnly);
     }
 
     settingsStore.setLastSyncAt(Date.now());

@@ -36,6 +36,11 @@ export interface PrivacySettings {
   sessionTimeoutMinutes: SessionTimeoutMinutes;
   /** Marketing / product email preferences (digest-style). */
   marketingEmailsEnabled: boolean;
+  /**
+   * When true (default), Trading DNA / behavioural coaching stays on-device.
+   * DNA is never used for ads, public profiles, or cross-user comparison.
+   */
+  tradingDnaLocalOnly: boolean;
 }
 
 export interface ProfileSettings {

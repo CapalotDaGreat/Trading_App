@@ -9,7 +9,12 @@ import {
 } from '@/features/markets/services/market-data.service';
 import { fetchFinancialNews, type NewsArticle } from '@/features/news/services/news.service';
 import { buildDecisionIntelligenceContext } from '@/features/decision/services/decision-os.service';
+import { buildTradingDna } from '@/features/decision/services/setup-enrichment.service';
 import { loadTraderMemory } from '@/features/decision/services/trader-intelligence.service';
+import { getDecisionRecords } from '@/features/decision-log/services/decision-log.service';
+import { buildDnaMentorSummary } from '@/features/personal-intelligence/services/dna-mentor-summary.service';
+import { buildDnaChangeInsights } from '@/features/personal-intelligence/services/dna-change.service';
+import { buildTradingDnaTraits } from '@/features/personal-intelligence/services/trading-dna-traits.service';
 import type { Candle } from '@/shared/types/market';
 
 import type { AiEnrichedContext, AiRequestContext } from '../types/ai.types';
@@ -197,6 +202,15 @@ export async function enrichRequestContext(
       portfolioSymbols: context.portfolio?.map((h) => h.symbol) ?? [],
       topSetupSymbols: context.symbol ? [context.symbol] : memory.favoriteAssets.slice(0, 3),
     });
+    const records = await getDecisionRecords(context.userScopeUid).catch(() => []);
+    const dnaProfile = buildTradingDnaTraits({ memory, records });
+    const whatsChanging = buildDnaChangeInsights({ dna: dnaProfile, records });
+    const mentorSummary = buildDnaMentorSummary({
+      dna: dnaProfile,
+      whatsChanging,
+      uid: context.userScopeUid,
+    });
+    const legacyDna = buildTradingDna(memory);
     enriched.decisionIntelligence = {
       psychologyReminder: intel.psychologyReminder,
       recommendedFocus: intel.recommendedFocus,
@@ -207,6 +221,16 @@ export async function enrichRequestContext(
       struggles: memory.struggles?.slice(0, 4),
       researchTimeOfDay: memory.researchTimeOfDay,
       successDefinitions: memory.successDefinitions?.slice(0, 3),
+      // Aggregated DNA coaching context only — never raw journal bodies.
+      tradingDna: {
+        becomingLabel: dnaProfile.becomingLabel || legacyDna.styleLabel,
+        strengths: (dnaProfile.strengths.length ? dnaProfile.strengths : legacyDna.strengths).slice(0, 3),
+        growthEdges: (dnaProfile.growthEdges.length
+          ? dnaProfile.growthEdges
+          : legacyDna.weaknesses
+        ).slice(0, 3),
+        observationLine: mentorSummary.observationLine,
+      },
     };
   } catch {
     // demo / offline — AI still works without DNA

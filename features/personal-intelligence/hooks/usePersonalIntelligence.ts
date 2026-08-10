@@ -1,9 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import { buildAiLearningMemory } from '@/features/ai/services/ai-memory.service';
 import { useAcademy, useNextAcademyLesson } from '@/features/academy/hooks/useAcademy';
 import { useAcademyProgressStore } from '@/features/academy/stores/academy-progress.store';
+import { useAuth } from '@/features/auth/hooks/useAuth';
 import {
   useDecisionBrief,
   useJournalCoach,
@@ -14,9 +15,11 @@ import { loadDisciplineStreak } from '@/features/decision/services/coaching-loop
 import { selectTodayTimeBudget } from '@/features/decision/services/today-sections.service';
 import { useDecisionLog } from '@/features/decision-log/hooks/useDecisionLog';
 import { useAlerts } from '@/features/alerts/hooks/useAlerts';
+import { DEMO_USER_UID } from '@/firebase/config';
 import { useSettingsStore } from '@/shared/stores/settings.store';
 
 import { buildPersonalIntelligence } from '../services/personal-intelligence.service';
+import { useDnaGoalsStore } from '../stores/dna-goals.store';
 import type {
   DecisionGraphPeriod,
   PersonalIntelligenceSnapshot,
@@ -30,6 +33,8 @@ export const personalIntelligenceKeys = {
 
 export function usePersonalIntelligence(initialPeriod: DecisionGraphPeriod = 'weekly') {
   const [graphPeriod, setGraphPeriod] = useState<DecisionGraphPeriod>(initialPeriod);
+  const { user } = useAuth();
+  const uid = user?.uid ?? DEMO_USER_UID;
   const timeBudgetMinutes = useSettingsStore(selectTodayTimeBudget);
   const briefQuery = useDecisionBrief(timeBudgetMinutes);
   const memoryQuery = useTraderMemory();
@@ -38,6 +43,12 @@ export function usePersonalIntelligence(initialPeriod: DecisionGraphPeriod = 'we
   const { practicedCount, totalCount } = useAcademy();
   const { alerts } = useAlerts();
   const lessons = useAcademyProgressStore((s) => s.lessons);
+  const selectedGoals = useDnaGoalsStore((s) => s.selectedGoals);
+  const hydrateGoals = useDnaGoalsStore((s) => s.hydrate);
+
+  useEffect(() => {
+    void hydrateGoals(uid);
+  }, [hydrateGoals, uid]);
 
   const debt = useMemo(() => {
     const queueLen = briefQuery.data?.researchQueue?.length ?? 0;
@@ -100,13 +111,15 @@ export function usePersonalIntelligence(initialPeriod: DecisionGraphPeriod = 'we
     practicedCount,
     academyRecommendation?.lesson.id ?? 'none',
     debt.score,
+    selectedGoals.join(','),
+    uid,
   ].join(':');
 
   const query = useQuery({
     queryKey: personalIntelligenceKeys.snapshot(signature, graphPeriod),
     queryFn: async (): Promise<PersonalIntelligenceSnapshot> => {
       const streak = await loadDisciplineStreak();
-      const aiMemory = await buildAiLearningMemory();
+      const aiMemory = await buildAiLearningMemory(uid);
       const memory = memoryQuery.data;
       if (!memory) {
         throw new Error('Trader memory unavailable');
@@ -125,6 +138,9 @@ export function usePersonalIntelligence(initialPeriod: DecisionGraphPeriod = 'we
         processScoreWeek: briefQuery.data?.processScoreWeek ?? logSummary?.processScore,
         startHereSymbol: briefQuery.data?.startHereSymbol ?? null,
         graphPeriod,
+        selectedGoals,
+        uid,
+        mentorStruggles: memory.typicalMistakes,
       });
     },
     enabled: Boolean(memoryQuery.data),
@@ -135,6 +151,7 @@ export function usePersonalIntelligence(initialPeriod: DecisionGraphPeriod = 'we
     ...query,
     graphPeriod,
     setGraphPeriod,
+    selectedGoals,
     isLoading: query.isLoading || memoryQuery.isLoading,
   };
 }

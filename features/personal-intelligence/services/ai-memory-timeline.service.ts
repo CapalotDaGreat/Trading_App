@@ -31,12 +31,12 @@ export function buildAiMemoryTimeline(input: {
   const skippedWeek = week.filter((r) => r.action === 'skipped').length;
 
   const patience = input.dna.traits.find((t) => t.id === 'patience');
-  if (patience && (patience.trend === 'up' || patience.score >= 60)) {
+  if (patience && patience.status === 'scored' && (patience.trend === 'up' || (patience.score ?? 0) >= 60)) {
     events.push({
       id: 'patience-improved',
       at: now - 2 * 86_400_000,
       kind: 'patience',
-      title: 'You improved patience',
+      title: 'Patience is improving',
       detail: patience.detail,
       href: '/decision/intelligence',
     });
@@ -47,7 +47,7 @@ export function buildAiMemoryTimeline(input: {
       id: 'impulse-reduced',
       at: now - 3 * 86_400_000,
       kind: 'discipline',
-      title: 'You reduced impulsive decisions',
+      title: 'More selective attention',
       detail: `${skippedWeek} deliberate skip${skippedWeek === 1 ? '' : 's'} this week protected attention.`,
       href: '/decision/mentor',
     });
@@ -58,14 +58,18 @@ export function buildAiMemoryTimeline(input: {
       id: 'replay-up',
       at: now - 86_400_000,
       kind: 'replay',
-      title: 'Replay completion increased',
+      title: 'Replay practice increased',
       detail: `${Math.max(replayWeek, replayMonth)} reflection session${replayMonth === 1 ? '' : 's'} closed the learning loop.`,
       href: '/decision/decision-replay',
     });
   }
 
-  const researchTrait = input.dna.traits.find((t) => t.id === 'research');
-  if (researchTrait && (researchTrait.score >= 55 || journalWeek > 0)) {
+  const researchTrait = input.dna.traits.find((t) => t.id === 'researchEfficiency');
+  if (
+    researchTrait &&
+    researchTrait.status === 'scored' &&
+    ((researchTrait.score ?? 0) >= 55 || journalWeek > 0)
+  ) {
     events.push({
       id: 'research-quality',
       at: now - 4 * 86_400_000,
@@ -79,9 +83,10 @@ export function buildAiMemoryTimeline(input: {
     });
   }
 
-  if (input.evolution.length >= 2) {
-    const prev = input.evolution[input.evolution.length - 2];
-    const tip = input.evolution[input.evolution.length - 1];
+  const evidenced = input.evolution.filter((point) => point.hasEvidence);
+  if (evidenced.length >= 2) {
+    const prev = evidenced[evidenced.length - 2];
+    const tip = evidenced[evidenced.length - 1];
     if (prev && tip && prev.styleLabel !== tip.styleLabel) {
       events.push({
         id: `identity-${tip.monthKey}`,
@@ -101,7 +106,7 @@ export function buildAiMemoryTimeline(input: {
       kind: 'learning',
       title: 'Coach memory refreshed',
       detail: input.aiMemory.psychologyReminder,
-      href: '/decision/memory',
+      href: '/decision/intelligence',
     });
   }
 
@@ -116,13 +121,13 @@ export function buildAiMemoryTimeline(input: {
     });
   }
 
-  const risk = input.dna.traits.find((t) => t.id === 'riskManagement');
-  if (risk && risk.trend === 'up') {
+  const risk = input.dna.traits.find((t) => t.id === 'riskAwareness');
+  if (risk && risk.status === 'scored' && risk.trend === 'up') {
     events.push({
       id: 'risk-up',
       at: now - 6 * 86_400_000,
       kind: 'risk',
-      title: 'Risk management habit strengthening',
+      title: 'Risk awareness habit strengthening',
       detail: risk.detail,
       href: '/decision/risk',
     });
@@ -134,7 +139,8 @@ export function buildAiMemoryTimeline(input: {
       at: now,
       kind: 'learning',
       title: 'Your learning journey starts with one loop',
-      detail: 'Complete brief → research or skip → journal. Memory fills from real process, never invented P&L.',
+      detail:
+        'Complete brief → research or skip → journal. Memory fills from real process, never invented P&L.',
       href: '/',
     });
   }

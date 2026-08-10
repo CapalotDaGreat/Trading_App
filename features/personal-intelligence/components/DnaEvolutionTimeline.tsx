@@ -37,7 +37,7 @@ export function DnaEvolutionTimeline({ points }: DnaEvolutionTimelineProps) {
             </View>
             <GlassCard className="mb-1 flex-1 p-3">
               <Text variant="caption" className="font-semibold uppercase tracking-wide text-accent">
-                {point.label}
+                {point.hasEvidence === false ? `${point.label} · gathering` : point.label}
               </Text>
               <Text variant="label" className="mt-1 text-text-primary">
                 {point.styleLabel}

@@ -16,6 +16,7 @@ import type { TradingMentorBrief } from '@/features/decision/types/mentor.types'
 import { pickMentorPersonalisationLine } from '@/features/onboarding/services/coach-personalisation.service';
 import type { CoachProfile } from '@/features/onboarding/types/mentor-setup.types';
 import { buildCoachingReferences } from '@/features/personal-intelligence/services/personal-intelligence.service';
+import type { DnaMentorSummary } from '@/features/personal-intelligence/types/personal-intelligence.types';
 
 export interface TradingMentorInput {
   brief?: DecisionBrief | null;
@@ -28,6 +29,7 @@ export interface TradingMentorInput {
   streak?: DisciplineStreak | null;
   academyRecommendation?: CurriculumRecommendation | null;
   coachProfile?: CoachProfile | null;
+  dnaMentorSummary?: DnaMentorSummary | null;
   now?: number;
 }
 
@@ -208,6 +210,9 @@ export function buildTradingMentorBrief(input: TradingMentorInput): TradingMento
     input.memory,
     now,
   );
+  const dnaLine = input.dnaMentorSummary?.observationLine
+    ? sanitizeMentorCopy(input.dnaMentorSummary.observationLine)
+    : null;
 
   return {
     generatedAt: now,
@@ -216,6 +221,7 @@ export function buildTradingMentorBrief(input: TradingMentorInput): TradingMento
       detail: sanitizeMentorCopy(
         [
           personalLine,
+          dnaLine,
           `Coach note: ${mistake}. Focus on process quality — never on predicting the next move.`,
         ]
           .filter(Boolean)

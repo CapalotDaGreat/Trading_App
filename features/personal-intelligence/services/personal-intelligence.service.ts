@@ -11,18 +11,24 @@ import type {
 } from '@/features/decision-log/services/decision-log.service';
 import { buildDecisionHeatmap } from '@/features/decision-heatmap/services/heatmap.service';
 import type { HeatmapLearningEvent } from '@/features/decision-heatmap/types/heatmap.types';
+import { greetingForResearchTime } from '@/features/onboarding/services/coach-personalisation.service';
 
 import type {
   CoachingReference,
   DecisionGraphPeriod,
   PersonalIntelligenceSnapshot,
+  ProcessGoalId,
 } from '../types/personal-intelligence.types';
 import { buildAdaptiveGoals } from './adaptive-goals.service';
 import { buildAiMemoryTimeline } from './ai-memory-timeline.service';
 import { buildDecisionGraph } from './decision-graph.service';
+import { buildDnaChangeInsights } from './dna-change.service';
+import { buildDnaCoachingActions } from './dna-coaching-actions.service';
 import { buildDnaEvolution } from './dna-evolution.service';
-import { greetingForResearchTime } from '@/features/onboarding/services/coach-personalisation.service';
-
+import { buildDnaMentorSummary } from './dna-mentor-summary.service';
+import { buildDnaMonthlyReview } from './dna-monthly-review.service';
+import { buildDnaPatterns } from './dna-patterns.service';
+import { buildDnaWeeklyReview } from './dna-weekly-review.service';
 import { buildPersonalizedToday } from './personalized-today.service';
 import { buildTradingDnaTraits } from './trading-dna-traits.service';
 
@@ -49,7 +55,7 @@ export function buildCoachingReferences(input: {
       label: 'Academy',
       reason: input.academyNextTitle
         ? `Next lesson: ${input.academyNextTitle}`
-        : 'Structured lessons mapped to your mistakes.',
+        : 'Structured lessons mapped to your process edges.',
       href: '/academy',
     },
     {
@@ -103,6 +109,9 @@ export interface PersonalIntelligenceInput {
   startHereSymbol?: string | null;
   graphPeriod?: DecisionGraphPeriod;
   nowMs?: number;
+  selectedGoals?: ProcessGoalId[];
+  uid?: string;
+  mentorStruggles?: string[];
 }
 
 /**
@@ -128,11 +137,38 @@ export function buildPersonalIntelligence(
     journalCoach: input.journalCoach,
     processScoreWeek: input.processScoreWeek ?? input.logSummary?.processScore,
     nowMs,
+    mentorStruggles: input.mentorStruggles ?? input.memory.typicalMistakes,
   });
 
   const evolution = buildDnaEvolution({
     records,
     dna,
+    nowMs,
+  });
+
+  const patterns = buildDnaPatterns({ records, dna, nowMs });
+  const whatsChanging = buildDnaChangeInsights({ dna, records, nowMs });
+  const weeklyReview = buildDnaWeeklyReview({
+    dna,
+    records,
+    patterns,
+    academyNextTitle: input.academyNextTitle,
+    nowMs,
+  });
+  const monthlyReview = buildDnaMonthlyReview({
+    memory: input.memory,
+    records,
+    heatmapScores: heatmap.scores,
+    journalCoach: input.journalCoach,
+    processScoreWeek: input.processScoreWeek ?? input.logSummary?.processScore,
+    nowMs,
+  });
+  const coachingActions = buildDnaCoachingActions({ dna });
+  const mentorSummary = buildDnaMentorSummary({
+    dna,
+    whatsChanging,
+    selectedGoals: input.selectedGoals,
+    uid: input.uid,
     nowMs,
   });
 
@@ -170,6 +206,7 @@ export function buildPersonalIntelligence(
     today,
     debt: input.debt,
     academyNextTitle: input.academyNextTitle,
+    selectedGoals: input.selectedGoals,
     nowMs,
   });
 
@@ -181,7 +218,7 @@ export function buildPersonalIntelligence(
 
   return {
     generatedAt: nowMs,
-    becomingQuestion: 'Who am I becoming as a trader?',
+    becomingQuestion: 'Who am I becoming as a decision-maker?',
     today,
     dna,
     evolution,
@@ -189,5 +226,11 @@ export function buildPersonalIntelligence(
     memoryTimeline,
     goals,
     coachingReferences,
+    patterns,
+    whatsChanging,
+    weeklyReview,
+    monthlyReview,
+    coachingActions,
+    mentorSummary,
   };
 }

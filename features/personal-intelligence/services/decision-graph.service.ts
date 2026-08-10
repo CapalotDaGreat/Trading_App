@@ -112,8 +112,10 @@ export function buildDecisionGraph(input: {
     nowMs,
   });
 
-  const trait = (id: TradingDnaProfile['traits'][number]['id']) =>
-    input.dna.traits.find((t) => t.id === id)?.score ?? 50;
+  const trait = (id: TradingDnaProfile['traits'][number]['id']) => {
+    const score = input.dna.traits.find((t) => t.id === id)?.score;
+    return typeof score === 'number' ? score : 50;
+  };
 
   const metrics: DecisionGraphMetric[] = (
     [
@@ -144,7 +146,7 @@ export function buildDecisionGraph(input: {
         case 'learning':
           return clamp(replay * 20 + brief * 8 + (input.academyEvents ? 15 : 0));
         case 'risk':
-          return clamp(trait('riskManagement') * 0.7 + (journaled > 0 ? 15 : 0));
+          return clamp(trait('riskAwareness') * 0.7 + (journaled > 0 ? 15 : 0));
         case 'journal':
           return clamp(journaled * 22);
         case 'replay':
@@ -165,14 +167,18 @@ export function buildDecisionGraph(input: {
     const latest = points[points.length - 1]?.value ?? 0;
     const score =
       id === 'consistency'
-        ? heatmap.scores.consistencyScore
+        ? Math.round(
+            (heatmap.scores.consistencyScore + trait('processConsistency')) / 2,
+          )
         : id === 'learning'
           ? heatmap.scores.learningScore
           : id === 'patience'
             ? trait('patience')
             : id === 'risk'
-              ? trait('riskManagement')
-              : clamp(latest || points.reduce((s, p) => s + p.value, 0) / Math.max(1, points.length));
+              ? trait('riskAwareness')
+              : id === 'research'
+                ? trait('researchEfficiency')
+                : clamp(latest || points.reduce((s, p) => s + p.value, 0) / Math.max(1, points.length));
 
     return {
       id,

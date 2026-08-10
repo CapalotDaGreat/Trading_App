@@ -10,6 +10,7 @@ import type {
   TodayArchetype,
   TradingDnaProfile,
 } from '../types/personal-intelligence.types';
+import { getTraitScore } from './trading-dna-traits.service';
 
 function uniqueOrder(preferred: TodaySection[]): TodaySection[] {
   const seen = new Set<TodaySection>();
@@ -34,8 +35,8 @@ export function resolveTodayArchetype(input: {
 }): TodayArchetype {
   const total = input.logSummary?.total ?? 0;
   const process = input.logSummary?.processScore ?? 0;
-  const consistency = input.dna.traits.find((t) => t.id === 'consistency')?.score ?? 0;
-  const discipline = input.dna.traits.find((t) => t.id === 'discipline')?.score ?? 0;
+  const consistency = getTraitScore(input.dna, 'processConsistency') ?? 0;
+  const discipline = getTraitScore(input.dna, 'evidenceDiscipline') ?? 0;
   const loopDone = input.streak
     ? Object.values(input.streak.completedToday).filter(Boolean).length
     : 0;
@@ -48,6 +49,57 @@ export function resolveTodayArchetype(input: {
   if (consistency >= 65 && discipline >= 60 && process >= 60) return 'high_consistency';
   if (total >= 25 || (input.academyPracticed ?? 0) >= 5) return 'experienced';
   return 'balanced';
+}
+
+function applyDnaAdaptations(
+  focus: PersonalizedTodayFocus,
+  dna: TradingDnaProfile,
+): PersonalizedTodayFocus {
+  const adaptations: string[] = [];
+  const patience = getTraitScore(dna, 'patience');
+  const researchEfficiency = getTraitScore(dna, 'researchEfficiency');
+  const risk = dna.traits.find((t) => t.id === 'riskAwareness');
+  let sectionOrder = [...focus.sectionOrder];
+  let detail = focus.detail;
+  let headline = focus.headline;
+
+  if (patience != null && patience < 50) {
+    adaptations.push('fewer_research_priorities');
+    sectionOrder = uniqueOrder([
+      'header',
+      'dynamicToday',
+      'mentor',
+      'goals',
+      'whyNot',
+      'startHere',
+      'researchQueue',
+      ...sectionOrder,
+    ]);
+    detail = `${detail} Patience is a growth edge — fewer research opens, more deliberate skips.`;
+  }
+
+  if (researchEfficiency != null && researchEfficiency < 50) {
+    adaptations.push('time_budget_emphasis');
+    if (!detail.toLowerCase().includes('budget')) {
+      detail = `${detail} Protect your research time budget: deepen only higher-value ideas.`;
+    }
+    if (focus.archetype === 'balanced' || focus.archetype === 'experienced') {
+      headline = headline.toLowerCase().includes('budget') ? headline : 'Budget today’s research';
+    }
+  }
+
+  if (risk?.status === 'scored' && risk.trend === 'up' && (risk.score ?? 0) >= 60) {
+    adaptations.push('reduce_risk_reminders');
+    detail = detail.replace(/\s*Define invalidation before depth of research\.?/i, '').trim();
+  }
+
+  return {
+    ...focus,
+    headline,
+    detail: detail.trim(),
+    sectionOrder,
+    dnaAdaptations: adaptations,
+  };
 }
 
 /**
@@ -67,9 +119,10 @@ export function buildPersonalizedToday(input: {
   const becoming = input.dna.becomingLabel;
   const greet = input.researchGreeting?.trim();
 
+  let focus: PersonalizedTodayFocus;
   switch (archetype) {
     case 'new_trader':
-      return {
+      focus = {
         archetype,
         eyebrow: greet ?? 'Who you are becoming',
         headline: "Today's lesson",
@@ -91,12 +144,14 @@ export function buildPersonalizedToday(input: {
           'closeLoop',
         ]),
       };
+      break;
     case 'experienced':
-      return {
+      focus = {
         archetype,
         eyebrow: becoming,
         headline: "Today's replay",
-        detail: 'Your edge compounds from reflection. Replay one Process Tape frame before hunting new setups.',
+        detail:
+          'Your edge compounds from reflection. Replay one Process Tape frame before hunting new setups.',
         primaryCta: { label: 'Open Decision Replay', href: '/decision/decision-replay' },
         secondaryCta: { label: 'Decision Graph', href: '/decision/intelligence' },
         sectionOrder: uniqueOrder([
@@ -113,12 +168,13 @@ export function buildPersonalizedToday(input: {
           'closeLoop',
         ]),
       };
+      break;
     case 'poor_discipline':
-      return {
+      focus = {
         archetype,
         eyebrow: 'Reset the loop',
         headline: 'Journal before researching',
-        detail: 'Discipline is the bottleneck. Close yesterday’s loop before opening new radar depth.',
+        detail: 'Process consistency is the bottleneck. Close yesterday’s loop before opening new radar depth.',
         primaryCta: { label: 'Open Journal', href: '/journal' },
         secondaryCta: { label: 'Mentor focus', href: '/decision/mentor' },
         sectionOrder: uniqueOrder([
@@ -135,8 +191,9 @@ export function buildPersonalizedToday(input: {
           'researchQueue',
         ]),
       };
+      break;
     case 'high_consistency':
-      return {
+      focus = {
         archetype,
         eyebrow: becoming,
         headline: 'Advanced setup today',
@@ -166,13 +223,19 @@ export function buildPersonalizedToday(input: {
           'closeLoop',
         ]),
       };
+      break;
     default:
-      return {
+      focus = {
         archetype: 'balanced',
         eyebrow: becoming,
         headline: 'Your decision loop',
         detail: 'Run brief → research or skip → journal. Identity updates from process, not P&L.',
-        primaryCta: { label: 'Start Here', href: input.startHereSymbol ? `/asset/${encodeURIComponent(input.startHereSymbol)}` : '/decision/radar' },
+        primaryCta: {
+          label: 'Start Here',
+          href: input.startHereSymbol
+            ? `/asset/${encodeURIComponent(input.startHereSymbol)}`
+            : '/decision/radar',
+        },
         secondaryCta: { label: 'Personal Intelligence', href: '/decision/intelligence' },
         sectionOrder: uniqueOrder([
           'header',
@@ -191,4 +254,6 @@ export function buildPersonalizedToday(input: {
         ]),
       };
   }
+
+  return applyDnaAdaptations(focus, input.dna);
 }

@@ -20,18 +20,19 @@ function styleForMonthActivity(stats: {
   const patienceSignal = skipped + journaled + replay;
   const impulseSignal = Math.max(0, researched - journaled);
 
-  if (patienceSignal >= 4 && researched >= 2) return 'Patient Trend Trader';
-  if (replay >= 2 && journaled >= 2) return 'Reflective Process Trader';
-  if (impulseSignal >= 4 && journaled === 0) return 'Momentum Trader';
-  if (researched >= 3 && journaled >= 2) return 'Swing Trader';
-  if (baseStyle.toLowerCase().includes('scalp')) return 'Scalp-leaning Operator';
-  if (baseStyle.toLowerCase().includes('day')) return 'Intraday Operator';
-  return baseStyle.includes('Trader') ? baseStyle : `${baseStyle} Trader`;
+  if (patienceSignal >= 4 && researched >= 2) return 'Patient Process Operator';
+  if (replay >= 2 && journaled >= 2) return 'Reflective Decision-Maker';
+  if (impulseSignal >= 4 && journaled === 0) return 'High-activity researcher';
+  if (researched >= 3 && journaled >= 2) return baseStyle;
+  return baseStyle.includes('Trader') || baseStyle.includes('Operator')
+    ? baseStyle
+    : `${baseStyle} Decision-Maker`;
 }
 
 /**
  * Build DNA evolution timeline from Decision Log month buckets + current DNA tip.
  * No parallel store — months without activity are omitted.
+ * Never fabricates earlier identity when history is thin.
  */
 export function buildDnaEvolution(input: {
   records: DecisionRecord[];
@@ -57,41 +58,52 @@ export function buildDnaEvolution(input: {
   }
 
   const currentMonth = monthKeyFromMs(now).slice(0, 7);
-  if (!byMonth.has(currentMonth)) {
-    byMonth.set(currentMonth, { researched: 1, journaled: 1, replay: 0, skipped: 1 });
+  const keys = [...byMonth.keys()].sort();
+
+  if (!keys.length) {
+    return [
+      {
+        monthKey: currentMonth,
+        label: monthLabel(currentMonth),
+        styleLabel: input.dna.becomingLabel,
+        summary: 'Not enough evidence yet to chart DNA evolution.',
+        dominantTraits: [],
+        hasEvidence: false,
+      },
+    ];
   }
 
-  const keys = [...byMonth.keys()].sort();
   const points: DnaEvolutionPoint[] = keys.map((monthKey) => {
     const stats = byMonth.get(monthKey)!;
+    const activity = stats.researched + stats.journaled + stats.replay + stats.skipped;
     const styleLabel =
       monthKey === currentMonth
         ? input.dna.becomingLabel
         : styleForMonthActivity({ ...stats, baseStyle: input.dna.styleLabel });
 
     const dominantTraits = [
-      stats.journaled >= stats.researched ? 'Discipline' : 'Research',
-      stats.skipped > 0 || stats.replay > 0 ? 'Patience' : 'Momentum',
-      stats.replay > 0 ? 'Learning' : 'Execution focus',
+      stats.journaled >= stats.researched ? 'Reflection Quality' : 'Research Efficiency',
+      stats.skipped > 0 || stats.replay > 0 ? 'Patience' : 'Learning Momentum',
+      stats.replay > 0 ? 'Learning Momentum' : 'Process Consistency',
     ];
 
     return {
       monthKey,
-      label: monthLabel(`${monthKey}-01`),
+      label: monthLabel(monthKey),
       styleLabel,
       summary:
         monthKey === currentMonth
-          ? `Becoming: ${input.dna.becomingLabel}. Growth edges: ${input.dna.growthEdges.slice(0, 2).join(', ')}.`
+          ? `Becoming: ${input.dna.becomingLabel}. Growth edges: ${input.dna.growthEdges.slice(0, 2).join(', ') || 'gathering evidence'}.`
           : `${stats.researched} research · ${stats.journaled} journal · ${stats.replay} replay sessions.`,
-      dominantTraits,
+      dominantTraits: activity > 0 ? dominantTraits : [],
+      hasEvidence: activity > 0,
     };
   });
 
-  // Collapse adjacent identical labels to keep the timeline readable.
   const collapsed: DnaEvolutionPoint[] = [];
   for (const point of points) {
     const prev = collapsed[collapsed.length - 1];
-    if (prev && prev.styleLabel === point.styleLabel) {
+    if (prev && prev.styleLabel === point.styleLabel && prev.hasEvidence && point.hasEvidence) {
       collapsed[collapsed.length - 1] = {
         ...point,
         summary: `${prev.summary} → ${point.summary}`,
@@ -99,37 +111,6 @@ export function buildDnaEvolution(input: {
       continue;
     }
     collapsed.push(point);
-  }
-
-  // Seed a short arc when history is thin so identity feels alive.
-  if (collapsed.length < 2) {
-    const tip = collapsed[0] ?? {
-      monthKey: currentMonth,
-      label: monthLabel(`${currentMonth}-01`),
-      styleLabel: input.dna.becomingLabel,
-      summary: `Current identity: ${input.dna.becomingLabel}`,
-      dominantTraits: input.dna.strengths.slice(0, 3),
-    };
-    const earlier = new Date(now);
-    earlier.setUTCMonth(earlier.getUTCMonth() - 2);
-    const earlyKey = monthKeyFromMs(earlier.getTime()).slice(0, 7);
-    return [
-      {
-        monthKey: earlyKey,
-        label: monthLabel(`${earlyKey}-01`),
-        styleLabel: 'Momentum Trader',
-        summary: 'Earlier process leaned faster — fewer journals and skips.',
-        dominantTraits: ['Momentum', 'Research'],
-      },
-      {
-        monthKey: monthKeyFromMs(now - 30 * 86_400_000).slice(0, 7),
-        label: monthLabel(`${monthKeyFromMs(now - 30 * 86_400_000).slice(0, 7)}-01`),
-        styleLabel: 'Swing Trader',
-        summary: 'Hold horizon and checklist habit started to stabilize.',
-        dominantTraits: ['Swing preference', 'Research'],
-      },
-      tip,
-    ].slice(-maxPoints);
   }
 
   return collapsed.slice(-maxPoints);
