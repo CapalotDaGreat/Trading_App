@@ -194,6 +194,11 @@ export const DECISION_LESSONS: Lesson[] = [
     practiceLinks: [
       { label: 'Setup Radar', href: '/decision/radar' },
       { label: 'Decision Brief', href: '/' },
+      {
+        label: 'Decision Replay TV',
+        href: '/decision/replay-tv',
+        description: 'Grade setup quality on a blind historical tape — never chase the path',
+      },
     ],
     sections: [
       {
@@ -325,6 +330,11 @@ export const DECISION_LESSONS: Lesson[] = [
     practiceLinks: [
       { label: 'Today Brief', href: '/' },
       { label: 'Research queue checklist', href: '/academy/checklist/research-budget' },
+      {
+        label: 'Decision Replay TV',
+        href: '/decision/replay-tv',
+        description: 'Short blind rooms to practise attention budgets under uncertainty',
+      },
     ],
     sections: [
       {
@@ -376,6 +386,11 @@ export const DECISION_LESSONS: Lesson[] = [
     practiceLinks: [
       { label: 'Portfolio risk', href: '/decision/risk' },
       { label: 'Portfolio tab', href: '/portfolio' },
+      {
+        label: 'Decision Replay TV',
+        href: '/decision/replay-tv',
+        description: 'Crisis and stress rooms for downside framing before depth',
+      },
     ],
     sections: [
       {
@@ -479,6 +494,11 @@ export const DECISION_LESSONS: Lesson[] = [
     practiceLinks: [
       { label: 'Journal coach', href: '/decision/coach' },
       { label: 'Your trading profile', href: '/decision/memory' },
+      {
+        label: 'Decision Replay TV',
+        href: '/decision/replay-tv',
+        description: 'Blind rooms score process — never whether the historical path paid',
+      },
     ],
     sections: [
       {

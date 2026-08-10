@@ -56,6 +56,12 @@ function shapeDrift(
   }
 }
 
+const pathCache = new Map<string, Candle[]>();
+
+function cacheKey(episode: ReplayTvEpisode): string {
+  return `${episode.id}:${episode.pathSeed}:${episode.barCount}:${episode.pathShape}`;
+}
+
 /**
  * Builds an educational OHLC path for Replay TV.
  * Labeled sample/approximate — never presented as live historical ticks.
@@ -88,7 +94,40 @@ export function buildEducationalCandles(episode: ReplayTvEpisode): Candle[] {
   return out;
 }
 
+/** Cached educational path keyed by episodeId + pathSeed (+ shape/count). */
+export function getEducationalCandles(episode: ReplayTvEpisode): Candle[] {
+  const key = cacheKey(episode);
+  const cached = pathCache.get(key);
+  if (cached) return cached;
+  const built = buildEducationalCandles(episode);
+  pathCache.set(key, built);
+  return built;
+}
+
+/** Test helper — clears path cache between suites when needed. */
+export function clearEducationalPathCache(): void {
+  pathCache.clear();
+}
+
+/**
+ * Inclusive freeze slice — never returns bars after freezeIndex.
+ * Single source of truth for blindness at the path layer.
+ */
 export function visibleCandlesAt(full: Candle[], freezeIndex: number): Candle[] {
   const end = Math.min(full.length - 1, Math.max(0, freezeIndex));
   return full.slice(0, end + 1);
+}
+
+/**
+ * Chart render window: freeze-capped history, chunked so long episodes
+ * do not force a full-history SVG render before reveal.
+ */
+export function chunkVisibleCandles(
+  full: Candle[],
+  freezeIndex: number,
+  maxBars = 80,
+): Candle[] {
+  const capped = visibleCandlesAt(full, freezeIndex);
+  if (capped.length <= maxBars) return capped;
+  return capped.slice(capped.length - maxBars);
 }

@@ -1,6 +1,7 @@
 import { getReplayTvEpisode } from '@/features/decision-replay-tv/content/replay-tv.catalog';
 import {
-  buildEducationalCandles,
+  chunkVisibleCandles,
+  getEducationalCandles,
   visibleCandlesAt,
 } from '@/features/decision-replay-tv/services/replay-tv-path.service';
 import { scoreReplayTvSession } from '@/features/decision-replay-tv/services/replay-tv-score.service';
@@ -8,18 +9,27 @@ import type {
   ReplayTvChecklist,
   ReplayTvDecision,
   ReplayTvEpisode,
+  ReplayTvNewsItem,
+  ReplayTvPhase,
   ReplayTvSession,
 } from '@/features/decision-replay-tv/types/replay-tv.types';
 
-const EMPTY_CHECKLIST: ReplayTvChecklist = {
+export const EMPTY_CHECKLIST: ReplayTvChecklist = {
   namedInvalidation: false,
   notedRegime: false,
   consideredTimeBudget: false,
   wroteReasoning: false,
+  consideredAlternative: false,
 };
+
+const REVEALED_PHASES: ReplayTvPhase[] = ['reveal', 'coaching', 'complete'];
 
 function sessionId(): string {
   return `rtv_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
+}
+
+export function isReplayTvRevealed(session: ReplayTvSession): boolean {
+  return session.revealed || REVEALED_PHASES.includes(session.phase);
 }
 
 export function createReplayTvSession(episodeId: string): ReplayTvSession {
@@ -27,7 +37,7 @@ export function createReplayTvSession(episodeId: string): ReplayTvSession {
   if (!episode) {
     throw new Error(`Unknown Replay TV episode: ${episodeId}`);
   }
-  const fullCandles = buildEducationalCandles(episode);
+  const fullCandles = getEducationalCandles(episode);
   return {
     id: sessionId(),
     episodeId: episode.id,
@@ -41,6 +51,16 @@ export function createReplayTvSession(episodeId: string): ReplayTvSession {
   };
 }
 
+/** Rebuild candle path after resume from persistence (candles stripped on save). */
+export function hydrateReplayTvSessionCandles(session: ReplayTvSession): ReplayTvSession {
+  const episode = getReplayTvEpisode(session.episodeId);
+  if (!episode) return session;
+  return {
+    ...session,
+    fullCandles: getEducationalCandles(episode),
+  };
+}
+
 export function getSessionEpisode(session: ReplayTvSession): ReplayTvEpisode {
   const episode = getReplayTvEpisode(session.episodeId);
   if (!episode) {
@@ -49,14 +69,65 @@ export function getSessionEpisode(session: ReplayTvSession): ReplayTvEpisode {
   return episode;
 }
 
-export function getVisibleCandlesForSession(session: ReplayTvSession) {
+function currentFreezeIndex(session: ReplayTvSession): number {
   const episode = getSessionEpisode(session);
-  if (session.revealed || session.phase === 'reveal' || session.phase === 'coaching' || session.phase === 'complete') {
-    return session.fullCandles;
+  if (isReplayTvRevealed(session)) {
+    return Math.max(0, session.fullCandles.length - 1);
   }
   const checkpoint = episode.checkpoints[session.checkpointIndex] ?? episode.checkpoints[0];
-  const freeze = checkpoint?.freezeIndex ?? Math.floor(session.fullCandles.length * 0.5);
-  return visibleCandlesAt(session.fullCandles, freeze);
+  return checkpoint?.freezeIndex ?? Math.floor(session.fullCandles.length * 0.5);
+}
+
+/**
+ * Visible candles for chart UI — never returns future bars before reveal.
+ * Chunked for render performance on long educational paths.
+ */
+export function getVisibleCandlesForSession(session: ReplayTvSession) {
+  if (isReplayTvRevealed(session)) {
+    return session.fullCandles;
+  }
+  return chunkVisibleCandles(session.fullCandles, currentFreezeIndex(session));
+}
+
+/** Strict freeze slice (uncapped) for blindness tests. */
+export function getFrozenCandlesForSession(session: ReplayTvSession) {
+  if (isReplayTvRevealed(session)) {
+    return session.fullCandles;
+  }
+  return visibleCandlesAt(session.fullCandles, currentFreezeIndex(session));
+}
+
+export function getVisibleNewsForSession(session: ReplayTvSession): ReplayTvNewsItem[] {
+  const episode = getSessionEpisode(session);
+  if (isReplayTvRevealed(session)) {
+    return episode.availableNews;
+  }
+  const freeze = currentFreezeIndex(session);
+  const checkpoint = episode.checkpoints[session.checkpointIndex];
+  const byTime = episode.availableNews.filter((n) => n.availableAtIndex <= freeze);
+  if (checkpoint?.newsIdsVisible?.length) {
+    const allowed = new Set(checkpoint.newsIdsVisible);
+    return byTime.filter((n) => allowed.has(n.id));
+  }
+  return byTime;
+}
+
+/** Spoiler-safe fields for pre-reveal UI — never embeds historicalOutcome. */
+export function getBlindSafeEpisodeView(session: ReplayTvSession) {
+  const episode = getSessionEpisode(session);
+  const revealed = isReplayTvRevealed(session);
+  return {
+    title: episode.title,
+    subtitle: episode.subtitle,
+    teaser: episode.teaser,
+    eraLabel: episode.eraLabel,
+    contextBullets: episode.contextBullets,
+    provenanceNote: episode.provenanceNote,
+    dataKind: episode.dataKind,
+    news: getVisibleNewsForSession(session),
+    historicalOutcome: revealed ? episode.historicalOutcome : null,
+    teachingNotes: revealed ? episode.checkpoints.map((c) => c.teachingNote) : [],
+  };
 }
 
 export function advanceReplayTvPhase(session: ReplayTvSession): ReplayTvSession {
@@ -141,10 +212,19 @@ export function patchReplayTvChecklist(
   };
 }
 
+/** Observe / Research / Stay out / Form hypothesis mapped onto process enum. */
 export const REPLAY_TV_DECISION_LABELS: Record<ReplayTvDecision, string> = {
-  research_more: 'Research more',
-  write_thesis: 'Write a thesis',
-  wait: 'Wait',
-  skip: 'Skip',
+  wait: 'Observe',
+  research_more: 'Research',
+  skip: 'Stay out',
+  write_thesis: 'Form hypothesis',
   protect_attention: 'Protect attention',
 };
+
+export const REPLAY_TV_DECISION_ORDER: ReplayTvDecision[] = [
+  'wait',
+  'research_more',
+  'skip',
+  'write_thesis',
+  'protect_attention',
+];

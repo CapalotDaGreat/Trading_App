@@ -1,6 +1,7 @@
 import type {
   ReplayTvCollection,
   ReplayTvEpisode,
+  ReplayTvNewsItem,
 } from '@/features/decision-replay-tv/types/replay-tv.types';
 
 export const REPLAY_TV_COLLECTIONS: ReplayTvCollection[] = [
@@ -11,22 +12,22 @@ export const REPLAY_TV_COLLECTIONS: ReplayTvCollection[] = [
   },
   {
     id: 'crashes',
-    title: 'Crashes & Liquidity',
+    title: 'Market Crashes',
     description: 'Stress regimes where attention and invalidation matter most.',
   },
   {
     id: 'manias',
-    title: 'Manias & Crowds',
+    title: 'Bubbles & Crowds',
     description: 'Crowded narratives, squeezes, and attention traps.',
   },
   {
     id: 'policy',
-    title: 'Policy Shocks',
+    title: 'Macro Events',
     description: 'Macro and political surprises that reprice risk.',
   },
   {
     id: 'earnings',
-    title: 'Earnings Moments',
+    title: 'Earnings',
     description: 'Single-name narrative pivots without hindsight.',
   },
   {
@@ -34,20 +35,62 @@ export const REPLAY_TV_COLLECTIONS: ReplayTvCollection[] = [
     title: 'Crypto Stress',
     description: 'Trust and liquidity shocks in digital markets.',
   },
+  {
+    id: 'regime_changes',
+    title: 'Regime Changes',
+    description: 'When the market’s operating system flips.',
+  },
+  {
+    id: 'false_breakouts',
+    title: 'False Breakouts',
+    description: 'Structure that invites chase — process that refuses it.',
+  },
+  {
+    id: 'psychology',
+    title: 'Psychology',
+    description: 'FOMO, fear, and attention under uncertainty.',
+  },
+  {
+    id: 'risk_management',
+    title: 'Risk Management',
+    description: 'Downside framing before depth of research.',
+  },
+  {
+    id: 'uncertainty',
+    title: 'Uncertainty',
+    description: 'Ambiguous tapes where skipping is a first-class decision.',
+  },
 ];
 
 const educationalNote =
   'Educational reconstruction for decision practice. Bars are sample/approximate — not exchange ticks. Outcomes are spoiler-gated until reveal.';
 
+function news(
+  id: string,
+  availableAtIndex: number,
+  headline: string,
+  detail: string,
+): ReplayTvNewsItem {
+  return { id, availableAtIndex, headline, detail };
+}
+
+function academyLinks(lessonIds: string[]) {
+  return lessonIds.map((lessonId) => ({
+    kind: 'academy' as const,
+    label: 'Related Academy lesson',
+    href: `/academy/lesson/${lessonId}`,
+  }));
+}
+
 export const REPLAY_TV_EPISODES: ReplayTvEpisode[] = [
   {
     id: 'covid-crash',
-    title: 'COVID Liquidity Shock',
+    title: '2020 — The COVID Crash',
     subtitle: 'When risk assets reprice overnight',
     teaser: 'A calm trend meets an accelerating fear regime. Future path hidden.',
     historicalOutcome:
       'Historically, early 2020 saw a violent liquidity-driven drawdown followed by an extraordinary policy response and recovery. The lesson is process under stress — not a forecast template.',
-    collectionIds: ['featured', 'crashes'],
+    collectionIds: ['featured', 'crashes', 'regime_changes', 'psychology'],
     symbol: 'SPX',
     symbolLabel: 'Broad equity index (proxy)',
     interval: '1d',
@@ -61,13 +104,21 @@ export const REPLAY_TV_EPISODES: ReplayTvEpisode[] = [
       'Your job is research allocation — not predicting the bottom.',
       'Name what would make you stop watching this tape.',
     ],
+    availableNews: [
+      news('n1', 20, 'Virus headlines accelerate', 'Travel and demand uncertainty rises in the story.'),
+      news('n2', 35, 'Volatility wakes up', 'Risk assets begin to reprice; liquidity questions appear.'),
+    ],
     checkpoints: [
       {
         id: 'c1',
         freezeIndex: 28,
         prompt: 'Volatility is rising. What would you do with your research attention?',
-        mentorFollowUp: 'What invalidation would force you to step away — a level, a time budget, or a regime change?',
+        mentorFollowUp:
+          'What invalidation would force you to step away — a level, a time budget, or a regime change?',
         teachingNote: 'Stress regimes punish overconfidence. Protecting attention is a valid decision.',
+        availableDataNotes: ['Daily tape through freeze', 'Macro headlines available up to this bar'],
+        newsIdsVisible: ['n1'],
+        hypothesisPrompt: 'What is your working regime hypothesis?',
       },
       {
         id: 'c2',
@@ -75,21 +126,29 @@ export const REPLAY_TV_EPISODES: ReplayTvEpisode[] = [
         prompt: 'The move has accelerated. Reassess: research more, wait, or protect attention?',
         mentorFollowUp: 'Are you updating your thesis — or chasing the narrative because others are?',
         teachingNote: 'Blind replay trains process under uncertainty. Outcome knowledge comes later.',
+        availableDataNotes: ['Additional stress headlines now visible'],
+        newsIdsVisible: ['n1', 'n2'],
       },
     ],
     pathSeed: 202003,
     pathShape: 'crash',
     barCount: 60,
     academyLessonIds: ['dec-regime', 'dec-invalidation'],
+    durationMinutes: 20,
+    estimatedDecisionCount: 2,
+    markets: ['stocks', 'macro'],
+    tradingStyles: ['swing', 'day', 'any'],
+    scoringEmphasis: ['patience', 'risk', 'invalidation', 'process'],
+    educationalLinks: academyLinks(['dec-regime', 'dec-invalidation']),
   },
   {
     id: 'gamestop-squeeze',
-    title: 'Meme Squeeze Pressure',
+    title: '2021 — GameStop',
     subtitle: 'Crowds, short interest, and attention',
     teaser: 'A beaten-down name starts attracting unusual attention. Path hidden.',
     historicalOutcome:
       'The GameStop episode became a textbook attention/squeeze narrative. Educational focus: process under crowd pressure — never a playbook to copy.',
-    collectionIds: ['featured', 'manias'],
+    collectionIds: ['featured', 'manias', 'psychology', 'uncertainty'],
     symbol: 'GME',
     symbolLabel: 'Single-name equity (proxy)',
     interval: '1d',
@@ -103,6 +162,10 @@ export const REPLAY_TV_EPISODES: ReplayTvEpisode[] = [
       'Liquidity can disappear when everyone wants the same door.',
       'Decide how much research time this deserves — not a price target.',
     ],
+    availableNews: [
+      news('n1', 22, 'Retail attention spikes', 'Social volume around the name rises sharply.'),
+      news('n2', 40, 'Short interest dominates the narrative', 'Crowd and positioning stories intensify.'),
+    ],
     checkpoints: [
       {
         id: 'c1',
@@ -110,6 +173,8 @@ export const REPLAY_TV_EPISODES: ReplayTvEpisode[] = [
         prompt: 'Attention is spiking. Is this worth a thesis — or a skip?',
         mentorFollowUp: 'What would make this a research trap rather than a research priority?',
         teachingNote: 'Crowd episodes often reward waiting for a clear research question.',
+        newsIdsVisible: ['n1'],
+        choices: ['research_more', 'write_thesis', 'wait', 'skip', 'protect_attention'],
       },
       {
         id: 'c2',
@@ -117,25 +182,33 @@ export const REPLAY_TV_EPISODES: ReplayTvEpisode[] = [
         prompt: 'Price action is violent. Protect attention or write a structured thesis?',
         mentorFollowUp: 'Can you name an invalidation that is not “it stopped going up”?',
         teachingNote: 'Process quality beats narrative excitement.',
+        newsIdsVisible: ['n1', 'n2'],
       },
     ],
     pathSeed: 202101,
     pathShape: 'squeeze',
     barCount: 64,
     academyLessonIds: ['dec-time-budget', 'dec-setup-quality'],
+    durationMinutes: 25,
+    estimatedDecisionCount: 2,
+    markets: ['stocks'],
+    tradingStyles: ['day', 'swing', 'any'],
+    scoringEmphasis: ['evidence', 'alternatives', 'patience', 'process'],
+    educationalLinks: academyLinks(['dec-time-budget', 'dec-setup-quality']),
+    premiumOnly: true,
   },
   {
     id: 'lehman-weekend',
-    title: 'Lehman Weekend Fear',
+    title: '2008 — The Financial Crisis',
     subtitle: 'Systemic risk and research triage',
     teaser: 'Credit stress headlines intensify. You cannot see what comes next.',
     historicalOutcome:
       'The Lehman Brothers collapse marked a systemic phase of the Global Financial Crisis. Replay trains triage and invalidation — not crisis trading.',
-    collectionIds: ['crashes'],
+    collectionIds: ['featured', 'crashes', 'risk_management', 'regime_changes'],
     symbol: 'SPX',
     symbolLabel: 'Broad equity index (proxy)',
     interval: '1d',
-    difficulty: 'advanced',
+    difficulty: 'expert',
     skills: ['regime', 'risk', 'patience'],
     eraLabel: '2008',
     dataKind: 'sample',
@@ -145,6 +218,10 @@ export const REPLAY_TV_EPISODES: ReplayTvEpisode[] = [
       'Your edge here is deciding what to study, not predicting the weekend.',
       'Write what would prove your working view wrong.',
     ],
+    availableNews: [
+      news('n1', 24, 'Credit stress deepens', 'Interbank trust and funding narratives worsen.'),
+      news('n2', 38, 'Weekend risk talk rises', 'Systemic headlines dominate research desks.'),
+    ],
     checkpoints: [
       {
         id: 'c1',
@@ -152,12 +229,28 @@ export const REPLAY_TV_EPISODES: ReplayTvEpisode[] = [
         prompt: 'Credit headlines worsen. How do you allocate research time?',
         mentorFollowUp: 'Is your plan process-driven, or are you reacting to fear?',
         teachingNote: 'Systemic regimes demand smaller research bets and clearer stops.',
+        newsIdsVisible: ['n1'],
+      },
+      {
+        id: 'c2',
+        freezeIndex: 44,
+        prompt: 'Stress accelerates. Reassess attention vs deep research.',
+        mentorFollowUp: 'What is the downside if your assumption about “containment” is wrong?',
+        teachingNote: 'Expert rooms reward downside framing before depth.',
+        newsIdsVisible: ['n1', 'n2'],
       },
     ],
     pathSeed: 200809,
     pathShape: 'slow_bleed',
     barCount: 55,
     academyLessonIds: ['dec-regime', 'dec-portfolio-risk'],
+    durationMinutes: 30,
+    estimatedDecisionCount: 2,
+    markets: ['stocks', 'macro'],
+    tradingStyles: ['swing', 'position', 'any'],
+    scoringEmphasis: ['risk', 'invalidation', 'patience', 'process'],
+    educationalLinks: academyLinks(['dec-regime', 'dec-portfolio-risk']),
+    premiumOnly: true,
   },
   {
     id: 'black-monday',
@@ -166,7 +259,7 @@ export const REPLAY_TV_EPISODES: ReplayTvEpisode[] = [
     teaser: 'A calm stretch ends. The next bars are hidden on purpose.',
     historicalOutcome:
       'October 1987’s crash remains a case study in gap risk and liquidity. Use it to practice calm process — not to chase historical patterns.',
-    collectionIds: ['crashes'],
+    collectionIds: ['crashes', 'risk_management', 'uncertainty'],
     symbol: 'SPX',
     symbolLabel: 'Broad equity index (proxy)',
     interval: '1d',
@@ -180,6 +273,7 @@ export const REPLAY_TV_EPISODES: ReplayTvEpisode[] = [
       'Decide how you would protect attention if volatility explodes.',
       'Name a time budget for reassessing.',
     ],
+    availableNews: [news('n1', 30, 'Uneasy tape', 'Volatility chatter rises without a clear catalyst story.')],
     checkpoints: [
       {
         id: 'c1',
@@ -187,12 +281,27 @@ export const REPLAY_TV_EPISODES: ReplayTvEpisode[] = [
         prompt: 'Tape feels uneasy. What process decision do you make now?',
         mentorFollowUp: 'If the next open is a gap, what changes in your research plan?',
         teachingNote: 'Gap risk is why process plans include time and attention stops.',
+        newsIdsVisible: ['n1'],
+      },
+      {
+        id: 'c2',
+        freezeIndex: 44,
+        prompt: 'Uncertainty remains. Stay out, wait, or deepen research?',
+        mentorFollowUp: 'What evidence would justify more research time right now?',
+        teachingNote: 'Calm under ambiguity is a process skill.',
       },
     ],
     pathSeed: 198710,
     pathShape: 'gap_down',
     barCount: 50,
     academyLessonIds: ['dec-invalidation', 'dec-portfolio-risk'],
+    durationMinutes: 15,
+    estimatedDecisionCount: 2,
+    markets: ['stocks', 'macro'],
+    tradingStyles: ['day', 'swing', 'any'],
+    scoringEmphasis: ['risk', 'patience', 'process'],
+    educationalLinks: academyLinks(['dec-invalidation']),
+    premiumOnly: true,
   },
   {
     id: 'dotcom-bubble',
@@ -201,7 +310,7 @@ export const REPLAY_TV_EPISODES: ReplayTvEpisode[] = [
     teaser: 'Tech narratives dominate. Future path is sealed until you decide.',
     historicalOutcome:
       'The late-1990s / early-2000s tech bubble and bust reward studying narrative risk and research discipline — not “calling tops.”',
-    collectionIds: ['manias'],
+    collectionIds: ['manias', 'psychology', 'false_breakouts'],
     symbol: 'NDX',
     symbolLabel: 'Tech-heavy index (proxy)',
     interval: '1d',
@@ -215,6 +324,9 @@ export const REPLAY_TV_EPISODES: ReplayTvEpisode[] = [
       'Your task: decide whether a thesis is warranted.',
       'Avoid inventing certainty — document doubt.',
     ],
+    availableNews: [
+      news('n1', 28, 'Tech narrative dominates', 'Optimism and story stocks crowd attention.'),
+    ],
     checkpoints: [
       {
         id: 'c1',
@@ -222,6 +334,7 @@ export const REPLAY_TV_EPISODES: ReplayTvEpisode[] = [
         prompt: 'Euphoria is loud. Research more, wait, or skip?',
         mentorFollowUp: 'What evidence would make you reduce attention to this narrative?',
         teachingNote: 'Manias punish late certainty. Waiting is often the skill.',
+        newsIdsVisible: ['n1'],
       },
       {
         id: 'c2',
@@ -235,15 +348,21 @@ export const REPLAY_TV_EPISODES: ReplayTvEpisode[] = [
     pathShape: 'whipsaw',
     barCount: 70,
     academyLessonIds: ['dec-setup-quality', 'dec-time-budget'],
+    durationMinutes: 20,
+    estimatedDecisionCount: 2,
+    markets: ['stocks'],
+    tradingStyles: ['swing', 'position', 'any'],
+    scoringEmphasis: ['evidence', 'alternatives', 'patience'],
+    educationalLinks: academyLinks(['dec-setup-quality']),
   },
   {
     id: 'svb-stress',
-    title: 'Regional Bank Stress',
+    title: '2023 — Banking Crisis',
     subtitle: 'Confidence, deposits, and speed',
     teaser: 'Banking headlines accelerate. You cannot see the resolution yet.',
     historicalOutcome:
       'Silicon Valley Bank’s 2023 stress episode showed how fast confidence can break. Educational focus: regime recognition and attention triage.',
-    collectionIds: ['featured', 'crashes'],
+    collectionIds: ['featured', 'crashes', 'regime_changes', 'risk_management'],
     symbol: 'XLF',
     symbolLabel: 'Financials sector (proxy)',
     interval: '1d',
@@ -257,6 +376,9 @@ export const REPLAY_TV_EPISODES: ReplayTvEpisode[] = [
       'Decide what research question is worth your next hour.',
       'Write an invalidation that is time-based, not hope-based.',
     ],
+    availableNews: [
+      news('n1', 22, 'Deposit-stress chatter', 'Regional bank confidence stories accelerate.'),
+    ],
     checkpoints: [
       {
         id: 'c1',
@@ -264,21 +386,35 @@ export const REPLAY_TV_EPISODES: ReplayTvEpisode[] = [
         prompt: 'Deposit-stress chatter rises. What do you do?',
         mentorFollowUp: 'Is this a watchlist item or a deep-research project — and why?',
         teachingNote: 'Fast confidence shocks reward pre-committed attention budgets.',
+        newsIdsVisible: ['n1'],
+      },
+      {
+        id: 'c2',
+        freezeIndex: 40,
+        prompt: 'Speed increases. Protect attention or form a hypothesis?',
+        mentorFollowUp: 'What information are you missing before researching further?',
+        teachingNote: 'Speed regimes punish vague research questions.',
       },
     ],
     pathSeed: 202303,
     pathShape: 'gap_down',
     barCount: 48,
     academyLessonIds: ['dec-regime', 'dec-portfolio-risk'],
+    durationMinutes: 15,
+    estimatedDecisionCount: 2,
+    markets: ['stocks', 'macro'],
+    tradingStyles: ['swing', 'day', 'any'],
+    scoringEmphasis: ['risk', 'information_use', 'process'],
+    educationalLinks: academyLinks(['dec-regime']),
   },
   {
     id: 'ftx-collapse',
-    title: 'Exchange Trust Break',
+    title: '2022 — Crypto Collapse',
     subtitle: 'Counterparty risk as a decision filter',
     teaser: 'Crypto venue trust is questioned. Outcome path remains hidden.',
     historicalOutcome:
       'The FTX collapse highlighted counterparty and custody risk. Replay trains skepticism and process — not crypto trade ideas.',
-    collectionIds: ['crypto'],
+    collectionIds: ['crypto', 'risk_management', 'uncertainty'],
     symbol: 'BTC',
     symbolLabel: 'Crypto proxy (educational)',
     interval: '1d',
@@ -292,6 +428,9 @@ export const REPLAY_TV_EPISODES: ReplayTvEpisode[] = [
       'Skipping research is allowed when the question is poorly framed.',
       'Document what you refuse to research until clarity improves.',
     ],
+    availableNews: [
+      news('n1', 20, 'Venue trust questioned', 'Counterparty and custody narratives intensify.'),
+    ],
     checkpoints: [
       {
         id: 'c1',
@@ -299,12 +438,81 @@ export const REPLAY_TV_EPISODES: ReplayTvEpisode[] = [
         prompt: 'Trust headlines worsen. Research, wait, or protect attention?',
         mentorFollowUp: 'What would need to be true before this deserves a thesis?',
         teachingNote: 'Skipping is a first-class decision when risk is opaque.',
+        newsIdsVisible: ['n1'],
+      },
+      {
+        id: 'c2',
+        freezeIndex: 40,
+        prompt: 'Opacity remains. Reassess your research filter.',
+        mentorFollowUp: 'Are you reacting to price — or following a custody risk process?',
+        teachingNote: 'Process under opacity beats narrative chase.',
       },
     ],
     pathSeed: 202211,
     pathShape: 'crash',
     barCount: 52,
     academyLessonIds: ['dec-portfolio-risk', 'dec-time-budget'],
+    durationMinutes: 20,
+    estimatedDecisionCount: 2,
+    markets: ['crypto'],
+    tradingStyles: ['swing', 'day', 'any'],
+    scoringEmphasis: ['risk', 'alternatives', 'process'],
+    educationalLinks: academyLinks(['dec-portfolio-risk']),
+    premiumOnly: true,
+  },
+  {
+    id: 'inflation-shock-2022',
+    title: '2022 — Inflation Shock',
+    subtitle: 'Policy, rates, and research triage',
+    teaser: 'Inflation prints keep surprising. The forward path stays sealed.',
+    historicalOutcome:
+      '2022’s inflation and rate-shock year forced regime updates across assets. Educational focus: updating theses without chasing every print.',
+    collectionIds: ['featured', 'policy', 'regime_changes', 'uncertainty'],
+    symbol: 'SPX',
+    symbolLabel: 'Broad equity index (proxy)',
+    interval: '1d',
+    difficulty: 'intermediate',
+    skills: ['regime', 'macro', 'patience'],
+    eraLabel: '2022',
+    dataKind: 'sample',
+    provenanceNote: educationalNote,
+    contextBullets: [
+      'Macro prints are arriving faster than narratives can settle.',
+      'Your job is research allocation across shifting regimes.',
+      'Name what would change your working macro thesis.',
+    ],
+    availableNews: [
+      news('n1', 18, 'Hot inflation print', 'Price-pressure headlines dominate the session.'),
+      news('n2', 34, 'Policy path uncertainty', 'Rate expectations become the research battleground.'),
+    ],
+    checkpoints: [
+      {
+        id: 'c1',
+        freezeIndex: 26,
+        prompt: 'Another hot print. How do you allocate the next research block?',
+        mentorFollowUp: 'What evidence supports your current macro view — and what would change it?',
+        teachingNote: 'Macro rooms reward named invalidation of the regime thesis.',
+        newsIdsVisible: ['n1'],
+      },
+      {
+        id: 'c2',
+        freezeIndex: 42,
+        prompt: 'Policy uncertainty rises. Research further, wait, or protect attention?',
+        mentorFollowUp: 'Would you research this further or skip until the next data cluster?',
+        teachingNote: 'Patience under macro noise is a process edge.',
+        newsIdsVisible: ['n1', 'n2'],
+      },
+    ],
+    pathSeed: 202206,
+    pathShape: 'whipsaw',
+    barCount: 58,
+    academyLessonIds: ['dec-regime', 'dec-time-budget'],
+    durationMinutes: 20,
+    estimatedDecisionCount: 2,
+    markets: ['stocks', 'macro', 'forex'],
+    tradingStyles: ['swing', 'position', 'any'],
+    scoringEmphasis: ['information_use', 'invalidation', 'patience'],
+    educationalLinks: academyLinks(['dec-regime']),
   },
   {
     id: 'brexit-night',
@@ -313,7 +521,7 @@ export const REPLAY_TV_EPISODES: ReplayTvEpisode[] = [
     teaser: 'A binary political outcome approaches. Post-event path is sealed.',
     historicalOutcome:
       'The 2016 Brexit referendum surprised markets. Use this room to practice pre-committing research plans around binary events.',
-    collectionIds: ['policy'],
+    collectionIds: ['policy', 'uncertainty', 'psychology'],
     symbol: 'GBPUSD',
     symbolLabel: 'FX proxy (educational reconstruction)',
     interval: '1h',
@@ -327,6 +535,9 @@ export const REPLAY_TV_EPISODES: ReplayTvEpisode[] = [
       'You will not see the result until you decide.',
       'Focus on process: what will you research if either side wins?',
     ],
+    availableNews: [
+      news('n1', 30, 'Binary outcome approaches', 'Polling narratives conflict; event risk is high.'),
+    ],
     checkpoints: [
       {
         id: 'c1',
@@ -334,12 +545,26 @@ export const REPLAY_TV_EPISODES: ReplayTvEpisode[] = [
         prompt: 'Hours before the binary. What is your research plan?',
         mentorFollowUp: 'Did you pre-commit an attention budget for both outcomes?',
         teachingNote: 'Binary nights are about plans, not predictions.',
+        newsIdsVisible: ['n1'],
+      },
+      {
+        id: 'c2',
+        freezeIndex: 56,
+        prompt: 'Still pre-result. Stay out, wait, or form a hypothesis?',
+        mentorFollowUp: 'What is the downside if your assumption about the vote is wrong?',
+        teachingNote: 'Pre-commitment beats improvisation after the print.',
       },
     ],
     pathSeed: 201606,
     pathShape: 'whipsaw',
     barCount: 72,
     academyLessonIds: ['dec-time-budget', 'dec-invalidation'],
+    durationMinutes: 20,
+    estimatedDecisionCount: 2,
+    markets: ['forex', 'macro'],
+    tradingStyles: ['day', 'swing', 'any'],
+    scoringEmphasis: ['alternatives', 'patience', 'process'],
+    educationalLinks: academyLinks(['dec-time-budget']),
   },
   {
     id: 'nvidia-earnings',
@@ -348,7 +573,7 @@ export const REPLAY_TV_EPISODES: ReplayTvEpisode[] = [
     teaser: 'A mega-cap report is imminent. Post-print path stays hidden.',
     historicalOutcome:
       'NVIDIA earnings nights have repeatedly reset AI narratives. Practice thesis quality and invalidation — never treat past prints as signals.',
-    collectionIds: ['featured', 'earnings'],
+    collectionIds: ['featured', 'earnings', 'false_breakouts'],
     symbol: 'NVDA',
     symbolLabel: 'Mega-cap tech (proxy)',
     interval: '1h',
@@ -362,6 +587,9 @@ export const REPLAY_TV_EPISODES: ReplayTvEpisode[] = [
       'Decide whether you need a written thesis before the event.',
       'Name what would make you stop researching this name.',
     ],
+    availableNews: [
+      news('n1', 24, 'Earnings approaching', 'Narrative expectations are elevated pre-print.'),
+    ],
     checkpoints: [
       {
         id: 'c1',
@@ -369,6 +597,8 @@ export const REPLAY_TV_EPISODES: ReplayTvEpisode[] = [
         prompt: 'Pre-print: research more, write thesis, wait, or skip?',
         mentorFollowUp: 'What is the single research question you would answer after the print?',
         teachingNote: 'Earnings rooms train question quality, not prediction.',
+        newsIdsVisible: ['n1'],
+        hypothesisPrompt: 'Write a one-sentence pre-print thesis or choose skip.',
       },
       {
         id: 'c2',
@@ -382,6 +612,12 @@ export const REPLAY_TV_EPISODES: ReplayTvEpisode[] = [
     pathShape: 'meltup',
     barCount: 64,
     academyLessonIds: ['dec-setup-quality', 'dec-invalidation'],
+    durationMinutes: 15,
+    estimatedDecisionCount: 2,
+    markets: ['stocks'],
+    tradingStyles: ['day', 'swing', 'any'],
+    scoringEmphasis: ['evidence', 'invalidation', 'process'],
+    educationalLinks: academyLinks(['dec-setup-quality', 'dec-invalidation']),
   },
   {
     id: 'tesla-rally',
@@ -390,7 +626,7 @@ export const REPLAY_TV_EPISODES: ReplayTvEpisode[] = [
     teaser: 'A story stock is running. You cannot see how far — by design.',
     historicalOutcome:
       'Tesla rally stretches illustrate narrative momentum and FOMO. Educational aim: attention discipline and thesis hygiene.',
-    collectionIds: ['manias', 'earnings'],
+    collectionIds: ['manias', 'psychology', 'earnings'],
     symbol: 'TSLA',
     symbolLabel: 'Story equity (proxy)',
     interval: '1d',
@@ -404,6 +640,7 @@ export const REPLAY_TV_EPISODES: ReplayTvEpisode[] = [
       'Ask whether this deserves research time vs. a skip.',
       'Write a reasoning note that a coach could grade.',
     ],
+    availableNews: [news('n1', 20, 'Story heats up', 'Narrative momentum attracts attention.')],
     checkpoints: [
       {
         id: 'c1',
@@ -411,12 +648,77 @@ export const REPLAY_TV_EPISODES: ReplayTvEpisode[] = [
         prompt: 'The narrative is heating up. What would you do?',
         mentorFollowUp: 'Is FOMO driving the decision, or a clear research question?',
         teachingNote: 'Rallies without a research question are attention traps.',
+        newsIdsVisible: ['n1'],
+      },
+      {
+        id: 'c2',
+        freezeIndex: 44,
+        prompt: 'Momentum continues. Stay out or form a hypothesis?',
+        mentorFollowUp: 'What would change your mind about researching this further?',
+        teachingNote: 'Foundation rooms train naming FOMO without clinical language.',
       },
     ],
     pathSeed: 202011,
     pathShape: 'meltup',
     barCount: 56,
     academyLessonIds: ['dec-time-budget', 'dec-setup-quality'],
+    durationMinutes: 10,
+    estimatedDecisionCount: 2,
+    markets: ['stocks'],
+    tradingStyles: ['day', 'swing', 'any'],
+    scoringEmphasis: ['patience', 'alternatives', 'process'],
+    educationalLinks: academyLinks(['dec-time-budget']),
+  },
+  {
+    id: 'false-breakout-drill',
+    title: 'False Breakout Drill',
+    subtitle: 'Structure that invites chase',
+    teaser: 'A level breaks. Whether it holds is hidden until you decide.',
+    historicalOutcome:
+      'False breakouts are common process traps. This short room trains waiting for confirmation and naming invalidation — never chasing the first poke.',
+    collectionIds: ['false_breakouts', 'psychology', 'featured'],
+    symbol: 'SPY',
+    symbolLabel: 'Index ETF proxy',
+    interval: '1h',
+    difficulty: 'foundation',
+    skills: ['invalidation', 'patience', 'structure'],
+    eraLabel: 'Generic educational',
+    dataKind: 'sample',
+    provenanceNote: educationalNote,
+    contextBullets: [
+      'A level has been tested; you cannot see if acceptance follows.',
+      'Decide whether this is research-worthy or a skip.',
+      'Name invalidation before deepening.',
+    ],
+    availableNews: [],
+    checkpoints: [
+      {
+        id: 'c1',
+        freezeIndex: 24,
+        prompt: 'Level breaks on the tape. Observe, research, or stay out?',
+        mentorFollowUp: 'What evidence would confirm acceptance vs a false break?',
+        teachingNote: 'First poke is often noise. Process waits for evidence.',
+        availableDataNotes: ['Intraday structure through freeze only'],
+        choices: ['wait', 'research_more', 'skip', 'protect_attention', 'write_thesis'],
+      },
+      {
+        id: 'c2',
+        freezeIndex: 36,
+        prompt: 'Still ambiguous. Reassess your research allocation.',
+        mentorFollowUp: 'Are you reacting to price or following your confirmation checklist?',
+        teachingNote: 'Short sessions reward checklist discipline.',
+      },
+    ],
+    pathSeed: 424242,
+    pathShape: 'whipsaw',
+    barCount: 48,
+    academyLessonIds: ['dec-invalidation'],
+    durationMinutes: 10,
+    estimatedDecisionCount: 2,
+    markets: ['stocks'],
+    tradingStyles: ['day', 'scalp', 'any'],
+    scoringEmphasis: ['invalidation', 'patience', 'evidence'],
+    educationalLinks: academyLinks(['dec-invalidation']),
   },
 ];
 
@@ -425,5 +727,24 @@ export function getReplayTvEpisode(id: string): ReplayTvEpisode | undefined {
 }
 
 export function listEpisodesForCollection(collectionId: string): ReplayTvEpisode[] {
-  return REPLAY_TV_EPISODES.filter((e) => e.collectionIds.includes(collectionId as never));
+  return REPLAY_TV_EPISODES.filter((e) =>
+    e.collectionIds.includes(collectionId as ReplayTvEpisode['collectionIds'][number]),
+  );
+}
+
+export function listShortSessions(maxMinutes = 15): ReplayTvEpisode[] {
+  return REPLAY_TV_EPISODES.filter((e) => e.durationMinutes <= maxMinutes);
+}
+
+export function listSessionsAroundMinutes(minutes: number, tolerance = 5): ReplayTvEpisode[] {
+  return REPLAY_TV_EPISODES.filter(
+    (e) => Math.abs(e.durationMinutes - minutes) <= tolerance,
+  );
+}
+
+export function listByDifficulty(
+  difficulty: ReplayTvEpisode['difficulty'] | ReplayTvEpisode['difficulty'][],
+): ReplayTvEpisode[] {
+  const set = new Set(Array.isArray(difficulty) ? difficulty : [difficulty]);
+  return REPLAY_TV_EPISODES.filter((e) => set.has(e.difficulty));
 }

@@ -24,7 +24,12 @@ export type PassportAchievementId =
   | 'risk_manager_10'
   | 'simulator_process_10'
   | 'heatmap_consistency_60'
-  | 'replay_tv_5';
+  | 'replay_tv_1'
+  | 'replay_tv_5'
+  | 'replay_tv_10'
+  | 'replay_tv_calm_vol'
+  | 'replay_tv_evidence'
+  | 'replay_tv_invalidation';
 
 export interface PassportAchievement {
   id: PassportAchievementId;
@@ -85,6 +90,10 @@ export interface PassportCounts {
   researchSessions: number;
   /** Decision Replay TV episode completions (process-only). */
   replayTvEpisodes: number;
+  /** Process tags from Replay TV Decision Log notes — never direction rewards. */
+  replayTvCalmVol: number;
+  replayTvEvidence: number;
+  replayTvInvalidation: number;
 }
 
 export interface PassportLearningJourney {

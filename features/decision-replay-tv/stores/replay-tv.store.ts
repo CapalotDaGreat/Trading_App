@@ -4,6 +4,7 @@ import { persist } from 'zustand/middleware';
 import {
   advanceReplayTvPhase,
   createReplayTvSession,
+  hydrateReplayTvSessionCandles,
   patchReplayTvChecklist,
   submitReplayTvDecision,
 } from '@/features/decision-replay-tv/services/replay-tv-session.service';
@@ -18,6 +19,10 @@ import { createPersistedStorage } from '@/shared/stores/create-persisted-storage
 
 function dayKey(ms = Date.now()): string {
   return new Date(ms).toISOString().slice(0, 10);
+}
+
+function monthKey(ms = Date.now()): string {
+  return new Date(ms).toISOString().slice(0, 7);
 }
 
 function nextStreak(prev: ReplayTvProgress, completedAt = Date.now()): Pick<
@@ -38,6 +43,7 @@ interface ReplayTvState {
   activeSession: ReplayTvSession | null;
   progress: ReplayTvProgress;
   startEpisode: (episodeId: string) => ReplayTvSession;
+  restartEpisode: () => ReplayTvSession | null;
   advancePhase: () => void;
   updateChecklist: (patch: Partial<ReplayTvChecklist>) => void;
   submitDecision: (decision: ReplayTvDecision, reasoning: string) => void;
@@ -56,7 +62,14 @@ const EMPTY_PROGRESS: ReplayTvProgress = {
   lastCompletedDayKey: null,
   masteryByCollection: {},
   bestProcessByEpisode: {},
+  monthlyKey: null,
+  monthlyCompletions: 0,
 };
+
+function stripCandles(session: ReplayTvSession | null): ReplayTvSession | null {
+  if (!session) return null;
+  return { ...session, fullCandles: [] };
+}
 
 export const useReplayTvStore = create<ReplayTvState>()(
   persist(
@@ -65,6 +78,13 @@ export const useReplayTvStore = create<ReplayTvState>()(
       progress: EMPTY_PROGRESS,
       startEpisode: (episodeId) => {
         const session = createReplayTvSession(episodeId);
+        set({ activeSession: session });
+        return session;
+      },
+      restartEpisode: () => {
+        const active = get().activeSession;
+        if (!active) return null;
+        const session = createReplayTvSession(active.episodeId);
         set({ activeSession: session });
         return session;
       },
@@ -99,6 +119,9 @@ export const useReplayTvStore = create<ReplayTvState>()(
           masteryByCollection[id] = (masteryByCollection[id] ?? 0) + 1;
         }
         const best = prev.bestProcessByEpisode[episodeId] ?? 0;
+        const mk = monthKey();
+        const monthlyCompletions =
+          prev.monthlyKey === mk ? prev.monthlyCompletions + 1 : 1;
         set({
           progress: {
             ...prev,
@@ -110,15 +133,42 @@ export const useReplayTvStore = create<ReplayTvState>()(
               ...prev.bestProcessByEpisode,
               [episodeId]: Math.max(best, processScore),
             },
+            monthlyKey: mk,
+            monthlyCompletions,
           },
         });
       },
       clearActive: () => set({ activeSession: null }),
     }),
     {
-      name: 'tradevision-replay-tv-v1',
+      name: 'tradevision-replay-tv-v2',
       storage: createPersistedStorage(),
-      partialize: (state) => ({ progress: state.progress }),
+      partialize: (state) => ({
+        progress: state.progress,
+        activeSession: stripCandles(state.activeSession),
+      }),
+      merge: (persisted, current) => {
+        const p = (persisted ?? {}) as Partial<ReplayTvState>;
+        let activeSession = p.activeSession ?? null;
+        if (activeSession?.episodeId) {
+          try {
+            activeSession = hydrateReplayTvSessionCandles(activeSession);
+          } catch {
+            activeSession = null;
+          }
+        }
+        return {
+          ...current,
+          ...p,
+          activeSession,
+          progress: {
+            ...EMPTY_PROGRESS,
+            ...p.progress,
+            monthlyKey: p.progress?.monthlyKey ?? null,
+            monthlyCompletions: p.progress?.monthlyCompletions ?? 0,
+          },
+        };
+      },
     },
   ),
 );

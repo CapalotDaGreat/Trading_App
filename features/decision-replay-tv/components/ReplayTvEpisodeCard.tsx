@@ -10,12 +10,14 @@ interface ReplayTvEpisodeCardProps {
   completed?: boolean;
   bestProcess?: number;
   onPress: () => void;
+  lockedHint?: string | null;
 }
 
 const DIFFICULTY_LABEL: Record<ReplayTvEpisode['difficulty'], string> = {
   foundation: 'Foundation',
   intermediate: 'Intermediate',
   advanced: 'Advanced',
+  expert: 'Expert',
 };
 
 export function ReplayTvEpisodeCard({
@@ -23,6 +25,7 @@ export function ReplayTvEpisodeCard({
   completed,
   bestProcess,
   onPress,
+  lockedHint,
 }: ReplayTvEpisodeCardProps) {
   return (
     <Pressable
@@ -35,7 +38,7 @@ export function ReplayTvEpisodeCard({
         <View className="flex-row items-start justify-between gap-3">
           <View className="flex-1">
             <Text variant="caption" className="text-text-tertiary">
-              {episode.eraLabel} · {episode.symbolLabel}
+              {episode.eraLabel} · {episode.symbolLabel} · {episode.durationMinutes} min
             </Text>
             <Text variant="h3" className="mt-1">
               {episode.title}
@@ -52,6 +55,7 @@ export function ReplayTvEpisodeCard({
             <Chip label={`Best process ${bestProcess}`} />
           ) : null}
           <Chip label="Blind tape" />
+          {lockedHint ? <Chip label={lockedHint} /> : null}
         </View>
       </GlassCard>
     </Pressable>

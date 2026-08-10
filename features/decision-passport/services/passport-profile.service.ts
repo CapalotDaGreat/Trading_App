@@ -61,13 +61,22 @@ export function countPassportActivity(input: {
   let research = 0;
   let journalsFromLog = 0;
   let replayTvEpisodes = 0;
+  let replayTvCalmVol = 0;
+  let replayTvEvidence = 0;
+  let replayTvInvalidation = 0;
 
   for (const record of input.records) {
     if (record.eventKey) {
       if (seen.has(record.eventKey)) continue;
       seen.add(record.eventKey);
     }
-    if (record.eventKey?.startsWith('replay-tv:')) replayTvEpisodes += 1;
+    if (record.eventKey?.startsWith('replay-tv:')) {
+      replayTvEpisodes += 1;
+      const note = (record.note ?? '').toLowerCase();
+      if (note.includes('rtv:calm_vol')) replayTvCalmVol += 1;
+      if (note.includes('rtv:evidence')) replayTvEvidence += 1;
+      if (note.includes('rtv:invalidation')) replayTvInvalidation += 1;
+    }
     if (record.action === 'replay_completed') replays += 1;
     if (record.action === 'checklist_done') checklist += 1;
     if (record.action === 'skipped' || record.action === 'ignored') {
@@ -99,6 +108,9 @@ export function countPassportActivity(input: {
     labCloses: input.labCloses,
     researchSessions: research,
     replayTvEpisodes,
+    replayTvCalmVol,
+    replayTvEvidence,
+    replayTvInvalidation,
   };
 }
 
