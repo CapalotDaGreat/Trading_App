@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { QueryClient } from '@tanstack/react-query';
 
-import { useChecklistStore } from '@/features/academy/hooks/useAcademy';
+import { useChecklistStore } from '@/features/academy/stores/checklist.store';
 import { useAcademyProgressStore } from '@/features/academy/stores/academy-progress.store';
 import { useDecisionPassportStore } from '@/features/decision-passport/stores/passport.store';
 import { useDecisionUiStore } from '@/features/decision/stores/decision-ui.store';

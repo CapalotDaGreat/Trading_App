@@ -17,6 +17,8 @@ module.exports = defineConfig([
       'build/',
       'coverage/',
       'functions/lib/',
+      // Ops admin is a separate Vite app; install deps under ops/admin before linting it.
+      'ops/admin/',
     ],
   },
   {

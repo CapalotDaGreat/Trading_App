@@ -1,6 +1,6 @@
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Alert, Linking, View } from 'react-native';
+import { Alert, View } from 'react-native';
 
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { SettingsRow } from '@/features/settings/components/SettingsRow';
@@ -16,6 +16,7 @@ import { Button } from '@/shared/components/ui/Button';
 import { GlassCard } from '@/shared/components/ui/GlassCard';
 import { Text } from '@/shared/components/ui/Text';
 import { LEGAL_URLS } from '@/shared/constants/legal';
+import { openExternalUrl } from '@/shared/utils/open-url';
 
 const TIMEOUT_OPTIONS: { minutes: SessionTimeoutMinutes; label: string }[] = [
   { minutes: 0, label: 'Off' },
@@ -261,14 +262,14 @@ export function PrivacyScreen() {
         <Text
           variant="caption"
           className="text-accent"
-          onPress={() => void Linking.openURL(LEGAL_URLS.privacyEmail)}
+          onPress={() => void openExternalUrl(LEGAL_URLS.privacyEmail)}
         >
           Contact privacy@tradevision.ai
         </Text>
         <Text
           variant="caption"
           className="text-accent"
-          onPress={() => void Linking.openURL(LEGAL_URLS.securityEmail)}
+          onPress={() => void openExternalUrl(LEGAL_URLS.securityEmail)}
         >
           Report security issues to security@tradevision.ai
         </Text>

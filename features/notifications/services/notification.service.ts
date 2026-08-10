@@ -1,6 +1,5 @@
 import Constants from 'expo-constants';
 import * as Device from 'expo-device';
-import * as Notifications from 'expo-notifications';
 import * as SecureStore from 'expo-secure-store';
 import {
   deleteDoc,
@@ -15,6 +14,10 @@ import { Platform } from 'react-native';
 import { requireDb, isFirebaseConfigured } from '@/firebase/config';
 import { colors } from '@/shared/constants/theme';
 import { logger } from '@/shared/services/observability/logger';
+
+import { isNotificationRuntimeSupported } from './notification-capability';
+
+import type * as NotificationsNS from 'expo-notifications';
 
 export type NotificationPermissionStatus = 'granted' | 'denied' | 'undetermined';
 
@@ -60,6 +63,43 @@ const USERS_COLLECTION = 'users';
 const DEVICES_COLLECTION = 'devices';
 const DEVICE_ID_STORAGE_KEY = 'tradevision-push-device-id';
 
+type NotificationsModule = typeof NotificationsNS;
+
+let notificationsModule: NotificationsModule | null | undefined;
+let handlerConfigured = false;
+
+function loadNotifications(): NotificationsModule | null {
+  if (!isNotificationRuntimeSupported()) {
+    return null;
+  }
+  if (notificationsModule !== undefined) {
+    return notificationsModule;
+  }
+  try {
+    // Lazy require avoids Expo Go's "push removed from Expo Go" console warnings.
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    notificationsModule = require('expo-notifications') as NotificationsModule;
+    if (!handlerConfigured && notificationsModule) {
+      notificationsModule.setNotificationHandler({
+        handleNotification: async () => ({
+          shouldShowAlert: true,
+          shouldPlaySound: true,
+          shouldSetBadge: true,
+          shouldShowBanner: true,
+          shouldShowList: true,
+        }),
+      });
+      handlerConfigured = true;
+    }
+  } catch (error) {
+    logger.debug('notifications.module_unavailable', {
+      message: error instanceof Error ? error.message : 'unknown',
+    });
+    notificationsModule = null;
+  }
+  return notificationsModule;
+}
+
 function deviceDocRef(uid: string, deviceId: string) {
   return doc(requireDb(), USERS_COLLECTION, uid, DEVICES_COLLECTION, deviceId);
 }
@@ -83,25 +123,19 @@ async function getOrCreateDeviceId(): Promise<string> {
   return deviceId;
 }
 
-function mapPermissionStatus(status: Notifications.PermissionStatus): NotificationPermissionStatus {
+function mapPermissionStatus(
+  Notifications: NotificationsModule,
+  status: NotificationsNS.PermissionStatus,
+): NotificationPermissionStatus {
   if (status === Notifications.PermissionStatus.GRANTED) return 'granted';
   if (status === Notifications.PermissionStatus.DENIED) return 'denied';
   return 'undetermined';
 }
 
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: true,
-    shouldShowBanner: true,
-    shouldShowList: true,
-  }),
-});
-
 class NotificationServiceImpl implements NotificationService {
   async requestPermissions(): Promise<NotificationPermissionStatus> {
-    if (!Device.isDevice) {
+    const Notifications = loadNotifications();
+    if (!Notifications || !Device.isDevice) {
       return 'denied';
     }
 
@@ -111,21 +145,22 @@ class NotificationServiceImpl implements NotificationService {
     }
 
     const { status } = await Notifications.requestPermissionsAsync();
-    return mapPermissionStatus(status);
+    return mapPermissionStatus(Notifications, status);
   }
 
   async getPermissionStatus(): Promise<NotificationPermissionStatus> {
+    const Notifications = loadNotifications();
+    if (!Notifications) return 'denied';
     const { status } = await Notifications.getPermissionsAsync();
-    return mapPermissionStatus(status);
+    return mapPermissionStatus(Notifications, status);
   }
 
   async getExpoPushToken(): Promise<string | null> {
-    if (!Device.isDevice) return null;
+    const Notifications = loadNotifications();
+    if (!Notifications || !Device.isDevice) return null;
 
     const projectId =
       process.env.EXPO_PUBLIC_EAS_PROJECT_ID ??
-      // EAS project id from app config (Dev Client / production) — required for
-      // real APNs/FCM tokens; Expo Go may still resolve via the Expo push proxy.
       (Constants.expoConfig?.extra as { eas?: { projectId?: string } } | undefined)?.eas
         ?.projectId ??
       Constants.easConfig?.projectId ??
@@ -141,12 +176,15 @@ class NotificationServiceImpl implements NotificationService {
       });
       return token.data;
     } catch (error) {
-      logger.warn('push.token_unavailable', { error, projectIdPresent: Boolean(projectId) });
+      logger.debug('push.token_unavailable', { error, projectIdPresent: Boolean(projectId) });
       return null;
     }
   }
 
   async registerForPushNotifications(uid: string): Promise<string | null> {
+    const Notifications = loadNotifications();
+    if (!Notifications) return null;
+
     const permission = await this.requestPermissions();
     if (permission !== 'granted') {
       return null;
@@ -203,6 +241,8 @@ class NotificationServiceImpl implements NotificationService {
     data?: Record<string, unknown>,
     triggerSeconds = 1,
   ): Promise<string> {
+    const Notifications = loadNotifications();
+    if (!Notifications) return 'notifications-unavailable';
     return Notifications.scheduleNotificationAsync({
       content: { title, body, data, sound: true },
       trigger: {
@@ -217,6 +257,8 @@ class NotificationServiceImpl implements NotificationService {
     body: string,
     data?: Record<string, unknown>,
   ): Promise<string> {
+    const Notifications = loadNotifications();
+    if (!Notifications) return 'notifications-unavailable';
     return Notifications.scheduleNotificationAsync({
       content: { title, body, data, sound: true },
       trigger: null,
@@ -224,10 +266,14 @@ class NotificationServiceImpl implements NotificationService {
   }
 
   async cancelAllScheduled(): Promise<void> {
+    const Notifications = loadNotifications();
+    if (!Notifications) return;
     await Notifications.cancelAllScheduledNotificationsAsync();
   }
 
   async setBadgeCount(count: number): Promise<void> {
+    const Notifications = loadNotifications();
+    if (!Notifications) return;
     await Notifications.setBadgeCountAsync(count);
   }
 }

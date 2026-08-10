@@ -9,7 +9,7 @@ const mockResetAcademy = jest.fn();
 const mockResetLab = jest.fn();
 const mockResetOnboarding = jest.fn();
 
-jest.mock('@/features/academy/hooks/useAcademy', () => ({
+jest.mock('@/features/academy/stores/checklist.store', () => ({
   useChecklistStore: { setState: jest.fn() },
 }));
 jest.mock('@/features/academy/stores/academy-progress.store', () => ({

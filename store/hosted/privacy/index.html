@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Privacy Policy · TradeVision AI</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 48rem; margin: 2rem auto; padding: 0 1rem; line-height: 1.55; color: #111; }
+    h1, h2, h3 { line-height: 1.25; }
+    code, pre { background: #f4f4f5; }
+    pre { overflow-x: auto; padding: 0.75rem; }
+    a { color: #0f766e; }
+    nav { margin-bottom: 1.5rem; font-size: 0.9rem; }
+  </style>
+</head>
+<body>
+  <nav>
+    <a href="/">TradeVision AI</a> ·
+    <a href="/privacy">Privacy</a> ·
+    <a href="/terms">Terms</a> ·
+    <a href="/risk">Risk</a> ·
+    <a href="/security">Security</a> ·
+    <a href="/account-deletion">Account deletion</a> ·
+    <a href="/support">Support</a>
+  </nav>
+  <h1>Privacy Policy</h1>
+<p><strong>Last updated:</strong> 24 July 2026 <strong>Version:</strong> 2026.07.24 <strong>Controller / Operator:</strong> TradeVision AI (“TradeVision”, “we”, “us”, “our”), operator of the TradeVision AI mobile application and https://tradevision.ai <strong>Privacy contact:</strong> privacy@tradevision.ai <strong>Support contact:</strong> support@tradevision.ai</p>
+<p>This Privacy Policy explains how we collect, use, store, share, and protect personal data when you use TradeVision AI. It is designed to meet transparency and rights requirements under:</p>
+<ul>
+<li>the Swiss Federal Act on Data Protection (<strong>nFADP</strong> / revDSG);</li>
+<li>the EU/EEA <strong>GDPR</strong> and UK <strong>UK GDPR</strong> where applicable;</li>
+<li>U.S. state privacy laws including the California Consumer Privacy Act as amended by the CPRA (<strong>CCPA/CPRA</strong>), and similar state laws; and</li>
+<li>related cybersecurity and breach-notification expectations.</li>
+</ul>
+<p><strong>This document is a compliance-oriented template for the shipped product behaviour. Have qualified counsel in Switzerland, the EU/EEA, and relevant U.S. states review and adapt it (including your registered legal entity name, postal address, and VAT/UID) before production launch.</strong></p>
+<hr />
+<h2>1. Who we are and scope</h2>
+<p>TradeVision AI is a <strong>decision-first trading research and coaching application</strong>. It is <strong>not</strong> a broker-dealer, bank, investment adviser, portfolio manager, or execution venue. Scores such as Research Value Score (RVS) and Decision Quality Score (DQS) describe research priority and process quality; they <strong>do not</strong> predict price direction.</p>
+<p>This Policy applies to:</p>
+<ul>
+<li>the iOS and Android apps (including demo/guest mode);</li>
+<li>related cloud services we operate (e.g. Firebase Auth/Firestore/Storage, Cloud Functions); and</li>
+<li>our public legal/support pages.</li>
+</ul>
+<p>It does <strong>not</strong> govern third-party stores (Apple, Google), payment processors, or market-data vendors’ own processing beyond what we disclose below.</p>
+<hr />
+<h2>2. Categories of personal data</h2>
+<p>Depending on how you use the app, we may process:</p>
+<pre>
+| Category | Examples | Typical source |
+| --- | --- | --- |
+| Account &amp; identity | Email, display name, Firebase UID, auth provider identifiers, email verification status | You; Google/Apple Sign-In |
+| Security / MFA | Multi-factor authentication factors (e.g. TOTP enrolment metadata), recent authentication timestamps | You; Firebase Auth |
+| Device &amp; push | Device type/OS, Expo/FCM push tokens, app version/release | Device; OS |
+| Preferences | Theme, haptics, notification settings, crash-reporting consent and version/timestamp | You |
+| Product content you create | Watchlists, alerts, journal entries, decision records, holdings you enter, onboarding answers | You |
+| Subscription | Entitlement status, product IDs, expiry/paid-through dates, RevenueCat app user ID (= Firebase UID) | Apple/Google via RevenueCat webhook (server-side) |
+| Diagnostics (optional) | Crash/error events, route names, release/build metadata, limited device/OS context — **redacted** of common credentials and personal fields | App, only if you enable Crash Reporting |
+| Support | Messages you send to support | You |
+| Technical logs | Server timestamps, security/auth events, webhook delivery metadata needed to operate the service | Systems |
+</pre>
+<p>We <strong>do not</strong> intentionally collect:</p>
+<ul>
+<li>government ID numbers, biometric templates (beyond optional OS biometric unlock you enable on-device), precise continuous GPS tracking, health data, or children’s data;</li>
+<li>advertising identifiers for cross-app tracking;</li>
+<li>behavioural advertising profiles or cross-app tracking;</li>
+<li>payment card numbers (billing is handled by Apple/Google).</li>
+</ul>
+<p>Optional <strong>product analytics</strong> (screen/feature aggregates only) is <strong>off by default</strong> and requires explicit consent. We never intentionally collect journal text, AI conversation content, passwords, or portfolio monetary values in analytics.</p>
+<p>Market quotes and news are <strong>market data</strong>, not personal data about you, though requests may be associated with your session/account for rate limiting and service delivery.</p>
+<hr />
+<h2>3. Purposes and legal bases</h2>
+<pre>
+| Purpose | Legal basis (GDPR Art. 6 / Swiss equivalent) |
+| --- | --- |
+| Create and authenticate accounts; provide core app features | Contract (Art. 6(1)(b)); Swiss overriding private interest / contract |
+| Process Premium entitlements and prevent fraud/abuse | Contract; legitimate interests (security, billing integrity) |
+| Sync your content to Firestore when signed in and verified | Contract |
+| Send price-alert / transactional notifications you enable | Contract; consent where required for push on the OS |
+| Optional crash diagnostics to Sentry | **Consent** (Art. 6(1)(a)); off by default |
+| Optional first-party product analytics (allowlisted aggregates) | **Consent** (Art. 6(1)(a)); off by default |
+| Security, abuse prevention, MFA, deletion throttling | Legitimate interests (Art. 6(1)(f)); legal obligation where applicable |
+| Comply with law, respond to lawful requests, enforce Terms | Legal obligation (Art. 6(1)(c)); legitimate interests |
+| Improve reliability using consented, aggregated, non-identifying product signals | Consent when analytics enabled; otherwise not collected |
+</pre>
+<p>You may withdraw consent for crash reporting or product analytics at any time in <strong>Settings → Privacy</strong> without affecting other processing that does not rely on that consent.</p>
+<hr />
+<h2>4. How we use and store data</h2>
+<ul>
+<li><strong>Client storage:</strong> Preferences and demo/local content may be stored on-device (e.g. AsyncStorage / SecureStore as applicable).</li>
+<li><strong>Cloud:</strong> Authenticated, email-verified users may sync data to <strong>Google Firebase</strong> (Auth, Firestore, Storage) under security rules that restrict access to the account owner (and server-only paths for subscriptions).</li>
+<li><strong>Guest / demo mode:</strong> Designed to stay <strong>local</strong>; it does not create a verified cloud identity for personal cloud writes under our hardened rules.</li>
+<li><strong>Encryption in transit:</strong> TLS for network traffic to our providers.</li>
+<li><strong>Encryption at rest:</strong> Provider-managed encryption for Firebase/Google Cloud and Sentry as offered by those vendors.</li>
+<li><strong>Access control:</strong> Least-privilege rules, verified-email write gates, MFA options, and recent-authentication requirements for account deletion.</li>
+</ul>
+<p>We apply <strong>data minimisation</strong> and <strong>purpose limitation</strong>: we process what is needed for the purposes above and do not sell personal information.</p>
+<hr />
+<h2>5. Sharing and processors (recipients)</h2>
+<p>We share personal data only with:</p>
+<p>1. <strong>Infrastructure processors</strong> acting on our instructions, including:    - <strong>Google Firebase / Google Cloud</strong> — authentication, database, storage, functions;    - <strong>RevenueCat</strong> — subscription entitlement sync (server webhook; no client secret keys);    - <strong>Sentry</strong> — optional crash diagnostics <strong>after consent</strong>;    - <strong>Expo / Apple / Google</strong> — app distribution, push delivery infrastructure as configured; 2. <strong>Market-data / news providers</strong> (e.g. Finnhub, Alpha Vantage, CoinGecko, NewsAPI or successors) — typically receive technical requests (symbols, IP as seen by their edge) necessary to return quotes/news; their policies apply to their processing; 3. <strong>Professional advisers</strong> or authorities when legally required; 4. A <strong>successor</strong> in a merger or asset transfer, subject to continued protection consistent with this Policy.</p>
+<p>We <strong>do not sell</strong> personal information and <strong>do not share</strong> it for cross-context behavioural advertising as those terms are used under CCPA/CPRA. We <strong>do not</strong> use your journal or decision content for advertising.</p>
+<hr />
+<h2>6. International transfers</h2>
+<p>Servers and processors may be located in the <strong>United States</strong>, <strong>EU/EEA</strong>, <strong>Switzerland</strong>, or other countries. Where GDPR/UK GDPR or Swiss nFADP require safeguards for transfers abroad, we rely on:</p>
+<ul>
+<li>adequacy decisions where available; and/or</li>
+<li><strong>Standard Contractual Clauses</strong> (or Swiss-recognised equivalents) and vendor DPAs; and/or</li>
+<li>other lawful transfer tools.</li>
+</ul>
+<p>You may request information about transfer safeguards via privacy@tradevision.ai.</p>
+<hr />
+<h2>7. Retention</h2>
+<p>We retain personal data only as long as needed for the purposes above:</p>
+<ul>
+<li><strong>Account data:</strong> for the life of the account, then deleted or anonymised after account deletion completes (subject to short backup/log retention);</li>
+<li><strong>Decision/journal/watchlist content:</strong> until you delete it or delete the account;</li>
+<li><strong>Subscription entitlement records:</strong> while needed to provide Premium access and resolve billing disputes, then deleted or minimised;</li>
+<li><strong>RevenueCat webhook event references tied to your UID:</strong> removed as part of account deletion where implemented;</li>
+<li><strong>Crash diagnostics:</strong> according to Sentry retention settings for consented data; stopped when consent is withdrawn (future events not sent);</li>
+<li><strong>Security logs:</strong> typically short periods unless needed for investigations or legal holds;</li>
+<li><strong>Legal holds:</strong> longer retention when required to establish, exercise, or defend legal claims.</li>
+</ul>
+<hr />
+<h2>8. Your rights</h2>
+<h3>8.1 Switzerland (nFADP)</h3>
+<p>Subject to statutory exceptions, you may request <strong>access</strong>, <strong>rectification</strong>, <strong>erasure</strong>, <strong>restriction</strong>, <strong>objection</strong> to processing based on overriding interests, and <strong>data portability</strong> where applicable. You may lodge a complaint with the Swiss Federal Data Protection and Information Commissioner (<strong>FDPIC</strong>).</p>
+<h3>8.2 EU/EEA &amp; UK (GDPR / UK GDPR)</h3>
+<p>You have rights of <strong>access</strong>, <strong>rectification</strong>, <strong>erasure</strong>, <strong>restriction</strong>, <strong>portability</strong>, <strong>objection</strong>, and rights related to <strong>automated decision-making</strong>. You may withdraw consent at any time. You may complain to your local supervisory authority (and to the ICO in the UK).</p>
+<p>We do <strong>not</strong> use solely automated decision-making that produces legal or similarly significant effects about you within the meaning of GDPR Art. 22. In-app scores are research/coaching aids you control; they are not credit, employment, or similarly significant automated decisions.</p>
+<h3>8.3 United States (including California CCPA/CPRA)</h3>
+<p>Depending on your state, you may have rights to <strong>know/access</strong>, <strong>delete</strong>, <strong>correct</strong>, and <strong>opt out of sale/sharing</strong>. We do not sell or share personal information for cross-context behavioural advertising. We do not use or disclose sensitive personal information for purposes that require a right to limit under CPRA beyond what is necessary to provide the service.</p>
+<p><strong>How to exercise rights:</strong> use in-app controls (Privacy &amp; Security, Delete Account, Manage Subscription) or email privacy@tradevision.ai. We will verify requests as required by law and will not discriminate against you for exercising privacy rights.</p>
+<hr />
+<h2>9. Children’s privacy and audience</h2>
+<p>TradeVision AI is intended for a <strong>general audience</strong>. Anyone may download the app and explore educational Guest/demo features that remain local on the device.</p>
+<p><strong>Cloud account features</strong> — including registration, cloud sync, online journals, online portfolios, and paid subscriptions — are available only to users who meet the minimum eligibility requirements: at least <strong>18</strong> years old, or the age of majority in their jurisdiction. We do not knowingly collect personal data from young children through cloud accounts. The application is <strong>not directed toward young children</strong>. If you believe a minor has created an account or provided personal data, contact privacy@tradevision.ai and we will delete it.</p>
+<hr />
+<h2>10. Cookies and similar technologies</h2>
+<p>The native apps do not use web advertising cookies. If you visit tradevision.ai in a browser, any cookies or local storage will be described on that site. Push tokens and local preference stores are used as described above.</p>
+<hr />
+<h2>11. Security and cybersecurity</h2>
+<p>We implement technical and organisational measures appropriate to the risk, including:</p>
+<ul>
+<li>TLS in transit; provider encryption at rest;</li>
+<li>authentication, optional MFA, verified-email write rules, and deletion re-authentication windows;</li>
+<li>least-privilege Firestore/Storage rules and server-owned subscription records;</li>
+<li>redaction of common secrets/PII in optional crash reports;</li>
+<li>dependency and CI hygiene practices for the codebase.</li>
+</ul>
+<p>No method of transmission or storage is perfectly secure. If a breach is likely to result in a high risk to your rights, we will notify you and/or competent authorities as required under Swiss nFADP, GDPR (including the 72-hour supervisory notification rule where applicable), and applicable U.S. state breach laws.</p>
+<p>Report suspected security issues to <strong>security@tradevision.ai</strong> (or support@tradevision.ai if that address is not yet active).</p>
+<hr />
+<h2>12. Account deletion</h2>
+<p>You may delete your account in <strong>Settings</strong>. Deletion is intended to remove:</p>
+<ul>
+<li>Firebase Authentication account;</li>
+<li>your Firestore user document tree and settings;</li>
+<li>server subscription-access record and related webhook event references we store;</li>
+<li>files under your Storage path;</li>
+<li>local app user data (device theme preference may be preserved).</li>
+</ul>
+<p><strong>Deleting the TradeVision account does not cancel Apple App Store or Google Play billing.</strong> Manage or cancel the store subscription first. Store purchase records remain with Apple/Google under their policies.</p>
+<p>More detail: https://tradevision.ai/account-deletion and the in-app Account Deletion notice.</p>
+<hr />
+<h2>13. Changes</h2>
+<p>We may update this Policy. Material changes will be indicated by updating the “Last updated” date and, where required, seeking fresh consent (e.g. for crash reporting). Continued use after the effective date constitutes acceptance where permitted by law; where consent is required, we will ask again.</p>
+<hr />
+<h2>14. Contact</h2>
+<p><strong>Privacy:</strong> privacy@tradevision.ai <strong>Support:</strong> support@tradevision.ai <strong>Website:</strong> https://tradevision.ai</p>
+<p>Please include your registered email / account identifier so we can verify your request.</p>
+</body>
+</html>

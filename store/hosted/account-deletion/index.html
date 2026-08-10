@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Account Deletion · TradeVision AI</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 48rem; margin: 2rem auto; padding: 0 1rem; line-height: 1.55; color: #111; }
+    h1, h2, h3 { line-height: 1.25; }
+    code, pre { background: #f4f4f5; }
+    pre { overflow-x: auto; padding: 0.75rem; }
+    a { color: #0f766e; }
+    nav { margin-bottom: 1.5rem; font-size: 0.9rem; }
+  </style>
+</head>
+<body>
+  <nav>
+    <a href="/">TradeVision AI</a> ·
+    <a href="/privacy">Privacy</a> ·
+    <a href="/terms">Terms</a> ·
+    <a href="/risk">Risk</a> ·
+    <a href="/security">Security</a> ·
+    <a href="/account-deletion">Account deletion</a> ·
+    <a href="/support">Support</a>
+  </nav>
+  <h1>Account Deletion Notice</h1>
+<p><strong>Last updated:</strong> 24 July 2026 <strong>Version:</strong> 2026.07.24</p>
+<p>This notice explains how to delete your TradeVision AI account and what happens to your data. It supports Apple App Store and Google Play account-deletion requirements and privacy rights under Swiss nFADP, EU/UK GDPR, and U.S. state privacy laws (including CCPA/CPRA deletion rights).</p>
+<hr />
+<h2>1. How to delete in the app</h2>
+<p>1. Open <strong>Settings</strong>. 2. If you have an active Premium subscription, tap <strong>Manage Subscription</strong> and cancel or modify billing in the Apple App Store or Google Play <strong>first</strong>. <strong>Account deletion does not cancel store billing.</strong> 3. Under <strong>Delete Account</strong>, tap <strong>Delete Account</strong>, type <code>DELETE</code>, and confirm. 4. For security, deletion may require a <strong>recent sign-in</strong> (typically within about five minutes). If prompted, sign out, sign back in, and retry.</p>
+<p>Guest/demo data can usually be cleared by resetting local demo state or reinstalling; it is not a cloud account.</p>
+<hr />
+<h2>2. What we delete</h2>
+<p>When deletion succeeds, we aim to remove:</p>
+<ul>
+<li>your Firebase Authentication user;</li>
+<li>your Firestore user profile and subcollections (e.g. watchlists, holdings, journal, alerts, decisions, devices);</li>
+<li>your <code>userSettings</code> document;</li>
+<li>the server-side subscription access record for your UID;</li>
+<li>RevenueCat webhook event documents we store that reference your UID (where implemented);</li>
+<li>files under your Firebase Storage path;</li>
+<li>local app user data on the device used for deletion (device theme preference may remain).</li>
+</ul>
+<p>Push tokens registered for your account are removed as part of device/token cleanup where implemented.</p>
+<hr />
+<h2>3. What we may retain briefly or cannot delete</h2>
+<ul>
+<li><strong>Apple / Google purchase and billing records</strong> remain with the stores under their policies.</li>
+<li><strong>Security, fraud, or legal logs</strong> may be retained for a limited period where required by law or legitimate security interests.</li>
+<li><strong>Backups</strong> may persist for a short technical window before rotating out.</li>
+<li><strong>Aggregated, de-identified</strong> metrics that cannot reasonably identify you may remain.</li>
+</ul>
+<hr />
+<h2>4. Other ways to request deletion</h2>
+<p>Email <strong>privacy@tradevision.ai</strong> or <strong>support@tradevision.ai</strong> from your account email with subject “Account deletion request”. We will verify your identity and process the request within applicable statutory timelines (e.g. GDPR one month, subject to extensions; CCPA timelines as required).</p>
+<hr />
+<h2>5. Effect on Premium</h2>
+<p>Deleting the account removes TradeVision access to Premium features tied to that account. It does <strong>not</strong> stop auto-renewal in the store. Manage subscription separately:</p>
+<ul>
+<li>iOS: Settings → Apple ID → Subscriptions (or in-app Manage Subscription)</li>
+<li>Android: Play Store → Subscriptions (or in-app Manage Subscription)</li>
+</ul>
+<hr />
+<h2>6. Contact</h2>
+<p>privacy@tradevision.ai support@tradevision.ai https://tradevision.ai/account-deletion</p>
+</body>
+</html>

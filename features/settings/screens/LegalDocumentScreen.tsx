@@ -1,5 +1,5 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { Linking, Pressable, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 
 import { Header } from '@/shared/components/layout/Header';
 import { Screen } from '@/shared/components/layout/Screen';
@@ -11,6 +11,7 @@ import {
   LEGAL_DOCUMENT_URL,
   type LegalDocumentId,
 } from '@/shared/legal';
+import { openExternalUrl } from '@/shared/utils/open-url';
 
 function isLegalDocumentId(value: string | undefined): value is LegalDocumentId {
   return (
@@ -41,7 +42,7 @@ export function LegalDocumentScreen() {
       <Pressable
         accessibilityRole="link"
         accessibilityLabel={`Open ${meta.title} on the website`}
-        onPress={() => void Linking.openURL(url)}
+        onPress={() => void openExternalUrl(url)}
         className="mb-4 min-h-11 justify-center rounded-xl bg-surface px-4"
       >
         <Text variant="label" className="text-accent">

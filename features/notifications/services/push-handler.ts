@@ -1,9 +1,9 @@
-import * as Notifications from 'expo-notifications';
 import { useRouter } from 'expo-router';
 import { useEffect, useRef } from 'react';
 
 import { logger } from '@/shared/services/observability/logger';
 
+import { isNotificationRuntimeSupported } from './notification-capability';
 import { notificationService } from './notification.service';
 
 type NotificationData = {
@@ -11,6 +11,8 @@ type NotificationData = {
   symbol?: string;
   type?: string;
 };
+
+type NotificationSubscription = { remove: () => void };
 
 function handleNotificationNavigation(
   data: NotificationData | undefined,
@@ -41,28 +43,49 @@ function handleNotificationNavigation(
 
 export function usePushNotificationHandler(): void {
   const router = useRouter();
-  const responseListener = useRef<Notifications.EventSubscription | null>(null);
-  const receivedListener = useRef<Notifications.EventSubscription | null>(null);
+  const responseListener = useRef<NotificationSubscription | null>(null);
+  const receivedListener = useRef<NotificationSubscription | null>(null);
 
   useEffect(() => {
-    receivedListener.current = Notifications.addNotificationReceivedListener(() => {
-      // Foreground notifications are handled by setNotificationHandler.
-    });
+    if (!isNotificationRuntimeSupported()) {
+      return;
+    }
 
-    responseListener.current = Notifications.addNotificationResponseReceivedListener((response) => {
-      const data = response.notification.request.content.data as NotificationData | undefined;
-      handleNotificationNavigation(data, router);
-    });
+    let cancelled = false;
 
-    void Notifications.getLastNotificationResponseAsync()
-      .then((response) => {
-        if (!response) return;
+    void (async () => {
+      try {
+        // Lazy require — never load expo-notifications inside Expo Go.
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
+        const Notifications = require('expo-notifications') as typeof import('expo-notifications');
+        if (cancelled) return;
+
+        receivedListener.current = Notifications.addNotificationReceivedListener(() => {
+          // Foreground notifications are handled by setNotificationHandler.
+        });
+
+        responseListener.current = Notifications.addNotificationResponseReceivedListener(
+          (response) => {
+            const data = response.notification.request.content.data as
+              | NotificationData
+              | undefined;
+            handleNotificationNavigation(data, router);
+          },
+        );
+
+        const response = await Notifications.getLastNotificationResponseAsync();
+        if (cancelled || !response) return;
         const data = response.notification.request.content.data as NotificationData | undefined;
         handleNotificationNavigation(data, router);
-      })
-      .catch((error) => logger.error('push.response_read_failed', error));
+      } catch (error) {
+        logger.debug('push.listeners_unavailable', {
+          message: error instanceof Error ? error.message : 'unknown',
+        });
+      }
+    })();
 
     return () => {
+      cancelled = true;
       receivedListener.current?.remove();
       responseListener.current?.remove();
     };
@@ -70,7 +93,7 @@ export function usePushNotificationHandler(): void {
 }
 
 export async function initializePushNotifications(uid: string | null): Promise<void> {
-  if (!uid) return;
+  if (!uid || !isNotificationRuntimeSupported()) return;
   await notificationService.registerForPushNotifications(uid);
 }
 

@@ -20,6 +20,7 @@
     "test:rules": "cross-env NODE_EXTRA_CA_CERTS=./certs/avg-web-mail-shield-root.pem NODE_USE_SYSTEM_CA=1 firebase emulators:exec --only firestore,storage \"cross-env NODE_OPTIONS=--experimental-vm-modules jest --config jest.rules.config.js --runInBand\"",
     "expo:config": "expo config --type public",
     "legal:sync": "python scripts/sync-legal-docs.py",
+    "legal:host": "python scripts/build-hosted-legal.py",
     "functions:build": "npm --prefix functions run build",
     "functions:test": "npm --prefix functions test"
   },

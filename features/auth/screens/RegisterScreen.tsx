@@ -1,13 +1,14 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { KeyboardAvoidingView, Linking, Platform, Pressable, ScrollView, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, Pressable, ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Button } from '@/shared/components/ui/Button';
 import { Text } from '@/shared/components/ui/Text';
 import { LEGAL_ACCEPTANCE_VERSION, LEGAL_URLS } from '@/shared/constants/legal';
 import { useTheme } from '@/shared/hooks/useTheme';
+import { openExternalUrl } from '@/shared/utils/open-url';
 
 import { AuthDivider } from '../components/AuthDivider';
 import { AuthInput } from '../components/AuthInput';
@@ -176,7 +177,7 @@ export function RegisterScreen() {
                   <View className="mt-2 flex-row flex-wrap gap-x-2 gap-y-1">
                     <Pressable
                       accessibilityRole="link"
-                      onPress={() => void Linking.openURL(LEGAL_URLS.terms)}
+                      onPress={() => void openExternalUrl(LEGAL_URLS.terms)}
                     >
                       <Text variant="label" className="text-accent">
                         Terms
@@ -184,7 +185,7 @@ export function RegisterScreen() {
                     </Pressable>
                     <Pressable
                       accessibilityRole="link"
-                      onPress={() => void Linking.openURL(LEGAL_URLS.privacy)}
+                      onPress={() => void openExternalUrl(LEGAL_URLS.privacy)}
                     >
                       <Text variant="label" className="text-accent">
                         Privacy
@@ -192,7 +193,7 @@ export function RegisterScreen() {
                     </Pressable>
                     <Pressable
                       accessibilityRole="link"
-                      onPress={() => void Linking.openURL(LEGAL_URLS.risk)}
+                      onPress={() => void openExternalUrl(LEGAL_URLS.risk)}
                     >
                       <Text variant="label" className="text-accent">
                         Risk disclaimer

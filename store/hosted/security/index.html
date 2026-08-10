@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Security Notice · TradeVision AI</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 48rem; margin: 2rem auto; padding: 0 1rem; line-height: 1.55; color: #111; }
+    h1, h2, h3 { line-height: 1.25; }
+    code, pre { background: #f4f4f5; }
+    pre { overflow-x: auto; padding: 0.75rem; }
+    a { color: #0f766e; }
+    nav { margin-bottom: 1.5rem; font-size: 0.9rem; }
+  </style>
+</head>
+<body>
+  <nav>
+    <a href="/">TradeVision AI</a> ·
+    <a href="/privacy">Privacy</a> ·
+    <a href="/terms">Terms</a> ·
+    <a href="/risk">Risk</a> ·
+    <a href="/security">Security</a> ·
+    <a href="/account-deletion">Account deletion</a> ·
+    <a href="/support">Support</a>
+  </nav>
+  <h1>Security &amp; Cybersecurity Notice</h1>
+<p><strong>Last updated:</strong> 24 July 2026 <strong>Version:</strong> 2026.07.24</p>
+<p>This notice summarises TradeVision AI’s security posture for users, reviewers, and enterprise diligence. It complements the Privacy Policy and is aligned with expectations under Swiss nFADP, GDPR security principles (Art. 32), and commonly referenced U.S. frameworks (e.g. reasonable security under state law, FTC Act Section 5 unfairness for unreasonable security).</p>
+<p><strong>It is not a certification, SOC 2 report, or guarantee against breach.</strong></p>
+<hr />
+<h2>1. Security objectives</h2>
+<ul>
+<li>Protect account confidentiality and integrity;</li>
+<li>Prevent cross-user data access;</li>
+<li>Minimise collection and exposure of personal data;</li>
+<li>Detect and respond to incidents;</li>
+<li>Keep optional diagnostics off until consent is given.</li>
+</ul>
+<hr />
+<h2>2. Controls in the shipped product</h2>
+<pre>
+| Area | Measures |
+| --- | --- |
+| Transport | HTTPS/TLS to backend and third-party APIs |
+| Authentication | Firebase Auth; optional MFA (TOTP); OAuth MFA challenge handling |
+| Authorisation | Firestore/Storage security rules; verified-email write gates; owner-scoped documents |
+| Privileged actions | Recent re-authentication window for account deletion and sensitive MFA changes |
+| Subscriptions | Server-side webhook verification; entitlement/expiry fail-closed; client cache not treated as authority |
+| Push | Per-device token documents with cleanup on sign-out/delete |
+| Diagnostics | Crash reporting default **off**; redaction of common secrets/PII; consent versioning |
+| Guest mode | Local demo without verified cloud write privileges |
+| Screen privacy | Screen-capture protections on sensitive MFA secret reveal flows where implemented |
+| Development | Typecheck/tests/rules emulator gates in CI; dependency isolation for Functions |
+</pre>
+<hr />
+<h2>3. Your responsibilities</h2>
+<ul>
+<li>Use a strong unique password and enable MFA;</li>
+<li>Keep the OS and app updated;</li>
+<li>Do not jailbreak/root or install untrusted profiles that weaken OS protections;</li>
+<li>Review crash-reporting consent before enabling;</li>
+<li>Report suspected compromise immediately.</li>
+</ul>
+<hr />
+<h2>4. Vulnerability disclosure</h2>
+<p>Email <strong>security@tradevision.ai</strong> (or support@tradevision.ai) with a good-faith report. Include steps to reproduce and avoid accessing other users’ data. We will acknowledge and remediate according to severity. Do not publicly disclose before a reasonable remediation window unless required by law.</p>
+<hr />
+<h2>5. Incident notification</h2>
+<p>If a personal-data breach is likely to result in a high risk to individuals, we will notify affected users and/or authorities as required under Swiss nFADP, GDPR (including supervisory notification without undue delay and, where feasible, within 72 hours), and applicable U.S. state breach statutes.</p>
+<hr />
+<h2>6. Contact</h2>
+<p>security@tradevision.ai privacy@tradevision.ai support@tradevision.ai</p>
+</body>
+</html>

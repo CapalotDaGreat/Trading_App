@@ -51,6 +51,16 @@ export function AiChatScreen({ symbol }: AiChatScreenProps) {
   );
   const memoryTimeline = intelligenceQuery.data?.memoryTimeline?.slice(0, 4) ?? [];
 
+  const handleSend = useCallback(async () => {
+    const text = input.trim();
+    if (!text) return;
+    setInput('');
+    await sendMessage(text);
+    setTimeout(() => listRef.current?.scrollToEnd({ animated: true }), 100);
+  }, [input, sendMessage]);
+
+  const errorMessage = error && aiService.isServiceError(error) ? error.message : error?.message;
+
   if (!aiChatEnabled) {
     return (
       <EmptyState
@@ -61,16 +71,6 @@ export function AiChatScreen({ symbol }: AiChatScreenProps) {
       />
     );
   }
-
-  const handleSend = useCallback(async () => {
-    const text = input.trim();
-    if (!text) return;
-    setInput('');
-    await sendMessage(text);
-    setTimeout(() => listRef.current?.scrollToEnd({ animated: true }), 100);
-  }, [input, sendMessage]);
-
-  const errorMessage = error && aiService.isServiceError(error) ? error.message : error?.message;
 
   return (
     <Screen safeTop={false} safeBottom={false} padded={false} className="flex-1">

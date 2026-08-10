@@ -1,13 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
 
 import { useAppendDecisionRecord } from '@/features/decision-log/hooks/useDecisionLog';
 import { useRegime } from '@/features/decision/hooks/useDecision';
 import type { DecisionDebtSnapshot, TraderMemory } from '@/features/decision/types/decision.types';
 import { useDecisionLabStore } from '@/features/decision-lab/stores/lab.store';
-import { createPersistedStorage } from '@/shared/stores/create-persisted-storage';
 import { useSubscriptionStore } from '@/shared/stores/subscription.store';
 
 import { LEARNING_PATHS, type AcademyPathMeta } from '../content/paths-and-checklists';
@@ -30,40 +27,11 @@ import {
   type CurriculumRecommendation,
 } from '../services/curriculum.service';
 import { useAcademyProgressStore } from '../stores/academy-progress.store';
+import { useChecklistStore } from '../stores/checklist.store';
+
+export { useChecklistStore } from '../stores/checklist.store';
 
 const checklistQueryKey = (id: string) => ['academy-checklist', id] as const;
-
-interface ChecklistProgressState {
-  checkedItems: Record<string, string[]>;
-  toggleItem: (checklistId: string, itemId: string) => void;
-  resetChecklist: (checklistId: string) => void;
-  isItemChecked: (checklistId: string, itemId: string) => boolean;
-}
-
-export const useChecklistStore = create<ChecklistProgressState>()(
-  persist(
-    (set, get) => ({
-      checkedItems: {},
-      toggleItem: (checklistId, itemId) => {
-        const current = get().checkedItems[checklistId] ?? [];
-        const next = current.includes(itemId)
-          ? current.filter((id) => id !== itemId)
-          : [...current, itemId];
-        set({ checkedItems: { ...get().checkedItems, [checklistId]: next } });
-      },
-      resetChecklist: (checklistId) => {
-        const { [checklistId]: _, ...rest } = get().checkedItems;
-        set({ checkedItems: rest });
-      },
-      isItemChecked: (checklistId, itemId) =>
-        (get().checkedItems[checklistId] ?? []).includes(itemId),
-    }),
-    {
-      name: 'tradevision-checklist-progress',
-      storage: createPersistedStorage(),
-    },
-  ),
-);
 
 export function useAcademy(category?: LessonCategory) {
   // Always load full catalog; LessonCard / lesson screen enforce Premium locks.

@@ -243,7 +243,7 @@ async function fetchCryptoQuote(symbol: string): Promise<{ quote: Quote; sample:
       sample: false,
     };
   } catch (error) {
-    logger.warn('market_data.crypto_quote_fallback_sample', {
+    logger.debug('market_data.crypto_quote_fallback_sample', {
       symbol,
       message: error instanceof Error ? error.message : 'unknown',
     });
@@ -303,7 +303,7 @@ async function fetchForexQuote(symbol: string): Promise<{ quote: Quote; sample: 
       sample: false,
     };
   } catch (error) {
-    logger.warn('market_data.forex_quote_fallback_sample', {
+    logger.debug('market_data.forex_quote_fallback_sample', {
       symbol,
       message: error instanceof Error ? error.message : 'unknown',
     });
@@ -559,7 +559,7 @@ async function fetchCryptoCandles(
 
     return { candles: candles.slice(-limit), sample: false };
   } catch (error) {
-    logger.warn('market_data.crypto_candles_fallback_sample', {
+    logger.debug('market_data.crypto_candles_fallback_sample', {
       symbol,
       message: error instanceof Error ? error.message : 'unknown',
     });
@@ -732,7 +732,7 @@ async function fetchForexCandles(
   const finnhub = await fetchFinnhubForexCandles(symbol, interval, limit);
   if (finnhub?.length) return { candles: finnhub, sample: false };
 
-  logger.warn('market_data.forex_candles_fallback_sample', { symbol, interval, limit });
+  logger.debug('market_data.forex_candles_fallback_sample', { symbol, interval, limit });
   return { candles: buildSampleEquityCandles(symbol, interval, limit), sample: true };
 }
 
@@ -831,7 +831,6 @@ async function fetchStockLikeCandles(
     }
   }
 
-  logger.warn('market_data.using_sample_equity_candles', { symbol, interval, limit });
   return {
     candles: buildSampleEquityCandles(symbol, interval, limit),
     provider: 'sample',
