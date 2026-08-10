@@ -1,22 +1,25 @@
 export const colors = {
   background: {
-    /** Calmer near-black — less navy noise than prior secondary stack. */
-    primary: '#080A0E',
-    secondary: '#0B0E14',
-    tertiary: '#12161F',
-    elevated: '#161B26',
+    /**
+     * Soft charcoal dark mode — lifted from near-black so the app feels
+     * open and welcoming while staying clearly dark-first.
+     */
+    primary: '#151922',
+    secondary: '#1B202B',
+    tertiary: '#232936',
+    elevated: '#2A3140',
   },
   surface: {
-    default: 'rgba(255, 255, 255, 0.03)',
-    hover: 'rgba(255, 255, 255, 0.05)',
-    active: 'rgba(255, 255, 255, 0.075)',
-    glass: 'rgba(14, 18, 28, 0.92)',
+    default: 'rgba(255, 255, 255, 0.05)',
+    hover: 'rgba(255, 255, 255, 0.075)',
+    active: 'rgba(255, 255, 255, 0.1)',
+    glass: 'rgba(30, 36, 48, 0.92)',
   },
   accent: {
     primary: '#2DD4BF',
     light: '#5EEAD4',
     dark: '#14B8A6',
-    muted: 'rgba(45, 212, 191, 0.1)',
+    muted: 'rgba(45, 212, 191, 0.14)',
   },
   bullish: {
     primary: '#34D399',
@@ -38,26 +41,26 @@ export const colors = {
     ring: '#5EEAD4',
   },
   disabled: {
-    background: 'rgba(148, 163, 184, 0.12)',
-    foreground: '#94A3B8',
+    background: 'rgba(148, 163, 184, 0.14)',
+    foreground: '#A1AEBF',
   },
   chart: {
-    grid: 'rgba(148, 163, 184, 0.12)',
-    axis: '#94A3B8',
+    grid: 'rgba(148, 163, 184, 0.14)',
+    axis: '#A1AEBF',
     primary: '#2DD4BF',
     secondary: '#60A5FA',
     neutral: '#CBD5E1',
   },
   border: {
-    default: 'rgba(148, 163, 184, 0.05)',
-    strong: 'rgba(148, 163, 184, 0.1)',
-    accent: 'rgba(45, 212, 191, 0.16)',
+    default: 'rgba(148, 163, 184, 0.1)',
+    strong: 'rgba(148, 163, 184, 0.16)',
+    accent: 'rgba(45, 212, 191, 0.22)',
   },
   text: {
-    primary: '#F1F5F9',
-    secondary: '#94A3B8',
-    tertiary: '#6B7A90',
-    inverse: '#0B1220',
+    primary: '#F8FAFC',
+    secondary: '#A8B4C4',
+    tertiary: '#8492A6',
+    inverse: '#151922',
     onAccent: '#06201D',
     onDanger: '#270707',
   },
@@ -182,10 +185,10 @@ export const typography = {
 export const shadows = {
   /** Quiet elevation — prefer fill hierarchy over heavy shadow. */
   glass: {
-    shadowColor: '#000000',
+    shadowColor: '#0B0F16',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.14,
-    shadowRadius: 12,
+    shadowOpacity: 0.22,
+    shadowRadius: 14,
     elevation: 3,
   },
   glassLight: {
@@ -196,23 +199,23 @@ export const shadows = {
     elevation: 1,
   },
   glow: {
-    shadowColor: '#000000',
+    shadowColor: '#0B0F16',
     shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.18,
-    shadowRadius: 14,
+    shadowOpacity: 0.26,
+    shadowRadius: 16,
     elevation: 4,
   },
   card: {
-    shadowColor: '#000000',
+    shadowColor: '#0B0F16',
     shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.12,
-    shadowRadius: 10,
+    shadowOpacity: 0.18,
+    shadowRadius: 12,
     elevation: 2,
   },
   sm: {
-    shadowColor: '#000000',
+    shadowColor: '#0B0F16',
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08,
+    shadowOpacity: 0.12,
     shadowRadius: 4,
     elevation: 1,
   },

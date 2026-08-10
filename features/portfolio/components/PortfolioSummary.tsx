@@ -15,7 +15,7 @@ export function PortfolioSummary({ summary }: PortfolioSummaryProps) {
   const dayColor = getPriceColorClass(summary.dayChange);
 
   return (
-    <GlassCard className="p-4" glow>
+    <GlassCard className="p-4">
       <Text variant="label" className="mb-1">
         Total Portfolio Value
       </Text>

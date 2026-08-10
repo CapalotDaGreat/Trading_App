@@ -1,66 +1,49 @@
-import { BlurView } from 'expo-blur';
 import { type ReactNode } from 'react';
-import { Platform, View, type ViewProps } from 'react-native';
+import { View, type ViewProps } from 'react-native';
 
-import { shadows } from '@/shared/constants/theme';
-import { useTheme } from '@/shared/hooks/useTheme';
 import { cn } from '@/shared/utils/cn';
 
 interface GlassCardProps extends ViewProps {
   children: ReactNode;
+  /** @deprecated Kept for call-site compatibility; blur is no longer used. */
   intensity?: number;
-  /** Hairline borders are off by default — elevation + fill create hierarchy. */
+  /** Hairline border — off by default; prefer fill hierarchy. */
   bordered?: boolean;
+  /**
+   * Soft accent emphasis for CTAs / heroes — fill + accent border, never a drop shadow.
+   */
   glow?: boolean;
   className?: string;
 }
 
+/**
+ * Quiet surface container shared across the app.
+ * Uses elevated fill (and optional accent wash) so cards sit in the layout
+ * without frosted blur panels or floating shadow boxes.
+ */
 export function GlassCard({
   children,
-  intensity = 22,
+  intensity: _intensity,
   bordered = false,
   glow = false,
   className,
   style,
   ...props
 }: GlassCardProps) {
-  const { isDark } = useTheme();
-  // Phase A: quiet cards — fill first, soft shadow only when glow is explicit.
-  const cardShadow = glow ? (isDark ? shadows.glass : shadows.glassLight) : shadows.none;
-  const elevatedShadow = glow ? shadows.card : undefined;
-
-  if (Platform.OS === 'web') {
-    return (
-      <View
-        className={cn(
-          'overflow-hidden rounded-panel bg-background-elevated',
-          bordered && 'border border-border',
-          className,
-        )}
-        style={[cardShadow, elevatedShadow, style]}
-        {...props}
-      >
-        {children}
-      </View>
-    );
-  }
-
   return (
     <View
-      className={cn('overflow-hidden rounded-panel', className)}
-      style={[cardShadow, elevatedShadow, style]}
+      className={cn(
+        'overflow-hidden rounded-panel',
+        glow
+          ? 'border border-border-accent bg-accent-muted'
+          : 'bg-background-elevated',
+        bordered && !glow && 'border border-border',
+        className,
+      )}
+      style={style}
       {...props}
     >
-      <BlurView
-        intensity={isDark ? intensity : Math.min(intensity + 8, 40)}
-        tint={isDark ? 'dark' : 'light'}
-        className={cn(
-          'bg-background-elevated/95',
-          bordered && 'border border-border',
-        )}
-      >
-        {children}
-      </BlurView>
+      {children}
     </View>
   );
 }

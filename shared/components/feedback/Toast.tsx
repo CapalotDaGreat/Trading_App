@@ -104,10 +104,9 @@ export function ToastProvider({ children }: ToastProviderProps) {
     <ToastContext.Provider value={value}>
       {children}
       <View
-        pointerEvents="box-none"
         accessibilityLiveRegion="polite"
         className="absolute left-0 right-0 z-50 px-4"
-        style={{ top: insets.top + 8 }}
+        style={{ top: insets.top + 8, pointerEvents: 'box-none' }}
       >
         {toasts.map((toast) => (
           <Animated.View

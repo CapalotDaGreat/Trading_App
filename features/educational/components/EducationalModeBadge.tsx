@@ -22,7 +22,7 @@ export function EducationalModeBadge({
   testID = 'educational-mode-badge',
   size = 'sm',
 }: EducationalModeBadgeProps) {
-  const { colors, isDark } = useTheme();
+  const { colors } = useTheme();
   const [sheetOpen, setSheetOpen] = useState(false);
   const iconSize = size === 'sm' ? 14 : 16;
 
@@ -40,16 +40,6 @@ export function EducationalModeBadge({
           size === 'md' && 'min-h-10 px-3.5',
           className,
         )}
-        style={
-          isDark
-            ? {
-                shadowColor: colors.info.primary,
-                shadowOpacity: 0.18,
-                shadowRadius: 8,
-                shadowOffset: { width: 0, height: 2 },
-              }
-            : undefined
-        }
       >
         <View className="mr-1.5 h-5 w-5 items-center justify-center rounded-full bg-info/15">
           <Ionicons name="school" size={iconSize} color={colors.info.primary} />

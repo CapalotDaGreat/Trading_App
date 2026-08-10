@@ -20,7 +20,7 @@ export function PremiumBadge({ size = 'sm', className }: PremiumBadgeProps) {
         className,
       )}
     >
-      <Ionicons name="diamond" size={isSmall ? 10 : 12} color="#0A0E17" />
+      <Ionicons name="diamond" size={isSmall ? 10 : 12} color="#151922" />
       <Text
         className={cn(
           'ml-1 font-bold text-text-inverse',

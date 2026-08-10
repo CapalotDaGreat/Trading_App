@@ -9,7 +9,7 @@ export default function DecisionLayout() {
         screenOptions={{
           headerShown: false,
           animation: 'slide_from_right',
-          contentStyle: { backgroundColor: '#0B1220' },
+          contentStyle: { backgroundColor: '#151922' },
         }}
       />
     </ErrorBoundary>
