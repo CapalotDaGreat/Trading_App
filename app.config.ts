@@ -15,7 +15,7 @@ if (
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
   name: 'TradeVision AI',
-  slug: 'tradevision-ai',
+  slug: 'traders',
   version: '1.0.0',
   orientation: 'default',
   icon: './assets/images/icon.png',
@@ -25,7 +25,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   splash: {
     image: './assets/images/splash-icon.png',
     resizeMode: 'contain',
-    backgroundColor: '#070B12',
+    backgroundColor: '#151922',
   },
   ios: {
     supportsTablet: true,
@@ -54,7 +54,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       foregroundImage: './assets/images/android-icon-foreground.png',
       backgroundImage: './assets/images/android-icon-background.png',
       monochromeImage: './assets/images/android-icon-monochrome.png',
-      backgroundColor: '#070B12',
+      backgroundColor: '#151922',
     },
     intentFilters: [
       {
@@ -108,10 +108,10 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       {
         image: './assets/images/splash-icon.png',
         resizeMode: 'contain',
-        backgroundColor: '#070B12',
+        backgroundColor: '#151922',
         dark: {
           image: './assets/images/splash-icon.png',
-          backgroundColor: '#070B12',
+          backgroundColor: '#151922',
         },
       },
     ],
