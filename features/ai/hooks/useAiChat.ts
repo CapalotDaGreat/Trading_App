@@ -1,6 +1,7 @@
 import { useCallback, useRef, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
+import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useSubscriptionStore } from '@/shared/stores/subscription.store';
 
 import { aiService } from '../services/ai.service';
@@ -20,6 +21,7 @@ const WELCOME_MESSAGE: AiMessage = {
 };
 
 export function useAiChat(initialContext?: AiRequestContext) {
+  const { user } = useAuth();
   const tier = useSubscriptionStore((s) => s.tier);
   const queryClient = useQueryClient();
   const sessionIdRef = useRef(generateId());
@@ -42,7 +44,7 @@ export function useAiChat(initialContext?: AiRequestContext) {
       const request: AiChatRequest = {
         message: userMessage,
         sessionId: sessionIdRef.current,
-        context: contextRef.current,
+        context: { ...contextRef.current, userScopeUid: user?.uid },
         history: messages
           .filter((m) => m.id !== 'welcome')
           .map((m) => ({ role: m.role, content: m.content })),

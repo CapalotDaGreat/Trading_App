@@ -225,13 +225,13 @@ export function buildResearchBalance(setup: SetupCardData, alternatives: string[
 
   const reasonsNotToResearch = [
     ...(setup.whyNot?.reasons ?? []).slice(0, 3),
-    setup.risk === 'high' ? 'Higher risk — only if size discipline is ready' : '',
+    setup.risk === 'high' ? 'Elevated case risk — only if size discipline is clear' : '',
     setup.bias === 'neutral' ? 'Neutral bias — unclear edge until confirmation' : '',
   ].filter(Boolean);
 
   const missingConfirmations =
     setup.researchChecklist?.filter((c) => !c.done).map((c) => c.label) ??
-    ['Entry confirmation', 'Risk defined'].filter(
+    ['Structure confirmation', 'Risk defined'].filter(
       (l) => l === 'Risk defined' && !setup.invalidation,
     );
 

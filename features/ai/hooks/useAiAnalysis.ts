@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
+import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useSubscriptionStore } from '@/shared/stores/subscription.store';
 
 import { aiService } from '../services/ai.service';
@@ -8,6 +9,7 @@ import type { AiAnalysisType, AiRequestContext } from '../types/ai.types';
 export const AI_USAGE_QUERY_KEY = ['ai', 'usage'] as const;
 
 export function useAiAnalysis() {
+  const { user } = useAuth();
   const tier = useSubscriptionStore((s) => s.tier);
   const queryClient = useQueryClient();
 
@@ -37,7 +39,7 @@ export function useAiAnalysis() {
         requiresPremium,
       );
       if (accessError) throw accessError;
-      return aiService.analyze(type, context ?? {}, tier);
+      return aiService.analyze(type, { ...context, userScopeUid: user?.uid }, tier);
     },
     onSuccess: invalidateUsage,
   });
@@ -71,8 +73,7 @@ export function useAiAnalysis() {
   });
 
   const marketRecapMutation = useMutation({
-    mutationFn: (period: 'daily' | 'weekly' = 'daily') =>
-      aiService.getMarketRecap(tier, period),
+    mutationFn: (period: 'daily' | 'weekly' = 'daily') => aiService.getMarketRecap(tier, period),
     onSuccess: invalidateUsage,
   });
 

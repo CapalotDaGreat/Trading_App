@@ -44,6 +44,10 @@ module.exports = {
           DEFAULT: 'var(--color-info)',
           muted: 'var(--color-info-muted)',
         },
+        premium: {
+          DEFAULT: 'var(--color-premium)',
+          muted: 'var(--color-premium-muted)',
+        },
         focus: 'var(--color-focus)',
         disabled: {
           DEFAULT: 'var(--color-disabled-background)',
@@ -88,6 +92,13 @@ module.exports = {
       minHeight: {
         11: '44px',
         13: '52px',
+      },
+      spacing: {
+        'screen-x': '24px',
+        'screen-y': '20px',
+        section: '36px',
+        surface: '20px',
+        control: '12px',
       },
       borderRadius: {
         control: '12px',

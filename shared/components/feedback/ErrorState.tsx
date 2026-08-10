@@ -1,10 +1,6 @@
-import { Ionicons } from '@expo/vector-icons';
-import { View, type ViewProps } from 'react-native';
+import { type ViewProps } from 'react-native';
 
-import { Button } from '@/shared/components/ui/Button';
-import { Text } from '@/shared/components/ui/Text';
-import { useTheme } from '@/shared/hooks/useTheme';
-import { cn } from '@/shared/utils/cn';
+import { StatusState } from '@/shared/components/feedback/StatusState';
 
 interface ErrorStateProps extends ViewProps {
   title: string;
@@ -27,44 +23,18 @@ export function ErrorState({
   className,
   ...props
 }: ErrorStateProps) {
-  const { colors } = useTheme();
-
   return (
-    <View
-      accessibilityRole="alert"
-      accessibilityLiveRegion="assertive"
-      accessibilityLabel={`${title}. ${why ?? description}. ${recovery ?? ''}`}
-      className={cn('items-center rounded-card bg-bearish-muted p-5', className)}
+    <StatusState
+      status="error"
+      title={title}
+      description={description}
+      detail={[why ? `Why: ${why}` : undefined, recovery ? `Recover: ${recovery}` : undefined]
+        .filter(Boolean)
+        .join('. ')}
+      actionLabel={onAction ? actionLabel : undefined}
+      onAction={onAction}
+      className={className}
       {...props}
-    >
-      <Ionicons name="alert-circle-outline" size={24} color={colors.bearish.primary} />
-      <Text variant="h3" className="mt-3 text-center">
-        {title}
-      </Text>
-      <Text variant="body-sm" className="mt-2 text-center text-text-secondary">
-        {description}
-      </Text>
-      {why ? (
-        <Text variant="caption" className="mt-2 text-center text-text-tertiary">
-          Why: {why}
-        </Text>
-      ) : null}
-      {recovery ? (
-        <Text variant="caption" className="mt-1 text-center text-text-secondary">
-          Recover: {recovery}
-        </Text>
-      ) : null}
-      {onAction ? (
-        <Button
-          variant="outline"
-          size="sm"
-          className="mt-4"
-          onPress={onAction}
-          accessibilityHint="Retries the failed action"
-        >
-          {actionLabel}
-        </Button>
-      ) : null}
-    </View>
+    />
   );
 }

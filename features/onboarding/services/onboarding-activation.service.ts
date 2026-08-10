@@ -42,11 +42,14 @@ export async function persistActivationPersonalization(
       : normalized.activationGoal === 'build_decision_discipline'
         ? 'process-driven'
         : 'reflective';
-  await saveTraderMemory({
-    favoriteAssets: normalized.selectedUniverse,
-    tradingStyle,
-    notes: [`Activation goal: ${normalized.activationGoal.replaceAll('_', ' ')}`],
-  });
+  await saveTraderMemory(
+    {
+      favoriteAssets: normalized.selectedUniverse,
+      tradingStyle,
+      notes: [`Activation goal: ${normalized.activationGoal.replaceAll('_', ' ')}`],
+    },
+    uid,
+  );
   return normalized;
 }
 

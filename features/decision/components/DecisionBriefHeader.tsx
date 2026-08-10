@@ -1,9 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import { Pressable, View } from 'react-native';
 
 import { DataFreshnessBadge } from '@/features/decision/components/DataFreshnessBadge';
 import type { DecisionBrief, ImpactLevel } from '@/features/decision/types/decision.types';
+import { DataSourceBadge } from '@/features/markets/components/DataSourceBadge';
 import { Badge } from '@/shared/components/ui/Badge';
 import { Button } from '@/shared/components/ui/Button';
 import { GlassCard } from '@/shared/components/ui/GlassCard';
@@ -32,6 +33,7 @@ export function DecisionBriefHeader({
 }: DecisionBriefHeaderProps) {
   const { colors } = useTheme();
   const [eventsOpen, setEventsOpen] = useState(false);
+  const eventsId = useId();
 
   if (isLoading) {
     return (
@@ -63,7 +65,10 @@ export function DecisionBriefHeader({
             {brief.greeting}
           </Text>
         </View>
-        <DataFreshnessBadge fetchedAt={brief.quotesFetchedAt} />
+        <View className="items-end gap-1">
+          {brief.provenance ? <DataSourceBadge kind={brief.provenance.kind} /> : null}
+          <DataFreshnessBadge fetchedAt={brief.quotesFetchedAt} />
+        </View>
       </View>
 
       <Text variant="caption" className="mb-1 font-semibold text-text-secondary">
@@ -84,8 +89,8 @@ export function DecisionBriefHeader({
             Your focus today
           </Text>
           <Text variant="body-sm" className="text-text-primary">
-            {focus.opportunities} opportunit{focus.opportunities === 1 ? 'y' : 'ies'} ·{' '}
-            {focus.risks} risk{focus.risks === 1 ? '' : 's'} · {focus.events} event
+            {focus.opportunities} research candidate{focus.opportunities === 1 ? '' : 's'} ·{' '}
+            {focus.risks} risk flag{focus.risks === 1 ? '' : 's'} · {focus.events} event
             {focus.events === 1 ? '' : 's'}
           </Text>
           {minutes !== undefined ? (
@@ -123,7 +128,9 @@ export function DecisionBriefHeader({
           <Pressable
             accessibilityRole="button"
             accessibilityLabel={`${events.length} market catalysts`}
+            accessibilityHint={eventsOpen ? 'Collapses catalyst list' : 'Expands catalyst list'}
             accessibilityState={{ expanded: eventsOpen }}
+            aria-controls={eventsId}
             testID="morning-brief-events-toggle"
             onPress={() => setEventsOpen((v) => !v)}
             className="mb-2 min-h-11 flex-row items-center justify-between"
@@ -135,10 +142,13 @@ export function DecisionBriefHeader({
               name={eventsOpen ? 'chevron-up' : 'chevron-down'}
               size={16}
               color={colors.text.tertiary}
+              accessibilityElementsHidden
+              importantForAccessibility="no"
             />
           </Pressable>
-          {eventsOpen
-            ? events.map((event) => (
+          {eventsOpen ? (
+            <View nativeID={eventsId}>
+              {events.map((event) => (
                 <View
                   key={event.id}
                   className="mb-2 flex-row items-center justify-between gap-2 rounded-xl bg-surface px-3 py-2.5"
@@ -154,14 +164,15 @@ export function DecisionBriefHeader({
                   </View>
                   <Badge label={event.impact} variant={IMPACT_VARIANT[event.impact]} size="sm" />
                 </View>
-              ))
-            : null}
+              ))}
+            </View>
+          ) : null}
         </View>
       ) : null}
 
       {onOpenRadar ? (
         <Button variant="primary" fullWidth onPress={onOpenRadar}>
-          Review today’s setups
+          Review today’s research candidates
         </Button>
       ) : null}
     </GlassCard>

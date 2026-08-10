@@ -76,6 +76,7 @@ export function Screen({
       >
         {banner}
         <ScrollView
+          {...scrollViewProps}
           className={cn('flex-1', contentClassName)}
           contentContainerStyle={[
             {
@@ -88,7 +89,6 @@ export function Screen({
           ]}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
-          {...scrollViewProps}
         >
           {children}
         </ScrollView>
@@ -99,11 +99,12 @@ export function Screen({
   return (
     <View
       accessibilityLabel={accessibilityTitle}
-      className={cn('flex-1 bg-background', padded && 'px-6', className)}
+      className={cn('flex-1 bg-background', className)}
       style={[
         {
           paddingTop: showOfflineBanner ? 0 : topPad,
           paddingBottom: bottomPad,
+          paddingHorizontal: padded ? layout.gutter : 0,
         },
         widthConstraint,
         style,

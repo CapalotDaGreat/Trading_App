@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { type ReactNode, useState } from 'react';
+import { type ReactNode, useId, useState } from 'react';
 import { Pressable, View, type ViewProps } from 'react-native';
 
 import { Text } from '@/shared/components/ui/Text';
@@ -23,6 +23,7 @@ export function CollapsibleSection({
 }: CollapsibleSectionProps) {
   const [expanded, setExpanded] = useState(defaultExpanded);
   const { colors } = useTheme();
+  const contentId = useId();
 
   return (
     <View
@@ -34,6 +35,7 @@ export function CollapsibleSection({
         accessibilityLabel={title}
         accessibilityHint={expanded ? 'Collapses this section' : 'Expands this section'}
         accessibilityState={{ expanded }}
+        aria-controls={contentId}
         onPress={() => setExpanded((value) => !value)}
         className="min-h-13 flex-row items-center px-4 py-3.5"
       >
@@ -51,10 +53,14 @@ export function CollapsibleSection({
           name={expanded ? 'chevron-up' : 'chevron-down'}
           size={18}
           color={colors.text.tertiary}
+          accessibilityElementsHidden
+          importantForAccessibility="no"
         />
       </Pressable>
       {expanded ? (
-        <View className="gap-4 border-t border-border px-4 py-4">{children}</View>
+        <View nativeID={contentId} className="gap-4 border-t border-border px-4 py-4">
+          {children}
+        </View>
       ) : null}
     </View>
   );

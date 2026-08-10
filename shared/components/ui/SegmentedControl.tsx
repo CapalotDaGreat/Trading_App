@@ -27,7 +27,11 @@ export function SegmentedControl<T extends string>({
   ...props
 }: SegmentedControlProps<T>) {
   return (
-    <View className={cn('min-h-11 flex-row rounded-control bg-surface p-1', className)} {...props}>
+    <View
+      accessibilityRole="tablist"
+      className={cn('min-h-11 flex-row rounded-control bg-surface p-1', className)}
+      {...props}
+    >
       {options.map((option) => {
         const selected = option.value === value;
         const isDisabled = disabled || option.disabled;

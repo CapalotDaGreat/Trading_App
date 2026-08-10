@@ -35,6 +35,31 @@ export function normalizeReplayInterval(value?: string | string[]): ReplayInterv
 
 type RouteParams = Record<string, string | string[] | undefined>;
 
+export function buildLegacyRouteRedirect(
+  pathname:
+    | '/you'
+    | '/research'
+    | '/review'
+    | '/portfolio'
+    | '/decision/mentor'
+    | '/decision/intelligence',
+  params: RouteParams = {},
+) {
+  return {
+    pathname,
+    params,
+  };
+}
+
+/** Cold-start fallbacks when a nested deep link cannot be resolved. */
+export const COLD_DEEP_LINK_FALLBACKS = {
+  research: '/research',
+  review: '/review',
+  portfolio: '/portfolio',
+  you: '/you',
+  ask: '/ai',
+} as const;
+
 export function buildLegacyReplayRedirect(params: RouteParams = {}) {
   return {
     pathname: '/decision/decision-replay' as const,
@@ -49,7 +74,7 @@ export function buildLegacyAnalysisRedirect(symbol: string, params: RouteParams 
     params: {
       ...rest,
       symbol,
-      tab: 'analysis' as const,
+      tab: 'advanced' as const,
       ...(legacyTab ? { legacyTab } : {}),
     },
   };

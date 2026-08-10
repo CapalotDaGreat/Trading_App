@@ -99,7 +99,7 @@ function buildTodaysFocus(input: TradingMentorInput, mistake: string): string {
   }
   if (/monday/i.test(weekday) && /skip|ignore|selectiv/i.test(mistake)) {
     return sanitizeMentorCopy(
-      "Today's objective is selectivity — protect Mondays from ignoring high-quality research opportunities.",
+      "Today's objective is selectivity — protect Mondays from ignoring high-quality research candidates.",
     );
   }
   if (/early|invalidation|stop/i.test(mistake)) {
@@ -199,7 +199,7 @@ export function buildTradingMentorBrief(input: TradingMentorInput): TradingMento
       ? `Lab practice: avg process ${input.labStats.avgProcessScore}`
       : null,
     input.brief?.researchQueue?.length
-      ? `${input.brief.researchQueue.length} research opportunities queued`
+      ? `${input.brief.researchQueue.length} research candidates queued`
       : null,
   ].filter((note): note is string => Boolean(note));
 

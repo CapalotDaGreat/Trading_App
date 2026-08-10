@@ -1,7 +1,7 @@
 import { type ComponentProps, type ReactNode } from 'react';
-import { Pressable, View, type PressableProps } from 'react-native';
+import { View, type PressableProps } from 'react-native';
 
-import { cn } from '@/shared/utils/cn';
+import { Surface, type SurfaceEmphasis } from '@/shared/components/ui/Surface';
 
 type CardVariant = 'default' | 'elevated' | 'outlined';
 type CardPadding = 'none' | 'sm' | 'md' | 'lg';
@@ -15,19 +15,7 @@ export interface CardProps extends Omit<ComponentProps<typeof View>, 'children'>
   disabled?: boolean;
 }
 
-const variantStyles: Record<CardVariant, string> = {
-  default: 'bg-background-elevated',
-  elevated: 'bg-background-elevated',
-  outlined: 'border border-border bg-background-elevated',
-};
-
-const paddingStyles: Record<CardPadding, string> = {
-  none: '',
-  sm: 'p-3.5',
-  md: 'p-5',
-  lg: 'p-6',
-};
-
+/** @deprecated Prefer Surface for new work. */
 export function Card({
   children,
   variant = 'default',
@@ -35,36 +23,21 @@ export function Card({
   className,
   onPress,
   disabled,
-  accessibilityRole,
-  accessibilityState,
   ...props
 }: CardProps) {
-  const classes = cn(
-    'rounded-card',
-    variantStyles[variant],
-    paddingStyles[padding],
-    disabled && 'bg-disabled opacity-100',
-    className,
-  );
-
-  if (onPress) {
-    return (
-      <Pressable
-        accessibilityRole={accessibilityRole ?? 'button'}
-        accessibilityState={{ ...accessibilityState, disabled: Boolean(disabled) }}
-        disabled={disabled}
-        onPress={onPress}
-        className={cn(classes, 'min-h-11 active:bg-surface-active')}
-        {...props}
-      >
-        {children}
-      </Pressable>
-    );
-  }
-
+  const emphasis: SurfaceEmphasis = variant === 'outlined' ? 'outlined' : 'quiet';
   return (
-    <View accessibilityRole={accessibilityRole} className={classes} {...props}>
+    <Surface
+      level="raised"
+      emphasis={emphasis}
+      padding={padding}
+      interactive={Boolean(onPress)}
+      onPress={onPress}
+      disabled={disabled}
+      className={className}
+      {...props}
+    >
       {children}
-    </View>
+    </Surface>
   );
 }

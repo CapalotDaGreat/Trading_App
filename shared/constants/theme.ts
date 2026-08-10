@@ -37,6 +37,10 @@ export const colors = {
     primary: '#60A5FA',
     muted: 'rgba(96, 165, 250, 0.14)',
   },
+  premium: {
+    primary: '#F4C15D',
+    muted: 'rgba(244, 193, 93, 0.14)',
+  },
   focus: {
     ring: '#5EEAD4',
   },
@@ -84,7 +88,7 @@ export const colors = {
       muted: 'rgba(15, 118, 110, 0.1)',
     },
     bullish: {
-      primary: '#059669',
+      primary: '#047857',
       muted: 'rgba(5, 150, 105, 0.12)',
     },
     bearish: {
@@ -92,12 +96,16 @@ export const colors = {
       muted: 'rgba(220, 38, 38, 0.12)',
     },
     warning: {
-      primary: '#D97706',
+      primary: '#B45309',
       muted: 'rgba(217, 119, 6, 0.12)',
     },
     info: {
       primary: '#2563EB',
       muted: 'rgba(37, 99, 235, 0.12)',
+    },
+    premium: {
+      primary: '#8A5A00',
+      muted: 'rgba(138, 90, 0, 0.1)',
     },
     focus: {
       ring: '#0D9488',
@@ -145,6 +153,17 @@ export const spacing = {
   section: 36,
   screenX: 24,
   screenY: 20,
+} as const;
+
+/** Intent-based layout rhythm for new primitives and incremental migrations. */
+export const semanticSpacing = {
+  screen: {
+    horizontal: spacing.screenX,
+    vertical: spacing.screenY,
+  },
+  section: spacing.section,
+  surface: spacing.xl,
+  control: spacing.md,
 } as const;
 
 /** Minimum interactive target (Apple HIG / Material). */
@@ -243,5 +262,6 @@ export const borderRadius = {
 
 export type ThemeColors = typeof colors;
 export type ThemeSpacing = typeof spacing;
+export type ThemeSemanticSpacing = typeof semanticSpacing;
 export type ThemeTypography = typeof typography;
 export type ThemeShadows = typeof shadows;

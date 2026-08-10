@@ -29,11 +29,6 @@ const PREMIUM_DAILY: Record<Exclude<QuotaBucket, 'ai' | 'ai_mentor'>, number> = 
   news: 200,
 };
 
-/** -1 means unlimited (no ledger block). */
-const FREE_MONTHLY_AI = SERVER_DEFAULT_REMOTE.aiAnalysisMonthlyFree ?? 20;
-const PREMIUM_MONTHLY_AI = SERVER_DEFAULT_REMOTE.aiAnalysisMonthlyPremium ?? -1;
-const FREE_MONTHLY_MENTOR = SERVER_DEFAULT_REMOTE.aiMentorMonthlyFree ?? 20;
-
 function todayKey(): string {
   return new Date().toISOString().slice(0, 10);
 }
@@ -47,9 +42,34 @@ function isAiBucket(bucket: QuotaBucket): boolean {
   return bucket === 'ai' || bucket === 'ai_mentor';
 }
 
-function aiLimit(premium: boolean, bucket: QuotaBucket): number {
-  if (bucket === 'ai_mentor') return premium ? -1 : FREE_MONTHLY_MENTOR;
-  return premium ? PREMIUM_MONTHLY_AI : FREE_MONTHLY_AI;
+async function aiLimit(premium: boolean, bucket: QuotaBucket): Promise<number> {
+  let remote: Record<string, unknown> = {};
+  try {
+    const snap = await admin
+      .firestore()
+      .collection('ops')
+      .doc('config')
+      .collection('docs')
+      .doc('remote')
+      .get();
+    remote = snap.data() ?? {};
+  } catch {
+    // Release-safe defaults remain authoritative when ops config is unavailable.
+  }
+  if (bucket === 'ai_mentor') {
+    const free =
+      typeof remote.aiMentorMonthlyFree === 'number' && Number.isFinite(remote.aiMentorMonthlyFree)
+        ? remote.aiMentorMonthlyFree
+        : SERVER_DEFAULT_REMOTE.aiMentorMonthlyFree;
+    return premium ? -1 : Math.max(0, Math.round(free));
+  }
+  const configured = premium ? remote.aiAnalysisMonthlyPremium : remote.aiAnalysisMonthlyFree;
+  const fallback = premium
+    ? SERVER_DEFAULT_REMOTE.aiAnalysisMonthlyPremium
+    : SERVER_DEFAULT_REMOTE.aiAnalysisMonthlyFree;
+  const value =
+    typeof configured === 'number' && Number.isFinite(configured) ? configured : fallback;
+  return Math.max(-1, Math.round(value));
 }
 
 /**
@@ -57,7 +77,10 @@ function aiLimit(premium: boolean, bucket: QuotaBucket): number {
  * Daily path: usage/{uid}/daily/{yyyy-mm-dd}
  * Monthly AI path: usage/{uid}/monthly/{yyyy-mm}
  */
-export async function consumeQuota(uid: string, bucket: QuotaBucket): Promise<{
+export async function consumeQuota(
+  uid: string,
+  bucket: QuotaBucket,
+): Promise<{
   used: number;
   limit: number;
   remaining: number;
@@ -65,7 +88,7 @@ export async function consumeQuota(uid: string, bucket: QuotaBucket): Promise<{
   const premium = await isPremiumUser(uid);
 
   if (isAiBucket(bucket)) {
-    const limit = aiLimit(premium, bucket);
+    const limit = await aiLimit(premium, bucket);
     if (limit < 0) {
       return { used: 0, limit: -1, remaining: -1 };
     }

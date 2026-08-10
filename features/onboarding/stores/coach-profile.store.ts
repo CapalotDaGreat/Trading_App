@@ -10,6 +10,7 @@ import type { CoachProfile } from '../types/mentor-setup.types';
 
 interface CoachProfileState {
   profile: CoachProfile | null;
+  activeUid: string | null;
   isHydrating: boolean;
   hydrate: (uid: string) => Promise<CoachProfile>;
   setProfile: (profile: CoachProfile) => void;
@@ -19,19 +20,24 @@ interface CoachProfileState {
 
 export const useCoachProfileStore = create<CoachProfileState>((set) => ({
   profile: null,
+  activeUid: null,
   isHydrating: false,
   hydrate: async (uid) => {
-    set({ isHydrating: true });
+    set((state) => ({
+      activeUid: uid,
+      isHydrating: true,
+      profile: state.profile?.uid === uid ? state.profile : null,
+    }));
     try {
       const profile = await loadCoachProfile(uid);
-      set({ profile });
+      set((state) => (state.activeUid === uid ? { profile, isHydrating: false } : state));
       return profile;
     } finally {
-      set({ isHydrating: false });
+      set((state) => (state.activeUid === uid ? { isHydrating: false } : state));
     }
   },
   setProfile: (profile) => {
-    set({ profile });
+    set({ profile, activeUid: profile.uid });
     void saveCoachProfileLocal(profile);
   },
   dismissInvite: async (uid) => {
@@ -39,7 +45,7 @@ export const useCoachProfileStore = create<CoachProfileState>((set) => ({
     set({ profile });
     return profile;
   },
-  reset: () => set({ profile: null, isHydrating: false }),
+  reset: () => set({ profile: null, activeUid: null, isHydrating: false }),
 }));
 
 export function getCoachProfileSnapshot(uid: string | null): CoachProfile {

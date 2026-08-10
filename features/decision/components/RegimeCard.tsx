@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import { Pressable, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -17,28 +17,37 @@ interface RegimeCardProps {
 function plainGuidance(regime: RegimeSnapshot): string {
   const best = regime.bestStrategies[0];
   const avoid = regime.avoidStrategies[0];
-  if (best && avoid) return `Favor ${best.toLowerCase()}. Skip ${avoid.toLowerCase()}.`;
-  if (best) return `Favor ${best.toLowerCase()}.`;
+  if (best && avoid) {
+    return `Conditions fit ${best.toLowerCase()} research. Defer ${avoid.toLowerCase()} for now.`;
+  }
+  if (best) return `Conditions currently fit ${best.toLowerCase()} research.`;
   return 'Stay selective until the tape clarifies.';
 }
 
 export function RegimeCard({ regime }: RegimeCardProps) {
   const { colors } = useTheme();
   const [open, setOpen] = useState(false);
+  const detailsId = useId();
 
   return (
     <GlassCard className="p-4">
       <Pressable
         accessibilityRole="button"
+        accessibilityLabel={`Market condition ${regime.label}`}
+        accessibilityHint={open ? 'Collapses regime detail' : 'Expands regime detail'}
         accessibilityState={{ expanded: open }}
+        aria-controls={detailsId}
         onPress={() => setOpen((v) => !v)}
+        className="min-h-11"
       >
         <View className="mb-2 flex-row items-start justify-between gap-2">
           <View className="flex-1">
             <Text variant="caption" className="mb-1 text-text-tertiary">
               Market condition
             </Text>
-            <Text variant="h3">{regime.label}</Text>
+            <Text variant="h3" headingLevel={3}>
+              {regime.label}
+            </Text>
           </View>
           <View className="flex-row items-center gap-2">
             <Badge label={regime.trend} variant="outline" size="sm" />
@@ -46,6 +55,8 @@ export function RegimeCard({ regime }: RegimeCardProps) {
               name={open ? 'chevron-up' : 'chevron-down'}
               size={18}
               color={colors.text.tertiary}
+              accessibilityElementsHidden
+              importantForAccessibility="no"
             />
           </View>
         </View>
@@ -55,7 +66,7 @@ export function RegimeCard({ regime }: RegimeCardProps) {
       </Pressable>
 
       {open ? (
-        <View className="mt-4 gap-3 pt-3">
+        <View nativeID={detailsId} className="mt-4 gap-3 pt-3">
           <View className="flex-row flex-wrap gap-2">
             <Badge label={`Volatility · ${regime.volatility}`} variant="default" size="sm" />
             <Badge label={`Liquidity · ${regime.liquidity}`} variant="default" size="sm" />
@@ -67,7 +78,7 @@ export function RegimeCard({ regime }: RegimeCardProps) {
           {regime.bestStrategies.length > 0 ? (
             <View>
               <Text variant="caption" className="mb-1.5 font-semibold text-text-secondary">
-                Works better now
+                Better research fit now
               </Text>
               <View className="flex-row flex-wrap gap-1.5">
                 {regime.bestStrategies.map((strategy) => (

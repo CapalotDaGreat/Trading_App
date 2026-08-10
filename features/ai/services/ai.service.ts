@@ -1,11 +1,11 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import {
-  getTierLimits,
   hasReachedLimit,
   isNearAiDailyLimit,
   type SubscriptionTier,
 } from '@/shared/constants/subscription';
+import { getLimit } from '@/features/subscription/services/entitlement.service';
 import {
   callProxy,
   canUseVendorProxy,
@@ -34,31 +34,30 @@ interface StoredUsage {
   count: number;
 }
 
-function todayKey(): string {
-  return new Date().toISOString().split('T')[0] ?? '';
+function monthKey(): string {
+  return new Date().toISOString().slice(0, 7);
 }
 
 function nextResetTimestamp(): number {
-  const tomorrow = new Date();
-  tomorrow.setUTCHours(24, 0, 0, 0);
-  return tomorrow.getTime();
+  const now = new Date();
+  return Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1);
 }
 
 async function getStoredUsage(): Promise<StoredUsage> {
   try {
     const raw = await AsyncStorage.getItem(AI_USAGE_KEY);
-    if (!raw) return { date: todayKey(), count: 0 };
+    if (!raw) return { date: monthKey(), count: 0 };
     const parsed = JSON.parse(raw) as StoredUsage;
-    if (parsed.date !== todayKey()) return { date: todayKey(), count: 0 };
+    if (parsed.date !== monthKey()) return { date: monthKey(), count: 0 };
     return parsed;
   } catch {
-    return { date: todayKey(), count: 0 };
+    return { date: monthKey(), count: 0 };
   }
 }
 
 async function incrementUsage(): Promise<number> {
   const usage = await getStoredUsage();
-  const updated = { date: todayKey(), count: usage.count + 1 };
+  const updated = { date: monthKey(), count: usage.count + 1 };
   await AsyncStorage.setItem(AI_USAGE_KEY, JSON.stringify(updated));
   return updated.count;
 }
@@ -83,7 +82,7 @@ export async function getAiUsage(tier: SubscriptionTier): Promise<AiUsageStats> 
   }
 
   const usage = await getStoredUsage();
-  const limit = getTierLimits(tier).aiAnalysisPerDay;
+  const limit = getLimit('aiAnalysisMonthly', tier);
   const usedToday = usage.count;
   return {
     usedToday,
@@ -119,20 +118,17 @@ export function checkAiAccess(
   usedToday: number,
   requiresPremium = false,
 ): AiServiceError | null {
-  const limits = getTierLimits(tier);
+  const limit = getLimit('aiAnalysisMonthly', tier);
 
   if (requiresPremium && tier === 'free') {
-    return createAiError(
-      'SUBSCRIPTION_REQUIRED',
-      'This deeper analysis is included with Premium.',
-    );
+    return createAiError('SUBSCRIPTION_REQUIRED', 'This deeper analysis is included with Premium.');
   }
 
-  if (hasReachedLimit(usedToday, limits.aiAnalysisMonthly)) {
+  if (hasReachedLimit(usedToday, limit)) {
     const message =
       tier === 'premium'
         ? 'Monthly fair-use AI allowance reached. It resets next calendar month.'
-        : `Monthly AI allowance reached (${limits.aiAnalysisMonthly}/month). Continue your growth with Premium for unlimited analyses.`;
+        : `Monthly AI allowance reached (${limit}/month). Continue your growth with Premium for unlimited analyses.`;
     return createAiError('DAILY_LIMIT_REACHED', message);
   }
 
@@ -144,12 +140,7 @@ function generateId(): string {
 }
 
 function isAiServiceError(error: unknown): error is AiServiceError {
-  return (
-    typeof error === 'object' &&
-    error !== null &&
-    'code' in error &&
-    'message' in error
-  );
+  return typeof error === 'object' && error !== null && 'code' in error && 'message' in error;
 }
 
 function assertAiBurstLimit(bucket: string): void {
@@ -183,7 +174,11 @@ async function requestAnalysis(
       engineResult.metadata.trust,
       engineResult.tradeSuggestion?.action,
     );
-    engineResult.metadata = { ...engineResult.metadata, trust, confidence: trust.confidence.overall };
+    engineResult.metadata = {
+      ...engineResult.metadata,
+      trust,
+      confidence: trust.confidence.overall,
+    };
   }
   await recordServerAiUsage();
   await incrementUsage();
@@ -197,8 +192,7 @@ export const aiService = {
 
   isServiceError: isAiServiceError,
 
-  getDailySummary: (tier: SubscriptionTier) =>
-    requestAnalysis('daily_summary', {}, tier),
+  getDailySummary: (tier: SubscriptionTier) => requestAnalysis('daily_summary', {}, tier),
 
   getTradeSuggestions: (symbol: string, tier: SubscriptionTier, timeframe?: string) =>
     requestAnalysis('trade_suggestion', { symbol, timeframe }, tier, true),
@@ -218,10 +212,8 @@ export const aiService = {
   getPsychologyCoach: (topic: string, tier: SubscriptionTier) =>
     requestAnalysis('psychology_coach', { customPrompt: topic }, tier),
 
-  getPortfolioReview: (
-    portfolio: AiRequestContext['portfolio'],
-    tier: SubscriptionTier,
-  ) => requestAnalysis('portfolio_review', { portfolio }, tier, true),
+  getPortfolioReview: (portfolio: AiRequestContext['portfolio'], tier: SubscriptionTier) =>
+    requestAnalysis('portfolio_review', { portfolio }, tier, true),
 
   getNewsSummary: (newsIds: string[], tier: SubscriptionTier, symbol?: string) =>
     requestAnalysis('news_summary', { newsIds, symbol }, tier),

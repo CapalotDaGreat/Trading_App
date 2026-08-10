@@ -5,10 +5,10 @@ import { EducationalModeBadge } from '@/features/educational/components/Educatio
 import { EducationalPanel } from '@/features/educational/components/EducationalPanel';
 import { RegimeCard } from '@/features/decision/components/RegimeCard';
 import { useRegime } from '@/features/decision/hooks/useDecision';
+import { StatusState } from '@/shared/components/feedback/StatusState';
 import { Header } from '@/shared/components/layout/Header';
 import { Screen } from '@/shared/components/layout/Screen';
 import { Skeleton } from '@/shared/components/ui/Skeleton';
-import { Text } from '@/shared/components/ui/Text';
 import { useTheme } from '@/shared/hooks/useTheme';
 
 export default function RegimeScreen() {
@@ -31,7 +31,7 @@ export default function RegimeScreen() {
     >
       <Header
         title="Market condition"
-        subtitle="What the tape favors right now — research context"
+        subtitle="What research styles fit the tape right now — not a trade signal"
         onBack={() => router.back()}
       />
       <View className="mt-4 gap-4 pb-8">
@@ -43,7 +43,13 @@ export default function RegimeScreen() {
         {isLoading && !data ? <Skeleton height={220} rounded="lg" /> : null}
         {data ? <RegimeCard regime={data} /> : null}
         {!isLoading && !data ? (
-          <Text variant="body-sm">Regime unavailable. Check network and pull to refresh.</Text>
+          <StatusState
+            status="empty"
+            title="Regime unavailable"
+            description="Market-condition evidence could not be loaded, so research fit guidance stays hidden."
+            actionLabel="Refresh"
+            onAction={() => void refetch()}
+          />
         ) : null}
       </View>
     </Screen>

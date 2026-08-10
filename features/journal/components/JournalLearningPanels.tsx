@@ -3,6 +3,7 @@ import { Pressable, View } from 'react-native';
 
 import type { JournalLearningJourney } from '@/features/journal/types/journal-learning-journey.types';
 import type { PassportPeriodSummary } from '@/features/decision-passport/types/passport.types';
+import { CollapsibleSection } from '@/shared/components/patterns/CollapsibleSection';
 import { Button } from '@/shared/components/ui/Button';
 import { Chip } from '@/shared/components/ui/Chip';
 import { GlassCard } from '@/shared/components/ui/GlassCard';
@@ -54,12 +55,12 @@ export function JournalTimelinePanel({ journey }: { journey: JournalLearningJour
 
   return (
     <GlassCard className="p-4" bordered testID="journal-decision-timeline">
-      <Text variant="h3">Decision Timeline</Text>
+      <Text variant="h3">Process Tape</Text>
       <Text variant="caption" className="mt-1 text-text-tertiary">
-        Latest process events — learning over outcomes
+        Automatic research, skip, replay, and journal events — separate from authored reflections.
       </Text>
       <View className="mt-3 gap-3">
-        {journey.timeline.slice(0, 24).map((event) => (
+        {journey.timeline.slice(0, 8).map((event) => (
           <View key={event.id} className="flex-row gap-3">
             <View className="w-1 rounded-full bg-accent" />
             <View className="flex-1">
@@ -142,75 +143,67 @@ export function JournalInsightsPanel({ journey }: { journey: JournalLearningJour
 
   return (
     <View className="gap-4" testID="journal-insights">
-      <GlassCard className="p-4" bordered>
-        <Text variant="h3">AI Coaching</Text>
-        <Text variant="body-sm" className="mt-2 text-text-secondary">
+      <CollapsibleSection
+        title="Coaching"
+        description="Your current process priority and next improvement."
+        defaultExpanded
+      >
+        <Text variant="body-sm" className="text-text-secondary">
           {journey.coach?.recommendation ??
             'Log closed decisions with emotion and lessons to personalize coaching.'}
         </Text>
         {journey.coach?.psychology ? (
-          <Text variant="caption" className="mt-2 text-text-tertiary">
+          <Text variant="caption" className="text-text-tertiary">
             {journey.coach.psychology}
           </Text>
         ) : null}
-        <Button
-          className="mt-3"
-          variant="outline"
-          size="sm"
-          onPress={() => router.push('/decision/coach' as never)}
-        >
-          Open full coach
-        </Button>
-      </GlassCard>
-
-      <GlassCard className="p-4" bordered>
-        <Text variant="h3">Improvement suggestions</Text>
-        <View className="mt-3 gap-2">
-          {journey.improvements.map((item) => (
+        <View className="gap-2">
+          {journey.improvements.slice(0, 3).map((item) => (
             <Text key={item} variant="body-sm" className="text-text-secondary">
               • {item}
             </Text>
           ))}
         </View>
-      </GlassCard>
+        <Button variant="outline" size="sm" onPress={() => router.push('/decision/mentor' as never)}>
+          Open Mentor
+        </Button>
+      </CollapsibleSection>
 
-      <GlassCard className="p-4" bordered>
-        <Text variant="h3">Psychology trends</Text>
-        <Text variant="body-sm" className="mt-2 text-text-secondary">
-          {journey.psychology.narrative}
-        </Text>
-        <Text variant="caption" className="mt-2 text-text-tertiary">
-          Stress-tagged share {journey.psychology.stressShare}% ·{' '}
-          {journey.psychology.improvementHint}
-        </Text>
-        <View className="mt-3 flex-row flex-wrap gap-2">
-          {journey.psychology.weeklyPoints.map((point) => (
-            <Chip
-              key={point.key}
-              label={`${point.label}: ${point.stressShare}%`}
-              disabled
-            />
-          ))}
+      <CollapsibleSection
+        title="Patterns"
+        description="Psychology, behavior, and strategy observations."
+      >
+        <View>
+          <Text variant="h3">Psychology trend</Text>
+          <Text variant="body-sm" className="mt-2 text-text-secondary">
+            {journey.psychology.narrative}
+          </Text>
+          <Text variant="caption" className="mt-2 text-text-tertiary">
+            Stress-tagged share {journey.psychology.stressShare}% ·{' '}
+            {journey.psychology.improvementHint}
+          </Text>
+          <View className="mt-3 flex-row flex-wrap gap-2">
+            {journey.psychology.weeklyPoints.map((point) => (
+              <Chip key={point.key} label={`${point.label}: ${point.stressShare}%`} disabled />
+            ))}
+          </View>
         </View>
-      </GlassCard>
-
-      <GlassCard className="p-4" bordered>
-        <Text variant="h3">Behavior analysis</Text>
-        <View className="mt-3 gap-2">
-          {journey.behaviorInsights.map((insight) => (
-            <View key={insight.id}>
-              <Text variant="label">{insight.statement}</Text>
-              <Text variant="caption" className="text-text-tertiary">
-                {insight.evidence[0]}
-              </Text>
-            </View>
-          ))}
+        <View>
+          <Text variant="h3">Behavior</Text>
+          <View className="mt-3 gap-2">
+            {journey.behaviorInsights.map((insight) => (
+              <View key={insight.id}>
+                <Text variant="label">{insight.statement}</Text>
+                <Text variant="caption" className="text-text-tertiary">
+                  {insight.evidence[0]}
+                </Text>
+              </View>
+            ))}
+          </View>
         </View>
-      </GlassCard>
-
-      <GlassCard className="p-4" bordered>
-        <Text variant="h3">Strategy insights</Text>
-        {journey.strategyInsights.length === 0 ? (
+        <View>
+          <Text variant="h3">Strategies</Text>
+          {journey.strategyInsights.length === 0 ? (
           <Text variant="body-sm" className="mt-2 text-text-secondary">
             Add a strategy or tag on journals to surface process patterns.
           </Text>
@@ -227,45 +220,33 @@ export function JournalInsightsPanel({ journey }: { journey: JournalLearningJour
               </View>
             ))}
           </View>
-        )}
-      </GlassCard>
+          )}
+        </View>
+      </CollapsibleSection>
 
-      {journey.dna ? (
-        <GlassCard className="p-4" bordered>
-          <Text variant="h3">Trading DNA evolution</Text>
-          <Text variant="body-sm" className="mt-2 text-text-secondary">
-            {journey.dna.becomingLabel}
-          </Text>
-          <Text variant="caption" className="mt-1 text-text-tertiary">
-            Style: {journey.dna.styleLabel}
-          </Text>
-          <View className="mt-3 flex-row flex-wrap gap-2">
-            {journey.dna.traits.slice(0, 4).map((trait) => (
-              <Chip
-                key={trait.id}
-                label={`${trait.label} ${trait.score}`}
-                disabled
-              />
-            ))}
-          </View>
-          {journey.dnaEvolution[0] ? (
-            <Text variant="caption" className="mt-3 text-text-tertiary">
-              Latest chapter: {journey.dnaEvolution[journey.dnaEvolution.length - 1]?.summary}
+      <CollapsibleSection
+        title="Connected learning"
+        description="DNA, Decision Graph, Replay, and Academy links."
+      >
+        {journey.dna ? (
+          <View>
+            <Text variant="h3">Trading DNA evolution</Text>
+            <Text variant="body-sm" className="mt-2 text-text-secondary">
+              {journey.dna.becomingLabel}
             </Text>
-          ) : null}
-          <Button
-            className="mt-3"
-            variant="outline"
-            size="sm"
-            onPress={() => router.push('/decision/intelligence' as never)}
-          >
-            Open Personal Intelligence
-          </Button>
-        </GlassCard>
-      ) : null}
+            <Button
+              className="mt-3"
+              variant="outline"
+              size="sm"
+              onPress={() => router.push('/decision/intelligence' as never)}
+            >
+              Open Personal Intelligence
+            </Button>
+          </View>
+        ) : null}
 
-      {journey.decisionGraph ? (
-        <GlassCard className="p-4" bordered>
+        {journey.decisionGraph ? (
+          <View>
           <Text variant="h3">Decision Graph</Text>
           <Text variant="body-sm" className="mt-2 text-text-secondary">
             {journey.decisionGraph.insight}
@@ -284,12 +265,12 @@ export function JournalInsightsPanel({ journey }: { journey: JournalLearningJour
               </Pressable>
             ))}
           </View>
-        </GlassCard>
-      ) : null}
+          </View>
+        ) : null}
 
-      <GlassCard className="p-4" bordered>
-        <Text variant="h3">Replay references</Text>
-        <View className="mt-3 gap-2">
+        <View>
+          <Text variant="h3">Replay references</Text>
+          <View className="mt-3 gap-2">
           {journey.replayReferences.map((link) => (
             <Pressable key={link.href + link.label} onPress={() => router.push(link.href as never)}>
               <Text variant="label" className="text-accent">
@@ -300,12 +281,12 @@ export function JournalInsightsPanel({ journey }: { journey: JournalLearningJour
               </Text>
             </Pressable>
           ))}
+          </View>
         </View>
-      </GlassCard>
 
-      <GlassCard className="p-4" bordered>
-        <Text variant="h3">Academy recommendations</Text>
-        {journey.academyRecommendations.length === 0 ? (
+        <View>
+          <Text variant="h3">Academy recommendations</Text>
+          {journey.academyRecommendations.length === 0 ? (
           <Text variant="body-sm" className="mt-2 text-text-secondary">
             Keep journaling — lessons will map to your process gaps.
           </Text>
@@ -325,8 +306,9 @@ export function JournalInsightsPanel({ journey }: { journey: JournalLearningJour
               </Pressable>
             ))}
           </View>
-        )}
-      </GlassCard>
+          )}
+        </View>
+      </CollapsibleSection>
     </View>
   );
 }

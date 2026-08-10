@@ -13,11 +13,8 @@ import {
 } from 'firebase/firestore';
 
 import { requireDb } from '@/firebase/config';
-import {
-  getTierLimits,
-  hasReachedLimit,
-  type SubscriptionTier,
-} from '@/shared/constants/subscription';
+import { getLimit } from '@/features/subscription/services/entitlement.service';
+import { hasReachedLimit, type SubscriptionTier } from '@/shared/constants/subscription';
 import { getLocalUserRepository, resolveUserDataBackend } from '@/shared/services/user-data';
 import type { WatchlistItem } from '@/shared/types/market';
 
@@ -87,19 +84,19 @@ function toWatchlist(id: string, data: DocumentData): Watchlist {
 }
 
 function assertWatchlistLimit(currentCount: number, tier: SubscriptionTier): void {
-  const limits = getTierLimits(tier);
-  if (hasReachedLimit(currentCount, limits.watchlistMax)) {
+  const limit = getLimit('watchlistCount', tier);
+  if (hasReachedLimit(currentCount, limit)) {
     throw new Error(
-      `Watchlist limit reached (${limits.watchlistMax}). Included with Premium for unlimited lists.`,
+      `Watchlist limit reached (${limit}). Included with Premium for unlimited lists.`,
     );
   }
 }
 
 function assertSymbolLimit(symbolCount: number, tier: SubscriptionTier): void {
-  const limits = getTierLimits(tier);
-  if (hasReachedLimit(symbolCount, limits.symbolsPerWatchlist)) {
+  const limit = getLimit('symbolsPerWatchlist', tier);
+  if (hasReachedLimit(symbolCount, limit)) {
     throw new Error(
-      `Symbol limit reached (${limits.symbolsPerWatchlist} per list). Included with Premium for larger universes.`,
+      `Symbol limit reached (${limit} per list). Included with Premium for larger universes.`,
     );
   }
 }

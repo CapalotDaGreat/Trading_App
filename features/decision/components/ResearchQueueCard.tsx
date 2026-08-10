@@ -9,6 +9,7 @@ import {
 } from '@/features/decision/services/coaching-loop.service';
 import type { ResearchQueueItem } from '@/features/decision/types/decision.types';
 import { useAppendDecisionRecord } from '@/features/decision-log/hooks/useDecisionLog';
+import { Surface } from '@/shared/components/ui/Surface';
 import { Text } from '@/shared/components/ui/Text';
 import { cn } from '@/shared/utils/cn';
 
@@ -18,6 +19,10 @@ interface ResearchQueueCardProps {
   onOutcome?: (item: ResearchQueueItem, action: 'researched' | 'skipped') => void;
   /** Keep this many ranked items free; any remaining queue is a real Premium capability. */
   freeItemLimit?: number;
+  variant?: 'compact' | 'expanded';
+  eyebrow?: string;
+  title?: string;
+  description?: string;
 }
 
 export function ResearchQueueCard({
@@ -25,6 +30,10 @@ export function ResearchQueueCard({
   regime,
   onOutcome,
   freeItemLimit = Number.POSITIVE_INFINITY,
+  variant = 'expanded',
+  eyebrow = 'RESEARCH QUEUE',
+  title = 'Highest research value now',
+  description,
 }: ResearchQueueCardProps) {
   const router = useRouter();
   const appendDecision = useAppendDecisionRecord();
@@ -45,6 +54,7 @@ export function ResearchQueueCard({
   const totalMinutes = pending.reduce((s, i) => s + i.estimatedMinutes, 0);
   const freePending = pending.slice(0, freeItemLimit);
   const deeperPending = pending.slice(freeItemLimit);
+  const visiblePending = variant === 'compact' ? freePending.slice(0, 1) : freePending;
   const recordOutcome = (item: ResearchQueueItem, action: 'researched' | 'skipped') => {
     appendDecision.mutate({
       symbol: item.symbol,
@@ -58,22 +68,25 @@ export function ResearchQueueCard({
   };
 
   return (
-    <View className="rounded-2xl bg-background-elevated p-4">
+    <Surface padding="md" testID="research-queue-card">
       <Text variant="caption" className="mb-1 font-semibold text-text-tertiary">
-        RESEARCH OPPORTUNITIES
+        {eyebrow}
       </Text>
       <Text variant="h3" className="mb-1">
-        Highest-value ideas only
+        {title}
       </Text>
       <Text variant="caption" className="mb-3 text-text-secondary">
-        ~{totalMinutes} min remaining · ranked by research value — not trade signals
+        {description ??
+          `${pending.length} item${pending.length === 1 ? '' : 's'} · ~${totalMinutes} min remaining · ranked for research, not trading`}
       </Text>
 
-      {freePending.map((item, index) => (
+      {visiblePending.map((item, index) => (
         <View key={item.symbol} className="mb-2 rounded-xl bg-surface px-3 py-2.5">
           <View className="flex-row items-center justify-between gap-2">
             <Pressable
-              className="min-w-0 flex-1"
+              accessibilityRole="button"
+              accessibilityLabel={`Open ${item.symbol} research`}
+              className="min-h-11 min-w-0 flex-1 justify-center"
               onPress={() => router.push(`/asset/${encodeURIComponent(item.symbol)}` as never)}
               testID={`research-queue-symbol-${item.symbol}`}
             >
@@ -131,14 +144,16 @@ export function ResearchQueueCard({
         </View>
       ))}
 
-      {deeperPending.length ? (
+      {variant === 'expanded' && deeperPending.length ? (
         <PremiumOsGate feature="advancedResearchQueue">
           <View testID="research-queue-deeper-items">
             {deeperPending.map((item, offset) => (
               <View key={item.symbol} className="mb-2 rounded-xl bg-surface px-3 py-2.5">
                 <View className="flex-row items-center justify-between gap-2">
                   <Pressable
-                    className="min-w-0 flex-1"
+                    accessibilityRole="button"
+                    accessibilityLabel={`Open ${item.symbol} research`}
+                    className="min-h-11 min-w-0 flex-1 justify-center"
                     onPress={() => router.push(`/asset/${encodeURIComponent(item.symbol)}` as never)}
                     testID={`research-queue-symbol-${item.symbol}`}
                   >
@@ -198,7 +213,7 @@ export function ResearchQueueCard({
         </PremiumOsGate>
       ) : null}
 
-      {completed.length > 0 ? (
+      {variant === 'expanded' && completed.length > 0 ? (
         <View className="mt-1">
           <Text variant="caption" className="mb-1 text-text-tertiary">
             Completed
@@ -206,8 +221,10 @@ export function ResearchQueueCard({
           {completed.map((item) => (
             <Pressable
               key={item.symbol}
+              accessibilityRole="button"
+              accessibilityLabel={`Mark ${item.symbol} incomplete`}
               onPress={() => void toggleQueueSymbol(item.symbol).then(setDone)}
-              className="mb-1 flex-row items-center gap-2"
+              className="mb-1 min-h-11 flex-row items-center gap-2"
             >
               <Text variant="caption" className="text-bullish">
                 ✓
@@ -219,6 +236,6 @@ export function ResearchQueueCard({
           ))}
         </View>
       ) : null}
-    </View>
+    </Surface>
   );
 }

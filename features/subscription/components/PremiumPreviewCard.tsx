@@ -39,9 +39,14 @@ export function PremiumPreviewCard({
         {teaser}
       </Text>
       {preview ? (
-        <View className="mt-3 opacity-40" pointerEvents="none">
-          {preview}
-        </View>
+        <>
+          <Text variant="caption" className="mt-3 text-text-tertiary">
+            Illustrative preview — no private result has been calculated.
+          </Text>
+          <View className="mt-2 opacity-40" pointerEvents="none">
+            {preview}
+          </View>
+        </>
       ) : (
         <View className="mt-3 h-16 rounded-xl bg-surface opacity-50" />
       )}

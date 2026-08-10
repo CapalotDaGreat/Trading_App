@@ -1,11 +1,11 @@
 import { useRouter } from 'expo-router';
+import { View } from 'react-native';
 
 import { ErrorState } from '@/shared/components/feedback/ErrorState';
 import { Button } from '@/shared/components/ui/Button';
 import { Text } from '@/shared/components/ui/Text';
-import { mapRecoverableError } from '@/shared/utils/error-recovery';
 import { useOnlineStatus } from '@/shared/hooks/useOnlineStatus';
-import { View } from 'react-native';
+import { mapRecoverableError } from '@/shared/utils/error-recovery';
 
 interface RecoverableErrorStateProps {
   error: unknown;
@@ -23,7 +23,9 @@ export function RecoverableErrorState({ error, onRetry, className }: Recoverable
     <View className={className}>
       <ErrorState
         title={mapped.title}
-        description={`${mapped.why}\n\n${mapped.recovery}`}
+        description="This content could not be refreshed."
+        why={mapped.why}
+        recovery={mapped.recovery}
         actionLabel={mapped.actionLabel}
         onAction={onRetry}
         testID={`recoverable-error-${mapped.kind}`}

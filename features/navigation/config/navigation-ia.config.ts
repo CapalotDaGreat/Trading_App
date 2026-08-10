@@ -8,6 +8,8 @@ export const IA_GLOSSARY = {
   markets: 'Markets',
   marketCondition: 'Market condition',
   portfolioRisk: 'Portfolio risk',
+  mentor: 'Mentor',
+  simulator: 'Simulator',
   processTape: 'Process Tape',
   chartReplay: 'Chart Replay',
   replayTv: 'Decision Replay TV',
@@ -31,8 +33,10 @@ export type NavigationIconName =
   | 'briefcase-outline'
   | 'calendar-outline'
   | 'card-outline'
+  | 'compass-outline'
   | 'finger-print-outline'
   | 'film-outline'
+  | 'fitness-outline'
   | 'flask-outline'
   | 'grid-outline'
   | 'notifications-outline'
@@ -41,7 +45,8 @@ export type NavigationIconName =
   | 'school-outline'
   | 'search-outline'
   | 'settings-outline'
-  | 'shield-checkmark-outline';
+  | 'shield-checkmark-outline'
+  | 'sparkles-outline';
 
 export interface NavigationHubItem {
   href: string;
@@ -99,27 +104,43 @@ export const RESEARCH_HUB_SECTIONS: readonly NavigationHubSection[] = [
         icon: 'shield-checkmark-outline',
         testID: 'research-portfolio-risk',
       },
+      {
+        href: '/ai?source=research',
+        title: IA_GLOSSARY.ask,
+        description: 'Ask about evidence, uncertainty, or what to research next.',
+        accessibilityLabel: 'Ask about your research context',
+        icon: 'sparkles-outline',
+        testID: 'research-ask',
+      },
     ],
   },
 ];
 
-/** Review: Start (tape) → Continue (journal) → Deepen (practice). */
+/** Review: Continue → Reflect → Practice → Learn. */
 export const REVIEW_HUB_SECTIONS: readonly NavigationHubSection[] = [
   {
-    title: 'Start',
+    title: 'Continue',
     items: [
       {
         href: '/decision/decision-replay?segment=process',
         title: IA_GLOSSARY.processTape,
         description: 'What you researched, skipped, and recorded.',
-        accessibilityLabel: 'Open Process Tape review',
+        accessibilityLabel: 'Continue Process Tape review',
         icon: 'film-outline',
         testID: 'review-process-tape',
+      },
+      {
+        href: '/decision/replay-tv',
+        title: IA_GLOSSARY.replayTv,
+        description: 'Continue a blind historical decision session.',
+        accessibilityLabel: 'Continue Decision Replay TV',
+        icon: 'film-outline',
+        testID: 'review-replay-tv',
       },
     ],
   },
   {
-    title: 'Continue',
+    title: 'Reflect',
     items: [
       {
         href: '/journal',
@@ -128,22 +149,6 @@ export const REVIEW_HUB_SECTIONS: readonly NavigationHubSection[] = [
         accessibilityLabel: 'Open decision journal learning journey',
         icon: 'book-outline',
         testID: 'review-journal',
-      },
-      {
-        href: '/decision/decision-replay?segment=chart',
-        title: IA_GLOSSARY.chartReplay,
-        description: 'Replay charts without peeking ahead.',
-        accessibilityLabel: 'Open Chart Replay practice',
-        icon: 'analytics-outline',
-        testID: 'review-chart-replay',
-      },
-      {
-        href: '/decision/replay-tv',
-        title: IA_GLOSSARY.replayTv,
-        description: 'Famous historical tapes — blind future, process only.',
-        accessibilityLabel: 'Open Decision Replay TV',
-        icon: 'film-outline',
-        testID: 'review-replay-tv',
       },
       {
         href: '/decision/heatmap',
@@ -156,8 +161,24 @@ export const REVIEW_HUB_SECTIONS: readonly NavigationHubSection[] = [
     ],
   },
   {
-    title: 'Deepen',
+    title: 'Practice',
     items: [
+      {
+        href: '/decision/simulator',
+        title: IA_GLOSSARY.simulator,
+        description: 'Train decisions with future candles hidden.',
+        accessibilityLabel: 'Open Decision Simulator practice',
+        icon: 'fitness-outline',
+        testID: 'review-simulator',
+      },
+      {
+        href: '/decision/decision-replay?segment=chart',
+        title: IA_GLOSSARY.chartReplay,
+        description: 'Replay charts without peeking ahead.',
+        accessibilityLabel: 'Open Chart Replay practice',
+        icon: 'analytics-outline',
+        testID: 'review-chart-replay',
+      },
       {
         href: '/decision/lab',
         title: IA_GLOSSARY.decisionLab,
@@ -166,6 +187,11 @@ export const REVIEW_HUB_SECTIONS: readonly NavigationHubSection[] = [
         icon: 'flask-outline',
         testID: 'review-decision-lab',
       },
+    ],
+  },
+  {
+    title: 'Learn',
+    items: [
       {
         href: '/academy',
         title: IA_GLOSSARY.learn,
@@ -191,6 +217,14 @@ export const YOU_HUB_SECTIONS: readonly NavigationHubSection[] = [
   {
     title: 'Growth',
     items: [
+      {
+        href: '/decision/mentor',
+        title: IA_GLOSSARY.mentor,
+        description: 'Your process priority, repeated pattern, and next exercise.',
+        accessibilityLabel: 'Open your trading mentor',
+        icon: 'compass-outline',
+        testID: 'you-mentor',
+      },
       {
         href: '/decision/intelligence',
         title: IA_GLOSSARY.tradingDna,

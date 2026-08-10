@@ -1,7 +1,6 @@
-import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { ActivityIndicator, Pressable, View } from 'react-native';
+import { View } from 'react-native';
 
 import { CategoryChips, type CategoryFilter } from '@/features/academy/components/CategoryChips';
 import {
@@ -23,16 +22,16 @@ import { useTraderMemory } from '@/features/decision/hooks/useDecision';
 import { buildDecisionDebt } from '@/features/decision/services/decision-os.service';
 import { useDecisionLog } from '@/features/decision-log/hooks/useDecisionLog';
 import { EducationalModeBadge } from '@/features/educational/components/EducationalModeBadge';
-import { EducationalPanel } from '@/features/educational/components/EducationalPanel';
-import { Header } from '@/shared/components/layout/Header';
-import { Screen } from '@/shared/components/layout/Screen';
+import { StatusState } from '@/shared/components/feedback/StatusState';
+import { ScreenScaffold } from '@/shared/components/layout/ScreenScaffold';
+import { CollapsibleSection } from '@/shared/components/patterns/CollapsibleSection';
+import { Button } from '@/shared/components/ui/Button';
+import { Surface } from '@/shared/components/ui/Surface';
 import { Text } from '@/shared/components/ui/Text';
-import { useTheme } from '@/shared/hooks/useTheme';
 import { useSubscriptionStore } from '@/shared/stores/subscription.store';
 
 export default function AcademyScreen() {
   const router = useRouter();
-  const { colors } = useTheme();
   const [filter, setFilter] = useState<CategoryFilter>('all');
   const { lessons, completedCount, practicedCount, totalCount, isLoading } = useAcademy();
   const { paths, isLoading: pathsLoading } = useLearningPaths();
@@ -75,172 +74,147 @@ export default function AcademyScreen() {
 
   if (isLoading || pathsLoading) {
     return (
-      <Screen className="items-center justify-center">
-        <ActivityIndicator size="large" color={colors.accent.primary} />
-      </Screen>
+      <ScreenScaffold title="Academy" scrollable={false} contentClassName="justify-center">
+        <StatusState
+          status="loading"
+          title="Loading Academy"
+          description="Preparing continue, recommended, and practice paths."
+        />
+      </ScreenScaffold>
     );
   }
 
   const progressPct = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
 
   return (
-    <Screen scrollable contentClassName="pb-10">
-      <Header
-        title="Learn"
-        subtitle="Practice trading concepts in a risk-free learning environment"
-        onBack={() => router.back()}
-      />
-
-      <View className="mt-4 gap-6">
+    <ScreenScaffold
+      title="Academy"
+      subtitle="Learn one process skill, practise it, then bring the lesson back to your decisions."
+      contentClassName="pb-10"
+    >
+      <View className="gap-4">
         <EducationalModeBadge />
 
-        <View className="rounded-2xl bg-background-elevated p-4">
-          <Text variant="label" className="text-text-tertiary">
-            EDUCATIONAL ACADEMY
-          </Text>
-          <Text variant="body-sm" className="mt-2 leading-relaxed text-text-secondary">
-            Lessons teach process and research habits — not guaranteed profits, buy/sell signals, or
-            personalised investment advice.
-          </Text>
-        </View>
-
-        <EducationalPanel
-          variant="practice"
-          body="Celebrate checklist completion and practiced lessons — never profit leaderboards."
-        />
-
-        <View className="rounded-2xl bg-background-elevated p-4">
-          <Text variant="label" className="text-text-tertiary">
-            YOUR PROGRESS
-          </Text>
-          <Text variant="h2" className="mt-1">
-            {completedCount} read · {practicedCount} practiced
-          </Text>
-          <View className="mt-3 h-2 overflow-hidden rounded-full bg-surface">
-            <View className="h-full rounded-full bg-accent" style={{ width: `${progressPct}%` }} />
-          </View>
-          <Text variant="caption" className="mt-2">
-            Read ≠ practiced. Mark lessons complete anytime; mastery surfaces reward practice gates
-            (Lab / Replay / Journal).
-          </Text>
-        </View>
-
-        <AcademyDisciplineCard days={discipline.days} today={discipline.today} />
-
-        {recommendation ? (
-          <NextLessonCard
-            recommendation={recommendation}
-            showPremiumBadge={isPersonalized && isPremium}
-          />
-        ) : null}
-
-        {isPremium ? null : (
-          <PremiumOsGate feature="tradingDnaInsights">
-            <View className="rounded-2xl bg-background-elevated p-4">
-              <Text variant="caption" className="mb-1 font-semibold text-text-tertiary">
-                PREMIUM · PERSONALIZED CURRICULUM
-              </Text>
-              <Text variant="body-sm" className="text-text-secondary">
-                Foundations stay free. Premium ranks next lessons from Trading DNA and Decision Debt
-                — coaching, not a content shelf.
+        <Surface padding="sm" tone="subtle" testID="academy-progress-strip">
+          <View className="flex-row items-center justify-between gap-3">
+            <View className="flex-1">
+              <Text variant="label">Progress</Text>
+              <Text variant="body-sm" className="mt-1 text-text-secondary">
+                {completedCount} read · {practicedCount} practised · {discipline.days}d discipline
               </Text>
             </View>
-          </PremiumOsGate>
-        )}
+            <Text variant="label" className="text-accent">{progressPct}%</Text>
+          </View>
+          <View className="mt-2 h-1.5 overflow-hidden rounded-full bg-surface">
+            <View className="h-full rounded-full bg-accent" style={{ width: `${progressPct}%` }} />
+          </View>
+        </Surface>
 
-        <View>
-          <Text variant="h3" className="mb-1">
-            Decision Operator
-          </Text>
-          <Text variant="body-sm" className="mb-3 text-text-secondary">
-            Start here. Classic TA is supporting curriculum below.
-          </Text>
-          {primaryPaths.map((path) => (
-            <PathCard
-              key={path.id}
-              id={path.id}
-              title={path.title}
-              description={path.description}
-              icon={path.icon}
-              track={path.track}
-              completedCount={path.completedCount}
-              practicedCount={path.practicedCount}
-              totalCount={path.totalCount}
-              isDefault={path.isDefault}
-              isSupporting={path.isSupporting}
-              masteryUnlocked={path.masteryUnlocked}
-              unlockHint={path.unlockHint}
-              iaHint={path.iaHint}
+        {recommendation ? (
+          <View>
+            <Text variant="label" className="mb-2 text-text-tertiary">CONTINUE LEARNING</Text>
+            <NextLessonCard
+              recommendation={recommendation}
+              showPremiumBadge={isPersonalized && isPremium}
             />
-          ))}
-        </View>
+          </View>
+        ) : null}
 
-        <View>
-          <Text variant="h3" className="mb-1">
-            Supporting school
-          </Text>
-          <Text variant="body-sm" className="mb-3 text-text-secondary">
-            Mechanics after your filter is sharp — Lab challenges unlock mastery badges.
-          </Text>
-          {supportingPaths.map((path) => (
-            <PathCard
-              key={path.id}
-              id={path.id}
-              title={path.title}
-              description={path.description}
-              icon={path.icon}
-              track={path.track}
-              completedCount={path.completedCount}
-              practicedCount={path.practicedCount}
-              totalCount={path.totalCount}
-              isSupporting
-              masteryUnlocked={path.masteryUnlocked}
-              unlockHint={path.unlockHint}
-              iaHint={path.iaHint}
-            />
-          ))}
-        </View>
-
-        <View>
-          <View className="mb-2 flex-row items-center justify-between">
-            <Text variant="h3">Desk checklists</Text>
-            <Pressable
-              onPress={() => router.push('/academy/checklist/pre-trade-checklist' as never)}
+        {recommendation ? (
+          <Surface emphasis="outlined" testID="academy-recommended">
+            <Text variant="label" className="text-accent">RECOMMENDED FOR YOU</Text>
+            <Text variant="h2" headingLevel={2} className="mt-2">
+              {recommendation.lesson.title}
+            </Text>
+            <Text variant="body-sm" className="mt-2 text-text-secondary">
+              {recommendation.reason}
+            </Text>
+            <Button
+              className="mt-3"
+              size="sm"
+              onPress={() =>
+                router.push(`/academy/lesson/${recommendation.lesson.id}` as never)
+              }
             >
-              <Text variant="caption" className="text-accent">
-                Open full
-              </Text>
-            </Pressable>
-          </View>
-          <View className="mb-3 flex-row flex-wrap gap-2">
-            {checklists.map((list) => (
-              <Pressable
-                key={list.id}
-                onPress={() => router.push(`/academy/checklist/${list.id}` as never)}
-                className="flex-row items-center gap-1.5 rounded-full bg-surface px-3 py-1.5"
-              >
-                <Ionicons name="checkbox-outline" size={14} color={colors.accent.primary} />
-                <Text variant="caption" className="text-text-primary">
-                  {list.title}
-                </Text>
-              </Pressable>
-            ))}
-          </View>
-          <TradingChecklist compact />
-        </View>
+              Open recommendation
+            </Button>
+          </Surface>
+        ) : null}
 
-        <View>
-          <Text variant="h3" className="mb-2">
-            All lessons
+        <Surface emphasis="outlined" testID="academy-practice-this">
+          <Text variant="label" className="text-accent">PRACTICE THIS</Text>
+          <Text variant="h2" headingLevel={2} className="mt-2">
+            Pre-decision checklist
           </Text>
+          <Text variant="body-sm" className="mb-4 mt-2 text-text-secondary">
+            Rehearse the same short process before your next research decision.
+          </Text>
+          <TradingChecklist compact />
+          <Button
+            className="mt-3"
+            size="sm"
+            variant="outline"
+            onPress={() => router.push('/academy/checklist/pre-trade-checklist' as never)}
+          >
+            Open full checklist
+          </Button>
+        </Surface>
+
+        <CollapsibleSection
+          title="Paths"
+          description="Structured Decision Operator learning paths."
+        >
+          {primaryPaths.map((path) => (
+            <PathCard key={path.id} {...path} />
+          ))}
+        </CollapsibleSection>
+
+        <CollapsibleSection
+          title="Supporting curriculum"
+          description="Classic mechanics and additional desk checklists."
+        >
+          {supportingPaths.map((path) => (
+            <PathCard key={path.id} {...path} isSupporting />
+          ))}
+          {checklists
+            .filter((list) => list.id !== 'pre-trade-checklist')
+            .map((list) => (
+              <Button
+                key={list.id}
+                variant="ghost"
+                onPress={() => router.push(`/academy/checklist/${list.id}` as never)}
+              >
+                {list.title}
+              </Button>
+            ))}
+          {isPremium ? null : (
+            <PremiumOsGate feature="tradingDnaInsights">
+              <Text variant="body-sm" className="text-text-secondary">
+                Premium ranks supporting lessons from Trading DNA and Decision Debt.
+              </Text>
+            </PremiumOsGate>
+          )}
+        </CollapsibleSection>
+
+        <CollapsibleSection
+          title="Browse all lessons"
+          description={`${filteredLessons.length} lessons available in the current filter.`}
+        >
           <CategoryChips value={filter} onChange={setFilter} />
           {filteredLessons.length === 0 ? (
             <Text variant="body-sm">No lessons in this filter.</Text>
           ) : (
             filteredLessons.map((lesson) => <LessonCard key={lesson.id} lesson={lesson} />)
           )}
-        </View>
+        </CollapsibleSection>
+
+        <CollapsibleSection
+          title="Discipline details"
+          description="Today’s brief, lesson, and journal loop."
+        >
+          <AcademyDisciplineCard days={discipline.days} today={discipline.today} />
+        </CollapsibleSection>
       </View>
-    </Screen>
+    </ScreenScaffold>
   );
 }

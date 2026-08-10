@@ -4,6 +4,7 @@ import { Pressable, View, type ViewProps } from 'react-native';
 
 import { Text } from '@/shared/components/ui/Text';
 import { useTheme } from '@/shared/hooks/useTheme';
+import { getMinTouchTargetStyle } from '@/shared/utils/accessibility';
 import { cn } from '@/shared/utils/cn';
 
 import { EducationalModeSheet } from './EducationalModeSheet';
@@ -34,10 +35,11 @@ export function EducationalModeBadge({
         accessibilityHint="Explains that TradeVision is educational research, not brokerage or advice"
         testID={testID}
         onPress={() => setSheetOpen(true)}
+        style={getMinTouchTargetStyle()}
         className={cn(
-          'min-h-9 flex-row items-center self-start rounded-pill border px-3',
+          'flex-row items-center self-start rounded-pill border px-3',
           'border-info/25 bg-info-muted',
-          size === 'md' && 'min-h-10 px-3.5',
+          size === 'md' && 'px-3.5',
           className,
         )}
       >

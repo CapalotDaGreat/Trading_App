@@ -163,7 +163,7 @@ function buildBullPoints(input: BuildAiDebateInput): DebateEvidencePoint[] {
   }
   if (regime && (regime.regime === 'trending' || regime.regime === 'risk_on')) {
     points.push(
-      point(`Regime ${regime.label} can favor continuation research`, 'regime', regime.label),
+      point(`Regime ${regime.label} can support continuation research`, 'regime', regime.label),
     );
   }
   if (mtf && mtf.consensus === 'bullish') {
@@ -502,7 +502,7 @@ export function buildAiDebate(input: BuildAiDebateInput): AiDebateResult {
           ? 'High research priority — structure and context justify attention'
           : priority === 'medium'
             ? 'Medium research priority — selective attention only'
-            : 'Low research priority — opportunity cost likely favors other ideas',
+            : 'Low research priority — opportunity cost likely points to other ideas',
       researchValueScore: rvs.score,
       researchValueExplanation: rvs.explanation,
       decisionQualityScore: dqs.score,

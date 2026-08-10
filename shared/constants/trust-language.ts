@@ -21,3 +21,6 @@ export const TRUST_LANGUAGE = {
 
 export const NON_PREDICTION_COPY =
   'Scores describe research priority, process, or evidence quality. They do not predict price direction.';
+
+export const CALM_CASE_RISK_COPY =
+  'Case risk describes how demanding the research case is — not how safe a trade would be.';

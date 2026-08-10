@@ -1,5 +1,6 @@
 import { createDefaultOpsBootstrap, DEFAULT_OPS_FLAGS } from '../../defaults';
 import { evaluateAllFlags, evaluateFlag, uidBucket } from '../evaluate-flag';
+import { normalizeOpsBootstrap } from '../ops-config.service';
 
 describe('feature flag evaluation', () => {
   it('keeps defaults safe for guest/offline', () => {
@@ -36,9 +37,7 @@ describe('feature flag evaluation', () => {
       percentage: 0,
     };
     expect(evaluateFlag(definition, { uid: 'anyone' })).toBe(false);
-    expect(
-      evaluateFlag({ ...definition, percentage: 100 }, { uid: 'anyone' }),
-    ).toBe(true);
+    expect(evaluateFlag({ ...definition, percentage: 100 }, { uid: 'anyone' })).toBe(true);
   });
 
   it('beta flags require beta/internal/development channel', () => {
@@ -48,5 +47,21 @@ describe('feature flag evaluation', () => {
     };
     expect(evaluateFlag(definition, { channel: 'production' })).toBe(false);
     expect(evaluateFlag(definition, { channel: 'beta' })).toBe(true);
+  });
+
+  it('bounds release-critical remote limits and polling intervals', () => {
+    const normalized = normalizeOpsBootstrap({
+      remote: {
+        marketQuotePollMs: 1,
+        marketCandlePollMs: Number.NaN,
+        researchQueueDepthFree: 500,
+        decisionBriefMaxSetups: -4,
+      },
+    });
+
+    expect(normalized.remote.marketQuotePollMs).toBe(10_000);
+    expect(normalized.remote.marketCandlePollMs).toBe(120_000);
+    expect(normalized.remote.researchQueueDepthFree).toBe(100);
+    expect(normalized.remote.decisionBriefMaxSetups).toBe(0);
   });
 });

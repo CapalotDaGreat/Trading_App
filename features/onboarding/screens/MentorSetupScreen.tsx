@@ -9,7 +9,10 @@ import { MentorSetupProgress } from '@/features/onboarding/components/MentorSetu
 import { ResearchUniverseStep } from '@/features/onboarding/components/ResearchUniverseStep';
 import { WhyHint } from '@/features/onboarding/components/WhyHint';
 import { MENTOR_QUESTIONS } from '@/features/onboarding/content/mentor-setup.questions';
-import { finishMentorSetup } from '@/features/onboarding/services/coach-profile.service';
+import {
+  finishMentorSetup,
+  loadCoachProfile,
+} from '@/features/onboarding/services/coach-profile.service';
 import {
   loadMentorSetupDraft,
   mergeDraftAnswers,
@@ -71,9 +74,15 @@ export default function MentorSetupScreen() {
     if (!uid) return;
     let cancelled = false;
     void (async () => {
-      const draft = await loadMentorSetupDraft(uid);
+      const [draft, profile] = await Promise.all([
+        loadMentorSetupDraft(uid),
+        loadCoachProfile(uid),
+      ]);
       if (cancelled) return;
-      const merged = mergeDraftAnswers(draft);
+      const merged = mergeDraftAnswers({
+        ...draft,
+        answers: profile.mentorSetupCompleted ? { ...profile, ...draft.answers } : draft.answers,
+      });
       setAnswers(merged);
       setStep(draft.currentStep || INTRO);
       setIsReady(true);
@@ -140,9 +149,6 @@ export default function MentorSetupScreen() {
       setIsSaving(true);
       try {
         await finishMentorSetup(uid, answers);
-        const { loadCoachProfile } = await import(
-          '@/features/onboarding/services/coach-profile.service'
-        );
         setProfile(await loadCoachProfile(uid));
         router.replace('/(tabs)' as never);
       } catch (err) {

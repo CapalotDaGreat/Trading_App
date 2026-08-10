@@ -1,6 +1,6 @@
-import { Pressable, ScrollView, View } from 'react-native';
+import { ScrollView } from 'react-native';
 
-import { Text } from '@/shared/components/ui/Text';
+import { Chip } from '@/shared/components/ui/Chip';
 import type { CandleInterval } from '@/shared/types/market';
 import { cn } from '@/shared/utils/cn';
 
@@ -16,6 +16,8 @@ export function TimeframeSelector({ value, onChange, className }: TimeframeSelec
   return (
     <ScrollView
       horizontal
+      accessibilityRole="tablist"
+      accessibilityLabel="Chart timeframe"
       showsHorizontalScrollIndicator={false}
       className={cn('flex-row', className)}
       contentContainerClassName="gap-2 px-1"
@@ -23,24 +25,16 @@ export function TimeframeSelector({ value, onChange, className }: TimeframeSelec
       {TIMEFRAME_OPTIONS.map((option) => {
         const isActive = option.value === value;
         return (
-          <Pressable
+          <Chip
             key={option.value}
-            onPress={() => onChange(option.value)}
+            label={option.label}
             accessibilityRole="tab"
             accessibilityLabel={`${option.label} timeframe`}
-            accessibilityState={{ selected: isActive }}
-            className={cn(
-              'min-h-11 justify-center rounded-full px-3.5 py-2',
-              isActive ? 'bg-accent-muted' : 'bg-surface',
-            )}
-          >
-            <Text
-              variant="caption"
-              className={cn('font-semibold', isActive ? 'text-accent' : 'text-text-secondary')}
-            >
-              {option.label}
-            </Text>
-          </Pressable>
+            selected={isActive}
+            tone={isActive ? 'accent' : 'neutral'}
+            onPress={() => onChange(option.value)}
+            className="px-3.5"
+          />
         );
       })}
     </ScrollView>

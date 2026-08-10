@@ -6,18 +6,16 @@ import type { AiLearningMemory } from '../types/ai-trust.types';
  * Privacy-safe AI learning memory — process traits only.
  * No email, name, or account identifiers.
  */
-export async function buildAiLearningMemory(): Promise<AiLearningMemory> {
-  const memory = await loadTraderMemory();
+export async function buildAiLearningMemory(uid?: string | null): Promise<AiLearningMemory> {
+  const memory = await loadTraderMemory(uid);
   const dna = memory.dna;
 
-  const strongest =
-    dna?.bestConditions?.length
-      ? dna.bestConditions.slice(0, 4)
-      : memory.favoriteAssets.slice(0, 4);
-  const weakest =
-    dna?.avoidConditions?.length
-      ? dna.avoidConditions.slice(0, 4)
-      : memory.weakestSetups.slice(0, 4);
+  const strongest = dna?.bestConditions?.length
+    ? dna.bestConditions.slice(0, 4)
+    : memory.favoriteAssets.slice(0, 4);
+  const weakest = dna?.avoidConditions?.length
+    ? dna.avoidConditions.slice(0, 4)
+    : memory.weakestSetups.slice(0, 4);
 
   const learningStyleHint = (() => {
     const style = (dna?.styleLabel ?? memory.tradingStyle).toLowerCase();
@@ -45,11 +43,13 @@ export async function buildAiLearningMemory(): Promise<AiLearningMemory> {
     learningStyleHint,
     strongestMarkets: strongest,
     weakestMarkets: weakest,
-    preferredIndicators: (
-      dna?.preferredIndicators?.length ? dna.preferredIndicators : memory.favoriteIndicators
+    preferredIndicators: (dna?.preferredIndicators?.length
+      ? dna.preferredIndicators
+      : memory.favoriteIndicators
     ).slice(0, 6),
-    commonMistakes: (
-      dna?.commonMistakes?.length ? dna.commonMistakes : memory.typicalMistakes
+    commonMistakes: (dna?.commonMistakes?.length
+      ? dna.commonMistakes
+      : memory.typicalMistakes
     ).slice(0, 5),
     riskTolerance: memory.riskTolerance,
     journalConsistencyHint,

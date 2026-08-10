@@ -67,7 +67,7 @@ describe('review information architecture', () => {
     });
   });
 
-  it('redirects legacy analysis links to the canonical asset Analysis tab', () => {
+  it('redirects legacy analysis links to the canonical asset Advanced tab', () => {
     expect(
       buildLegacyAnalysisRedirect('BRK.B', {
         symbol: 'BRK.B',
@@ -79,7 +79,7 @@ describe('review information architecture', () => {
       pathname: '/asset/[symbol]',
       params: {
         symbol: 'BRK.B',
-        tab: 'analysis',
+        tab: 'advanced',
         legacyTab: 'ai',
         marketType: 'stock',
         source: 'alert',

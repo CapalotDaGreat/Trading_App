@@ -3,7 +3,9 @@ import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useJournal } from '@/features/journal/hooks/useJournal';
 import { DEFAULT_BRIEF_SYMBOLS, MARKET_DATA_POLICY } from '@/features/markets/constants/freshness';
+import { useRemoteConfig } from '@/features/ops-config/hooks/useOpsConfig';
 import { usePortfolio } from '@/features/portfolio/hooks/usePortfolio';
+import { getLimit } from '@/features/subscription/services/entitlement.service';
 import { useWatchlists } from '@/features/watchlists/hooks/useWatchlists';
 
 import {
@@ -50,11 +52,21 @@ export function useDecisionBrief(timeBudgetMinutes = 20, preferredSymbols?: stri
   const { user } = useAuth();
   const { watchlists } = useWatchlists();
   const { summary, holdings } = usePortfolio();
+  const remote = useRemoteConfig();
   const symbols = resolveSymbols(preferredSymbols, watchlists?.[0]?.symbols);
   const key = symbols.slice(0, 8).join(',');
+  const queueDepth = getLimit('researchQueueDepth');
 
   const query = useQuery({
-    queryKey: ['decision', 'brief', key, timeBudgetMinutes, user?.uid] as const,
+    queryKey: [
+      'decision',
+      'brief',
+      key,
+      timeBudgetMinutes,
+      user?.uid,
+      remote.decisionBriefMaxSetups,
+      queueDepth,
+    ] as const,
     queryFn: async (): Promise<DecisionBrief> =>
       buildDecisionBrief({
         watchlistSymbols: symbols,
@@ -62,6 +74,8 @@ export function useDecisionBrief(timeBudgetMinutes = 20, preferredSymbols?: stri
         portfolioSymbols: holdings.map((h) => h.symbol),
         uid: user?.uid,
         timeBudgetMinutes,
+        decisionBriefMaxSetups: remote.decisionBriefMaxSetups,
+        researchQueueDepth: queueDepth < 0 ? undefined : queueDepth,
       }),
     staleTime: MARKET_DATA_POLICY.briefStaleMs,
     refetchInterval: MARKET_DATA_POLICY.briefRefetchMs,
@@ -120,9 +134,10 @@ export function useMtfConsensus(symbol: string, options?: { enabled?: boolean })
 }
 
 export function useTraderMemory() {
+  const { user } = useAuth();
   return useQuery({
-    queryKey: ['decision', 'memory'] as const,
-    queryFn: async (): Promise<TraderMemory> => loadTraderMemory(),
+    queryKey: ['decision', 'memory', user?.uid ?? 'guest'] as const,
+    queryFn: async (): Promise<TraderMemory> => loadTraderMemory(user?.uid),
     staleTime: 60_000,
   });
 }

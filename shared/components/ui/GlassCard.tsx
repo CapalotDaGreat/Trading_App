@@ -1,7 +1,7 @@
 import { type ReactNode } from 'react';
-import { View, type ViewProps } from 'react-native';
+import { type ViewProps } from 'react-native';
 
-import { cn } from '@/shared/utils/cn';
+import { Surface } from '@/shared/components/ui/Surface';
 
 interface GlassCardProps extends ViewProps {
   children: ReactNode;
@@ -31,19 +31,16 @@ export function GlassCard({
   ...props
 }: GlassCardProps) {
   return (
-    <View
-      className={cn(
-        'overflow-hidden rounded-panel',
-        glow
-          ? 'border border-border-accent bg-accent-muted'
-          : 'bg-background-elevated',
-        bordered && !glow && 'border border-border',
-        className,
-      )}
+    <Surface
+      level="raised"
+      padding="none"
+      tone={glow ? 'accent' : 'default'}
+      emphasis={glow || bordered ? 'outlined' : 'quiet'}
+      className={glow ? `border-border-accent ${className ?? ''}` : className}
       style={style}
       {...props}
     >
       {children}
-    </View>
+    </Surface>
   );
 }

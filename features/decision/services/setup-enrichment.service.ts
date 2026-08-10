@@ -63,7 +63,7 @@ export function buildSetupResearchChecklist(setup: SetupCardData): ResearchCheck
   return [
     { id: 'trend', label: 'Trend', done: hasTrend || setup.bias !== 'neutral' },
     { id: 'catalyst', label: 'Catalyst / structure', done: hasMomentum || setup.why.length >= 2 },
-    { id: 'entry', label: 'Entry confirmation', done: confirmed && setup.confidence >= 65 },
+    { id: 'entry', label: 'Structure confirmation', done: confirmed && setup.confidence >= 65 },
     { id: 'risk', label: 'Risk defined', done: hasRisk },
   ];
 }

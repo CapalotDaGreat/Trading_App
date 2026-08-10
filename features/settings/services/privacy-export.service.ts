@@ -4,7 +4,10 @@ import { useAcademyProgressStore } from '@/features/academy/stores/academy-progr
 import { getDecisionRecords } from '@/features/decision-log/services/decision-log.service';
 import { useDecisionPassportStore } from '@/features/decision-passport/stores/passport.store';
 import { loadTraderMemory } from '@/features/decision/services/trader-intelligence.service';
-import { exportJournalToJson, getJournalEntries } from '@/features/journal/services/journal.service';
+import {
+  exportJournalToJson,
+  getJournalEntries,
+} from '@/features/journal/services/journal.service';
 import { settingsService } from '@/features/settings/services/settings.service';
 import { DEMO_USER_UID } from '@/firebase/config';
 
@@ -41,7 +44,7 @@ export async function buildPrivacyDataExport(input: {
   const [journalEntries, decisionLog, traderMemory] = await Promise.all([
     getJournalEntries(uid).catch(() => []),
     getDecisionRecords(uid, 200).catch(() => []),
-    loadTraderMemory(),
+    loadTraderMemory(uid),
   ]);
 
   const lessons = useAcademyProgressStore.getState().lessons;

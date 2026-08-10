@@ -122,12 +122,15 @@ function mapActivationGoal(answers: CoachProfileAnswers): ActivationGoal {
 }
 
 function normalizeUniverse(symbols: string[]): string[] {
-  return [
-    ...new Set(symbols.map((s) => s.trim().toUpperCase()).filter(Boolean)),
-  ].slice(0, RESEARCH_UNIVERSE_MAX);
+  return [...new Set(symbols.map((s) => s.trim().toUpperCase()).filter(Boolean))].slice(
+    0,
+    RESEARCH_UNIVERSE_MAX,
+  );
 }
 
-export function validateCoachAnswersForCompletion(answers: CoachProfileAnswers): CoachProfileAnswers {
+export function validateCoachAnswersForCompletion(
+  answers: CoachProfileAnswers,
+): CoachProfileAnswers {
   if (!answers.motive) throw new Error('Choose why you are trading.');
   if (!answers.experience) throw new Error('Choose your experience level.');
   if (!answers.markets.length) throw new Error('Select at least one market.');
@@ -148,72 +151,59 @@ export function validateCoachAnswersForCompletion(answers: CoachProfileAnswers):
   return { ...answers, researchUniverse };
 }
 
-/** Maps mentor budgets onto legacy completion budgets (10/20/30/45). */
-function legacyBudget(minutes: ResearchBudgetMinutes): 10 | 20 | 30 | 45 {
-  if (minutes <= 5) return 10;
-  if (minutes <= 10) return 10;
-  if (minutes <= 20) return 20;
-  if (minutes <= 30) return 30;
-  return 45;
+function normalizeCoachProfile(uid: string, data: Partial<CoachProfile>): CoachProfile {
+  const answers: CoachProfileAnswers = {
+    ...EMPTY_COACH_ANSWERS,
+    ...data,
+    markets: data.markets ?? [],
+    styles: data.styles ?? [],
+    struggles: data.struggles ?? [],
+    successDefinitions: data.successDefinitions ?? [],
+    researchUniverse: data.researchUniverse ?? [],
+  };
+  return {
+    ...buildEmptyCoachProfile(uid),
+    ...data,
+    ...answers,
+    ...deriveCoachProfile(answers),
+    uid,
+  };
 }
 
 export async function loadCoachProfile(uid: string): Promise<CoachProfile> {
   if (!uid) return buildEmptyCoachProfile('');
+  let local: CoachProfile | null = null;
   try {
     const raw = await AsyncStorage.getItem(coachProfileStorageKey(uid));
     if (raw) {
-      const parsed = JSON.parse(raw) as CoachProfile;
-      const answers: CoachProfileAnswers = {
-        ...EMPTY_COACH_ANSWERS,
-        ...parsed,
-        markets: parsed.markets ?? [],
-        styles: parsed.styles ?? [],
-        struggles: parsed.struggles ?? [],
-        successDefinitions: parsed.successDefinitions ?? [],
-        researchUniverse: parsed.researchUniverse ?? [],
-      };
-      return {
-        ...buildEmptyCoachProfile(uid),
-        ...parsed,
-        ...answers,
-        ...deriveCoachProfile(answers),
-        uid,
-      };
+      local = normalizeCoachProfile(uid, JSON.parse(raw) as CoachProfile);
     }
   } catch {
-    // fall through
+    local = null;
   }
 
+  let remote: CoachProfile | null = null;
   if (canUseFirestore(uid)) {
     try {
       const snap = await getDoc(doc(requireDb(), 'users', uid));
       const data = snap.data()?.coachProfile as CoachProfile | undefined;
       if (data) {
-        const answers: CoachProfileAnswers = {
-          ...EMPTY_COACH_ANSWERS,
-          ...data,
-          markets: data.markets ?? [],
-          styles: data.styles ?? [],
-          struggles: data.struggles ?? [],
-          successDefinitions: data.successDefinitions ?? [],
-          researchUniverse: data.researchUniverse ?? [],
-        };
-        const profile: CoachProfile = {
-          ...buildEmptyCoachProfile(uid),
-          ...data,
-          ...answers,
-          ...deriveCoachProfile(answers),
-          uid,
-        };
-        await AsyncStorage.setItem(coachProfileStorageKey(uid), JSON.stringify(profile));
-        return profile;
+        remote = normalizeCoachProfile(uid, data);
       }
     } catch {
-      // local empty
+      remote = null;
     }
   }
 
-  return buildEmptyCoachProfile(uid);
+  const profile =
+    remote && (!local || remote.updatedAt > local.updatedAt)
+      ? remote
+      : (local ?? remote ?? buildEmptyCoachProfile(uid));
+  await saveCoachProfileLocal(profile);
+  if (local && profile === local && (!remote || local.updatedAt > remote.updatedAt)) {
+    await syncCoachProfileRemote(local).catch(() => undefined);
+  }
+  return profile;
 }
 
 export async function saveCoachProfileLocal(profile: CoachProfile): Promise<void> {
@@ -261,7 +251,7 @@ export async function persistCoachPersonalization(
     updatedAt: now,
   };
 
-  const budget = legacyBudget(normalized.timeBudgetMinutes ?? 20);
+  const budget = normalized.timeBudgetMinutes ?? 20;
   const activationGoal = mapActivationGoal(normalized);
 
   useSettingsStore.getState().setPreferences({
@@ -275,8 +265,7 @@ export async function persistCoachPersonalization(
   useSettingsStore.getState().setMentorSetupCompleted(true);
 
   const watchlists = await getWatchlists(uid);
-  const list =
-    watchlists.find((item) => item.name === RESEARCH_UNIVERSE_LIST) ?? watchlists[0];
+  const list = watchlists.find((item) => item.name === RESEARCH_UNIVERSE_LIST) ?? watchlists[0];
   if (list) {
     await updateWatchlist(uid, list.id, { symbols: normalized.researchUniverse });
   } else {
@@ -287,26 +276,29 @@ export async function persistCoachPersonalization(
   }
 
   const styleLabel = normalized.styles[0] ?? 'swing';
-  await saveTraderMemory({
-    favoriteAssets: normalized.researchUniverse,
-    tradingStyle: styleLabel,
-    typicalMistakes: normalized.struggles.map((s) => TRADING_STRUGGLE_LABELS[s]).slice(0, 6),
-    notes: [
-      `Coach tone: ${normalized.coachTone}`,
-      `Research window: ${normalized.researchTimeOfDay}`,
-      `Markets: ${derived.primaryMarketsLabel}`,
-      ...(derived.focusStruggle
-        ? [`Focus: ${TRADING_STRUGGLE_LABELS[derived.focusStruggle]}`]
-        : []),
-    ],
-    coachTone: normalized.coachTone ?? undefined,
-    markets: normalized.markets,
-    struggles: normalized.struggles,
-    researchTimeOfDay: normalized.researchTimeOfDay ?? undefined,
-    successDefinitions: normalized.successDefinitions,
-    tradeFrequency: normalized.frequency ?? undefined,
-    tradingMotive: normalized.motive ?? undefined,
-  });
+  await saveTraderMemory(
+    {
+      favoriteAssets: normalized.researchUniverse,
+      tradingStyle: styleLabel,
+      typicalMistakes: normalized.struggles.map((s) => TRADING_STRUGGLE_LABELS[s]).slice(0, 6),
+      notes: [
+        `Coach tone: ${normalized.coachTone}`,
+        `Research window: ${normalized.researchTimeOfDay}`,
+        `Markets: ${derived.primaryMarketsLabel}`,
+        ...(derived.focusStruggle
+          ? [`Focus: ${TRADING_STRUGGLE_LABELS[derived.focusStruggle]}`]
+          : []),
+      ],
+      coachTone: normalized.coachTone ?? undefined,
+      markets: normalized.markets,
+      struggles: normalized.struggles,
+      researchTimeOfDay: normalized.researchTimeOfDay ?? undefined,
+      successDefinitions: normalized.successDefinitions,
+      tradeFrequency: normalized.frequency ?? undefined,
+      tradingMotive: normalized.motive ?? undefined,
+    },
+    uid,
+  );
 
   await saveCoachProfileLocal(profile);
   await syncCoachProfileRemote(profile);
@@ -316,7 +308,7 @@ export async function persistCoachPersonalization(
 
 export async function finishMentorSetup(uid: string, answers: CoachProfileAnswers): Promise<void> {
   const profile = await persistCoachPersonalization(uid, answers);
-  const budget = legacyBudget(profile.timeBudgetMinutes ?? 20);
+  const budget = profile.timeBudgetMinutes ?? 20;
   await completeOnboarding(uid, {
     timeBudgetMinutes: budget,
     activationGoal: mapActivationGoal(profile),
@@ -326,7 +318,10 @@ export async function finishMentorSetup(uid: string, answers: CoachProfileAnswer
   useSettingsStore.getState().setMentorSetupCompleted(true);
 }
 
-export function shouldShowMentorSetupInvite(profile: CoachProfile, hasCompletedOnboarding: boolean): boolean {
+export function shouldShowMentorSetupInvite(
+  profile: CoachProfile,
+  hasCompletedOnboarding: boolean,
+): boolean {
   if (!hasCompletedOnboarding) return false;
   if (profile.mentorSetupCompleted) return false;
   if (profile.mentorSetupInviteDismissedAt) return false;

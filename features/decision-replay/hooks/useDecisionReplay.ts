@@ -15,8 +15,7 @@ export const decisionReplayKeys = {
   all: ['decision-replay'] as const,
   session: (uid: string | undefined, range: ReplayRange, symbol?: string) =>
     ['decision-replay', 'session', uid ?? 'guest', range, symbol ?? 'all'] as const,
-  gameTape: (uid: string | undefined) =>
-    ['decision-replay', 'game-tape', uid ?? 'guest'] as const,
+  gameTape: (uid: string | undefined) => ['decision-replay', 'game-tape', uid ?? 'guest'] as const,
 };
 
 export function useDecisionReplaySession(range: ReplayRange, symbol?: string) {
@@ -28,10 +27,8 @@ export function useDecisionReplaySession(range: ReplayRange, symbol?: string) {
     queryFn: async () => {
       const [records, memory, journals] = await Promise.all([
         getDecisionRecords(uid, 200),
-        loadTraderMemory(),
-        uid
-          ? getJournalEntries(uid).catch(() => [])
-          : Promise.resolve([]),
+        loadTraderMemory(uid),
+        uid ? getJournalEntries(uid).catch(() => []) : Promise.resolve([]),
       ]);
       return buildDecisionReplaySession({
         records,
@@ -54,10 +51,8 @@ export function useWeeklyGameTape() {
     queryFn: async () => {
       const [records, memory, journals] = await Promise.all([
         getDecisionRecords(uid, 200),
-        loadTraderMemory(),
-        uid
-          ? getJournalEntries(uid).catch(() => [])
-          : Promise.resolve([]),
+        loadTraderMemory(uid),
+        uid ? getJournalEntries(uid).catch(() => []) : Promise.resolve([]),
       ]);
       return buildWeeklyGameTape(records, journals, memory);
     },

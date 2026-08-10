@@ -49,7 +49,7 @@ export function LabCritiqueCard({ critique }: { critique: LabAiCritique }) {
       </Text>
       <Text variant="h3" className={`mb-2 ${tone}`}>
         {critique.overall === 'ready'
-          ? 'Ready for Lab practice'
+          ? 'Process checks clear for Lab practice'
           : critique.overall === 'caution'
             ? 'Caution'
             : 'Blocked'}

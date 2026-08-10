@@ -2,10 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 
 import { useAcademyProgressStore } from '@/features/academy/stores/academy-progress.store';
-import {
-  useNextAcademyLesson,
-  useAcademy,
-} from '@/features/academy/hooks/useAcademy';
+import { useNextAcademyLesson, useAcademy } from '@/features/academy/hooks/useAcademy';
 import { buildDecisionDebt } from '@/features/decision/services/decision-os.service';
 import {
   useDecisionBrief,
@@ -36,6 +33,7 @@ export const tradingMentorKeys = {
  */
 export function useTradingMentor() {
   const timeBudgetMinutes = useSettingsStore(selectTodayTimeBudget);
+  const coachProfile = useCoachProfileStore((state) => state.profile);
   const briefQuery = useDecisionBrief(timeBudgetMinutes);
   const { summary: logSummary } = useDecisionLog();
   const journalCoachQuery = useJournalCoach();
@@ -50,8 +48,7 @@ export function useTradingMentor() {
   const { alerts } = useAlerts();
   const debt = useMemo(() => {
     const queueLen = briefQuery.data?.researchQueue?.length ?? 0;
-    const replayCompletions =
-      records?.filter((r) => r.action === 'replay_completed').length ?? 0;
+    const replayCompletions = records?.filter((r) => r.action === 'replay_completed').length ?? 0;
     const researched = logSummary?.researched ?? 0;
     const unfinishedReplay = Math.max(0, Math.min(3, researched - replayCompletions));
     const ignoredAlerts = alerts.filter((a) => !a.isActive && !a.triggeredAt).length;
@@ -62,7 +59,14 @@ export function useTradingMentor() {
       unfinishedReplay,
       ignoredAlerts,
     });
-  }, [briefQuery.data?.researchQueue?.length, logSummary, practicedCount, totalCount, records, alerts]);
+  }, [
+    briefQuery.data?.researchQueue?.length,
+    logSummary,
+    practicedCount,
+    totalCount,
+    records,
+    alerts,
+  ]);
   const { recommendation: academyRecommendation } = useNextAcademyLesson({
     memory: memoryQuery.data,
     debt,
@@ -89,6 +93,8 @@ export function useTradingMentor() {
     academyRecommendation?.lesson.id ?? 'none',
     labStats.tradesClosed,
     academyStreakDays,
+    coachProfile?.uid ?? 'none',
+    coachProfile?.updatedAt ?? 0,
   ].join(':');
 
   const query = useQuery({
@@ -106,7 +112,7 @@ export function useTradingMentor() {
         risk: riskQuery.data,
         streak: { ...streak, days: learningDays },
         academyRecommendation: academyRecommendation ?? null,
-        coachProfile: useCoachProfileStore.getState().profile,
+        coachProfile,
       });
     },
     enabled: Boolean(briefQuery.data || logSummary || journalCoachQuery.data),

@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { View, type ViewProps } from 'react-native';
 import Animated, {
+  cancelAnimation,
   useAnimatedStyle,
   useSharedValue,
   withRepeat,
@@ -38,10 +39,12 @@ export function Skeleton({
 
   useEffect(() => {
     if (reduceMotion) {
+      cancelAnimation(opacity);
       opacity.value = 0.55;
-      return;
+      return () => cancelAnimation(opacity);
     }
     opacity.value = withRepeat(withTiming(0.72, { duration: 1200 }), -1, true);
+    return () => cancelAnimation(opacity);
   }, [opacity, reduceMotion]);
 
   const animatedStyle = useAnimatedStyle(() => ({

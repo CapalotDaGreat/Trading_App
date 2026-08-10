@@ -32,6 +32,7 @@ jest.mock('../market-proxy.service', () => ({
 import { apiRequest, ApiError } from '@/shared/services/api/api-client';
 
 import { fetchCandlesWithMetadata } from '../market-data.service';
+import { MarketDataUnavailableError } from '../market-data.service';
 
 const mockedApiRequest = apiRequest as jest.MockedFunction<typeof apiRequest>;
 
@@ -94,5 +95,18 @@ describe('market data provenance', () => {
     expect(result.kind).toBe('sample');
     expect(result.candles.length).toBe(40);
     expect(result.candles[0]?.timestamp).toBeLessThan(result.candles.at(-1)!.timestamp);
+  });
+
+  it('fails closed when genuine FX OHLC is unavailable', async () => {
+    mockedApiRequest.mockRejectedValue(new ApiError('Forbidden', 403));
+
+    await expect(
+      fetchCandlesWithMetadata({
+        symbol: 'EUR/USD',
+        marketType: 'forex',
+        interval: '1d',
+        limit: 40,
+      }),
+    ).rejects.toBeInstanceOf(MarketDataUnavailableError);
   });
 });

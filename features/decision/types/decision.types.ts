@@ -1,3 +1,5 @@
+import type { DataSourceKind, MarketDataProvider } from '@/features/markets/constants/data-source';
+
 export type DecisionBias = 'bullish' | 'bearish' | 'neutral';
 export type ImpactLevel = 'low' | 'medium' | 'high';
 export type SetupStatus = 'watching' | 'forming' | 'confirmed' | 'invalidated';
@@ -23,6 +25,14 @@ export interface Explainability {
   freshness: 'live' | 'recent' | 'stale' | 'unknown';
   reasoning: string;
   counterfactuals?: ExplainabilityCounterfactual[];
+}
+
+export interface DecisionProvenance {
+  kind: DataSourceKind;
+  providers: MarketDataProvider[];
+  /** Oldest decision-critical observation, not UI render time. */
+  asOf: number;
+  includesSample: boolean;
 }
 
 export interface ResearchChecklistItem {
@@ -71,6 +81,7 @@ export interface SetupCardData {
   missingConfirmations?: string[];
   alternativeSymbols?: string[];
   convictionDrift?: ConvictionDriftSnapshot;
+  provenance?: DecisionProvenance;
 }
 
 export interface FocusSummary {
@@ -170,6 +181,7 @@ export interface DecisionBrief {
   suggestResearch: string[];
   explainability: Explainability;
   quotesFetchedAt: number;
+  provenance?: DecisionProvenance;
   startHereSymbol?: string;
   processScoreWeek?: number;
   calendarSource?: 'finnhub' | 'mock' | 'rss';

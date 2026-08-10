@@ -12,6 +12,8 @@ import {
 } from 'firebase/firestore';
 
 import { requireDb } from '@/firebase/config';
+import { getLimit } from '@/features/subscription/services/entitlement.service';
+import { hasReachedLimit, type SubscriptionTier } from '@/shared/constants/subscription';
 import { getLocalUserRepository, resolveUserDataBackend } from '@/shared/services/user-data';
 
 import type {
@@ -160,7 +162,16 @@ export async function getHoldings(uid: string): Promise<Holding[]> {
   return snapshot.docs.map((docSnap) => toHolding(docSnap.id, docSnap.data()));
 }
 
-export async function createHolding(uid: string, input: CreateHoldingInput): Promise<Holding> {
+export async function createHolding(
+  uid: string,
+  input: CreateHoldingInput,
+  tier: SubscriptionTier = 'free',
+): Promise<Holding> {
+  const holdings = await getHoldings(uid);
+  const limit = getLimit('portfolioPositions', tier);
+  if (hasReachedLimit(holdings.length, limit)) {
+    throw new Error(`Portfolio position limit reached (${limit}).`);
+  }
   const now = new Date().toISOString();
   const data: HoldingDocument = {
     symbol: input.symbol.toUpperCase().trim(),

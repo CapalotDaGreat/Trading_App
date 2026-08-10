@@ -1,5 +1,7 @@
 import type { CandleInterval, MarketType, Quote } from '@/shared/types/market';
 
+import type { DataSourceKind, MarketDataProvider, MarketDataProvenance } from './data-source';
+
 /** Polling / freshness policy for live market data across the app. */
 export const MARKET_DATA_POLICY = {
   quoteStaleMs: 10_000,
@@ -44,14 +46,36 @@ export function freshnessLabel(level: DataFreshnessLevel): string {
 
 export interface LiveQuote extends Quote {
   fetchedAt: number;
+  observedAt: number;
   marketType: MarketType;
+  provider: MarketDataProvider;
+  dataSourceKind: DataSourceKind;
 }
 
-export function withFetchedAt(quote: Quote, marketType: MarketType): LiveQuote {
+export function oldestTimestamp(timestamps: (number | null | undefined)[]): number | undefined {
+  const valid = timestamps.filter(
+    (value): value is number => typeof value === 'number' && Number.isFinite(value) && value > 0,
+  );
+  return valid.length ? Math.min(...valid) : undefined;
+}
+
+export function quoteObservedAt(quote: Quote, fetchedAt: number): number {
+  return oldestTimestamp([quote.timestamp, fetchedAt]) ?? fetchedAt;
+}
+
+export function withFetchedAt(
+  quote: Quote,
+  marketType: MarketType,
+  provenance?: MarketDataProvenance,
+): LiveQuote {
+  const fetchedAt = provenance?.fetchedAt ?? quote.timestamp;
   return {
     ...quote,
-    fetchedAt: Date.now(),
+    fetchedAt,
+    observedAt: quoteObservedAt(quote, fetchedAt),
     marketType,
+    provider: provenance?.provider ?? 'sample',
+    dataSourceKind: provenance?.kind ?? 'sample',
   };
 }
 

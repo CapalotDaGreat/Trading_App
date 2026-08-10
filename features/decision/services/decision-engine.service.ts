@@ -8,12 +8,14 @@ import {
 import {
   CORE_BENCHMARKS,
   MARKET_DATA_POLICY,
+  oldestTimestamp,
   withFetchedAt,
   type LiveQuote,
 } from '@/features/markets/constants/freshness';
+import type { DataSourceKind, MarketDataProvider } from '@/features/markets/constants/data-source';
 import {
   buildAssetFromSymbol,
-  fetchCandles,
+  fetchCandlesWithMetadata,
   fetchFearGreedIndex,
   fetchQuoteWithMetadata,
 } from '@/features/markets/services/market-data.service';
@@ -24,6 +26,7 @@ import type { Candle, Quote } from '@/shared/types/market';
 import type {
   DecisionBias,
   DecisionBrief,
+  DecisionProvenance,
   ImpactLevel,
   MarketRegime,
   MtfConsensus,
@@ -63,6 +66,29 @@ function round(n: number, d = 2): number {
   return Math.round(n * f) / f;
 }
 
+const SOURCE_TRUST_ORDER: DataSourceKind[] = ['live', 'delayed', 'approximate', 'sample', 'mock'];
+
+function aggregateProvenance(
+  inputs: { kind: DataSourceKind; provider: MarketDataProvider; asOf: number }[],
+): DecisionProvenance {
+  if (!inputs.length) {
+    return { kind: 'sample', providers: ['sample'], asOf: 0, includesSample: true };
+  }
+  const kind = inputs.reduce<DataSourceKind>(
+    (worst, input) =>
+      SOURCE_TRUST_ORDER.indexOf(input.kind) > SOURCE_TRUST_ORDER.indexOf(worst)
+        ? input.kind
+        : worst,
+    'live',
+  );
+  return {
+    kind,
+    providers: [...new Set(inputs.map((input) => input.provider))],
+    asOf: oldestTimestamp(inputs.map((input) => input.asOf)) ?? 0,
+    includesSample: inputs.some((input) => input.kind === 'sample' || input.kind === 'mock'),
+  };
+}
+
 /** Keep optional vendor probes from blocking the Today brief indefinitely. */
 function withBudget<T>(promise: Promise<T>, ms: number, fallback: T): Promise<T> {
   return new Promise<T>((resolve) => {
@@ -88,10 +114,9 @@ async function safeQuotes(symbols: string[]): Promise<LiveQuote[]> {
       ): result is PromiseFulfilledResult<Awaited<ReturnType<typeof fetchQuoteWithMetadata>>> =>
         result.status === 'fulfilled',
     )
-    .map(({ value }) => ({
-      ...withFetchedAt(value.quote, buildAssetFromSymbol(value.quote.symbol).marketType),
-      fetchedAt: value.fetchedAt,
-    }));
+    .map(({ value }) =>
+      withFetchedAt(value.quote, buildAssetFromSymbol(value.quote.symbol).marketType, value),
+    );
 }
 
 function avgChange(quotes: Quote[]): number {
@@ -112,7 +137,13 @@ export async function detectRegime(prefetchedQuotes?: LiveQuote[]): Promise<Regi
     benchmarkQuotes?.length
       ? Promise.resolve(benchmarkQuotes)
       : withBudget(safeQuotes([...CORE_BENCHMARKS]), 6_000, []),
-    withBudget(fetchFearGreedIndex().then((v) => v).catch(() => null), 3_000, null),
+    withBudget(
+      fetchFearGreedIndex()
+        .then((v) => v)
+        .catch(() => null),
+      3_000,
+      null,
+    ),
   ]);
 
   const avg = avgChange(quotes);
@@ -159,7 +190,8 @@ export async function detectRegime(prefetchedQuotes?: LiveQuote[]): Promise<Regi
     trending: { best: ['Pullback entries with trend', 'Swing'], avoid: ['Counter-trend picks'] },
   };
 
-  const asOf = Date.now();
+  const asOf =
+    oldestTimestamp([...quotes.map((quote) => quote.observedAt), fearGreed?.timestamp]) ?? 0;
   const factors = [
     {
       label: 'Benchmark average change',
@@ -174,7 +206,7 @@ export async function detectRegime(prefetchedQuotes?: LiveQuote[]): Promise<Regi
     {
       label: 'Quote freshness',
       agrees: quotes.every((q) => Date.now() - q.fetchedAt < MARKET_DATA_POLICY.maxQuoteAgeMs),
-      detail: quotes.length ? `${quotes.length} live quotes` : 'Using delayed/fallback quotes',
+      detail: quotes.length ? `${quotes.length} sourced quotes` : 'Quote inputs unavailable',
     },
   ];
 
@@ -192,7 +224,7 @@ export async function detectRegime(prefetchedQuotes?: LiveQuote[]): Promise<Regi
       confidence: 55 + Math.min(30, absAvg * 20),
       factors,
       dataAsOf: asOf,
-      reasoning: `Regime classified as ${labelMap[regime]} from live benchmark moves and sentiment.`,
+      reasoning: `Regime classified as ${labelMap[regime]} from sourced benchmark moves and sentiment.`,
     }),
   };
 }
@@ -203,7 +235,13 @@ async function analyzeSymbolSetup(
 ): Promise<{ setup: SetupCardData; lastCandle: Candle } | null> {
   try {
     const marketType = buildAssetFromSymbol(symbol).marketType;
-    const candles = await fetchCandles({ symbol, marketType, interval: '1d', limit: 90 });
+    const candleResult = await fetchCandlesWithMetadata({
+      symbol,
+      marketType,
+      interval: '1d',
+      limit: 90,
+    });
+    const candles = candleResult.candles;
     if (candles.length < 30) return null;
 
     const analysis = analyzeChart(candles);
@@ -234,7 +272,29 @@ async function analyzeSymbolSetup(
             : 'Bearish structure watch'
           : 'Range / wait';
 
-    const asOf = Date.now();
+    const asOf =
+      oldestTimestamp([
+        candleResult.fetchedAt,
+        candles[candles.length - 1]?.timestamp,
+        quote?.observedAt,
+      ]) ?? 0;
+    const provenance = aggregateProvenance([
+      {
+        kind: candleResult.kind,
+        provider: candleResult.provider,
+        asOf:
+          oldestTimestamp([candleResult.fetchedAt, candles[candles.length - 1]?.timestamp]) ?? 0,
+      },
+      ...(quote
+        ? [
+            {
+              kind: quote.dataSourceKind,
+              provider: quote.provider,
+              asOf: quote.observedAt,
+            },
+          ]
+        : []),
+    ]);
     const setup: SetupCardData = {
       id: `${symbol}-${asOf}`,
       symbol,
@@ -259,6 +319,7 @@ async function analyzeSymbolSetup(
           : undefined,
       lastPrice: quote?.price ?? last.close,
       changePercent: quote?.changePercent,
+      provenance,
       explainability: buildExplainability({
         confidence: Math.max(40, confidence),
         factors: [
@@ -356,8 +417,10 @@ async function buildDecisionBriefInternal(input?: {
   portfolioSymbols?: string[];
   uid?: string | null;
   timeBudgetMinutes?: number;
+  decisionBriefMaxSetups?: number;
+  researchQueueDepth?: number;
 }): Promise<DecisionBrief> {
-  const memory = await loadTraderMemory();
+  const memory = await loadTraderMemory(input?.uid);
   const portfolioSyms = input?.portfolioSymbols ?? [];
   const watch = input?.watchlistSymbols?.length
     ? [...new Set([...input.watchlistSymbols, ...memory.favoriteAssets, ...portfolioSyms])].slice(
@@ -385,11 +448,11 @@ async function buildDecisionBriefInternal(input?: {
       liquidity: 'medium' as const,
       bestStrategies: ['Mean reversion', 'Support/resistance fades'],
       avoidStrategies: ['Breakout chasing'],
-      asOf: Date.now(),
+      asOf: 0,
       explainability: buildExplainability({
         confidence: 40,
         factors: [],
-        dataAsOf: Date.now(),
+        dataAsOf: 0,
         reasoning: 'Regime probe timed out — using neutral range assumption.',
       }),
     }),
@@ -402,15 +465,11 @@ async function buildDecisionBriefInternal(input?: {
       6_000,
       [],
     ),
-    withBudget(
-      fetchFinancialNews({ pageSize: 4 }),
-      6_000,
-      {
-        articles: [],
-        totalResults: 0,
-        source: 'rss' as const,
-      },
-    ),
+    withBudget(fetchFinancialNews({ pageSize: 4 }), 6_000, {
+      articles: [],
+      totalResults: 0,
+      source: 'rss' as const,
+    }),
     withBudget(buildSetupRadar(watch, quotes), 12_000, []),
     withBudget(getDecisionRecords(input?.uid), 4_000, []),
   ]);
@@ -434,7 +493,7 @@ async function buildDecisionBriefInternal(input?: {
           impact: (i === 0 ? 'high' : 'medium') as ImpactLevel,
         }));
 
-  const quotesFetchedAt = Math.max(...quotes.map((q) => q.fetchedAt), Date.now());
+  const quotesFetchedAt = oldestTimestamp(quotes.map((quote) => quote.observedAt)) ?? 0;
   const budget = input?.timeBudgetMinutes ?? 20;
 
   const enrichedSetups = setups.map((setup) => {
@@ -480,7 +539,8 @@ async function buildDecisionBriefInternal(input?: {
     (a, b) => (b.researchValueScore ?? b.confidence) - (a.researchValueScore ?? a.confidence),
   );
 
-  const topSetups = enrichedSetups.slice(0, 3);
+  const briefSetupLimit = Math.max(0, Math.min(10, input?.decisionBriefMaxSetups ?? 3));
+  const topSetups = enrichedSetups.slice(0, briefSetupLimit);
   const priorities = prioritizeResearch(
     {
       greeting: '',
@@ -500,10 +560,12 @@ async function buildDecisionBriefInternal(input?: {
     enrichedSetups,
     budget,
   );
-  const timeBudgetPick = priorities.map((p) => p.symbol);
+  const queueDepth = Math.max(0, input?.researchQueueDepth ?? priorities.length);
+  const limitedPriorities = priorities.slice(0, queueDepth);
+  const timeBudgetPick = limitedPriorities.map((p) => p.symbol);
 
   const startSymbol = timeBudgetPick[0] ?? topSetups[0]?.symbol;
-  const researchQueue = buildResearchQueue(priorities);
+  const researchQueue = buildResearchQueue(limitedPriorities);
   const estimatedResearchMinutes = researchQueue.reduce((s, q) => s + q.estimatedMinutes, 0);
   const risks = enrichedSetups.filter(
     (s) => s.risk === 'high' || s.status === 'invalidated' || (s.whyNot?.reasons.length ?? 0) >= 2,
@@ -540,7 +602,7 @@ async function buildDecisionBriefInternal(input?: {
     ? `${regime.label} tape. ${fatigue.message}`
     : topSetups.length > 0
       ? `${regime.label} tape. ${topSetups.length} setup${topSetups.length === 1 ? '' : 's'} deserve research — start with ${startSymbol} (RVS ${topSetups[0]?.researchValueScore ?? '—'}).`
-      : `${regime.label} tape. No high-quality setups yet — reduce forcing trades and wait for clearer structure.`;
+      : `${regime.label} tape. No high-quality research candidates yet — wait for clearer structure instead of inventing urgency.`;
 
   const memoryBoost = memory.bestSetups.length
     ? topSetups.filter((s) =>
@@ -556,6 +618,23 @@ async function buildDecisionBriefInternal(input?: {
       ...topSetups.slice(0, 2).map((s) => s.symbol),
     ]),
   ].slice(0, 3);
+  const provenanceInputs = [
+    ...quotes.map((quote) => ({
+      kind: quote.dataSourceKind,
+      provider: quote.provider,
+      asOf: quote.observedAt,
+    })),
+    ...enrichedSetups.flatMap((setup) =>
+      setup.provenance
+        ? setup.provenance.providers.map((provider) => ({
+            kind: setup.provenance!.kind,
+            provider,
+            asOf: setup.provenance!.asOf,
+          }))
+        : [],
+    ),
+  ];
+  const provenance = aggregateProvenance(provenanceInputs);
 
   const draftBrief = {
     greeting: greetingForNow(),
@@ -573,6 +652,7 @@ async function buildDecisionBriefInternal(input?: {
     suggestResearch,
     explainability: regime.explainability,
     quotesFetchedAt,
+    provenance,
     startHereSymbol: startSymbol,
     processScoreWeek: logSummary.processScore,
     calendarSource: (calendarEvents.length
@@ -607,6 +687,8 @@ export function buildDecisionBrief(input?: {
   portfolioSymbols?: string[];
   uid?: string | null;
   timeBudgetMinutes?: number;
+  decisionBriefMaxSetups?: number;
+  researchQueueDepth?: number;
 }): Promise<DecisionBrief> {
   return performanceDiagnostics.measureAsync('brief.build', () =>
     buildDecisionBriefInternal(input),
@@ -645,13 +727,13 @@ export async function buildMtfConsensus(symbol: string): Promise<MtfConsensus> {
   const results = await Promise.all(
     framesSpec.map(async (spec) => {
       try {
-        const candles = await fetchCandles({
+        const candleResult = await fetchCandlesWithMetadata({
           symbol,
           marketType,
           interval: spec.interval,
           limit: spec.limit,
         });
-        const frame = candleBias(candles);
+        const frame = candleBias(candleResult.candles);
         return { ...frame, interval: spec.label } satisfies MtfFrameBias;
       } catch {
         return { interval: spec.label, bias: 'neutral' as const, confidence: 35 };

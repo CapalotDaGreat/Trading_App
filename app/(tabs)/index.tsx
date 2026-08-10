@@ -40,27 +40,17 @@ import { AdaptiveGoalsCard } from '@/features/personal-intelligence/components/A
 import { DynamicTodayHero } from '@/features/personal-intelligence/components/DynamicTodayHero';
 import { TradingDnaCard } from '@/features/personal-intelligence/components/TradingDnaCard';
 import { usePersonalIntelligence } from '@/features/personal-intelligence/hooks/usePersonalIntelligence';
+import { DataFreshnessBadge } from '@/features/decision/components/DataFreshnessBadge';
+import { DataSourceBadge } from '@/features/markets/components/DataSourceBadge';
 import { RecoverableErrorState } from '@/shared/components/feedback/RecoverableErrorState';
-import { FocusStack } from '@/shared/components/layout/FocusStack';
-import { Screen } from '@/shared/components/layout/Screen';
-import { ScreenQuestion } from '@/shared/components/layout/ScreenQuestion';
+import { ScreenScaffold } from '@/shared/components/layout/ScreenScaffold';
 import { CollapsibleSection } from '@/shared/components/patterns/CollapsibleSection';
-import { GlassCard } from '@/shared/components/ui/GlassCard';
+import { Surface } from '@/shared/components/ui/Surface';
 import { Skeleton } from '@/shared/components/ui/Skeleton';
 import { Text } from '@/shared/components/ui/Text';
 import { useTheme } from '@/shared/hooks/useTheme';
 import { useSettingsStore } from '@/shared/stores/settings.store';
 import { useSubscriptionStore } from '@/shared/stores/subscription.store';
-
-/** First-viewport focus — everything else lives under progressive disclosure. */
-const TODAY_FOCUS_SECTIONS = new Set<TodaySection>([
-  'dynamicToday',
-  'startHere',
-  'dayPlan',
-  'researchQueue',
-  'whyNot',
-  'closeLoop',
-]);
 
 const EMPTY_BRIEF: DecisionBrief = {
   greeting: 'Loading',
@@ -86,59 +76,6 @@ const EMPTY_BRIEF: DecisionBrief = {
   quotesFetchedAt: Date.now(),
 };
 
-function TodayHeader({
-  streak,
-  becomingLabel,
-  onAskAi,
-  onOpenIntelligence,
-}: {
-  streak: DisciplineStreak | null;
-  becomingLabel?: string;
-  onAskAi: () => void;
-  onOpenIntelligence: () => void;
-}) {
-  const { colors } = useTheme();
-  const completed = streak ? Object.values(streak.completedToday).filter(Boolean).length : 0;
-  const support = becomingLabel
-    ? `Becoming: ${becomingLabel}`
-    : streak
-      ? `${streak.days}d discipline · ${completed}/3 loop steps`
-      : 'One calm session. Protect attention.';
-
-  return (
-    <View testID="today-section-header">
-      <ScreenQuestion
-        eyebrow="Today"
-        question="What deserves your attention?"
-        support={support}
-        trailing={
-          <View className="flex-row gap-2">
-            <Pressable
-              onPress={onOpenIntelligence}
-              className="h-12 w-12 items-center justify-center rounded-full bg-surface"
-              accessibilityRole="button"
-              accessibilityLabel="Trading DNA"
-              testID="today-open-intelligence"
-            >
-              <Ionicons name="finger-print-outline" size={20} color={colors.accent.primary} />
-            </Pressable>
-            <Pressable
-              onPress={onAskAi}
-              className="h-12 w-12 items-center justify-center rounded-full bg-surface"
-              accessibilityRole="button"
-              accessibilityLabel="Ask AI"
-              testID="today-ask-ai"
-            >
-              <Ionicons name="sparkles-outline" size={20} color={colors.accent.primary} />
-            </Pressable>
-          </View>
-        }
-      />
-      <EducationalModeBadge className="-mt-3 mb-1" />
-    </View>
-  );
-}
-
 function CloseLoopCard({
   tier,
   onJournal,
@@ -150,11 +87,11 @@ function CloseLoopCard({
 }) {
   const { colors } = useTheme();
   return (
-    <GlassCard className="p-5" testID="today-section-close-loop">
+    <Surface testID="today-section-close-loop">
       <Text variant="caption" className="mb-1.5 font-medium text-text-tertiary">
         Close the loop
       </Text>
-      <Text variant="h3" className="mb-1.5 tracking-tight">
+      <Text variant="h3" headingLevel={3} className="mb-1.5 tracking-tight">
         Journal or review
       </Text>
       <Text variant="caption" className="mb-5 leading-5 text-text-secondary">
@@ -186,7 +123,7 @@ function CloseLoopCard({
           </Text>
         </Pressable>
       </View>
-    </GlassCard>
+    </Surface>
   );
 }
 
@@ -238,6 +175,29 @@ export default function DecisionBriefScreen() {
   );
   const refreshing = briefQuery.isRefetching || intelligenceQuery.isRefetching;
 
+  const priorities = useMemo(() => {
+    const fromQueue = (brief?.researchQueue ?? []).slice(0, 3);
+    if (fromQueue.length > 0) return fromQueue;
+    return (brief?.topSetups ?? []).slice(0, 3).map((setup) => ({
+      symbol: setup.symbol,
+      setupTitle: setup.setupTypeLabel,
+      estimatedMinutes: 10,
+      researchValueScore: setup.researchValueScore,
+      decisionQualityScore: setup.decisionQualityScore ?? setup.confidence,
+      rankReason: setup.why[0],
+      priority: 'high' as const,
+      bias: setup.bias,
+      invalidation: setup.invalidation,
+      completed: false,
+    }));
+  }, [brief]);
+
+  const upcomingEvent = brief?.highImpactEvents[0];
+  const processInsight =
+    mentorQuery.data?.daily.improveNext ??
+    intel?.dna.becomingLabel ??
+    'Open Mentor or log a few decisions to surface one process insight.';
+
   const sections = useMemo(() => {
     return visibleTodaySections({
       hasBrief: Boolean(brief),
@@ -257,101 +217,25 @@ export default function DecisionBriefScreen() {
     });
   }, [brief, mentorQuery.data, startHereSymbol, logSummary, intel, tier]);
 
-  const renderSection = (section: TodaySection): ReactNode => {
+  const renderedPrimary = new Set<TodaySection>([
+    'header',
+    'morningBrief',
+    'startHere',
+    'dynamicToday',
+    'researchQueue',
+    'dayPlan',
+    'dnaPulse',
+    'mentor',
+  ]);
+
+  const moreSections = sections.filter((section) => !renderedPrimary.has(section));
+
+  const renderMoreSection = (section: TodaySection): ReactNode => {
     switch (section) {
-      case 'header':
-        return (
-          <TodayHeader
-            key={section}
-            streak={streak}
-            becomingLabel={intel?.dna.becomingLabel}
-            onAskAi={() => router.push('/ai' as never)}
-            onOpenIntelligence={() => router.push('/decision/intelligence' as never)}
-          />
-        );
-      case 'dynamicToday':
-        return intel?.today ? (
-          <DynamicTodayHero
-            key={section}
-            focus={intel.today}
-            becomingQuestion={intel.becomingQuestion}
-          />
-        ) : null;
-      case 'morningBrief':
-        return (
-          <View key={section} testID="today-section-morning-brief">
-            {briefQuery.isLoading && !brief ? (
-              <DecisionBriefHeader brief={EMPTY_BRIEF} isLoading />
-            ) : brief ? (
-              <DecisionBriefHeader brief={brief} />
-            ) : (
-              <RecoverableErrorState
-                error={briefQuery.error ?? new Error('Could not load today’s brief')}
-                onRetry={() => void briefQuery.refetch()}
-              />
-            )}
-          </View>
-        );
-      case 'mentor':
-        return (
-          <View key={section} testID="today-section-mentor">
-            <MentorCard brief={mentorQuery.data} isLoading={mentorQuery.isLoading} />
-          </View>
-        );
       case 'goals':
         return intel?.goals?.length ? (
           <AdaptiveGoalsCard key={section} goals={intel.goals} />
         ) : null;
-      case 'dayPlan':
-        return brief?.tradingDayPlan ? (
-          <View key={section} testID="today-section-day-plan">
-            <TradingDayPlanCard plan={brief.tradingDayPlan} />
-          </View>
-        ) : null;
-      case 'dnaPulse':
-        return intel?.dna ? <TradingDnaCard key={section} dna={intel.dna} compact /> : null;
-      case 'startHere':
-        return brief && startHereSymbol ? (
-          <StartHereCard
-            key={section}
-            symbol={startHereSymbol}
-            setup={startHereSetup}
-            queueItem={startHereQueueItem}
-            regime={brief.regimeLabel}
-            onOutcome={(action) => {
-              void markDisciplineAction('researchPlan').then(setStreak);
-              if (action === 'skipped') void toggleQueueSymbol(startHereSymbol);
-            }}
-          />
-        ) : null;
-      case 'researchQueue':
-        return (
-          <View key={section} testID="today-section-research-queue">
-            {brief?.researchQueue?.length ? (
-              <>
-                <ResearchQueueCard
-                  queue={brief.researchQueue}
-                  regime={brief.regimeLabel}
-                  freeItemLimit={3}
-                  onOutcome={() => void markDisciplineAction('researchPlan').then(setStreak)}
-                />
-                <Pressable
-                  accessibilityRole="button"
-                  accessibilityLabel="See all setups in Radar"
-                  testID="today-see-all-setups"
-                  onPress={() => router.push('/decision/radar' as never)}
-                  className="mt-2 min-h-11 items-center justify-center rounded-xl bg-surface px-4"
-                >
-                  <Text variant="label" className="text-accent">
-                    See all setups in Radar
-                  </Text>
-                </Pressable>
-              </>
-            ) : briefQuery.isLoading ? (
-              <Skeleton height={110} rounded="lg" />
-            ) : null}
-          </View>
-        );
       case 'whyNot':
         return brief?.skipSuggestions?.length ? (
           <View key={section} testID="today-section-why-not">
@@ -380,26 +264,63 @@ export default function DecisionBriefScreen() {
               useAcademyProgressStore.getState().markDisciplineAction('journal');
               router.push('/journal' as never);
             }}
-            onReview={() => router.push('/decision/decision-replay' as never)}
+            onReview={() => router.push('/(tabs)/review' as never)}
           />
         );
+      case 'mentor':
+        return mentorQuery.data ? (
+          <View key={section} testID="today-section-mentor">
+            <MentorCard brief={mentorQuery.data} isLoading={mentorQuery.isLoading} />
+          </View>
+        ) : null;
+      case 'dnaPulse':
+        return intel?.dna ? <TradingDnaCard key={section} dna={intel.dna} compact /> : null;
+      case 'morningBrief':
+        return brief ? (
+          <View key={section} testID="today-section-morning-brief-detail">
+            <DecisionBriefHeader brief={brief} />
+          </View>
+        ) : null;
       default:
         return null;
     }
   };
 
-  const focusSections = sections.filter(
-    (section) => section === 'header' || TODAY_FOCUS_SECTIONS.has(section),
-  );
-  const moreSections = sections.filter(
-    (section) => section !== 'header' && !TODAY_FOCUS_SECTIONS.has(section),
-  );
+  const completed = streak ? Object.values(streak.completedToday).filter(Boolean).length : 0;
+  const support = intel?.dna.becomingLabel
+    ? `Becoming: ${intel.dna.becomingLabel}`
+    : streak
+      ? `${streak.days}d discipline · ${completed}/3 loop steps`
+      : 'One calm session. Protect attention.';
 
   return (
-    <Screen
-      scrollable
-      accessibilityTitle="Today"
+    <ScreenScaffold
+      eyebrow="Today"
+      title="What deserves your attention?"
+      subtitle={support}
       contentClassName="pb-12 pt-2"
+      headerAction={
+        <View className="flex-row gap-2">
+          <Pressable
+            onPress={() => router.push('/decision/intelligence' as never)}
+            className="h-12 w-12 items-center justify-center rounded-full bg-surface"
+            accessibilityRole="button"
+            accessibilityLabel="Trading DNA"
+            testID="today-open-intelligence"
+          >
+            <Ionicons name="finger-print-outline" size={20} color={colors.accent.primary} />
+          </Pressable>
+          <Pressable
+            onPress={() => router.push('/ai?source=today' as never)}
+            className="h-12 w-12 items-center justify-center rounded-full bg-surface"
+            accessibilityRole="button"
+            accessibilityLabel="Ask AI"
+            testID="today-ask-ai"
+          >
+            <Ionicons name="sparkles-outline" size={20} color={colors.accent.primary} />
+          </Pressable>
+        </View>
+      }
       scrollViewProps={{
         refreshControl: (
           <RefreshControl
@@ -413,23 +334,185 @@ export default function DecisionBriefScreen() {
           />
         ),
       }}
+      testID="today-screen"
     >
-      <FocusStack density="focus">
+      <View className="gap-4">
+        <EducationalModeBadge />
+
         {showMentorSetupInvite ? (
           <MentorSetupInviteCard onLater={() => void dismissMentorInvite()} />
         ) : null}
-        {focusSections.map((section) => renderSection(section))}
-        {moreSections.length > 0 ? (
+
+        {briefQuery.isLoading && !brief ? (
+          <Skeleton height={72} rounded="lg" />
+        ) : briefQuery.isError && !brief ? (
+          <RecoverableErrorState
+            error={briefQuery.error ?? new Error('Could not load today’s brief')}
+            onRetry={() => void briefQuery.refetch()}
+          />
+        ) : brief ? (
+          <Surface padding="sm" tone="subtle" testID="today-regime-freshness">
+            <View className="flex-row items-center justify-between gap-3">
+              <View className="min-w-0 flex-1">
+                <Text variant="label">Market condition</Text>
+                <Text variant="body-sm" className="mt-1 text-text-secondary">
+                  {brief.greeting} · {brief.regimeLabel}
+                </Text>
+              </View>
+              <View className="items-end gap-1">
+                {brief.provenance ? <DataSourceBadge kind={brief.provenance.kind} /> : null}
+                <DataFreshnessBadge fetchedAt={brief.quotesFetchedAt} />
+              </View>
+            </View>
+          </Surface>
+        ) : null}
+
+        {priorities.length > 0 ? (
+          <Surface testID="today-worth-attention">
+            <Text variant="label" className="text-accent">
+              WORTH YOUR ATTENTION
+            </Text>
+            <Text variant="body-sm" className="mt-1 text-text-secondary">
+              At most three priorities for this session.
+            </Text>
+            <View className="mt-3 gap-2">
+              {priorities.map((item, index) => (
+                <Pressable
+                  key={`${item.symbol}-${index}`}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Open ${item.symbol}`}
+                  onPress={() => router.push(`/asset/${encodeURIComponent(item.symbol)}` as never)}
+                  className="min-h-11 flex-row items-center justify-between rounded-xl bg-surface px-3 py-2"
+                >
+                  <View className="min-w-0 flex-1 pr-3">
+                    <Text variant="label">{item.symbol}</Text>
+                    <Text variant="caption" className="text-text-secondary" numberOfLines={1}>
+                      {item.setupTitle ?? item.rankReason ?? 'Review evidence'}
+                    </Text>
+                  </View>
+                  <Text variant="caption" className="text-text-tertiary">
+                    {[
+                      item.estimatedMinutes ? `~${item.estimatedMinutes}m` : null,
+                      item.researchValueScore != null ? `RVS ${item.researchValueScore}` : null,
+                    ]
+                      .filter(Boolean)
+                      .join(' · ')}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+          </Surface>
+        ) : null}
+
+        {brief && startHereSymbol ? (
+          <View testID="today-merged-nba">
+            {intel?.today ? (
+              <Text variant="caption" className="mb-2 text-text-tertiary">
+                {intel.today.eyebrow}: {intel.today.headline}
+              </Text>
+            ) : null}
+            <StartHereCard
+              symbol={startHereSymbol}
+              setup={startHereSetup}
+              queueItem={startHereQueueItem}
+              regime={brief.regimeLabel}
+              onOutcome={(action) => {
+                void markDisciplineAction('researchPlan').then(setStreak);
+                if (action === 'skipped') void toggleQueueSymbol(startHereSymbol);
+              }}
+            />
+          </View>
+        ) : intel?.today ? (
+          <View testID="today-merged-nba">
+            <DynamicTodayHero focus={intel.today} becomingQuestion={intel.becomingQuestion} />
+          </View>
+        ) : null}
+
+        {upcomingEvent ? (
+          <Surface tone="warning" padding="sm" testID="today-upcoming-event">
+            <Text variant="label">Upcoming event</Text>
+            <Text variant="body-sm" className="mt-1 text-text-secondary">
+              {upcomingEvent.title} · {upcomingEvent.impact} impact ·{' '}
+              {new Date(upcomingEvent.at).toLocaleString()}
+            </Text>
+          </Surface>
+        ) : null}
+
+        <Surface padding="sm" testID="today-process-insight">
+          <Text variant="label" className="text-text-tertiary">
+            PROCESS INSIGHT
+          </Text>
+          <Text variant="body-sm" className="mt-1 text-text-secondary">
+            {processInsight}
+          </Text>
+        </Surface>
+
+        {brief?.researchQueue?.length ? (
+          <View testID="today-section-research-queue">
+            <ResearchQueueCard
+              queue={brief.researchQueue}
+              regime={brief.regimeLabel}
+              freeItemLimit={3}
+              variant="compact"
+              eyebrow="RESEARCH QUEUE"
+              title={`${brief.researchQueue.length} ranked · next up`}
+              description={`~${brief.researchQueue
+                .slice(0, 3)
+                .reduce((sum, item) => sum + (item.estimatedMinutes ?? 0), 0)} min for the next free items · full queue lives in Research`}
+              onOutcome={() => void markDisciplineAction('researchPlan').then(setStreak)}
+            />
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Open the full Research queue"
+              testID="today-see-all-setups"
+              onPress={() => router.push('/research' as never)}
+              className="mt-2 min-h-11 items-center justify-center rounded-xl bg-surface px-4"
+            >
+              <Text variant="label" className="text-accent">
+                Open full Research queue
+              </Text>
+            </Pressable>
+          </View>
+        ) : briefQuery.isLoading ? (
+          <Skeleton height={110} rounded="lg" />
+        ) : null}
+
+        {brief?.tradingDayPlan?.items.length ? (
+          <CollapsibleSection
+            title="Day plan"
+            description="Current phase and remaining session steps."
+            testID="today-day-plan-disclosure"
+          >
+            <TradingDayPlanCard plan={brief.tradingDayPlan} />
+          </CollapsibleSection>
+        ) : null}
+
+        {briefQuery.isLoading && !brief ? (
+          <DecisionBriefHeader brief={EMPTY_BRIEF} isLoading />
+        ) : null}
+
+        {moreSections.length > 0 || brief || mentorQuery.data || intel?.dna ? (
           <CollapsibleSection
             title="More for this session"
-            description="Brief detail, mentor, DNA, regime, and log — when you want them."
+            description="Brief detail, mentor, DNA, regime, goals, and log — when you want them."
             defaultExpanded={false}
             testID="today-more-disclosure"
           >
-            {moreSections.map((section) => renderSection(section))}
+            {brief ? (
+              <View testID="today-section-morning-brief">
+                <DecisionBriefHeader brief={brief} />
+              </View>
+            ) : null}
+            {mentorQuery.data ? (
+              <View testID="today-section-mentor">
+                <MentorCard brief={mentorQuery.data} isLoading={mentorQuery.isLoading} />
+              </View>
+            ) : null}
+            {intel?.dna ? <TradingDnaCard dna={intel.dna} compact /> : null}
+            {moreSections.map((section) => renderMoreSection(section))}
           </CollapsibleSection>
         ) : null}
-      </FocusStack>
-    </Screen>
+      </View>
+    </ScreenScaffold>
   );
 }

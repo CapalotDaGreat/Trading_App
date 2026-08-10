@@ -2,11 +2,14 @@ import { Text as RNText, type TextProps as RNTextProps } from 'react-native';
 
 import { cn } from '@/shared/utils/cn';
 
-type TextVariant =
+export type TextVariant =
   'h1' | 'h2' | 'h3' | 'body' | 'body-sm' | 'caption' | 'label' | 'mono' | 'price' | 'price-lg';
+export type HeadingLevel = 1 | 2 | 3 | 4 | 5 | 6;
 
 export interface TextProps extends RNTextProps {
   variant?: TextVariant;
+  /** Opt-in semantic heading level. Visual h1/h2/h3 variants do not imply document structure. */
+  headingLevel?: HeadingLevel;
   className?: string;
 }
 
@@ -27,6 +30,7 @@ const headingVariants = new Set<TextVariant>(['h1', 'h2', 'h3']);
 
 export function Text({
   variant = 'body',
+  headingLevel,
   className,
   children,
   allowFontScaling = true,
@@ -34,13 +38,14 @@ export function Text({
   accessibilityRole,
   ...props
 }: TextProps) {
-  const isHeading = headingVariants.has(variant);
+  const isHeadingStyle = headingVariants.has(variant);
 
   return (
     <RNText
       allowFontScaling={allowFontScaling}
-      maxFontSizeMultiplier={maxFontSizeMultiplier ?? (isHeading ? 1.6 : 2)}
-      accessibilityRole={accessibilityRole ?? (isHeading ? 'header' : undefined)}
+      maxFontSizeMultiplier={maxFontSizeMultiplier ?? (isHeadingStyle ? 1.6 : 2)}
+      accessibilityRole={accessibilityRole ?? (headingLevel ? 'header' : undefined)}
+      aria-level={headingLevel}
       className={cn(variantStyles[variant], className)}
       {...props}
     >

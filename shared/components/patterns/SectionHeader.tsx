@@ -1,6 +1,7 @@
-import { Pressable, View, type ViewProps } from 'react-native';
+import { View, type ViewProps } from 'react-native';
 
-import { Text } from '@/shared/components/ui/Text';
+import { Button } from '@/shared/components/ui/Button';
+import { Text, type HeadingLevel } from '@/shared/components/ui/Text';
 import { cn } from '@/shared/utils/cn';
 
 export interface SectionHeaderProps extends ViewProps {
@@ -8,6 +9,7 @@ export interface SectionHeaderProps extends ViewProps {
   description?: string;
   actionLabel?: string;
   onAction?: () => void;
+  headingLevel?: HeadingLevel;
   className?: string;
 }
 
@@ -16,13 +18,14 @@ export function SectionHeader({
   description,
   actionLabel,
   onAction,
+  headingLevel = 2,
   className,
   ...props
 }: SectionHeaderProps) {
   return (
     <View className={cn('mb-1 flex-row items-start justify-between', className)} {...props}>
       <View className="mr-4 flex-1">
-        <Text variant="h3" className="tracking-tight">
+        <Text variant="h3" headingLevel={headingLevel} className="tracking-tight">
           {title}
         </Text>
         {description ? (
@@ -32,16 +35,9 @@ export function SectionHeader({
         ) : null}
       </View>
       {actionLabel && onAction ? (
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={actionLabel}
-          onPress={onAction}
-          className="min-h-13 justify-center rounded-pill px-3 active:bg-surface"
-        >
-          <Text variant="label" className="text-accent">
-            {actionLabel}
-          </Text>
-        </Pressable>
+        <Button variant="ghost" size="sm" onPress={onAction}>
+          {actionLabel}
+        </Button>
       ) : null}
     </View>
   );

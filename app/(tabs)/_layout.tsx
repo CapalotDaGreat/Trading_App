@@ -59,19 +59,19 @@ export default function TabLayout() {
           }}
         />
         <Tabs.Screen
+          name="portfolio"
+          options={{
+            title: IA_GLOSSARY.portfolio,
+            tabBarAccessibilityLabel: 'Portfolio tab',
+            tabBarIcon: ({ color }) => <TabIcon name="briefcase-outline" color={color} />,
+          }}
+        />
+        <Tabs.Screen
           name="review"
           options={{
             title: IA_GLOSSARY.review,
             tabBarAccessibilityLabel: 'Review tab',
             tabBarIcon: ({ color }) => <TabIcon name="film-outline" color={color} />,
-          }}
-        />
-        <Tabs.Screen
-          name="ai"
-          options={{
-            title: IA_GLOSSARY.ask,
-            tabBarAccessibilityLabel: 'Ask AI tab',
-            tabBarIcon: ({ color }) => <TabIcon name="sparkles-outline" color={color} />,
           }}
         />
         <Tabs.Screen
@@ -82,8 +82,8 @@ export default function TabLayout() {
             tabBarIcon: ({ color }) => <TabIcon name="person-outline" color={color} />,
           }}
         />
+        <Tabs.Screen name="ai" options={{ href: null }} />
         <Tabs.Screen name="markets" options={{ href: null }} />
-        <Tabs.Screen name="portfolio" options={{ href: null }} />
         <Tabs.Screen
           name="more"
           options={{

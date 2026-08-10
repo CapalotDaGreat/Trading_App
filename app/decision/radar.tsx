@@ -8,6 +8,7 @@ import { DecisionQualityExplainer } from '@/features/decision/components/Decisio
 import { SetupCard } from '@/features/decision/components/SetupCard';
 import { useSetupRadar } from '@/features/decision/hooks/useDecision';
 import type { SetupCardData } from '@/features/decision/types/decision.types';
+import { StatusState } from '@/shared/components/feedback/StatusState';
 import { Header } from '@/shared/components/layout/Header';
 import { GlassCard } from '@/shared/components/ui/GlassCard';
 import { Skeleton } from '@/shared/components/ui/Skeleton';
@@ -20,7 +21,7 @@ export default function SetupRadarScreen() {
   const insets = useSafeAreaInsets();
   const layout = useResponsiveLayout();
   const { colors } = useTheme();
-  const { data, isLoading, isRefetching, refetch } = useSetupRadar();
+  const { data, isLoading, isError, isRefetching, refetch } = useSetupRadar();
 
   const renderItem = useCallback(
     ({ item }: { item: SetupCardData }) => (
@@ -62,14 +63,14 @@ export default function SetupRadarScreen() {
           <View className="mt-2 gap-3 pb-3">
             <Header
               title="Setups"
-              subtitle="Research opportunities ranked by attention value"
+              subtitle="Research candidates ranked by attention value — not buy or sell signals"
               onBack={() => router.back()}
             />
             <EducationalModeBadge />
             <GlassCard className="p-4">
               <Text variant="body-sm" className="text-text-secondary">
-                These are research opportunities — not buy/sell orders. Open a card’s chart before
-                you decide anything.
+                These are research candidates ranked by evidence and attention value. Open a chart to
+                inspect the case — never treat RVS or DQS as a price prediction.
               </Text>
             </GlassCard>
             {isLoading && !data?.length ? (
@@ -78,16 +79,27 @@ export default function SetupRadarScreen() {
                 <Skeleton height={140} rounded="lg" />
               </View>
             ) : null}
+            {isError && !data?.length ? (
+              <StatusState
+                status="error"
+                title="Radar unavailable"
+                description="Evidence needed to rank research candidates could not be loaded."
+                actionLabel="Retry"
+                onAction={() => void refetch()}
+              />
+            ) : null}
             {data?.length ? <DecisionQualityExplainer /> : null}
           </View>
         }
         ListEmptyComponent={
-          !isLoading ? (
-            <GlassCard className="p-4">
-              <Text variant="body-sm">
-                No setups scored yet. Pull to refresh with market online.
-              </Text>
-            </GlassCard>
+          !isLoading && !isError ? (
+            <StatusState
+              status="empty"
+              title="No research candidates yet"
+              description="There is not enough current evidence to rank a setup honestly. Pull to refresh when markets are online."
+              actionLabel="Refresh"
+              onAction={() => void refetch()}
+            />
           ) : null
         }
       />

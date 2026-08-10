@@ -9,7 +9,8 @@ import { fetchFinancialNews } from '@/features/news/services/news.service';
 import { Header } from '@/shared/components/layout/Header';
 import { Screen } from '@/shared/components/layout/Screen';
 import { Button } from '@/shared/components/ui/Button';
-import { GlassCard } from '@/shared/components/ui/GlassCard';
+import { CollapsibleSection } from '@/shared/components/patterns/CollapsibleSection';
+import { Surface } from '@/shared/components/ui/Surface';
 import { Text } from '@/shared/components/ui/Text';
 import { useSubscriptionStore } from '@/shared/stores/subscription.store';
 
@@ -31,20 +32,35 @@ interface AnalysisOption {
   requiresSymbol?: boolean;
 }
 
-const ANALYSIS_OPTIONS: AnalysisOption[] = [
-  { type: 'daily_summary', label: 'Daily Summary', description: 'Market overview for today' },
+type ToolGroup = 'market' | 'symbol' | 'personal';
+
+interface GroupedAnalysisOption extends AnalysisOption {
+  group: ToolGroup;
+}
+
+const ANALYSIS_OPTIONS: GroupedAnalysisOption[] = [
+  {
+    type: 'daily_summary',
+    label: 'Daily Summary',
+    description: 'Market overview for today',
+    group: 'market',
+  },
+  { type: 'market_recap', label: 'Market Recap', description: 'Daily or weekly recap', group: 'market' },
+  { type: 'news_summary', label: 'News Summary', description: 'Headlines digest', group: 'market' },
   {
     type: 'trade_suggestion',
     label: 'Research Priority',
     description: 'Research, watch, or skip with cited local evidence',
     requiresPremium: true,
     requiresSymbol: true,
+    group: 'symbol',
   },
   {
     type: 'risk_analysis',
     label: 'Risk Analysis',
     description: 'ATR-based position sizing',
     requiresSymbol: true,
+    group: 'symbol',
   },
   {
     type: 'pattern_explanation',
@@ -52,29 +68,38 @@ const ANALYSIS_OPTIONS: AnalysisOption[] = [
     description: 'Detected chart patterns',
     requiresPremium: true,
     requiresSymbol: true,
+    group: 'symbol',
   },
   {
     type: 'indicator_explanation',
     label: 'Indicator Explain',
     description: 'Live RSI, MACD, ATR readings',
     requiresSymbol: true,
+    group: 'symbol',
   },
-  { type: 'market_recap', label: 'Market Recap', description: 'Daily or weekly recap' },
-  { type: 'psychology_coach', label: 'Psychology Coach', description: 'Trading mindset tips' },
+  {
+    type: 'psychology_coach',
+    label: 'Psychology Coach',
+    description: 'Trading mindset tips',
+    group: 'personal',
+  },
   {
     type: 'portfolio_review',
     label: 'Portfolio Review',
     description: 'Diversification analysis',
     requiresPremium: true,
+    group: 'personal',
   },
-  { type: 'news_summary', label: 'News Summary', description: 'Headlines digest' },
 ];
+
+const RECOMMENDED_TYPES: AiAnalysisType[] = ['daily_summary', 'trade_suggestion', 'risk_analysis'];
 
 interface AiAnalysisScreenProps {
   symbol?: string;
+  embedded?: boolean;
 }
 
-export function AiAnalysisScreen({ symbol = 'SPY' }: AiAnalysisScreenProps) {
+export function AiAnalysisScreen({ symbol = 'SPY', embedded = false }: AiAnalysisScreenProps) {
   const router = useRouter();
   const isPremium = useSubscriptionStore((s) => s.isPremium);
   const { user } = useAuth();
@@ -192,12 +217,9 @@ export function AiAnalysisScreen({ symbol = 'SPY' }: AiAnalysisScreenProps) {
   const errorMessage =
     error && aiService.isServiceError(error) ? error.message : error?.message;
 
-  return (
-    <Screen scrollable scrollViewProps={{ refreshControl: undefined }}>
-      <Header title="Local Analysis" subtitle={`${symbol} · rules-based`} onBack={() => router.back()} />
-
-      <View className="py-4">
-        <GlassCard className="mb-4 p-4">
+  const content = (
+      <View className={embedded ? 'pb-6' : 'py-4'}>
+        <Surface className="mb-4" padding="md">
           <Text variant="label" className="mb-1">
             Usage Today
           </Text>
@@ -210,12 +232,12 @@ export function AiAnalysisScreen({ symbol = 'SPY' }: AiAnalysisScreenProps) {
           <Text variant="caption" className="mt-1 text-text-tertiary">
             Runs on-device from available market context. Cloud AI is not used in this release.
           </Text>
-        </GlassCard>
+        </Surface>
 
         <AiContextPreview context={enrichedContext} isLoading={contextQuery.isLoading} />
 
         {enrichedContext?.detectedPatterns?.length ? (
-          <GlassCard className="mb-4 p-3">
+          <Surface className="mb-4" padding="sm">
             <Text variant="caption" className="mb-1 text-text-secondary">
               Detected: {detectedPattern} · Primary indicator: {primaryIndicator}
             </Text>
@@ -224,72 +246,115 @@ export function AiAnalysisScreen({ symbol = 'SPY' }: AiAnalysisScreenProps) {
                 Sign in to sync portfolio for personalized reviews
               </Text>
             ) : null}
-          </GlassCard>
+          </Surface>
         ) : null}
 
         <AiDisclaimer className="mb-4" />
 
-        <Text variant="h3" className="mb-3">
-          Local Research Tools
+        <Text variant="h3" headingLevel={3} className="mb-3">
+          Recommended tools
         </Text>
-
         <View className="mb-4 gap-2">
-          {ANALYSIS_OPTIONS.map((option) => {
-            const locked = option.requiresPremium && !isPremium;
-            return (
-              <Pressable
-                key={option.type}
-                onPress={() => !locked && void runAnalysis(option.type)}
-                disabled={isAnalyzing || locked}
-                className="opacity-100 disabled:opacity-50"
-              >
-                <GlassCard className="p-3">
-                  <View className="flex-row items-center justify-between">
-                    <View className="flex-1">
+          {ANALYSIS_OPTIONS.filter((option) => RECOMMENDED_TYPES.includes(option.type)).map(
+            (option) => {
+              const locked = option.requiresPremium && !isPremium;
+              return (
+                <Pressable
+                  key={option.type}
+                  onPress={() => !locked && void runAnalysis(option.type)}
+                  disabled={isAnalyzing || locked}
+                  className="opacity-100 disabled:opacity-50"
+                >
+                  <Surface padding="sm">
+                    <View className="flex-row items-center justify-between">
+                      <View className="flex-1">
+                        <Text variant="label">
+                          {option.label}
+                          {locked ? ' · Premium' : ''}
+                        </Text>
+                        <Text variant="caption">{option.description}</Text>
+                      </View>
+                      {selectedType === option.type && isAnalyzing ? (
+                        <Text variant="caption" className="text-accent">
+                          Analyzing...
+                        </Text>
+                      ) : null}
+                    </View>
+                  </Surface>
+                </Pressable>
+              );
+            },
+          )}
+        </View>
+
+        <CollapsibleSection
+          title="All tools"
+          description="Market, symbol, and personal analysis tools."
+        >
+          {(['market', 'symbol', 'personal'] as const).map((group) => (
+            <View key={group} className="mb-3 gap-2">
+              <Text variant="label" className="text-text-tertiary">
+                {group === 'market' ? 'Market' : group === 'symbol' ? 'Symbol' : 'Personal'}
+              </Text>
+              {ANALYSIS_OPTIONS.filter((option) => option.group === group).map((option) => {
+                const locked = option.requiresPremium && !isPremium;
+                return (
+                  <Pressable
+                    key={option.type}
+                    onPress={() => !locked && void runAnalysis(option.type)}
+                    disabled={isAnalyzing || locked}
+                    className="opacity-100 disabled:opacity-50"
+                  >
+                    <Surface padding="sm" tone="subtle">
                       <Text variant="label">
                         {option.label}
-                        {locked ? ' 🔒' : ''}
+                        {locked ? ' · Premium' : ''}
                       </Text>
                       <Text variant="caption">{option.description}</Text>
-                    </View>
-                    {selectedType === option.type && isAnalyzing ? (
-                      <Text variant="caption" className="text-accent">
-                        Analyzing...
-                      </Text>
-                    ) : null}
-                  </View>
-                </GlassCard>
-              </Pressable>
-            );
-          })}
-        </View>
+                    </Surface>
+                  </Pressable>
+                );
+              })}
+            </View>
+          ))}
+        </CollapsibleSection>
 
         <PromptSuggestions
           suggestions={DEFAULT_ANALYSIS_PROMPTS}
           onSelect={(prompt) => void runAnalysis('psychology_coach', prompt)}
           disabled={isAnalyzing}
-          className="mb-4"
+          className="mb-4 mt-4"
         />
 
         {errorMessage ? (
-          <GlassCard className="mb-4 border-bearish/30 p-3">
+          <Surface className="mb-4" tone="danger" padding="sm">
             <Text variant="body-sm" className="text-bearish">
               {errorMessage}
             </Text>
-          </GlassCard>
+          </Surface>
         ) : null}
 
         {result ? <AiAnalysisCard result={result} /> : null}
 
-        <Button
-          variant="outline"
-          className="mt-4"
-          onPress={() => router.push({ pathname: '/ai', params: { symbol } } as never)}
-          fullWidth
-        >
-          Ask the local research coach about {symbol}
-        </Button>
+        {!embedded ? (
+          <Button
+            variant="outline"
+            className="mt-4"
+            onPress={() => router.push({ pathname: '/ai', params: { symbol } } as never)}
+            fullWidth
+          >
+            Ask the local research coach about {symbol}
+          </Button>
+        ) : null}
       </View>
+  );
+
+  if (embedded) return content;
+
+  return (
+    <Screen scrollable scrollViewProps={{ refreshControl: undefined }}>
+      <Header title="Local Analysis" subtitle={`${symbol} · rules-based`} onBack={() => router.back()} />
+      {content}
     </Screen>
   );
 }

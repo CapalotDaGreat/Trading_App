@@ -5,6 +5,7 @@ import { create } from 'zustand';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { MARKET_DATA_POLICY } from '@/features/markets/constants/freshness';
 import { quotesToPriceMap, useLiveQuotes } from '@/features/markets/hooks/useLiveQuotes';
+import { useSubscriptionStore } from '@/shared/stores/subscription.store';
 
 import {
   buildPerformanceHistory,
@@ -41,6 +42,7 @@ export function usePortfolio() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const uid = user?.uid;
+  const tier = useSubscriptionStore((state) => state.tier);
   const userDataReady = Boolean(uid);
   const performancePeriod = usePortfolioStore((s) => s.performancePeriod);
   const setPerformancePeriod = usePortfolioStore((s) => s.setPerformancePeriod);
@@ -83,7 +85,7 @@ export function usePortfolio() {
   });
 
   const createMutation = useMutation({
-    mutationFn: (input: CreateHoldingInput) => createHolding(uid!, input),
+    mutationFn: (input: CreateHoldingInput) => createHolding(uid!, input, tier),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: portfolioQueryKey(uid) });
     },

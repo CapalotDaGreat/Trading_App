@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 
 import type { MarketType } from '@/shared/types/market';
+import { useFeatureFlag, useRemoteConfig } from '@/features/ops-config/hooks/useOpsConfig';
 
 import { MARKET_DATA_POLICY } from '../constants/freshness';
 import { buildAssetFromSymbol, fetchQuoteWithMetadata } from '../services/market-data.service';
@@ -22,8 +23,16 @@ export function useMarketQuote({
   symbol,
   marketType,
   enabled = true,
-  refetchInterval = MARKET_DATA_POLICY.quoteRefetchMs,
+  refetchInterval,
 }: UseMarketQuoteOptions) {
+  const remote = useRemoteConfig();
+  const aggressivePollingEnabled = useFeatureFlag('aggressiveMarketPollingEnabled');
+  const configuredPollMs = Math.max(10_000, Math.min(5 * 60_000, remote.marketQuotePollMs));
+  const resolvedRefetchInterval =
+    refetchInterval ??
+    (aggressivePollingEnabled
+      ? configuredPollMs
+      : Math.max(MARKET_DATA_POLICY.quoteRefetchMs, configuredPollMs));
   return useQuery({
     queryKey: marketQuoteKeys.quote(symbol, marketType),
     queryFn: async () => {
@@ -37,7 +46,7 @@ export function useMarketQuote({
       };
     },
     enabled: enabled && symbol.length > 0,
-    refetchInterval,
+    refetchInterval: resolvedRefetchInterval,
     staleTime: MARKET_DATA_POLICY.quoteStaleMs,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,

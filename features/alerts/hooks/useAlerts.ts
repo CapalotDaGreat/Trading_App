@@ -1,7 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { useAuth } from '@/features/auth/hooks/useAuth';
-import { getTierLimits, hasReachedLimit } from '@/shared/constants/subscription';
+import { getLimit } from '@/features/subscription/services/entitlement.service';
+import { hasReachedLimit } from '@/shared/constants/subscription';
 import { useSubscriptionStore } from '@/shared/stores/subscription.store';
 
 import {
@@ -21,7 +22,7 @@ export function useAlerts() {
   const queryClient = useQueryClient();
   const uid = user?.uid;
   const tier = useSubscriptionStore((s) => s.tier);
-  const alertLimit = getTierLimits(tier).alertsMax;
+  const alertLimit = getLimit('alertsMax', tier);
 
   const alertsQuery = useQuery({
     queryKey: alertsQueryKey(uid),

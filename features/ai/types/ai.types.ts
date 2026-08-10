@@ -203,6 +203,8 @@ export interface AiEnrichedContext {
 }
 
 export interface AiRequestContext {
+  /** Local-only identity scope for loading private coaching memory. */
+  userScopeUid?: string;
   symbol?: string;
   indicator?: string;
   pattern?: string;

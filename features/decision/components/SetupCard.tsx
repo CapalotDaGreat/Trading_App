@@ -1,4 +1,4 @@
-import { memo, useState } from 'react';
+import { memo, useId, useState } from 'react';
 import { Pressable, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -36,8 +36,8 @@ const BIAS_VARIANT: Record<DecisionBias, 'success' | 'danger' | 'default'> = {
 const STATUS_LABEL: Record<SetupStatus, string> = {
   watching: 'Watching',
   forming: 'Forming',
-  confirmed: 'Ready',
-  invalidated: 'Invalid',
+  confirmed: 'Evidence stronger',
+  invalidated: 'Invalidated',
 };
 
 const STATUS_VARIANT: Record<SetupStatus, 'accent' | 'default' | 'success' | 'danger'> = {
@@ -47,10 +47,11 @@ const STATUS_VARIANT: Record<SetupStatus, 'accent' | 'default' | 'success' | 'da
   invalidated: 'danger',
 };
 
+/** Case-risk labels — not “safe to trade” language. */
 const RISK_LABEL: Record<ImpactLevel, string> = {
-  low: 'Lower risk',
-  medium: 'Medium risk',
-  high: 'Higher risk',
+  low: 'Contained case risk',
+  medium: 'Moderate case risk',
+  high: 'Elevated case risk',
 };
 
 const RISK_VARIANT: Record<ImpactLevel, 'success' | 'warning' | 'danger'> = {
@@ -62,6 +63,7 @@ const RISK_VARIANT: Record<ImpactLevel, 'success' | 'warning' | 'danger'> = {
 export function SetupCardComponent({ setup, onPress, highlight }: SetupCardProps) {
   const { colors } = useTheme();
   const [detailsOpen, setDetailsOpen] = useState(false);
+  const detailsId = useId();
   const changeColor =
     setup.changePercent !== undefined
       ? getPriceColorClass(setup.changePercent)
@@ -81,11 +83,14 @@ export function SetupCardComponent({ setup, onPress, highlight }: SetupCardProps
         accessibilityLabel={`${setup.symbol}. ${BIAS_LABEL[setup.bias]}. ${oneLineWhy}`}
         onPress={onPress}
         disabled={!onPress}
+        className="min-h-11"
       >
         <View className="mb-2 flex-row items-start justify-between gap-2">
           <View className="flex-1">
             <View className="mb-1 flex-row flex-wrap items-center gap-2">
-              <Text variant="h3">{setup.symbol}</Text>
+              <Text variant="h3" headingLevel={3}>
+                {setup.symbol}
+              </Text>
               <Badge
                 label={BIAS_LABEL[setup.bias]}
                 variant={BIAS_VARIANT[setup.bias]}
@@ -98,7 +103,7 @@ export function SetupCardComponent({ setup, onPress, highlight }: SetupCardProps
               />
             </View>
             <Text variant="caption" className="mb-0.5 text-text-tertiary">
-              Potential setup · {typeLabel}
+              Research candidate · {typeLabel}
             </Text>
             <Text variant="body-sm" className="text-text-secondary" numberOfLines={2}>
               {oneLineWhy}
@@ -134,8 +139,14 @@ export function SetupCardComponent({ setup, onPress, highlight }: SetupCardProps
 
       <Pressable
         accessibilityRole="button"
+        accessibilityLabel={
+          detailsOpen ? 'Hide research detail' : 'Show why, checklist, and invalidation'
+        }
+        accessibilityState={{ expanded: detailsOpen }}
+        accessibilityHint={detailsOpen ? 'Collapses research detail' : 'Expands research detail'}
+        aria-controls={detailsId}
         onPress={() => setDetailsOpen((v) => !v)}
-        className="mt-3 flex-row items-center justify-between pt-3"
+        className="mt-3 min-h-11 flex-row items-center justify-between pt-3"
       >
         <Text variant="caption" className="font-semibold text-text-secondary">
           {detailsOpen ? 'Hide research detail' : 'Why · checklist · invalidation'}
@@ -144,11 +155,13 @@ export function SetupCardComponent({ setup, onPress, highlight }: SetupCardProps
           name={detailsOpen ? 'chevron-up' : 'chevron-down'}
           size={16}
           color={colors.text.tertiary}
+          accessibilityElementsHidden
+          importantForAccessibility="no"
         />
       </Pressable>
 
       {detailsOpen ? (
-        <View className="mt-3 gap-3">
+        <View nativeID={detailsId} className="mt-3 gap-3">
           {setup.why.length > 0 ? (
             <View>
               <Text variant="caption" className="mb-1 font-semibold text-text-secondary">

@@ -14,7 +14,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Text } from '@/shared/components/ui/Text';
 import { useReducedMotion } from '@/shared/hooks/useReducedMotion';
-import { announceForAccessibility } from '@/shared/utils/accessibility';
+import {
+  announceForAccessibility,
+  getRecommendedAccessibilityTimeout,
+} from '@/shared/utils/accessibility';
 import { cn } from '@/shared/utils/cn';
 
 type ToastType = 'info' | 'success' | 'error' | 'warning';
@@ -74,8 +77,18 @@ export function ToastProvider({ children }: ToastProviderProps) {
       setToasts((prev) => [...prev.slice(-2), entry]);
       announceForAccessibility(toast.message ? `${toast.title}. ${toast.message}` : toast.title);
 
-      const timer = setTimeout(() => dismiss(id), toast.duration ?? DEFAULT_DURATION);
+      const requestedDuration = toast.duration ?? DEFAULT_DURATION;
+      const timer = setTimeout(() => dismiss(id), requestedDuration);
       timersRef.current.set(id, timer);
+      void getRecommendedAccessibilityTimeout(requestedDuration).then((recommendedDuration) => {
+        const activeTimer = timersRef.current.get(id);
+        if (!activeTimer || recommendedDuration === requestedDuration) return;
+        clearTimeout(activeTimer);
+        timersRef.current.set(
+          id,
+          setTimeout(() => dismiss(id), recommendedDuration),
+        );
+      });
     },
     [dismiss],
   );
@@ -104,7 +117,6 @@ export function ToastProvider({ children }: ToastProviderProps) {
     <ToastContext.Provider value={value}>
       {children}
       <View
-        accessibilityLiveRegion="polite"
         className="absolute left-0 right-0 z-50 px-4"
         style={{ top: insets.top + 8, pointerEvents: 'box-none' }}
       >
@@ -117,7 +129,8 @@ export function ToastProvider({ children }: ToastProviderProps) {
           >
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel={`${toast.title}${toast.message ? `. ${toast.message}` : ''}`}
+              accessibilityLabel={`Dismiss notification: ${toast.title}${toast.message ? `. ${toast.message}` : ''}`}
+              accessibilityHint="Dismisses this notification"
               onPress={() => dismiss(toast.id)}
               className={cn('min-h-11 rounded-xl border px-4 py-3', typeStyles[toast.type])}
             >

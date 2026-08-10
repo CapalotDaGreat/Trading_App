@@ -10,13 +10,7 @@ import {
   requirePremium,
   sanitizeVendorError,
 } from './security';
-import {
-  parseInterval,
-  parseLimit,
-  parseMarketType,
-  parseQuery,
-  parseSymbol,
-} from './validation';
+import { parseInterval, parseLimit, parseMarketType, parseQuery, parseSymbol } from './validation';
 import {
   alphaVantageCandles,
   alphaVantageQuote,
@@ -95,19 +89,17 @@ export const marketCandles = onCall(callableOpts, async (request) => {
   }
 
   try {
-    let pack:
-      | {
-          candles: {
-            timestamp: number;
-            open: number;
-            high: number;
-            low: number;
-            close: number;
-            volume: number;
-          }[];
-          provider: 'finnhub' | 'alpha-vantage';
-        }
-      | null = await finnhubCandles(symbol, interval, limit, marketType);
+    let pack: {
+      candles: {
+        timestamp: number;
+        open: number;
+        high: number;
+        low: number;
+        close: number;
+        volume: number;
+      }[];
+      provider: 'finnhub' | 'alpha-vantage';
+    } | null = await finnhubCandles(symbol, interval, limit, marketType);
     if (!pack && marketType !== 'forex') {
       pack = await alphaVantageCandles(symbol, interval, limit);
     }
@@ -177,8 +169,7 @@ export const newsHeadlines = onCall(callableOpts, async (request) => {
   const { uid, quota } = await gate(request, 'news');
   const pageSize = parseLimit(request.data?.pageSize, 50);
   const page = parseLimit(request.data?.page ?? 1, 10);
-  const category =
-    typeof request.data?.category === 'string' ? request.data.category : 'business';
+  const category = typeof request.data?.category === 'string' ? request.data.category : 'business';
   let query: string | undefined;
   if (request.data?.query != null) {
     try {
@@ -212,20 +203,21 @@ async function loadAiLimits(): Promise<{ free: number; premium: number; model: s
     const data = snap.data() ?? {};
     return {
       free:
-        typeof data.aiDailyLimitFree === 'number'
-          ? data.aiDailyLimitFree
-          : SERVER_DEFAULT_REMOTE.aiDailyLimitFree,
+        typeof data.aiAnalysisMonthlyFree === 'number' &&
+        Number.isFinite(data.aiAnalysisMonthlyFree)
+          ? data.aiAnalysisMonthlyFree
+          : SERVER_DEFAULT_REMOTE.aiAnalysisMonthlyFree,
       premium:
-        typeof data.aiDailyLimitPremium === 'number'
-          ? data.aiDailyLimitPremium
-          : SERVER_DEFAULT_REMOTE.aiDailyLimitPremium,
-      model:
-        typeof data.aiModel === 'string' ? data.aiModel : SERVER_DEFAULT_REMOTE.aiModel,
+        typeof data.aiAnalysisMonthlyPremium === 'number' &&
+        Number.isFinite(data.aiAnalysisMonthlyPremium)
+          ? data.aiAnalysisMonthlyPremium
+          : SERVER_DEFAULT_REMOTE.aiAnalysisMonthlyPremium,
+      model: typeof data.aiModel === 'string' ? data.aiModel : SERVER_DEFAULT_REMOTE.aiModel,
     };
   } catch {
     return {
-      free: SERVER_DEFAULT_REMOTE.aiDailyLimitFree,
-      premium: SERVER_DEFAULT_REMOTE.aiDailyLimitPremium,
+      free: SERVER_DEFAULT_REMOTE.aiAnalysisMonthlyFree,
+      premium: SERVER_DEFAULT_REMOTE.aiAnalysisMonthlyPremium,
       model: SERVER_DEFAULT_REMOTE.aiModel,
     };
   }
@@ -281,13 +273,14 @@ export const recordAiUsage = onCall(callableOpts, async (request) => {
 export const getAiQuota = onCall(callableOpts, async (request) => {
   requireAppCheck(request);
   const uid = requireAuth(request);
-  const day = new Date().toISOString().slice(0, 10);
+  const now = new Date();
+  const month = `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, '0')}`;
   const snap = await admin
     .firestore()
     .collection('usage')
     .doc(uid)
-    .collection('daily')
-    .doc(day)
+    .collection('monthly')
+    .doc(month)
     .get();
   const used = (snap.data()?.counts as Record<string, number> | undefined)?.ai ?? 0;
   const premium = await isPremiumUser(uid);
@@ -296,8 +289,8 @@ export const getAiQuota = onCall(callableOpts, async (request) => {
   return {
     usedToday: used,
     limit,
-    remaining: Math.max(0, limit - used),
-    resetsAt: new Date(`${day}T24:00:00.000Z`).getTime(),
+    remaining: limit < 0 ? -1 : Math.max(0, limit - used),
+    resetsAt: Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1),
     model: limits.model,
   };
 });

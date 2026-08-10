@@ -45,7 +45,12 @@ export function Header({
         </View>
 
         <View className="flex-1 items-center px-3">
-          <Text variant="h3" numberOfLines={1} className="text-center tracking-tight">
+          <Text
+            variant="h3"
+            headingLevel={1}
+            numberOfLines={1}
+            className="text-center tracking-tight"
+          >
             {title}
           </Text>
           {subtitle ? (

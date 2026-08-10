@@ -1,7 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
 
+import { useFeatureFlag, useRemoteConfig } from '@/features/ops-config/hooks/useOpsConfig';
+
 import { MARKET_DATA_POLICY, withFetchedAt, type LiveQuote } from '../constants/freshness';
-import { buildAssetFromSymbol, fetchQuotes } from '../services/market-data.service';
+import { buildAssetFromSymbol, fetchQuotesWithMetadata } from '../services/market-data.service';
 
 export const liveQuotesKeys = {
   all: ['live-quotes'] as const,
@@ -10,16 +12,24 @@ export const liveQuotesKeys = {
 
 export function useLiveQuotes(symbols: string[], enabled = true) {
   const unique = [...new Set(symbols.filter(Boolean))];
+  const remote = useRemoteConfig();
+  const aggressivePollingEnabled = useFeatureFlag('aggressiveMarketPollingEnabled');
+  const configuredPollMs = Math.max(10_000, Math.min(5 * 60_000, remote.marketQuotePollMs));
+  const refetchInterval = aggressivePollingEnabled
+    ? configuredPollMs
+    : Math.max(MARKET_DATA_POLICY.quoteBatchRefetchMs, configuredPollMs);
 
   return useQuery({
     queryKey: liveQuotesKeys.batch(unique),
     queryFn: async (): Promise<LiveQuote[]> => {
-      const quotes = await fetchQuotes(unique);
-      return quotes.map((q) => withFetchedAt(q, buildAssetFromSymbol(q.symbol).marketType));
+      const results = await fetchQuotesWithMetadata(unique);
+      return results.map((result) =>
+        withFetchedAt(result.quote, buildAssetFromSymbol(result.quote.symbol).marketType, result),
+      );
     },
     enabled: enabled && unique.length > 0,
     staleTime: MARKET_DATA_POLICY.quoteStaleMs,
-    refetchInterval: MARKET_DATA_POLICY.quoteBatchRefetchMs,
+    refetchInterval,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
   });

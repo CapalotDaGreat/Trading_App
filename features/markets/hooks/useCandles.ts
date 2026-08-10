@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 
 import type { CandleInterval, MarketType } from '@/shared/types/market';
+import { useFeatureFlag, useRemoteConfig } from '@/features/ops-config/hooks/useOpsConfig';
 
 import { MARKET_DATA_POLICY } from '../constants/freshness';
 import { detectMarketType, fetchCandlesWithMetadata } from '../services/market-data.service';
@@ -26,8 +27,16 @@ export function useCandles({
   marketType,
   limit = 100,
   enabled = true,
-  refetchInterval = MARKET_DATA_POLICY.candleRefetchMs,
+  refetchInterval,
 }: UseCandlesOptions) {
+  const remote = useRemoteConfig();
+  const aggressivePollingEnabled = useFeatureFlag('aggressiveMarketPollingEnabled');
+  const configuredPollMs = Math.max(30_000, Math.min(10 * 60_000, remote.marketCandlePollMs));
+  const resolvedRefetchInterval =
+    refetchInterval ??
+    (aggressivePollingEnabled
+      ? configuredPollMs
+      : Math.max(MARKET_DATA_POLICY.candleRefetchMs, configuredPollMs));
   return useQuery({
     queryKey: candlesKeys.symbol(symbol, interval, marketType),
     queryFn: () =>
@@ -39,7 +48,7 @@ export function useCandles({
       }),
     enabled: enabled && symbol.length > 0,
     staleTime: MARKET_DATA_POLICY.candleStaleMs,
-    refetchInterval,
+    refetchInterval: resolvedRefetchInterval,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
   });

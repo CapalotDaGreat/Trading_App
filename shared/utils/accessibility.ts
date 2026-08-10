@@ -37,6 +37,16 @@ export function announceForAccessibility(message: string): void {
   AccessibilityInfo.announceForAccessibility(message);
 }
 
+/** Respect Android's "Time to take action" preference for transient UI. */
+export async function getRecommendedAccessibilityTimeout(originalTimeout: number): Promise<number> {
+  if (Platform.OS !== 'android') return originalTimeout;
+  try {
+    return await AccessibilityInfo.getRecommendedTimeoutMillis(originalTimeout);
+  } catch {
+    return originalTimeout;
+  }
+}
+
 export function reduceMotionEnabled(): Promise<boolean> {
   return AccessibilityInfo.isReduceMotionEnabled();
 }

@@ -7,7 +7,7 @@ import { marketDataScheduler } from '@/shared/services/market-data/market-data-s
 import { logger } from '@/shared/services/observability/logger';
 import type { Asset, Candle, CandleInterval, MarketType, Quote } from '@/shared/types/market';
 
-import type { DataSourceKind } from '../constants/data-source';
+import type { DataSourceKind, MarketDataProvider } from '../constants/data-source';
 import { MARKET_DATA_POLICY } from '../constants/freshness';
 import { proxyFetchCandles, proxyFetchQuote } from './market-proxy.service';
 
@@ -65,13 +65,6 @@ export interface CandlesRequest extends MarketDataRequest {
   limit?: number;
 }
 
-export type MarketDataProvider =
-  | 'coingecko'
-  | 'exchange-rate-api'
-  | 'finnhub'
-  | 'alpha-vantage'
-  | 'sample';
-
 export interface MarketDataMetadata {
   provider: MarketDataProvider;
   fetchedAt: number;
@@ -84,6 +77,18 @@ export interface QuoteResult extends MarketDataMetadata {
 
 export interface CandleResult extends MarketDataMetadata {
   candles: Candle[];
+}
+
+export class MarketDataUnavailableError extends Error {
+  readonly symbol: string;
+  readonly dataType: 'quote' | 'candles';
+
+  constructor(symbol: string, dataType: 'quote' | 'candles', message: string) {
+    super(message);
+    this.name = 'MarketDataUnavailableError';
+    this.symbol = symbol;
+    this.dataType = dataType;
+  }
 }
 
 function parseCryptoSymbol(symbol: string): { base: string; quote: string } {
@@ -728,12 +733,16 @@ async function fetchForexCandles(
   symbol: string,
   interval: CandleInterval,
   limit: number,
-): Promise<{ candles: Candle[]; sample: boolean }> {
+): Promise<Candle[]> {
   const finnhub = await fetchFinnhubForexCandles(symbol, interval, limit);
-  if (finnhub?.length) return { candles: finnhub, sample: false };
+  if (finnhub?.length) return finnhub;
 
-  logger.debug('market_data.forex_candles_fallback_sample', { symbol, interval, limit });
-  return { candles: buildSampleEquityCandles(symbol, interval, limit), sample: true };
+  logger.warn('market_data.forex_candles_unavailable', { symbol, interval, limit });
+  throw new MarketDataUnavailableError(
+    symbol,
+    'candles',
+    `Genuine FX OHLC is unavailable for ${symbol}.`,
+  );
 }
 
 /** Deterministic sample equity path for demo when live OHLC providers fail. Never used for FX. */
@@ -881,19 +890,18 @@ export async function fetchCandlesWithMetadataDirect(
         }
       }
       if (!allowDevDirectVendors()) {
-        return {
-          candles: buildSampleEquityCandles(symbol, interval, limit),
-          provider: 'sample',
-          fetchedAt: Date.now(),
-          kind: 'sample',
-        };
+        throw new MarketDataUnavailableError(
+          symbol,
+          'candles',
+          `Genuine FX OHLC is unavailable for ${symbol}.`,
+        );
       }
-      const result = await fetchForexCandles(symbol, interval, limit);
+      const candles = await fetchForexCandles(symbol, interval, limit);
       return {
-        candles: result.candles,
-        provider: result.sample ? 'sample' : 'finnhub',
+        candles,
+        provider: 'finnhub',
         fetchedAt: Date.now(),
-        kind: result.sample ? 'sample' : 'delayed',
+        kind: 'delayed',
       };
     }
     case 'stocks':
@@ -922,10 +930,14 @@ export async function fetchCandles(request: CandlesRequest): Promise<Candle[]> {
 }
 
 export async function fetchQuotes(symbols: string[]): Promise<Quote[]> {
-  const results = await Promise.allSettled(symbols.map((symbol) => fetchQuote(symbol)));
+  return (await fetchQuotesWithMetadata(symbols)).map((result) => result.quote);
+}
+
+export async function fetchQuotesWithMetadata(symbols: string[]): Promise<QuoteResult[]> {
+  const results = await Promise.allSettled(symbols.map((symbol) => fetchQuoteWithMetadata(symbol)));
 
   return results
-    .filter((r): r is PromiseFulfilledResult<Quote> => r.status === 'fulfilled')
+    .filter((r): r is PromiseFulfilledResult<QuoteResult> => r.status === 'fulfilled')
     .map((r) => r.value);
 }
 

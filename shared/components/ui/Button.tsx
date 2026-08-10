@@ -1,11 +1,9 @@
-import * as Haptics from 'expo-haptics';
 import { type ReactNode } from 'react';
 import { ActivityIndicator, Pressable, type PressableProps } from 'react-native';
-import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
+import Animated from 'react-native-reanimated';
 
-import { useReducedMotion } from '@/shared/hooks/useReducedMotion';
+import { useInteractivePress } from '@/shared/hooks/useInteractivePress';
 import { useTheme } from '@/shared/hooks/useTheme';
-import { useSettingsStore } from '@/shared/stores/settings.store';
 import { getMinTouchTargetSize } from '@/shared/utils/accessibility';
 import { cn } from '@/shared/utils/cn';
 
@@ -75,36 +73,15 @@ export function Button({
   ...props
 }: ButtonProps) {
   const { colors } = useTheme();
-  const hapticsEnabled = useSettingsStore((s) => s.hapticsEnabled);
-  const reduceMotion = useReducedMotion();
-  const scale = useSharedValue(1);
   const isDisabled = disabled || loading;
   const minTouch = getMinTouchTargetSize();
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-  }));
-
-  const handlePressIn: PressableProps['onPressIn'] = (event) => {
-    if (!reduceMotion) {
-      scale.value = withSpring(0.97, { damping: 15, stiffness: 400 });
-    }
-    onPressIn?.(event);
-  };
-
-  const handlePressOut: PressableProps['onPressOut'] = (event) => {
-    if (!reduceMotion) {
-      scale.value = withSpring(1, { damping: 15, stiffness: 400 });
-    }
-    onPressOut?.(event);
-  };
-
-  const handlePress: PressableProps['onPress'] = (event) => {
-    if (haptic && hapticsEnabled) {
-      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    }
-    onPress?.(event);
-  };
+  const interaction = useInteractivePress({
+    disabled: isDisabled,
+    haptic: haptic ? 'impact' : 'none',
+    onPress,
+    onPressIn,
+    onPressOut,
+  });
 
   return (
     <AnimatedPressable
@@ -118,10 +95,10 @@ export function Button({
         busy: loading,
       }}
       disabled={isDisabled}
-      onPress={handlePress}
-      onPressIn={handlePressIn}
-      onPressOut={handlePressOut}
-      style={[animatedStyle, { minHeight: minTouch }]}
+      onPress={interaction.handlePress}
+      onPressIn={interaction.handlePressIn}
+      onPressOut={interaction.handlePressOut}
+      style={[interaction.animatedStyle, { minHeight: minTouch }]}
       className={cn(
         'flex-row items-center justify-center',
         variantStyles[variant],

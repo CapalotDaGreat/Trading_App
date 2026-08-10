@@ -104,6 +104,17 @@ export function SettingsScreen() {
       </Text>
       <GlassCard className="overflow-hidden">
         <SettingsRow
+          icon="compass-outline"
+          label="Coach Profile"
+          description={
+            mentorSetupCompleted
+              ? 'Edit research budget, universe, and coaching preferences'
+              : 'Set research budget, universe, and coaching preferences'
+          }
+          showChevron
+          onPress={() => router.push('/onboarding' as never)}
+        />
+        <SettingsRow
           icon="person-outline"
           label="Profile"
           description={user?.email ?? 'Manage your account'}

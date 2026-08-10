@@ -7,10 +7,11 @@ import { EducationalPanel } from '@/features/educational/components/EducationalP
 import { useTradingMentor } from '@/features/decision/hooks/useTradingMentor';
 import { MentorSetupInviteCard } from '@/features/onboarding/components/MentorSetupInviteCard';
 import { useCoachProfile } from '@/features/onboarding/hooks/useCoachProfile';
-import { Header } from '@/shared/components/layout/Header';
-import { Screen } from '@/shared/components/layout/Screen';
+import { StatusState } from '@/shared/components/feedback/StatusState';
+import { ScreenScaffold } from '@/shared/components/layout/ScreenScaffold';
+import { CollapsibleSection } from '@/shared/components/patterns/CollapsibleSection';
 import { Button } from '@/shared/components/ui/Button';
-import { GlassCard } from '@/shared/components/ui/GlassCard';
+import { Surface } from '@/shared/components/ui/Surface';
 import { Skeleton } from '@/shared/components/ui/Skeleton';
 import { Text } from '@/shared/components/ui/Text';
 import { useTheme } from '@/shared/hooks/useTheme';
@@ -22,8 +23,10 @@ export function TradingMentorScreen() {
   const { showMentorSetupInvite, dismissMentorInvite, mentorSetupCompleted } = useCoachProfile();
 
   return (
-    <Screen
-      scrollable
+    <ScreenScaffold
+      title="Trading Mentor"
+      subtitle="One priority, one pattern, one exercise — never market predictions."
+      showBack
       contentClassName="pb-12"
       scrollViewProps={{
         refreshControl: (
@@ -34,38 +37,42 @@ export function TradingMentorScreen() {
           />
         ),
       }}
+      headerAction={
+        <Button size="sm" variant="ghost" onPress={() => router.push('/ai?source=mentor' as never)}>
+          Ask
+        </Button>
+      }
+      testID="mentor-screen"
     >
-      <Header
-        title="Trading Mentor"
-        subtitle="Long-term process coach — never market predictions"
-        onBack={() => router.back()}
-      />
-
-      <View className="mt-4 gap-4">
+      <View className="gap-4">
         {showMentorSetupInvite ? (
           <MentorSetupInviteCard onLater={() => void dismissMentorInvite()} />
         ) : null}
         {!mentorSetupCompleted && !showMentorSetupInvite ? (
           <Button variant="outline" onPress={() => router.push('/onboarding' as never)}>
-            Refresh your coach profile
+            Set up your coach profile
           </Button>
-        ) : null}
+        ) : (
+          <Button variant="ghost" onPress={() => router.push('/onboarding' as never)}>
+            Edit Coach Profile
+          </Button>
+        )}
         <EducationalModeBadge size="md" />
 
         {isLoading && !data ? (
           <View className="gap-3">
             <Skeleton height={140} rounded="lg" />
-            <Skeleton height={180} rounded="lg" />
+            <Skeleton height={120} rounded="lg" />
           </View>
         ) : null}
 
         {data ? (
           <>
-            <GlassCard className="p-4" bordered>
+            <Surface tone="accent" emphasis="outlined" testID="mentor-priority">
               <Text variant="caption" className="font-semibold uppercase tracking-wide text-info">
-                Today&apos;s focus
+                Coaching priority
               </Text>
-              <Text variant="h2" className="mt-2 leading-snug">
+              <Text variant="h2" headingLevel={2} className="mt-2 leading-snug">
                 {data.daily.headline}
               </Text>
               <Text variant="body-sm" className="mt-3 leading-relaxed text-text-secondary">
@@ -74,49 +81,118 @@ export function TradingMentorScreen() {
               <Text variant="body-sm" className="mt-3 leading-relaxed text-text-secondary">
                 {data.daily.detail}
               </Text>
-            </GlassCard>
+            </Surface>
 
-            <EducationalPanel
-              variant="tip"
-              title="What should I improve?"
-              body={data.daily.improveNext}
-            />
-            <EducationalPanel
-              variant="risk"
-              title="What mistakes am I repeating?"
-              body={data.daily.repeatingMistake}
-            />
+            <Surface testID="mentor-pattern">
+              <Text variant="label" className="text-text-tertiary">
+                REPEATED PATTERN
+              </Text>
+              <Text variant="body" className="mt-2">
+                {data.daily.repeatingMistake}
+              </Text>
+              <Text variant="caption" className="mt-2 text-text-secondary">
+                Improve next: {data.daily.improveNext}
+              </Text>
+            </Surface>
 
-            <GlassCard className="p-4">
-              <Text variant="caption" className="mb-1 font-semibold uppercase tracking-wide text-text-tertiary">
-                Current goal
+            <Surface testID="mentor-exercise">
+              <Text variant="label" className="text-accent">
+                PRESCRIBED EXERCISE
               </Text>
-              <Text variant="body" className="leading-relaxed text-text-primary">
-                {data.currentGoal}
+              <Text variant="h3" headingLevel={3} className="mt-2">
+                {data.weekly.academyRecommendation?.title ?? data.weekly.replayRecommendation.label}
               </Text>
+              <Text variant="body-sm" className="mt-2 text-text-secondary">
+                {data.weekly.academyRecommendation?.reason ?? data.weekly.replayRecommendation.reason}
+              </Text>
+              <View className="mt-3 flex-row flex-wrap gap-2">
+                {data.weekly.academyRecommendation ? (
+                  <Button
+                    size="sm"
+                    onPress={() =>
+                      router.push(
+                        `/academy/lesson/${data.weekly.academyRecommendation!.lessonId}` as never,
+                      )
+                    }
+                  >
+                    Open Academy lesson
+                  </Button>
+                ) : null}
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onPress={() => router.push(data.weekly.replayRecommendation.href as never)}
+                >
+                  Open practice
+                </Button>
+              </View>
+            </Surface>
+
+            <CollapsibleSection
+              title="Practice this next"
+              description="Academy and Replay recommendations for this week."
+            >
+              {data.weekly.academyRecommendation ? (
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={`Open Academy lesson ${data.weekly.academyRecommendation.title}`}
+                  onPress={() =>
+                    router.push(
+                      `/academy/lesson/${data.weekly.academyRecommendation!.lessonId}` as never,
+                    )
+                  }
+                  className="mb-2 active:opacity-90"
+                >
+                  <Surface padding="sm">
+                    <View className="mb-1 flex-row items-center">
+                      <Ionicons name="school-outline" size={16} color={colors.info.primary} />
+                      <Text variant="caption" className="ml-2 font-semibold uppercase tracking-wide text-info">
+                        Academy
+                      </Text>
+                    </View>
+                    <Text variant="label">{data.weekly.academyRecommendation.title}</Text>
+                    <Text variant="body-sm" className="mt-1 text-text-secondary">
+                      {data.weekly.academyRecommendation.reason}
+                    </Text>
+                  </Surface>
+                </Pressable>
+              ) : null}
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={data.weekly.replayRecommendation.label}
+                onPress={() => router.push(data.weekly.replayRecommendation.href as never)}
+                className="active:opacity-90"
+              >
+                <Surface padding="sm">
+                  <View className="mb-1 flex-row items-center">
+                    <Ionicons name="play-back-outline" size={16} color={colors.accent.primary} />
+                    <Text variant="caption" className="ml-2 font-semibold uppercase tracking-wide text-accent">
+                      Replay
+                    </Text>
+                  </View>
+                  <Text variant="label">{data.weekly.replayRecommendation.label}</Text>
+                  <Text variant="body-sm" className="mt-1 text-text-secondary">
+                    {data.weekly.replayRecommendation.reason}
+                  </Text>
+                </Surface>
+              </Pressable>
+            </CollapsibleSection>
+
+            <CollapsibleSection title="This week" description="Habits, strengths, and one challenge.">
+              <Row label="Most improved habit" value={data.weekly.mostImprovedHabit} />
+              <Row label="Most common mistake" value={data.weekly.mostCommonMistake} />
+              <Row label="Greatest strength" value={data.weekly.greatestStrength} />
+              <Row label="One challenge" value={data.weekly.challenge} />
               <View className="mt-3 flex-row flex-wrap gap-2">
                 <StatPill label="Learning streak" value={`${data.learningStreakDays}d`} />
                 <StatPill label="Loop today" value={`${data.loopStepsCompletedToday}/3`} />
                 <StatPill label="Process week" value={`${data.processScoreWeek}`} />
                 <StatPill label="Regime" value={data.regimeLabel} />
               </View>
-            </GlassCard>
+            </CollapsibleSection>
 
-            <GlassCard className="p-4">
-              <Text variant="caption" className="mb-2 font-semibold uppercase tracking-wide text-text-tertiary">
-                Weekly progress
-              </Text>
-              <Row label="Most improved habit" value={data.weekly.mostImprovedHabit} />
-              <Row label="Most common mistake" value={data.weekly.mostCommonMistake} />
-              <Row label="Greatest strength" value={data.weekly.greatestStrength} />
-              <Row label="One challenge" value={data.weekly.challenge} />
-            </GlassCard>
-
-            <GlassCard className="p-4">
-              <Text variant="caption" className="mb-2 font-semibold uppercase tracking-wide text-text-tertiary">
-                Trading identity
-              </Text>
-              <Text variant="h3" className="mb-2">
+            <CollapsibleSection title="Identity" description="Style, risk posture, and preferred conditions.">
+              <Text variant="h3" headingLevel={3} className="mb-2">
                 {data.identity.styleLabel}
               </Text>
               <Text variant="caption" className="mb-1 text-text-tertiary">
@@ -147,17 +223,24 @@ export function TradingMentorScreen() {
                   View Personal Intelligence & DNA →
                 </Text>
               </Pressable>
-            </GlassCard>
+            </CollapsibleSection>
 
-            {data.coachingReferences?.length ? (
-              <GlassCard className="p-4">
-                <Text variant="caption" className="mb-2 font-semibold uppercase tracking-wide text-text-tertiary">
-                  Mentor references
-                </Text>
-                <Text variant="body-sm" className="mb-3 text-text-secondary">
-                  Passport · Replay · Academy · Journal · Decision Graph · DNA · Heatmap · Decision Log
-                </Text>
-                <View className="gap-2">
+            <CollapsibleSection
+              title="Evidence and references"
+              description="Sources the mentor used and linked coaching surfaces."
+            >
+              <Text variant="body-sm" className="mb-3 text-text-secondary">
+                Current goal: {data.currentGoal}
+              </Text>
+              {data.evidenceNotes.length > 0 ? (
+                <EducationalPanel
+                  variant="why"
+                  title="Evidence used"
+                  body={data.evidenceNotes.join(' · ')}
+                />
+              ) : null}
+              {data.coachingReferences?.length ? (
+                <View className="mt-3 gap-2">
                   {data.coachingReferences.map((ref) => (
                     <Pressable
                       key={ref.id}
@@ -176,66 +259,8 @@ export function TradingMentorScreen() {
                     </Pressable>
                   ))}
                 </View>
-              </GlassCard>
-            ) : null}
-
-            {data.weekly.academyRecommendation ? (
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel={`Open Academy lesson ${data.weekly.academyRecommendation.title}`}
-                onPress={() =>
-                  router.push(
-                    `/academy/lesson/${data.weekly.academyRecommendation!.lessonId}` as never,
-                  )
-                }
-                className="active:opacity-90"
-              >
-                <GlassCard className="p-4">
-                  <View className="mb-1 flex-row items-center">
-                    <Ionicons name="school-outline" size={16} color={colors.info.primary} />
-                    <Text variant="caption" className="ml-2 font-semibold uppercase tracking-wide text-info">
-                      Academy recommendation
-                    </Text>
-                  </View>
-                  <Text variant="label" className="text-text-primary">
-                    {data.weekly.academyRecommendation.title}
-                  </Text>
-                  <Text variant="body-sm" className="mt-1 text-text-secondary">
-                    {data.weekly.academyRecommendation.reason}
-                  </Text>
-                </GlassCard>
-              </Pressable>
-            ) : null}
-
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={data.weekly.replayRecommendation.label}
-              onPress={() => router.push(data.weekly.replayRecommendation.href as never)}
-              className="active:opacity-90"
-            >
-              <GlassCard className="p-4">
-                <View className="mb-1 flex-row items-center">
-                  <Ionicons name="play-back-outline" size={16} color={colors.accent.primary} />
-                  <Text variant="caption" className="ml-2 font-semibold uppercase tracking-wide text-accent">
-                    Replay recommendation
-                  </Text>
-                </View>
-                <Text variant="label" className="text-text-primary">
-                  {data.weekly.replayRecommendation.label}
-                </Text>
-                <Text variant="body-sm" className="mt-1 text-text-secondary">
-                  {data.weekly.replayRecommendation.reason}
-                </Text>
-              </GlassCard>
-            </Pressable>
-
-            {data.evidenceNotes.length > 0 ? (
-              <EducationalPanel
-                variant="why"
-                title="Evidence used"
-                body={data.evidenceNotes.join(' · ')}
-              />
-            ) : null}
+              ) : null}
+            </CollapsibleSection>
 
             <EducationalPanel
               variant="practice"
@@ -247,29 +272,14 @@ export function TradingMentorScreen() {
         ) : null}
 
         {!isLoading && !data ? (
-          <GlassCard className="p-4">
-            <Text variant="h3">Mentor warming up</Text>
-            <Text variant="body-sm" className="mt-2 text-text-secondary">
-              Open Today&apos;s brief and log a few decisions so coaching can personalize from your
-              process — not from market guesses.
-            </Text>
-          </GlassCard>
+          <StatusState
+            status="empty"
+            title="Mentor warming up"
+            description="Open Today’s brief and log a few decisions so coaching can personalize from your process — not from market guesses."
+          />
         ) : null}
-
-        <Pressable
-          accessibilityRole="link"
-          onPress={() => router.push('/decision/heatmap' as never)}
-          className="rounded-2xl border border-border px-4 py-3 active:opacity-70"
-        >
-          <Text variant="label" className="text-accent">
-            View Decision Heatmap
-          </Text>
-          <Text variant="caption" className="mt-1 text-text-secondary">
-            Process consistency across time — never profits
-          </Text>
-        </Pressable>
       </View>
-    </Screen>
+    </ScreenScaffold>
   );
 }
 

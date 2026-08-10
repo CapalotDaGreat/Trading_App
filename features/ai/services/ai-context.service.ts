@@ -55,14 +55,18 @@ export async function buildSymbolContext(symbol: string): Promise<AiEnrichedCont
   const patterns = chartAnalysis?.patterns;
 
   const rsiData = indicators.rsi as { values: { value: number }[] } | undefined;
-  const macdData = indicators.macd as {
-    values: { histogram: number; macd: number; signal: number }[];
-  } | undefined;
+  const macdData = indicators.macd as
+    | {
+        values: { histogram: number; macd: number; signal: number }[];
+      }
+    | undefined;
   const atrData = indicators.atr as { values: { value: number }[] } | undefined;
   const adxData = indicators.adx as { values: { value: number }[] } | undefined;
-  const stochData = indicators.stochastic as {
-    values: { k: number; d: number }[];
-  } | undefined;
+  const stochData = indicators.stochastic as
+    | {
+        values: { k: number; d: number }[];
+      }
+    | undefined;
 
   const latestMacd = macdData?.values[macdData.values.length - 1];
   const latestStoch = stochData?.values[stochData.values.length - 1];
@@ -96,9 +100,7 @@ export async function buildSymbolContext(symbol: string): Promise<AiEnrichedCont
       : undefined,
     atr: atrData ? round(latestValue(atrData.values) ?? 0, 4) : undefined,
     adx: adxData ? round(latestValue(adxData.values) ?? 0) : undefined,
-    stochastic: latestStoch
-      ? { k: round(latestStoch.k), d: round(latestStoch.d) }
-      : undefined,
+    stochastic: latestStoch ? { k: round(latestStoch.k), d: round(latestStoch.d) } : undefined,
     supportLevels: summary?.supportLevels.map((p) => round(p)) ?? [],
     resistanceLevels: summary?.resistanceLevels.map((p) => round(p)) ?? [],
     detectedPatterns:
@@ -156,10 +158,7 @@ export async function enrichRequestContext(
     : await buildMarketContext();
 
   if (context.portfolio?.length) {
-    const totalValue = context.portfolio.reduce(
-      (sum, h) => sum + h.quantity * h.avgCost,
-      0,
-    );
+    const totalValue = context.portfolio.reduce((sum, h) => sum + h.quantity * h.avgCost, 0);
     enriched.portfolioHoldings = context.portfolio.map((h) => ({
       ...h,
       weight: totalValue > 0 ? round((h.quantity * h.avgCost) / totalValue, 4) : 0,
@@ -192,7 +191,7 @@ export async function enrichRequestContext(
 
   // Attach Decision Intelligence Context — never generate isolated commentary.
   try {
-    const memory = await loadTraderMemory();
+    const memory = await loadTraderMemory(context.userScopeUid);
     const intel = buildDecisionIntelligenceContext({
       traderMemory: memory,
       portfolioSymbols: context.portfolio?.map((h) => h.symbol) ?? [],

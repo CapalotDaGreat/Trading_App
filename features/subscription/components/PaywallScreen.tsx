@@ -4,6 +4,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { AccessibilityInfo, ActivityIndicator, Pressable, View } from 'react-native';
 
 import { useAuth } from '@/features/auth/hooks/useAuth';
+import { useRemoteConfig } from '@/features/ops-config/hooks/useOpsConfig';
+import { getLimit } from '@/features/subscription/services/entitlement.service';
 import { useSubscription } from '@/features/subscription/hooks/useSubscription';
 import type { SubscriptionPlanId } from '@/features/subscription/types/subscription.types';
 import { DEMO_USER_UID } from '@/firebase/config';
@@ -12,7 +14,6 @@ import { Screen } from '@/shared/components/layout/Screen';
 import { Button } from '@/shared/components/ui/Button';
 import { Text } from '@/shared/components/ui/Text';
 import { LEGAL_URLS } from '@/shared/constants/legal';
-import { SUBSCRIPTION_TIERS } from '@/shared/constants/subscription';
 import { useResponsiveLayout } from '@/shared/hooks/useResponsiveLayout';
 import { useTheme } from '@/shared/hooks/useTheme';
 import { cn } from '@/shared/utils/cn';
@@ -29,22 +30,12 @@ const OUTCOMES = [
   'Become more disciplined',
 ] as const;
 
-const FREE_VS_PREMIUM: { label: string; free: string; premium: string }[] = [
-  { label: 'AI Mentor', free: '20 chats / month', premium: 'Unlimited' },
-  { label: 'AI analyses', free: '20 / month', premium: 'Unlimited' },
-  { label: 'Research Queue', free: 'Top 3', premium: 'Full queue' },
-  { label: 'Decision Replay', free: '5 / month', premium: 'Unlimited' },
-  { label: 'Watchlists', free: '1 · 15 symbols', premium: 'Unlimited' },
-  { label: 'Trading DNA & Graph', free: 'Preview', premium: 'Full insights' },
-  { label: 'Academy', free: 'Foundations', premium: 'Advanced paths' },
-  { label: 'Journal export', free: '—', premium: 'CSV & JSON' },
-];
-
 export function PaywallScreen() {
   const router = useRouter();
   const { user } = useAuth();
   const { colors } = useTheme();
   const layout = useResponsiveLayout();
+  const remote = useRemoteConfig();
   const isGuest = user?.uid === DEMO_USER_UID;
   const {
     plans,
@@ -67,6 +58,34 @@ export function PaywallScreen() {
   const [selectedPlan, setSelectedPlan] = useState<SubscriptionPlanId>(defaultPlan);
   const [actionMessage, setActionMessage] = useState<string | null>(null);
   const [useNativePaywall, setUseNativePaywall] = useState(true);
+  const freeLimits = useMemo(
+    () => ({
+      aiMentor: getLimit('aiMentorMonthly', 'free'),
+      aiAnalysis: getLimit('aiAnalysisMonthly', 'free'),
+      replay: getLimit('replaySessionsMonthly', 'free'),
+      queue: getLimit('researchQueueDepth', 'free'),
+      watchlists: getLimit('watchlistCount', 'free'),
+      symbols: getLimit('symbolsPerWatchlist', 'free'),
+    }),
+    [remote],
+  );
+  const freeVsPremium = useMemo(
+    () => [
+      { label: 'AI Mentor', free: `${freeLimits.aiMentor} chats / month`, premium: 'Unlimited' },
+      { label: 'AI analyses', free: `${freeLimits.aiAnalysis} / month`, premium: 'Unlimited' },
+      { label: 'Research Queue', free: `Top ${freeLimits.queue}`, premium: 'Full queue' },
+      { label: 'Decision Replay', free: `${freeLimits.replay} / month`, premium: 'Unlimited' },
+      {
+        label: 'Watchlists',
+        free: `${freeLimits.watchlists} · ${freeLimits.symbols} symbols`,
+        premium: 'Unlimited',
+      },
+      { label: 'Trading DNA & Graph', free: 'Preview', premium: 'Full insights' },
+      { label: 'Academy', free: 'Foundations', premium: 'Advanced paths' },
+      { label: 'Journal export', free: '—', premium: 'CSV & JSON' },
+    ],
+    [freeLimits],
+  );
 
   useEffect(() => {
     if (actionMessage) AccessibilityInfo.announceForAccessibility(actionMessage);
@@ -180,12 +199,11 @@ export function PaywallScreen() {
     );
   }
 
-  const ctaLabel =
-    selected?.isLifetime
-      ? 'Continue with Lifetime'
-      : selected?.trialDays && selectedPlan === 'yearly'
-        ? `Start ${selected.trialLabel ?? `${selected.trialDays}-day free trial`}`
-        : `Continue with ${selected?.title ?? 'Aithera Pro'}`;
+  const ctaLabel = selected?.isLifetime
+    ? 'Continue with Lifetime'
+    : selected?.trialDays && selectedPlan === 'yearly'
+      ? `Start ${selected.trialLabel ?? `${selected.trialDays}-day free trial`}`
+      : `Continue with ${selected?.title ?? 'Aithera Pro'}`;
 
   return (
     <Screen scrollable contentClassName="pb-8">
@@ -240,7 +258,7 @@ export function PaywallScreen() {
             Premium
           </Text>
         </View>
-        {FREE_VS_PREMIUM.map((row) => (
+        {freeVsPremium.map((row) => (
           <View key={row.label} className="mb-2 flex-row">
             <Text variant="caption" className="w-[36%] text-text-primary">
               {row.label}
@@ -271,8 +289,8 @@ export function PaywallScreen() {
           </Text>
           <Text variant="body-sm" className="mt-1">
             Subscriptions require an account for users who are at least 18 (or the age of majority
-            where you live) so Aithera Pro can be restored across devices. Guest mode stays local and
-            free to explore.
+            where you live) so Aithera Pro can be restored across devices. Guest mode stays local
+            and free to explore.
           </Text>
         </View>
       ) : null}
@@ -469,9 +487,8 @@ export function PaywallScreen() {
         trial, the listed plan price is charged. Cancelling stops renewal; Aithera Pro remains
         available until the paid-through date. Free remains available afterwards. Prices shown come
         from the store when available. Aithera Pro does not provide brokerage execution or
-        exchange-tick realtime data. Free includes {SUBSCRIPTION_TIERS.free.aiAnalysisMonthly} AI
-        analyses/month and up to {SUBSCRIPTION_TIERS.free.symbolsPerWatchlist} symbols in one
-        research universe.
+        exchange-tick realtime data. Free includes {freeLimits.aiAnalysis} AI analyses/month and up
+        to {freeLimits.symbols} symbols in one research universe.
       </Text>
 
       <View className="mt-3 flex-row flex-wrap items-center justify-center gap-x-3 gap-y-2 pb-4">

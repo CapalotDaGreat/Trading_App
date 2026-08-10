@@ -11,7 +11,11 @@ export interface MemoryProfileHints {
   riskTolerance?: TraderMemory['riskTolerance'];
 }
 
-const MEMORY_KEY = 'tradevision-trader-memory';
+const MEMORY_KEY_PREFIX = 'tradevision:trader-memory:v2';
+
+export function traderMemoryStorageKey(uid?: string | null): string {
+  return `${MEMORY_KEY_PREFIX}:${encodeURIComponent(uid || 'guest')}`;
+}
 
 const DEFAULT_MEMORY: TraderMemory = {
   favoriteAssets: ['SPY', 'NVDA', 'BTC/USD'],
@@ -26,9 +30,9 @@ const DEFAULT_MEMORY: TraderMemory = {
   updatedAt: Date.now(),
 };
 
-export async function loadTraderMemory(): Promise<TraderMemory> {
+export async function loadTraderMemory(uid?: string | null): Promise<TraderMemory> {
   try {
-    const raw = await AsyncStorage.getItem(MEMORY_KEY);
+    const raw = await AsyncStorage.getItem(traderMemoryStorageKey(uid));
     const base = raw
       ? { ...DEFAULT_MEMORY, ...(JSON.parse(raw) as TraderMemory) }
       : { ...DEFAULT_MEMORY, updatedAt: Date.now() };
@@ -39,31 +43,38 @@ export async function loadTraderMemory(): Promise<TraderMemory> {
   }
 }
 
-export async function saveTraderMemory(patch: Partial<TraderMemory>): Promise<TraderMemory> {
-  const current = await loadTraderMemory();
+export async function saveTraderMemory(
+  patch: Partial<TraderMemory>,
+  uid?: string | null,
+): Promise<TraderMemory> {
+  const current = await loadTraderMemory(uid);
   const next: TraderMemory = {
     ...current,
     ...patch,
     updatedAt: Date.now(),
   };
-  await AsyncStorage.setItem(MEMORY_KEY, JSON.stringify(next));
+  await AsyncStorage.setItem(traderMemoryStorageKey(uid), JSON.stringify(next));
   return next;
 }
 
 export async function syncMemoryFromProfile(
   profile?: MemoryProfileHints | null,
   holdings?: Holding[],
+  uid?: string | null,
 ): Promise<TraderMemory> {
   const favorites =
     holdings && holdings.length > 0
       ? holdings.slice(0, 5).map((h) => h.symbol)
       : (profile?.favoriteAssets ?? DEFAULT_MEMORY.favoriteAssets);
 
-  return saveTraderMemory({
-    favoriteAssets: favorites,
-    tradingStyle: profile?.tradingStyle ?? DEFAULT_MEMORY.tradingStyle,
-    riskTolerance: profile?.riskTolerance ?? DEFAULT_MEMORY.riskTolerance,
-  });
+  return saveTraderMemory(
+    {
+      favoriteAssets: favorites,
+      tradingStyle: profile?.tradingStyle ?? DEFAULT_MEMORY.tradingStyle,
+      riskTolerance: profile?.riskTolerance ?? DEFAULT_MEMORY.riskTolerance,
+    },
+    uid,
+  );
 }
 
 export { buildJournalCoach } from './journal-coach.service';
@@ -126,7 +137,10 @@ export function buildRiskCenter(holdings: Holding[]): RiskCenterSnapshot {
 
   const healthScore = Math.max(
     5,
-    Math.min(100, 100 - riskScore + (diversification === 'low' ? 15 : diversification === 'medium' ? 5 : -10)),
+    Math.min(
+      100,
+      100 - riskScore + (diversification === 'low' ? 15 : diversification === 'medium' ? 5 : -10),
+    ),
   );
 
   const recommendations = [

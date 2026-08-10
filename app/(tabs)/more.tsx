@@ -1,73 +1,9 @@
-import { Ionicons } from '@expo/vector-icons';
-import { Link } from 'expo-router';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Redirect, useLocalSearchParams } from 'expo-router';
 
-import { MORE_HUB_SECTIONS } from '@/features/navigation/config/more-hub.config';
-import { Header } from '@/shared/components/layout/Header';
-import { Screen } from '@/shared/components/layout/Screen';
-import { Text } from '@/shared/components/ui/Text';
-import { useTheme } from '@/shared/hooks/useTheme';
+import { buildLegacyRouteRedirect } from '@/features/navigation/config/review-navigation.config';
 
-export default function MoreScreen() {
-  const { colors } = useTheme();
-
-  return (
-    <Screen scrollable contentClassName="pb-10">
-      <Header title="More" subtitle="Tools grouped by what you need" transparent />
-
-      <View className="mt-2 gap-7">
-        {MORE_HUB_SECTIONS.map((section) => (
-          <View
-            key={section.title}
-            testID={`more-section-${section.title.toLowerCase().replaceAll(' ', '-')}`}
-          >
-            <Text variant="label" className="mb-1 px-1 text-text-tertiary">
-              {section.title.toUpperCase()}
-            </Text>
-            <Text variant="caption" className="mb-2.5 px-1 text-text-secondary">
-              {section.hint}
-            </Text>
-
-            <View className="overflow-hidden rounded-2xl bg-background-elevated">
-              {section.items.map((item, index) => (
-                <View key={item.href}>
-                  {index > 0 ? (
-                    <View
-                      className="ml-[60px] bg-border"
-                      style={{ height: StyleSheet.hairlineWidth }}
-                    />
-                  ) : null}
-                  <Link href={item.href as never} asChild>
-                    <Pressable
-                      accessibilityRole="link"
-                      accessibilityLabel={`${item.title}. ${item.description}`}
-                      testID={item.testID}
-                      className="flex-row items-center px-4 py-3.5 active:opacity-70"
-                    >
-                      <View className="mr-3.5 h-9 w-9 items-center justify-center rounded-xl bg-surface">
-                        <Ionicons name={item.icon} size={18} color={colors.accent.primary} />
-                      </View>
-                      <View className="min-w-0 flex-1 pr-2">
-                        <Text variant="body" className="font-semibold text-text-primary">
-                          {item.title}
-                        </Text>
-                        <Text
-                          variant="caption"
-                          className="mt-0.5 text-text-secondary"
-                          numberOfLines={1}
-                        >
-                          {item.description}
-                        </Text>
-                      </View>
-                      <Ionicons name="chevron-forward" size={16} color={colors.text.tertiary} />
-                    </Pressable>
-                  </Link>
-                </View>
-              ))}
-            </View>
-          </View>
-        ))}
-      </View>
-    </Screen>
-  );
+/** Hidden More hub retired — preserve deep links by sending people to You. */
+export default function LegacyMoreRedirect() {
+  const params = useLocalSearchParams() as Record<string, string | string[] | undefined>;
+  return <Redirect href={buildLegacyRouteRedirect('/you', params) as never} />;
 }
