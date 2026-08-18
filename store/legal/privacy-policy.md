@@ -2,11 +2,11 @@
 
 **Last updated:** 24 July 2026  
 **Version:** 2026.07.24  
-**Controller / Operator:** TradeVision AI (“TradeVision”, “we”, “us”, “our”), operator of the TradeVision AI mobile application and https://tradevision.ai  
+**Controller / Operator:** Aithera (“Aithera”, “we”, “us”, “our”), operator of the TradeInsight mobile application and https://tradevision.ai  
 **Privacy contact:** privacy@tradevision.ai  
 **Support contact:** support@tradevision.ai  
 
-This Privacy Policy explains how we collect, use, store, share, and protect personal data when you use TradeVision AI. It is designed to meet transparency and rights requirements under:
+This Privacy Policy explains how we collect, use, store, share, and protect personal data when you use TradeInsight. It is designed to meet transparency and rights requirements under:
 
 - the Swiss Federal Act on Data Protection (**nFADP** / revDSG);
 - the EU/EEA **GDPR** and UK **UK GDPR** where applicable;
@@ -19,7 +19,7 @@ This Privacy Policy explains how we collect, use, store, share, and protect pers
 
 ## 1. Who we are and scope
 
-TradeVision AI is a **decision-first trading research and coaching application**. It is **not** a broker-dealer, bank, investment adviser, portfolio manager, or execution venue. Scores such as Research Value Score (RVS) and Decision Quality Score (DQS) describe research priority and process quality; they **do not** predict price direction.
+TradeInsight is a **decision-first trading research and coaching application**. It is **not** a broker-dealer, bank, investment adviser, portfolio manager, or execution venue. Scores such as Research Value Score (RVS) and Decision Quality Score (DQS) describe research priority and process quality; they **do not** predict price direction.
 
 This Policy applies to:
 
@@ -156,7 +156,7 @@ Depending on your state, you may have rights to **know/access**, **delete**, **c
 
 ## 9. Children’s privacy and audience
 
-TradeVision AI is intended for a **general audience**. Anyone may download the app and explore educational Guest/demo features that remain local on the device.
+TradeInsight is intended for a **general audience**. Anyone may download the app and explore educational Guest/demo features that remain local on the device.
 
 **Cloud account features** — including registration, cloud sync, online journals, online portfolios, and paid subscriptions — are available only to users who meet the minimum eligibility requirements: at least **18** years old, or the age of majority in their jurisdiction. We do not knowingly collect personal data from young children through cloud accounts. The application is **not directed toward young children**. If you believe a minor has created an account or provided personal data, contact privacy@tradevision.ai and we will delete it.
 
@@ -194,7 +194,7 @@ You may delete your account in **Settings**. Deletion is intended to remove:
 - files under your Storage path;
 - local app user data (device theme preference may be preserved).
 
-**Deleting the TradeVision account does not cancel Apple App Store or Google Play billing.** Manage or cancel the store subscription first. Store purchase records remain with Apple/Google under their policies.
+**Deleting the TradeInsight account does not cancel Apple App Store or Google Play billing.** Manage or cancel the store subscription first. Store purchase records remain with Apple/Google under their policies.
 
 More detail: https://tradevision.ai/account-deletion and the in-app Account Deletion notice.
 

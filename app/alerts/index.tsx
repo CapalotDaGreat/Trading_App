@@ -98,7 +98,7 @@ export default function AlertsScreen() {
           disabled={!canCreateAlert}
           deliveryHint={
             capability && !capability.backgroundEvaluation
-              ? 'This build only notifies while TradeVision is open.'
+              ? 'This build only notifies while TradeInsight is open.'
               : capability?.backgroundEvaluation
                 ? 'Background checks are OS-scheduled (often 15+ minutes) — not instant.'
                 : undefined

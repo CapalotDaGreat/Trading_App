@@ -54,7 +54,7 @@ This file records what the engineering agent completed in-repo on 2026-08-05, an
 
 ### Hosted URL probe (live site)
 
-Probed `https://tradevision.ai/{privacy,terms,support,account-deletion}` on 2026-08-05 — responses were **not** the TradeVision legal pages (placeholder / unrelated content). **Legal hosting remains a hard blocker.**
+Probed `https://tradevision.ai/{privacy,terms,support,account-deletion}` on 2026-08-05 — responses were **not** the TradeInsight / Aithera legal pages (placeholder / unrelated content). **Legal hosting remains a hard blocker.** Product display name is **TradeInsight**; bundle id stays `ai.tradevision.app`.
 
 ---
 

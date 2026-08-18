@@ -32,7 +32,7 @@ export function EducationalModeBadge({
       <Pressable
         accessibilityRole="button"
         accessibilityLabel="Educational Mode. Opens explanation."
-        accessibilityHint="Explains that TradeVision is educational research, not brokerage or advice"
+        accessibilityHint="Explains that TradeInsight is educational research, not brokerage or advice"
         testID={testID}
         onPress={() => setSheetOpen(true)}
         style={getMinTouchTargetStyle()}

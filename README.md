@@ -1,9 +1,16 @@
-# TradeVision AI
+# TradeInsight by Aithera
 
-A **decision-first trading research and coaching app** built with **Expo SDK 54** and Firebase.
+**TradeInsight** is a **decision-first trading research and coaching app** from **Aithera**,
+built with **Expo SDK 54** and Firebase. Positioning: *Research smarter. Decide with clarity.
+Improve your process.*
+
 It helps discretionary traders decide *"should I spend time researching this?"* — it is **not** a
 broker and does **not** produce buy/sell signals. Setup confidence is a **decision-quality score**,
 not a price prediction.
+
+> **Identity note:** display name and legal operator are TradeInsight / Aithera. The store
+> application id remains `ai.tradevision.app` (frozen). See
+> [`docs/IDENTITY_MIGRATION_PHASE0.md`](docs/IDENTITY_MIGRATION_PHASE0.md).
 
 Runs in **Expo Go** for most UI work; native IAP, OS-scheduled background alerts, production
 push, and widgets require an EAS Dev Client / production build — see
@@ -185,4 +192,4 @@ eas build --platform all   # profiles in eas.json
 
 ## License
 
-Proprietary — © 2026 TradeVision AI
+Proprietary — © 2026 Aithera

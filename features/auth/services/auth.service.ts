@@ -265,7 +265,7 @@ export async function enrollTotpMfa(): Promise<MfaEnrollmentResult> {
   const totpSecret: TotpSecret = await TotpMultiFactorGenerator.generateSecret(session);
   pendingTotpSecret = totpSecret;
 
-  const qrCodeUrl = totpSecret.generateQrCodeUrl(user.email ?? 'user', 'TradeVision AI');
+  const qrCodeUrl = totpSecret.generateQrCodeUrl(user.email ?? 'user', 'TradeInsight');
 
   return {
     secret: totpSecret.secretKey,
@@ -312,7 +312,7 @@ export async function verifyMfaSignIn({ verificationCode }: MfaVerifyParams): Pr
     assertion = TotpMultiFactorGenerator.assertionForSignIn(hint.uid, verificationCode);
   } else {
     throw new Error(
-      'This MFA factor is not supported in TradeVision AI mobile. Use an authenticator app (TOTP) factor.',
+      'This MFA factor is not supported in TradeInsight mobile. Use an authenticator app (TOTP) factor.',
     );
   }
 

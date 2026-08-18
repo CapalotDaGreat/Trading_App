@@ -3,7 +3,7 @@
 **Last updated:** 24 July 2026  
 **Version:** 2026.07.24  
 
-This notice explains how to delete your TradeVision AI account and what happens to your data. It supports Apple App Store and Google Play account-deletion requirements and privacy rights under Swiss nFADP, EU/UK GDPR, and U.S. state privacy laws (including CCPA/CPRA deletion rights).
+This notice explains how to delete your TradeInsight account and what happens to your data. It supports Apple App Store and Google Play account-deletion requirements and privacy rights under Swiss nFADP, EU/UK GDPR, and U.S. state privacy laws (including CCPA/CPRA deletion rights).
 
 ---
 
@@ -51,7 +51,7 @@ Email **privacy@tradevision.ai** or **support@tradevision.ai** from your account
 
 ## 5. Effect on Premium
 
-Deleting the account removes TradeVision access to Premium features tied to that account. It does **not** stop auto-renewal in the store. Manage subscription separately:
+Deleting the account removes TradeInsight access to Premium features tied to that account. It does **not** stop auto-renewal in the store. Manage subscription separately:
 
 - iOS: Settings → Apple ID → Subscriptions (or in-app Manage Subscription)
 - Android: Play Store → Subscriptions (or in-app Manage Subscription)

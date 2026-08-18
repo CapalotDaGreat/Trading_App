@@ -50,7 +50,7 @@ export const DECISION_LESSONS: Lesson[] = [
     sections: [
       {
         heading: 'The real scarce resource',
-        body: 'Most traders treat capital as the scarce resource. In practice, attention is scarcer. Every ticker you “just check” costs focus you could spend on a higher-quality setup, your journal, or staying flat.\n\nTradeVision is built around one question: should this idea earn research time right now? That is different from “is this a good trade?” — you answer the second question only after the first passes.',
+        body: 'Most traders treat capital as the scarce resource. In practice, attention is scarcer. Every ticker you “just check” costs focus you could spend on a higher-quality setup, your journal, or staying flat.\n\nTradeInsight is built around one question: should this idea earn research time right now? That is different from “is this a good trade?” — you answer the second question only after the first passes.',
       },
       {
         heading: 'A practical gate',
@@ -207,7 +207,7 @@ export const DECISION_LESSONS: Lesson[] = [
       },
       {
         heading: 'Status language',
-        body: 'TradeVision setups use statuses like forming vs confirmed for a reason. Forming means watchlist / light research. Confirmed means your checklist criteria are met — not that you must trade.\n\nKeep a “parking lot” for interesting but sub-threshold ideas. Revisit only if status improves; do not doom-scroll them.',
+        body: 'TradeInsight setups use statuses like forming vs confirmed for a reason. Forming means watchlist / light research. Confirmed means your checklist criteria are met — not that you must trade.\n\nKeep a “parking lot” for interesting but sub-threshold ideas. Revisit only if status improves; do not doom-scroll them.',
         callout: {
           type: 'warning',
           text: 'Raising size because a low-quality idea is “almost working” is impulse wearing a suit.',

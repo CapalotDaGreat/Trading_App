@@ -2,15 +2,15 @@
 
 **Last updated:** 24 July 2026  
 **Version:** 2026.07.24  
-**Operator:** TradeVision AI  
+**Operator:** Aithera  
 
-This Risk & Investment Disclaimer forms part of your agreement with TradeVision AI together with the Terms of Service and Privacy Policy. **Read it carefully before using the app.**
+This Risk & Investment Disclaimer forms part of your agreement with Aithera together with the Terms of Service and Privacy Policy. **Read it carefully before using the app.**
 
 ---
 
 ## 1. Educational and coaching tool only
 
-TradeVision AI is a **decision-process and research-coaching** application. It helps discretionary traders organise attention, journal decisions, and review process quality.
+TradeInsight is a **decision-process and research-coaching** application. It helps discretionary traders organise attention, journal decisions, and review process quality.
 
 It is **not**:
 
@@ -26,7 +26,7 @@ It is **not**:
 
 ## 2. No client relationship
 
-Using TradeVision does **not** create an advisory, fiduciary, brokerage, banking, or portfolio-management relationship under Swiss, EU/EEA/UK, or U.S. law. We do not assess your suitability, appropriateness, knowledge, experience, risk tolerance, or financial situation as a regulated firm would.
+Using TradeInsight does **not** create an advisory, fiduciary, brokerage, banking, or portfolio-management relationship under Swiss, EU/EEA/UK, or U.S. law. We do not assess your suitability, appropriateness, knowledge, experience, risk tolerance, or financial situation as a regulated firm would.
 
 If you need advice, consult a properly authorised adviser, broker, or other professional in your jurisdiction.
 
@@ -64,7 +64,7 @@ Where marketing or communications rules apply, this app is positioned as **gener
 
 ### United States
 
-Content is for **general informational and educational purposes** and is **not** an offer of securities. TradeVision is not registered with the SEC, CFTC, FINRA, or state regulators as a broker-dealer, investment adviser, or CTA by offering this software. Hypothetical or backtested-style process metrics (if any) have inherent limitations.
+Content is for **general informational and educational purposes** and is **not** an offer of securities. TradeInsight is not registered with the SEC, CFTC, FINRA, or state regulators as a broker-dealer, investment adviser, or CTA by offering this software. Hypothetical or backtested-style process metrics (if any) have inherent limitations.
 
 ### Other jurisdictions
 
@@ -78,7 +78,7 @@ By using the Service you acknowledge that:
 
 1. you understand the distinction between research coaching and regulated advice;
 2. you accept full responsibility for your decisions and any resulting gains or losses;
-3. you will not rely on TradeVision as a sole basis for investment decisions; and
+3. you will not rely on TradeInsight as a sole basis for investment decisions; and
 4. you have read the Terms of Service and Privacy Policy.
 
 ---

@@ -171,7 +171,7 @@ export function RegisterScreen() {
                   <Text variant="body-sm">
                     I am at least 18 years old, or the age of majority in my jurisdiction, and I have
                     read and agree to the Terms of Service, Privacy Policy, and Risk & Investment
-                    Disclaimer (v{LEGAL_ACCEPTANCE_VERSION}). TradeVision is not a broker and does not
+                    Disclaimer (v{LEGAL_ACCEPTANCE_VERSION}). TradeInsight is not a broker and does not
                     provide investment advice or buy/sell signals.
                   </Text>
                   <View className="mt-2 flex-row flex-wrap gap-x-2 gap-y-1">

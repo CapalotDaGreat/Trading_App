@@ -2,10 +2,10 @@
 
 **Last updated:** 24 July 2026  
 **Version:** 2026.07.24  
-**Operator:** TradeVision AI (“TradeVision”, “we”, “us”, “our”)  
+**Operator:** Aithera (“Aithera”, “we”, “us”, “our”)  
 **Contact:** support@tradevision.ai | https://tradevision.ai  
 
-These Terms of Service (“Terms”) govern your access to and use of the TradeVision AI mobile application and related services (the “Service”). By creating an account, tapping accept, or using cloud features of the Service, you agree to these Terms and our Privacy Policy, Risk & Investment Disclaimer, and Account Deletion Notice. Exploring Guest/demo mode remains subject to the educational and risk notices shown in the app.
+These Terms of Service (“Terms”) govern your access to and use of the TradeInsight mobile application and related services (the “Service”). By creating an account, tapping accept, or using cloud features of the Service, you agree to these Terms and our Privacy Policy, Risk & Investment Disclaimer, and Account Deletion Notice. Exploring Guest/demo mode remains subject to the educational and risk notices shown in the app.
 
 **Have Swiss, EU/EEA, and U.S. counsel review these Terms (including your legal entity name, registered address, and consumer-law adaptations) before production launch.** Mandatory consumer protections in your country of residence that cannot be waived remain unaffected.
 
@@ -23,7 +23,7 @@ The Service is an educational trading research and coaching platform for a gener
 
 ## 2. Nature of the Service (critical)
 
-TradeVision AI provides **decision-process coaching**, research prioritisation context, journaling, replay, educational Academy content, and related tools for discretionary traders.
+TradeInsight provides **decision-process coaching**, research prioritisation context, journaling, replay, educational Academy content, and related tools for discretionary traders.
 
 - Research Value Score (**RVS**) and Decision Quality Score (**DQS**) measure **attention priority** and **process/evidence quality**. They **do not** predict price direction or profitability.
 - The Service is **not** a bank, broker-dealer, exchange, ATS, introducing broker, commodity trading advisor, investment adviser, portfolio manager, or credit-rating agency.
@@ -57,7 +57,7 @@ Subscriptions **auto-renew** unless cancelled according to the store’s rules (
 
 ### Managing and cancelling
 
-Use **Settings → Manage Subscription** (or the store’s subscription settings). Deleting your TradeVision account **does not** cancel store billing.
+Use **Settings → Manage Subscription** (or the store’s subscription settings). Deleting your TradeInsight account **does not** cancel store billing.
 
 ### Refunds
 
@@ -123,7 +123,7 @@ Some jurisdictions do not allow certain limitations; in those cases, our liabili
 
 ## 10. Indemnity
 
-To the extent permitted by law, you will indemnify TradeVision and its operators against claims arising from your misuse of the Service, your trading decisions, or your violation of these Terms or law, except to the extent caused by our wilful misconduct.
+To the extent permitted by law, you will indemnify TradeInsight and its operators against claims arising from your misuse of the Service, your trading decisions, or your violation of these Terms or law, except to the extent caused by our wilful misconduct.
 
 ---
 
@@ -147,7 +147,7 @@ We may modify features (including disabling cloud AI or changing data providers)
 
 ## 14. Export, sanctions, and U.S. regulatory positioning
 
-You represent that you are not prohibited from receiving the Service under applicable export control or sanctions laws. TradeVision does not register as a broker-dealer or investment adviser with the U.S. SEC/FINRA or equivalent regulators by virtue of offering educational/research-coaching software. If your use would require such registration, you must not use the Service for that purpose.
+You represent that you are not prohibited from receiving the Service under applicable export control or sanctions laws. TradeInsight does not register as a broker-dealer or investment adviser with the U.S. SEC/FINRA or equivalent regulators by virtue of offering educational/research-coaching software. If your use would require such registration, you must not use the Service for that purpose.
 
 ---
 

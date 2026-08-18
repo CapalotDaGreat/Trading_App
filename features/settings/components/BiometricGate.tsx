@@ -37,7 +37,7 @@ export function BiometricGate({ children }: { children: ReactNode }) {
         return;
       }
       const result = await LocalAuthentication.authenticateAsync({
-        promptMessage: 'Unlock TradeVision AI',
+        promptMessage: 'Unlock TradeInsight',
         cancelLabel: 'Cancel',
         disableDeviceFallback: false,
       });
@@ -84,7 +84,7 @@ export function BiometricGate({ children }: { children: ReactNode }) {
   return (
     <View className="flex-1 items-center justify-center bg-background px-6">
       <Text variant="h3" className="mb-2 text-center">
-        Unlock TradeVision AI
+        Unlock TradeInsight
       </Text>
       <Text variant="body-sm" className="mb-6 text-center text-text-secondary">
         Biometric unlock is enabled for this account on this device.

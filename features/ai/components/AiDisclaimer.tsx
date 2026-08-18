@@ -33,7 +33,7 @@ export function AiDisclaimer({ compact = false, className }: AiDisclaimerProps) 
         </Text>
         <Text variant="caption" className="leading-relaxed text-text-secondary">
           Educational purposes only · Not financial advice · Research context only · Explanations
-          describe process and evidence, not price predictions. TradeVision does not provide
+          describe process and evidence, not price predictions. TradeInsight does not provide
           buy/sell signals. You are solely responsible for any trading decisions. Always verify
           independently and consult a licensed professional when needed.
         </Text>

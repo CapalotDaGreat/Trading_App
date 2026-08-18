@@ -1,8 +1,11 @@
-# Store submission gate
+# Store submission gate — TradeInsight by Aithera
 
 **Living execution status (what is done vs manual):** [STORE_LAUNCH_CHECKLIST.md](./STORE_LAUNCH_CHECKLIST.md).  
+Identity migration (Phase 0): [IDENTITY_MIGRATION_PHASE0.md](./IDENTITY_MIGRATION_PHASE0.md).  
 Signed-build evidence form: [`store/EVIDENCE_TEMPLATE.md`](../store/EVIDENCE_TEMPLATE.md).  
 Hostable legal pages: [`store/hosted/README.md`](../store/hosted/README.md).
+
+Listing display name: **TradeInsight**. Store application id remains **`ai.tradevision.app`**.
 
 Repository checks are documented in [QA.md](./QA.md). Phase 4 polish scores and
 the production checklist live in [PHASE4_PRODUCT_POLISH_REPORT.md](./PHASE4_PRODUCT_POLISH_REPORT.md).
@@ -32,7 +35,7 @@ The remaining items must be completed in the named external console before submi
 - Configure the seven-day yearly trial identically on both platforms.
 - Connect both stores to RevenueCat and configure the authenticated webhook.
 - Confirm RevenueCat App User IDs are Firebase UIDs and the webhook entitlement
-  id is `premium`.
+  id is `Aithera Pro`.
 - Add sandbox/license testers and complete purchase, restore, cancel,
   paid-through access, expiry, refund, and resubscribe tests.
 

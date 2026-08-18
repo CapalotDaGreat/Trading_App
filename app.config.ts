@@ -14,7 +14,7 @@ if (
 
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
-  name: 'TradeVision AI',
+  name: 'TradeInsight',
   slug: 'traders',
   version: '1.0.0',
   orientation: 'default',
@@ -100,7 +100,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       'expo-local-authentication',
       {
         faceIDPermission:
-          'TradeVision AI uses Face ID to unlock the app after idle timeout. Biometrics never authorize trades.',
+          'TradeInsight uses Face ID to unlock the app after idle timeout. Biometrics never authorize trades.',
       },
     ],
     [

@@ -22,7 +22,7 @@ export function AiSettingsScreen() {
 
       <GlassCard className="mb-4 p-4">
         <Text variant="body-sm" className="leading-relaxed text-text-secondary">
-          AI in TradeVision AI is a decision coach — not a broker and not a signal service. Insights
+          AI in TradeInsight is a decision coach — not a broker and not a signal service. Insights
           explain research process quality. They do not predict price direction.
         </Text>
       </GlassCard>

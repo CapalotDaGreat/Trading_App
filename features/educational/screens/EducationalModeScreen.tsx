@@ -88,7 +88,7 @@ export function EducationalModeScreen() {
             {EDUCATIONAL_MODE_MISSION}
           </Text>
           <Text variant="body-sm" className="mt-3 leading-relaxed text-text-secondary">
-            Educational Mode is always on. It is not a popup disclaimer — it is how TradeVision is
+            Educational Mode is always on. It is not a popup disclaimer — it is how TradeInsight is
             built: education, research, and disciplined practice over brokerage or signals.
           </Text>
         </GlassCard>
@@ -114,7 +114,7 @@ export function EducationalModeScreen() {
 
         <EducationalPanel
           variant="risk"
-          body="TradeVision does not execute trades, custody funds, or guarantee future performance. You remain responsible for every live decision with your own broker."
+          body="TradeInsight does not execute trades, custody funds, or guarantee future performance. You remain responsible for every live decision with your own broker."
           learnMoreHref="/settings/legal/risk"
           learnMoreLabel="Read risk disclaimer"
         />

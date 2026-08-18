@@ -1,5 +1,5 @@
 {
-  "appName": "TradeVision AI",
+  "appName": "TradeInsight",
   "subtitle": "Trading Decision Coach",
   "bundleId": "ai.tradevision.app",
   "sku": "tradevision-ai-ios-001",
@@ -20,7 +20,7 @@
   ],
   "description": {
     "short": "Educational trading research and decision coaching — not buy/sell signals.",
-    "full": "TradeVision AI is an educational decision-first research and coaching app for discretionary traders. It helps you decide what deserves research time with a Today brief, research-value queue, regime context, decision journal, replay, Decision Lab practice, and Academy lessons.\n\nAnyone may download and explore Guest mode. Creating an account or purchasing a subscription requires being at least 18 (or the age of majority where required).\n\nScores measure research priority and decision-process quality; they do not predict price direction. TradeVision is not a broker, does not execute trades, does not handle real money, and does not provide buy/sell signals.\n\nPremium adds deeper decision radar, portfolio context, faster quote polling, advanced charts, and data export. Monthly and yearly subscriptions renew automatically unless cancelled in App Store subscription settings. Cancellation stops renewal while access continues through the store-reported paid-through date. The yearly plan includes a 7-day trial only when shown on the App Store purchase sheet."
+    "full": "TradeInsight by Aithera is an educational decision-first research and coaching app for discretionary traders. Research smarter. Decide with clarity. Improve your process.\n\nIt helps you decide what deserves research time with a Today brief, research-value queue, regime context, decision journal, replay, Decision Lab practice, and Academy lessons.\n\nAnyone may download and explore Guest mode. Creating an account or purchasing a subscription requires being at least 18 (or the age of majority where required).\n\nScores measure research priority and decision-process quality; they do not predict price direction. TradeInsight is not a broker, does not execute trades, does not handle real money, and does not provide buy/sell signals.\n\nPremium adds deeper decision radar, portfolio context, faster quote polling, advanced charts, and data export. Monthly and yearly subscriptions renew automatically unless cancelled in App Store subscription settings. Cancellation stops renewal while access continues through the store-reported paid-through date. The yearly plan includes a 7-day trial only when shown on the App Store purchase sheet."
   },
   "screenshots": {
     "iphone67": [],
@@ -43,5 +43,5 @@
     "jurisdictions": ["CH", "EU", "US"]
   },
   "screenshotInventory": "store/screenshots/README.md",
-  "copyright": "© 2026 TradeVision AI"
+  "copyright": "© 2026 Aithera"
 }

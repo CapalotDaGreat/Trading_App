@@ -80,7 +80,7 @@ export function mapRecoverableError(
     return {
       kind: 'network',
       title: 'Network error',
-      why: 'We couldn’t reach TradeVision services or a market-data vendor.',
+      why: 'We couldn’t reach TradeInsight services or a market-data vendor.',
       recovery: 'Check Wi‑Fi or cellular, then retry. Guest/demo mode can continue with sample data.',
       actionLabel: 'Retry',
     };
@@ -144,7 +144,7 @@ export function mapRecoverableError(
       kind: 'permission',
       title: 'Permission needed',
       why: 'A system permission (notifications, biometrics, or screen capture) is blocked.',
-      recovery: 'Open system Settings for TradeVision AI and enable the required permission.',
+      recovery: 'Open system Settings for TradeInsight and enable the required permission.',
       actionLabel: 'Open settings',
     };
   }

@@ -3,7 +3,7 @@ export const EDUCATIONAL_MODE_MISSION =
 
 export const EDUCATIONAL_MODE_SHEET = {
   title: 'Educational Mode',
-  body: 'This feature is designed to help you learn trading concepts and improve your decision-making process.\n\nTradeVision AI does not execute trades, provide financial advice, or guarantee future performance.',
+  body: 'This feature is designed to help you learn trading concepts and improve your decision-making process.\n\nTradeInsight does not execute trades, provide financial advice, or guarantee future performance.',
   bullets: [
     'Research and coaching — not brokerage',
     'Scores measure process quality, not price direction',

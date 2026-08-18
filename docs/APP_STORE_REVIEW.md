@@ -1,8 +1,8 @@
-# Apple App Store Review readiness
+# Apple App Store Review readiness — TradeInsight by Aithera
 
 Cross-check against https://developer.apple.com/app-store/review/guidelines/
 before each submission. This app is positioned as **Finance / educational research
-coaching**, not a broker or investment adviser.
+coaching**, not a broker or investment adviser. Bundle id remains `ai.tradevision.app`.
 
 ## Already aligned in-app
 

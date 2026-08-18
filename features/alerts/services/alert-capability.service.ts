@@ -24,10 +24,10 @@ export interface AlertDeliveryCapability {
 }
 
 const FOREGROUND_ONLY_SUMMARY =
-  'Alerts are checked about every 45 seconds while TradeVision is open. Background delivery is not available in this build — keep the app open, or use an EAS Dev Client / production install for OS-scheduled background checks.';
+  'Alerts are checked about every 45 seconds while TradeInsight is open. Background delivery is not available in this build — keep the app open, or use an EAS Dev Client / production install for OS-scheduled background checks.';
 
 const BACKGROUND_AVAILABLE_SUMMARY =
-  'While TradeVision is open, alerts check about every 45 seconds. When the app is backgrounded or closed, the OS may wake TradeVision periodically to re-check (often 15+ minutes later — not instant). Battery savers and low power can delay delivery.';
+  'While TradeInsight is open, alerts check about every 45 seconds. When the app is backgrounded or closed, the OS may wake TradeInsight periodically to re-check (often 15+ minutes later — not instant). Battery savers and low power can delay delivery.';
 
 async function probeNativeBackground(): Promise<{
   available: boolean;

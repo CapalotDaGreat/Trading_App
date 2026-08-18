@@ -203,7 +203,7 @@ export function AiChatScreen({ symbol }: AiChatScreenProps) {
             <View className="flex-row items-end gap-2">
               <View className="flex-1">
                 <Input
-                  accessibilityLabel="Ask TradeVision"
+                  accessibilityLabel="Ask TradeInsight"
                   value={input}
                   onChangeText={setInput}
                   placeholder="Ask about evidence, risk, or your process"

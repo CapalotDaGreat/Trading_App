@@ -52,7 +52,7 @@ export function PrivacyScreen() {
   const confirmDelete = () => {
     Alert.alert(
       'Delete my data & account',
-      'This permanently deletes your TradeVision AI account and cloud data, then clears local caches on this device. This cannot be undone.',
+      'This permanently deletes your TradeInsight account and cloud data, then clears local caches on this device. This cannot be undone.',
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -83,7 +83,7 @@ export function PrivacyScreen() {
       <Header title="Privacy Dashboard" onBack={() => router.back()} />
 
       <Text variant="body-sm" className="mb-4 text-text-secondary">
-        Control how TradeVision AI uses diagnostics, session security, and your data rights under
+        Control how TradeInsight uses diagnostics, session security, and your data rights under
         Swiss nFADP, EU/UK GDPR, and applicable U.S. state laws.
       </Text>
 

@@ -1,7 +1,11 @@
-# TradeVision AI review notes
+# TradeInsight by Aithera — review notes
 
-TradeVision is a decision-quality research and coaching app. It is not a broker
-and does not provide buy/sell signals or execute trades.
+TradeInsight is a decision-quality research and coaching app from Aithera. It is
+not a broker and does not provide buy/sell signals or execute trades.
+
+**Technical note for reviewers:** the iOS/Android application identifier remains
+`ai.tradevision.app` (frozen from the prior TradeVision listing). Display name
+and in-app branding are TradeInsight / Aithera.
 
 ## Review access
 
@@ -66,4 +70,7 @@ Terms, Privacy, Risk Disclaimer, Security Notice, Support, and account-deletion
 information are linked in Settings (in-app copies plus hosted URLs). Public URLs
 must return HTTP 200 in the submission consoles before review; no reviewer
 credential is stored in this repository. Legal markdown sources are in
-`store/legal/` and must be counsel-reviewed for the production entity.
+`store/legal/` and must be counsel-reviewed for the production entity. Legal
+hosting under the current origin remains a launch blocker until pages serve
+Aithera / TradeInsight content (or `EXPO_PUBLIC_LEGAL_SITE_ORIGIN` points at a
+verified host).

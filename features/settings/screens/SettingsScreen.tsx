@@ -267,7 +267,7 @@ export function SettingsScreen() {
           </Text>
           <GlassCard className="p-4">
             <Text variant="body-sm">
-              Permanently deletes your account and TradeVision app data. Deleting your account does
+              Permanently deletes your account and TradeInsight app data. Deleting your account does
               not cancel Apple App Store or Google Play billing.
             </Text>
             <Button variant="secondary" className="mt-4" onPress={() => void manage()}>
@@ -343,7 +343,7 @@ export function SettingsScreen() {
       </View>
 
       <Text variant="caption" className="mt-6 text-center">
-        TradeVision AI v1.0.0
+        TradeInsight by Aithera · v1.0.0
       </Text>
     </Screen>
   );

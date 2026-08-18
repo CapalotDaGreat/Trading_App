@@ -1,20 +1,28 @@
 # Legal documents (canonical)
 
 Markdown in this folder is the **source of truth** for hosted legal pages and
-in-app copies.
+in-app copies. Operator brand: **Aithera**. Product: **TradeInsight**.
+
+Public paths below use the current legal-site origin fallback (`tradevision.ai`)
+until `EXPO_PUBLIC_LEGAL_SITE_ORIGIN` points at a verified Aithera host. Do not
+claim live Aithera pages until hosting is verified.
 
 | File | Public path (intended) |
 | --- | --- |
-| `privacy-policy.md` | https://tradevision.ai/privacy |
-| `terms-of-service.md` | https://tradevision.ai/terms |
-| `risk-disclaimer.md` | https://tradevision.ai/risk |
-| `account-deletion.md` | https://tradevision.ai/account-deletion |
-| `security-notice.md` | https://tradevision.ai/security |
+| `privacy-policy.md` | {origin}/privacy |
+| `terms-of-service.md` | {origin}/terms |
+| `risk-disclaimer.md` | {origin}/risk |
+| `account-deletion.md` | {origin}/account-deletion |
+| `security-notice.md` | {origin}/security |
 
-After editing any file, sync into the app:
+Replace `{origin}` with `https://tradevision.ai` (current fallback) or your
+configured legal site origin.
+
+After editing any file, sync into the app and regenerate hosted HTML:
 
 ```bash
-python scripts/sync-legal-docs.py
+npm run legal:sync
+npm run legal:host
 ```
 
 ## Counsel review required

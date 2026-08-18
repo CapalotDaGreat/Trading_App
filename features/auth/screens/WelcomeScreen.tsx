@@ -52,7 +52,7 @@ export function WelcomeScreen() {
   return (
     <Screen
       scrollable
-      accessibilityTitle="Welcome to TradeVision AI"
+      accessibilityTitle="Welcome to TradeInsight"
       className="bg-background"
       scrollViewProps={{ contentContainerStyle: { flexGrow: 1 } }}
     >
@@ -63,10 +63,10 @@ export function WelcomeScreen() {
           </View>
           <View>
             <Text variant="h3" accessibilityRole="header">
-              TradeVision AI
+              TradeInsight
             </Text>
             <Text variant="caption" className="text-text-secondary">
-              Personal operating system for trader improvement
+              TradeInsight by Aithera · Research smarter. Decide with clarity.
             </Text>
           </View>
         </View>
@@ -138,7 +138,7 @@ export function WelcomeScreen() {
             />
             <Text variant="caption" className="flex-1 text-text-secondary">
               I understand Guest mode is a local educational demo. Scores do not predict prices.
-              TradeVision does not provide investment advice or buy/sell signals.
+              TradeInsight does not provide investment advice or buy/sell signals.
             </Text>
           </Pressable>
 
