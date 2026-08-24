@@ -3,7 +3,7 @@ import * as functions from 'firebase-functions';
 import { onCall } from 'firebase-functions/v2/https';
 import { onSchedule } from 'firebase-functions/v2/scheduler';
 
-import { requireAppCheck, requireAuth } from '../security';
+import { requireAppCheck, requireAuth, requireOpsAdmin } from '../security';
 import { recordDailyCounter } from './aggregates';
 import { SERVER_DEFAULT_REMOTE } from './defaults';
 
@@ -98,19 +98,12 @@ export const opsHealthSnapshot = onSchedule(
   },
 );
 
-async function assertOpsAdmin(uid: string, token?: Record<string, unknown>): Promise<void> {
-  const adminSnap = await db().collection('opsAdmins').doc(uid).get();
-  if (!adminSnap.exists && token?.opsAdmin !== true) {
-    throw new functions.https.HttpsError('permission-denied', 'Ops admin required.');
-  }
-}
-
 export const getOpsDashboard = onCall(
   { enforceAppCheck: false, timeoutSeconds: 20, memory: '256MiB' },
   async (request) => {
     requireAppCheck(request);
     const uid = requireAuth(request);
-    await assertOpsAdmin(uid, request.auth?.token as Record<string, unknown> | undefined);
+    await requireOpsAdmin(uid, request.auth?.token as Record<string, unknown> | undefined);
 
     const day = new Date().toISOString().slice(0, 10);
     const [latest, daily, ai, subs, flags, remote] = await Promise.all([

@@ -3,6 +3,9 @@ import { timingSafeEqual } from 'crypto';
 
 import * as admin from 'firebase-admin';
 import * as functions from 'firebase-functions';
+import { onCall } from 'firebase-functions/v2/https';
+
+import { requireAppCheck, requireAuth } from './security';
 
 admin.initializeApp();
 
@@ -235,14 +238,18 @@ export function accountDeletionPaths(uid: string): {
   userDocument: string;
   userSettingsDocument: string;
   subscriptionDocument: string;
+  usageDocument: string;
   revenueCatEventsCollection: string;
+  securityEventsCollection: string;
   storagePrefix: string;
 } {
   return {
     userDocument: `users/${uid}`,
     userSettingsDocument: `userSettings/${uid}`,
     subscriptionDocument: `subscriptions/${uid}`,
+    usageDocument: `usage/${uid}`,
     revenueCatEventsCollection: 'revenuecatWebhookEvents',
+    securityEventsCollection: 'securityEvents',
     storagePrefix: `users/${uid}/`,
   };
 }
@@ -350,89 +357,92 @@ export const revenueCatWebhook = functions.https.onRequest(async (req, res) => {
   res.status(200).send('ok');
 });
 
-export const deleteAccount = functions.https.onCall(async (request) => {
-  const uid = request.auth?.uid;
-  if (!uid) {
-    throw new functions.https.HttpsError(
-      'unauthenticated',
-      'You must be signed in to delete your account.',
-    );
-  }
-  if (!hasRecentLogin(request.auth?.token.auth_time)) {
-    throw new functions.https.HttpsError(
-      'failed-precondition',
-      'Recent sign-in required. Sign out, sign back in, and try again.',
-    );
-  }
-
-  const paths = accountDeletionPaths(uid);
-  const db = admin.firestore();
-  const deletionRequestRef = db.collection('accountDeletionRequests').doc(uid);
-  const attemptStartedAtMs = Date.now();
-
-  await db.runTransaction(async (transaction) => {
-    const previous = await transaction.get(deletionRequestRef);
-    const previousAttemptAt = previous.data()?.lastAttemptAt;
-    const previousAttemptAtMs =
-      previousAttemptAt && typeof previousAttemptAt.toMillis === 'function'
-        ? previousAttemptAt.toMillis()
-        : null;
-    if (!deletionRetryAllowed(previousAttemptAtMs, attemptStartedAtMs)) {
+export const deleteAccount = onCall(
+  { enforceAppCheck: false, timeoutSeconds: 120, memory: '512MiB' },
+  async (request) => {
+    requireAppCheck(request);
+    // UID comes only from the verified Auth token — never from request.data.
+    const uid = requireAuth(request);
+    if (!hasRecentLogin(request.auth?.token.auth_time)) {
       throw new functions.https.HttpsError(
-        'resource-exhausted',
-        'Account deletion is already in progress. Wait one minute before retrying.',
+        'failed-precondition',
+        'Recent sign-in required. Sign out, sign back in, and try again.',
       );
     }
-    transaction.set(
-      deletionRequestRef,
-      {
-        uid,
-        status: 'in_progress',
-        lastAttemptAt: admin.firestore.Timestamp.fromMillis(attemptStartedAtMs),
-        expiresAt: admin.firestore.Timestamp.fromMillis(
-          attemptStartedAtMs + DELETION_AUDIT_RETENTION_MS,
-        ),
-      },
-      { merge: true },
-    );
-  });
 
-  try {
-    // Keep Auth deletion last so a partial failure can be retried by the same account.
-    await admin.storage().bucket().deleteFiles({ prefix: paths.storagePrefix });
-    const revenueCatEvents = await db
-      .collection(paths.revenueCatEventsCollection)
-      .where('uid', '==', uid)
-      .get();
-    await Promise.all(revenueCatEvents.docs.map((eventDoc) => eventDoc.ref.delete()));
-    await db.recursiveDelete(db.doc(paths.userDocument));
-    await Promise.all([
-      db.recursiveDelete(db.doc(paths.userSettingsDocument)),
-      db.recursiveDelete(db.doc(paths.subscriptionDocument)),
-    ]);
-    await admin.auth().deleteUser(uid);
-    await deletionRequestRef.set(
-      {
-        status: 'completed',
-        completedAt: admin.firestore.FieldValue.serverTimestamp(),
-      },
-      { merge: true },
-    );
-  } catch (error) {
-    await deletionRequestRef.set(
-      {
-        status: 'failed',
-        failedAt: admin.firestore.FieldValue.serverTimestamp(),
-      },
-      { merge: true },
-    );
-    functions.logger.error('Account deletion failed', { uid, error });
-    throw new functions.https.HttpsError(
-      'internal',
-      'Account deletion could not be completed. Please try again or contact support.',
-    );
-  }
+    const paths = accountDeletionPaths(uid);
+    const db = admin.firestore();
+    const deletionRequestRef = db.collection('accountDeletionRequests').doc(uid);
+    const attemptStartedAtMs = Date.now();
 
-  functions.logger.info('Account deleted', { uid });
-  return { deleted: true };
-});
+    await db.runTransaction(async (transaction) => {
+      const previous = await transaction.get(deletionRequestRef);
+      const previousAttemptAt = previous.data()?.lastAttemptAt;
+      const previousAttemptAtMs =
+        previousAttemptAt && typeof previousAttemptAt.toMillis === 'function'
+          ? previousAttemptAt.toMillis()
+          : null;
+      if (!deletionRetryAllowed(previousAttemptAtMs, attemptStartedAtMs)) {
+        throw new functions.https.HttpsError(
+          'resource-exhausted',
+          'Account deletion is already in progress. Wait one minute before retrying.',
+        );
+      }
+      transaction.set(
+        deletionRequestRef,
+        {
+          uid,
+          status: 'in_progress',
+          lastAttemptAt: admin.firestore.Timestamp.fromMillis(attemptStartedAtMs),
+          expiresAt: admin.firestore.Timestamp.fromMillis(
+            attemptStartedAtMs + DELETION_AUDIT_RETENTION_MS,
+          ),
+        },
+        { merge: true },
+      );
+    });
+
+    try {
+      // Keep Auth deletion last so a partial failure can be retried by the same account.
+      await admin.storage().bucket().deleteFiles({ prefix: paths.storagePrefix });
+      const [revenueCatEvents, securityEvents] = await Promise.all([
+        db.collection(paths.revenueCatEventsCollection).where('uid', '==', uid).get(),
+        db.collection(paths.securityEventsCollection).where('uid', '==', uid).get(),
+      ]);
+      await Promise.all([
+        ...revenueCatEvents.docs.map((eventDoc) => eventDoc.ref.delete()),
+        ...securityEvents.docs.map((eventDoc) => eventDoc.ref.delete()),
+      ]);
+      await db.recursiveDelete(db.doc(paths.userDocument));
+      await Promise.all([
+        db.recursiveDelete(db.doc(paths.userSettingsDocument)),
+        db.recursiveDelete(db.doc(paths.subscriptionDocument)),
+        db.recursiveDelete(db.doc(paths.usageDocument)),
+      ]);
+      await admin.auth().deleteUser(uid);
+      await deletionRequestRef.set(
+        {
+          status: 'completed',
+          completedAt: admin.firestore.FieldValue.serverTimestamp(),
+        },
+        { merge: true },
+      );
+    } catch (error) {
+      await deletionRequestRef.set(
+        {
+          status: 'failed',
+          failedAt: admin.firestore.FieldValue.serverTimestamp(),
+        },
+        { merge: true },
+      );
+      functions.logger.error('Account deletion failed', { uid, error });
+      throw new functions.https.HttpsError(
+        'internal',
+        'Account deletion could not be completed. Please try again or contact support.',
+      );
+    }
+
+    functions.logger.info('Account deleted', { uid });
+    return { deleted: true };
+  },
+);

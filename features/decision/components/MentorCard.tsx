@@ -63,9 +63,7 @@ export function MentorCard({ brief, isLoading }: MentorCardProps) {
         </View>
 
         <View className="mt-1 flex-row flex-wrap gap-2">
-          <MetaChip label={`${brief.learningStreakDays}d streak`} />
           <MetaChip label={`Process ${brief.processScoreWeek}`} />
-          <MetaChip label={`${brief.loopStepsCompletedToday}/3 loop`} />
           <MetaChip label={brief.identity.styleLabel} />
         </View>
 

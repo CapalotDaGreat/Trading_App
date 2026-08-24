@@ -108,7 +108,7 @@ export function WhyNotCard({ items, regime }: { items: WhyNotInsight[]; regime: 
     <GlassCard className="p-4">
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel="Why not, ideas worth skipping"
+        accessibilityLabel="Safe to ignore, ideas worth skipping"
         accessibilityState={{ expanded: open }}
         testID="today-why-not-toggle"
         onPress={() => setOpen((value) => !value)}
@@ -116,10 +116,10 @@ export function WhyNotCard({ items, regime }: { items: WhyNotInsight[]; regime: 
       >
         <View className="flex-1 pr-3">
           <Text variant="caption" className="mb-1 font-semibold text-text-tertiary">
-            WHY NOT?
+            SAFE TO IGNORE
           </Text>
           <Text variant="h3">
-            Save your attention · {items.length} idea{items.length === 1 ? '' : 's'}
+            {items.length} idea{items.length === 1 ? '' : 's'} you can skip
           </Text>
         </View>
         <Ionicons
@@ -157,13 +157,13 @@ export function WhyNotCard({ items, regime }: { items: WhyNotInsight[]; regime: 
                 </Pressable>
                 <Pressable
                   accessibilityRole="button"
-                  accessibilityLabel={`Ignore why not guidance for ${item.symbol}`}
+                  accessibilityLabel={`Dismiss skip guidance for ${item.symbol}`}
                   testID={`why-not-ignore-${item.symbol}`}
                   onPress={() => recordOutcome(item, 'ignored')}
                   className="min-h-11 justify-center rounded-full bg-surface px-3 py-1.5"
                 >
                   <Text variant="caption" className="text-text-secondary">
-                    Ignore
+                    Dismiss
                   </Text>
                 </Pressable>
               </View>

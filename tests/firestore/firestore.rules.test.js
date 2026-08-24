@@ -68,6 +68,10 @@ test('allows owner service payloads and rejects cross-user reads', async () => {
       currentPrice: 505,
       currency: 'USD',
       side: 'long',
+      instrumentId: 'finnhub:SPY',
+      canonicalSymbol: 'SPY',
+      provider: 'finnhub',
+      providerSymbol: 'SPY',
       ...timestamps(),
     }),
   );
@@ -234,4 +238,28 @@ test('validates owner-scoped device documents and real deletion', async () => {
     }),
   );
   await assertSucceeds(deleteDoc(doc(owner, `users/owner/devices/${deviceId}`)));
+});
+
+test('keeps usage ledgers, security events, and ops data client-immutable', async () => {
+  const db = ownerDb();
+  const other = ownerDb('other');
+
+  await testEnv.withSecurityRulesDisabled(async (context) => {
+    const adminDb = context.firestore();
+    await setDoc(doc(adminDb, 'usage/owner/daily/2026-08-24'), { counts: { ai: 1 } });
+    await setDoc(doc(adminDb, 'usage/owner/burst/2026-08-24T12-00'), { counts: { vendor: 1 } });
+    await setDoc(doc(adminDb, 'securityEvents/evt1'), { uid: 'owner', reason: 'quota_exceeded' });
+    await setDoc(doc(adminDb, 'ops/config/docs/remote'), { aiDailyLimitFree: 3 });
+  });
+
+  await assertSucceeds(getDoc(doc(db, 'usage/owner/daily/2026-08-24')));
+  await assertFails(getDoc(doc(other, 'usage/owner/daily/2026-08-24')));
+  await assertFails(setDoc(doc(db, 'usage/owner/daily/2026-08-24'), { counts: { ai: 0 } }));
+  await assertFails(setDoc(doc(db, 'usage/owner/burst/2026-08-24T12-00'), { counts: { vendor: 0 } }));
+  await assertFails(setDoc(doc(db, 'securityEvents/evt1'), { reason: 'forged' }));
+  await assertFails(getDoc(doc(db, 'securityEvents/evt1')));
+  await assertFails(getDoc(doc(db, 'ops/config/docs/remote')));
+  await assertFails(setDoc(doc(db, 'ops/config/docs/remote'), { aiDailyLimitPremium: 1_000_000 }));
+  await assertFails(setDoc(doc(db, 'revenuecatWebhookEvents/evt'), { uid: 'owner' }));
+  await assertFails(setDoc(doc(db, 'accountDeletionRequests/owner'), { status: 'completed' }));
 });

@@ -34,7 +34,7 @@ const DEFAULT_PLANS: SubscriptionPlan[] = [
     id: 'monthly',
     productId: PREMIUM_PRODUCT_IDS.monthly,
     title: 'Monthly',
-    description: 'Full Aithera Pro access, billed monthly. Cancel anytime.',
+    description: 'Full Aithera Pro depth, billed monthly. Cancel anytime.',
     price: '$9.99',
     pricePerMonth: '$9.99/mo',
   },
@@ -50,15 +50,6 @@ const DEFAULT_PLANS: SubscriptionPlan[] = [
     isPopular: true,
     trialDays: YEARLY_TRIAL_DAYS,
     trialLabel: `${YEARLY_TRIAL_DAYS}-day free trial`,
-  },
-  {
-    id: 'lifetime',
-    productId: PREMIUM_PRODUCT_IDS.lifetime,
-    title: 'Lifetime',
-    description: 'One-time purchase. Permanent Aithera Pro access.',
-    price: '$149.99',
-    badge: 'Pay once',
-    isLifetime: true,
   },
 ];
 
@@ -232,7 +223,7 @@ class SubscriptionServiceImpl implements SubscriptionService {
           ...plan,
           price: priceString,
           pricePerMonth:
-            plan.id === 'yearly' || plan.id === 'lifetime'
+            plan.id === 'yearly'
               ? plan.pricePerMonth
               : priceString
                 ? `${priceString}/mo`
@@ -380,6 +371,9 @@ class SubscriptionServiceImpl implements SubscriptionService {
   }
 
   async purchasePlan(uid: string, planId: SubscriptionPlanId): Promise<PurchaseResult> {
+    if (planId === 'lifetime') {
+      throw new Error('Lifetime is not offered at launch.');
+    }
     const Purchases = getPurchases();
     if (!Purchases || !(await this.configureForUser(uid))) {
       throw new Error('Purchases require an EAS development or production build.');

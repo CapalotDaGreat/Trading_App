@@ -17,6 +17,7 @@ import { buildDnaChangeInsights } from '@/features/personal-intelligence/service
 import { buildTradingDnaTraits } from '@/features/personal-intelligence/services/trading-dna-traits.service';
 import type { Candle, MarketType } from '@/shared/types/market';
 
+import { useSettingsStore } from '@/shared/stores/settings.store';
 import type {
   AiEnrichedContext,
   AiInstrumentIdentity,
@@ -225,15 +226,35 @@ export async function enrichRequestContext(
       portfolioSymbols: context.portfolio?.map((h) => h.symbol) ?? [],
       topSetupSymbols: context.symbol ? [context.symbol] : memory.favoriteAssets.slice(0, 3),
     });
-    const records = await getDecisionRecords(context.userScopeUid).catch(() => []);
-    const dnaProfile = buildTradingDnaTraits({ memory, records });
-    const whatsChanging = buildDnaChangeInsights({ dna: dnaProfile, records });
-    const mentorSummary = buildDnaMentorSummary({
-      dna: dnaProfile,
-      whatsChanging,
-      uid: context.userScopeUid,
-    });
+    const records = await getDecisionRecords(context.userScopeUid, 300).catch(() => []);
+    const dnaLocalOnly = useSettingsStore.getState().tradingDnaLocalOnly ?? true;
     const legacyDna = buildTradingDna(memory);
+    let tradingDna:
+      | {
+          becomingLabel: string;
+          strengths: string[];
+          growthEdges: string[];
+          observationLine: string;
+        }
+      | undefined;
+    if (!dnaLocalOnly) {
+      const dnaProfile = buildTradingDnaTraits({ memory, records });
+      const whatsChanging = buildDnaChangeInsights({ dna: dnaProfile, records });
+      const mentorSummary = buildDnaMentorSummary({
+        dna: dnaProfile,
+        whatsChanging,
+        uid: context.userScopeUid,
+      });
+      tradingDna = {
+        becomingLabel: dnaProfile.becomingLabel || legacyDna.styleLabel,
+        strengths: (dnaProfile.strengths.length ? dnaProfile.strengths : legacyDna.strengths).slice(0, 3),
+        growthEdges: (dnaProfile.growthEdges.length
+          ? dnaProfile.growthEdges
+          : legacyDna.weaknesses
+        ).slice(0, 2),
+        observationLine: mentorSummary.observationLine,
+      };
+    }
     enriched.decisionIntelligence = {
       psychologyReminder: intel.psychologyReminder,
       recommendedFocus: intel.recommendedFocus,
@@ -244,16 +265,7 @@ export async function enrichRequestContext(
       struggles: memory.struggles?.slice(0, 4),
       researchTimeOfDay: memory.researchTimeOfDay,
       successDefinitions: memory.successDefinitions?.slice(0, 3),
-      // Aggregated DNA coaching context only — never raw journal bodies.
-      tradingDna: {
-        becomingLabel: dnaProfile.becomingLabel || legacyDna.styleLabel,
-        strengths: (dnaProfile.strengths.length ? dnaProfile.strengths : legacyDna.strengths).slice(0, 3),
-        growthEdges: (dnaProfile.growthEdges.length
-          ? dnaProfile.growthEdges
-          : legacyDna.weaknesses
-        ).slice(0, 3),
-        observationLine: mentorSummary.observationLine,
-      },
+      tradingDna,
     };
   } catch {
     // demo / offline — AI still works without DNA

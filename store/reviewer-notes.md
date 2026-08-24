@@ -1,76 +1,120 @@
-# TradeInsight by Aithera — review notes
+# TradeInsight by Aithera — App Review notes
 
-TradeInsight is a decision-quality research and coaching app from Aithera. It is
-not a broker and does not provide buy/sell signals or execute trades.
+Paste into App Store Connect / Play Console review notes. Do not commit reviewer
+passwords or sandbox emails here.
 
-**Technical note for reviewers:** the iOS/Android application identifier remains
-`ai.tradevision.app` (frozen from the prior TradeVision listing). Display name
-and in-app branding are TradeInsight / Aithera.
+TradeInsight is an educational **research and decision-coaching** app from Aithera.
+It is **not** a broker, **does not** execute trades, **does not** handle customer
+funds, and **does not** provide buy/sell signals.
 
-## Review access
+**Technical identity:** iOS/Android application id remains `ai.tradevision.app`
+(frozen). Display name and branding are TradeInsight / Aithera.
 
-- Use **Continue as Guest** after checking the educational/risk acknowledgment on the welcome
-  screen to review the complete local demo without external credentials. Guest mode does not
-  require being 18; creating an account or purchasing a subscription does.
-- A sandbox account and platform tester credentials must be entered in App
-  Store Connect / Play Console; never commit them here.
+**Age layers (please do not collapse these):**
 
-## Core flow
+- Store content rating: Apple **12+** / Play **Teen** (content suitability).
+- Accounts and in-app purchases: **18+** or age of majority.
+- Guest/demo: local educational exploration; not an 18+ gate.
+- The 12+ rating does **not** mean a minor may legally trade.
 
-1. Open Today and review the brief.
-2. Select a queue item and record Research or Skip.
-3. Save a journal entry.
-4. Open Review to see the basic Process Tape.
+---
 
-RVS means Research Value Score: whether an idea deserves attention. DQS means
-Decision Quality Score: checklist/process quality. Neither predicts price
-direction.
+## Guest mode / demo mode
 
-## Subscription review
+On the welcome screen, acknowledge the educational/risk checkbox, then
+**Continue as Guest**. This loads a complete local demo (sample/mock or delayed
+data as labelled). No store account is required. Guest mode does not create
+cloud journals, does not sync, and cannot purchase Premium.
 
-- Open Settings → Manage Subscription.
-- The Brief, top-three Research Queue, journal, and basic Process Tape remain
-  free. Premium gates only the deeper queue, advanced/weekly review insights,
-  Trading DNA, portfolio intelligence, Decision Lab, expanded Ask allowance,
-  and journal export.
-- Monthly and yearly products use native platform billing through RevenueCat.
-- Restore Purchases is available on the subscription screen.
-- Cancel opens the platform or provider subscription-management screen.
-- Cancellation disables renewal but Premium benefits remain available through
-  the provider-reported paid-through date. The app displays that date and
-  removes Premium access after expiration.
+When Firebase env is absent, the same local demo path is used (`demo-guest`).
 
-Product identifiers:
+---
+
+## Educational Mode
+
+Educational Mode is always on. It is not a one-time popup. Copy throughout the
+app states that TradeInsight is research/coaching, not brokerage or advice.
+Settings → Educational Mode explains the framing. Risk disclaimer is available
+in-app under Settings → Legal.
+
+---
+
+## Core review flow
+
+1. Today: read the Decision Brief.
+2. Research queue: mark Research or Skip.
+3. Journal: save a process note (not a brokerage ticket).
+4. Review: open the Process Tape.
+
+---
+
+## RVS and DQS (not price predictions)
+
+- **RVS = Research Value Score.** It ranks whether an idea deserves *research
+  time* (attention priority).
+- **DQS = Decision Quality Score.** It grades checklist / process completeness.
+
+Neither score predicts future price, direction, or profit. Setup “confidence”
+in the product is DQS-style decision quality, never a forecast.
+
+---
+
+## AI explainability
+
+In-app Ask / analysis is a **decision coach**: evidence for, against, and
+missing. It must not be reviewed as a signal service.
+
+**Production third-party cloud AI is disabled** for this release. Local
+rules/template explanations may appear and are labelled as such. Do not expect
+a live cloud-LLM desk.
+
+---
+
+## Data freshness
+
+Quotes, news, and charts use a data-source badge: live, delayed, approximate,
+sample, or mock, plus freshness where applicable. Sample/mock data is for demo
+and education. FX candles are never fabricated.
+
+---
+
+## Subscription and 7-day trial
 
 - Entitlement: `Aithera Pro`
-- `monthly`
-- `yearly`
-- `lifetime`
+- Launch products: `monthly` and `yearly` only. **Lifetime is not offered.**
+- Native App Store / Play billing via RevenueCat (not available in Expo Go).
+- Restore Purchases is on the subscription screen.
+- Cancel / Manage Subscription opens the platform subscription page.
+- Cancelling stops renewal; Premium remains until the store-reported
+  paid-through date.
+- A **7-day trial**, if shown, applies only to **yearly** and must match the
+  console offer.
+- Free is a complete daily product (Today, basic research, basic journal,
+  limited replay / radar / DNA). Premium is depth: full library, portfolio
+  intelligence, export, and ~100/day fair-use AI (not unlimited).
 
-The configured seven-day trial applies only to the yearly product and must
-match the platform-console offer.
-
-## Data and AI
-
-Market-data surfaces label live, delayed, approximate, sample, or mock data and
-show freshness. Production cloud AI is disabled for this release; no fixed or
-mock cloud response is marketed as a production capability.
+---
 
 ## Account deletion
 
-Settings includes in-app account deletion. The flow first directs users to
-manage any active store subscription because deleting an account does not
-cancel platform billing, then requires the user to type `DELETE`. For security,
-the server accepts deletion only within five minutes of authentication; if
-prompted, sign out and sign back in before retrying. Deletion removes the Auth
-account, the user's Firestore document tree, settings, subscription-access
-record, user Storage prefix, and local app data.
+Signed-in users: Settings → Delete Account.
 
-Terms, Privacy, Risk Disclaimer, Security Notice, Support, and account-deletion
-information are linked in Settings (in-app copies plus hosted URLs). Public URLs
-must return HTTP 200 in the submission consoles before review; no reviewer
-credential is stored in this repository. Legal markdown sources are in
-`store/legal/` and must be counsel-reviewed for the production entity. Legal
-hosting under the current origin remains a launch blocker until pages serve
-Aithera / TradeInsight content (or `EXPO_PUBLIC_LEGAL_SITE_ORIGIN` points at a
-verified host).
+1. The app instructs the user to **Manage Subscription first**.
+2. **Deleting the TradeInsight account does not cancel App Store / Play billing.**
+3. User types `DELETE`.
+4. Server requires a **recent sign-in** (~5 minutes). If rejected, sign out and
+   sign back in.
+5. Deletion removes Auth, the user’s Firestore tree, settings, server
+   subscription-access record, user Storage prefix, uid-scoped webhook/security
+   docs we store, and local user data. Shared Academy content is not deleted.
+
+Guests do not see Delete Account (there is no cloud account).
+
+---
+
+## Legal in the app
+
+Settings → Legal & Support opens **in-app** Terms, Privacy, Risk, Security,
+Account deletion, and Support. Hosted public URLs must still return HTTP 200 in
+the store consoles before submission; they are a **manual hosting** item, not
+claimed live in this repository.

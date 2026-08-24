@@ -38,13 +38,17 @@ export function ReplayTvEpisodeCard({
         <View className="flex-row items-start justify-between gap-3">
           <View className="flex-1">
             <Text variant="caption" className="text-text-tertiary">
-              {episode.eraLabel} · {episode.symbolLabel} · {episode.durationMinutes} min
+              {episode.eraLabel} · {episode.symbolLabel} · {episode.durationMinutes} min ·{' '}
+              {episode.markets[0]}
             </Text>
             <Text variant="h3" className="mt-1">
               {episode.title}
             </Text>
             <Text variant="body-sm" className="mt-2 text-text-secondary">
               {episode.teaser}
+            </Text>
+            <Text variant="caption" className="mt-2 text-text-tertiary">
+              Skills: {episode.skills.slice(0, 4).join(' · ')}
             </Text>
           </View>
           <Chip label={DIFFICULTY_LABEL[episode.difficulty]} />

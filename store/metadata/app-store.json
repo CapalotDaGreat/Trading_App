@@ -1,32 +1,36 @@
 {
   "appName": "TradeInsight",
-  "subtitle": "Trading Decision Coach",
+  "subtitle": "Research. Decide. Improve.",
   "bundleId": "ai.tradevision.app",
   "sku": "tradevision-ai-ios-001",
+  "developerName": "Aithera",
   "primaryCategory": "FINANCE",
   "secondaryCategory": "PRODUCTIVITY",
   "contentRating": "12+",
+  "contentRatingNote": "Store content suitability only. Not contractual eligibility and not permission to trade.",
+  "accountEligibility": "18+ or age of majority for accounts and purchases. Guest/demo does not require being 18.",
   "version": "1.0.0",
   "buildNumber": "1",
   "keywords": [
-    "trading",
-    "stocks",
+    "trading education",
     "decision journal",
-    "portfolio",
-    "market analysis",
-    "finance",
-    "investing",
-    "education"
+    "research",
+    "market context",
+    "risk awareness",
+    "process coaching",
+    "finance"
   ],
   "description": {
     "short": "Educational trading research and decision coaching — not buy/sell signals.",
-    "full": "TradeInsight by Aithera is an educational decision-first research and coaching app for discretionary traders. Research smarter. Decide with clarity. Improve your process.\n\nIt helps you decide what deserves research time with a Today brief, research-value queue, regime context, decision journal, replay, Decision Lab practice, and Academy lessons.\n\nAnyone may download and explore Guest mode. Creating an account or purchasing a subscription requires being at least 18 (or the age of majority where required).\n\nScores measure research priority and decision-process quality; they do not predict price direction. TradeInsight is not a broker, does not execute trades, does not handle real money, and does not provide buy/sell signals.\n\nPremium adds deeper decision radar, portfolio context, faster quote polling, advanced charts, and data export. Monthly and yearly subscriptions renew automatically unless cancelled in App Store subscription settings. Cancellation stops renewal while access continues through the store-reported paid-through date. The yearly plan includes a 7-day trial only when shown on the App Store purchase sheet."
+    "full": "TradeInsight by Aithera helps discretionary traders research smarter, decide with clarity, and improve their process.\n\nIt is an educational research and coaching app: a Today brief, research-value queue, regime and market context, decision journal, replay, Decision Lab practice, Academy lessons, and explainable decision coaching. Scores measure research priority (Research Value Score, RVS) and decision-process quality (Decision Quality Score, DQS). They do not predict price direction.\n\nAnyone may download and explore Guest mode. Creating an account or purchasing a subscription requires being at least 18 (or the age of majority where required). A 12+ App Store rating is content suitability only — it does not mean a minor may legally trade.\n\nTradeInsight is not a broker, does not execute trades, does not handle real money, and does not provide buy/sell signals or investment advice.\n\nPremium deepens radar, Trading DNA, Replay TV, portfolio intelligence, and export. Free remains a complete daily research product. Monthly and yearly subscriptions renew automatically unless cancelled in App Store subscription settings. Lifetime is not offered. Cancellation stops renewal while access continues through the store-reported paid-through date. The yearly plan includes a 7-day trial only when shown on the App Store purchase sheet."
   },
   "screenshots": {
     "iphone67": [],
     "iphone65": [],
     "ipadPro129": []
   },
+  "listingUrlsReady": false,
+  "listingUrlNote": "Do not paste these URLs into App Store Connect until [OFFICIAL DOMAIN REQUIRED] serves HTTP 200 copies of store/hosted/. Values below are a technical fallback only.",
   "supportUrl": "https://tradevision.ai/support",
   "termsUrl": "https://tradevision.ai/terms",
   "riskDisclaimerUrl": "https://tradevision.ai/risk",
@@ -34,12 +38,22 @@
   "accountDeletionUrl": "https://tradevision.ai/account-deletion",
   "marketingUrl": "https://tradevision.ai",
   "privacyPolicyUrl": "https://tradevision.ai/privacy",
+  "contactEmail": "[SUPPORT EMAIL REQUIRED]",
   "privacyDisclosure": {
     "crashDiagnostics": "Optional; disabled by default and sent to Sentry only after explicit consent",
-    "usageAnalytics": false,
+    "usageAnalytics": "Optional first-party allowlisted aggregates; disabled by default; explicit consent required",
     "tracking": false,
     "storeAgeRating": "12+",
     "accountEligibility": "18+ (or age of majority) for accounts and subscriptions",
+    "neverInAnalytics": [
+      "journal text",
+      "AI chat content",
+      "portfolio values",
+      "private trading theses",
+      "passwords",
+      "authentication tokens",
+      "API keys"
+    ],
     "jurisdictions": ["CH", "EU", "US"]
   },
   "screenshotInventory": "store/screenshots/README.md",

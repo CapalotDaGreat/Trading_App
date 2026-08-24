@@ -111,34 +111,13 @@ export default function AcademyScreen() {
         </Surface>
 
         {recommendation ? (
-          <View>
+          <View testID="academy-recommended">
             <Text variant="label" className="mb-2 text-text-tertiary">CONTINUE LEARNING</Text>
             <NextLessonCard
               recommendation={recommendation}
               showPremiumBadge={isPersonalized && isPremium}
             />
           </View>
-        ) : null}
-
-        {recommendation ? (
-          <Surface emphasis="outlined" testID="academy-recommended">
-            <Text variant="label" className="text-accent">RECOMMENDED FOR YOU</Text>
-            <Text variant="h2" headingLevel={2} className="mt-2">
-              {recommendation.lesson.title}
-            </Text>
-            <Text variant="body-sm" className="mt-2 text-text-secondary">
-              {recommendation.reason}
-            </Text>
-            <Button
-              className="mt-3"
-              size="sm"
-              onPress={() =>
-                router.push(`/academy/lesson/${recommendation.lesson.id}` as never)
-              }
-            >
-              Open recommendation
-            </Button>
-          </Surface>
         ) : null}
 
         <Surface emphasis="outlined" testID="academy-practice-this">
@@ -190,7 +169,7 @@ export default function AcademyScreen() {
           {isPremium ? null : (
             <PremiumOsGate feature="tradingDnaInsights">
               <Text variant="body-sm" className="text-text-secondary">
-                Premium ranks supporting lessons from Trading DNA and Decision Debt.
+                Premium ranks supporting lessons from Trading DNA and waiting reviews.
               </Text>
             </PremiumOsGate>
           )}

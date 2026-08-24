@@ -1,5 +1,11 @@
 import { getReplayTvEpisode } from '@/features/decision-replay-tv/content/replay-tv.catalog';
 import {
+  composeReplayTvCoachNote,
+  composeReplayTvReasoning,
+  formatReplayTvCoachReply,
+  reasoningHasSubstance,
+} from '@/features/decision-replay-tv/services/replay-tv-coach.service';
+import {
   chunkVisibleCandles,
   getEducationalCandles,
   visibleCandlesAt,
@@ -11,6 +17,7 @@ import type {
   ReplayTvEpisode,
   ReplayTvNewsItem,
   ReplayTvPhase,
+  ReplayTvReasoning,
   ReplayTvSession,
 } from '@/features/decision-replay-tv/types/replay-tv.types';
 
@@ -130,6 +137,19 @@ export function getBlindSafeEpisodeView(session: ReplayTvSession) {
   };
 }
 
+export function replayTvHasFutureLeak(session: ReplayTvSession): boolean {
+  if (isReplayTvRevealed(session)) return false;
+  const frozen = getFrozenCandlesForSession(session);
+  const visible = getVisibleCandlesForSession(session);
+  const freezeTs = frozen[frozen.length - 1]?.timestamp ?? 0;
+  if (visible.some((c) => c.timestamp > freezeTs)) return true;
+  const view = getBlindSafeEpisodeView(session);
+  if (view.historicalOutcome) return true;
+  if (view.teachingNotes.length > 0) return true;
+  const freeze = currentFreezeIndex(session);
+  return getVisibleNewsForSession(session).some((n) => n.availableAtIndex > freeze);
+}
+
 export function advanceReplayTvPhase(session: ReplayTvSession): ReplayTvSession {
   switch (session.phase) {
     case 'intro':
@@ -147,9 +167,10 @@ export function advanceReplayTvPhase(session: ReplayTvSession): ReplayTvSession 
           checkpointIndex: nextIndex,
           phase: 'watching',
           mentorReply: undefined,
+          lastCoach: undefined,
         };
       }
-      return { ...session, phase: 'reveal', revealed: true, mentorReply: undefined };
+      return { ...session, phase: 'reveal', revealed: true, mentorReply: undefined, lastCoach: undefined };
     }
     case 'reveal': {
       const episode = getSessionEpisode(session);
@@ -171,19 +192,37 @@ export function submitReplayTvDecision(input: {
   session: ReplayTvSession;
   decision: ReplayTvDecision;
   reasoning: string;
+  structured?: ReplayTvReasoning;
 }): ReplayTvSession {
-  const { session, decision, reasoning } = input;
+  const { session, decision, structured } = input;
   if (session.phase !== 'decision') return session;
 
   const episode = getSessionEpisode(session);
   const checkpoint = episode.checkpoints[session.checkpointIndex];
   if (!checkpoint) return session;
 
-  const wroteReasoning = reasoning.trim().length >= 12;
+  const composed = structured ? composeReplayTvReasoning(structured) : input.reasoning;
+  const wroteReasoning = reasoningHasSubstance(structured, composed);
   const nextChecklist: ReplayTvChecklist = {
     ...session.checklist,
     wroteReasoning: session.checklist.wroteReasoning || wroteReasoning,
+    namedInvalidation:
+      session.checklist.namedInvalidation ||
+      decision === 'mark_invalidation' ||
+      Boolean(structured?.invalidation.trim()),
   };
+
+  const previous = session.decisions[session.decisions.length - 1] ?? null;
+  const coach = composeReplayTvCoachNote({
+    episode,
+    checkpointPrompt: checkpoint.prompt,
+    mentorFollowUp: checkpoint.mentorFollowUp,
+    decision,
+    structured,
+    fallbackReasoning: composed,
+    checklist: nextChecklist,
+    previous,
+  });
 
   return {
     ...session,
@@ -193,12 +232,15 @@ export function submitReplayTvDecision(input: {
       {
         checkpointId: checkpoint.id,
         decision,
-        reasoning: reasoning.trim(),
+        reasoning: composed.trim(),
+        structured,
+        coach,
         at: Date.now(),
       },
     ],
     phase: 'mentor',
-    mentorReply: checkpoint.mentorFollowUp,
+    mentorReply: formatReplayTvCoachReply(coach),
+    lastCoach: coach,
   };
 }
 
@@ -214,17 +256,21 @@ export function patchReplayTvChecklist(
 
 /** Observe / Research / Stay out / Form hypothesis mapped onto process enum. */
 export const REPLAY_TV_DECISION_LABELS: Record<ReplayTvDecision, string> = {
-  wait: 'Observe',
-  research_more: 'Research',
-  skip: 'Stay out',
-  write_thesis: 'Form hypothesis',
+  wait: 'Wait for more evidence',
+  research_more: 'Continue researching',
+  skip: 'Skip',
+  write_thesis: 'Form a research thesis',
   protect_attention: 'Protect attention',
+  mark_invalidation: 'Mark invalidation',
+  review_other: 'Review another asset',
 };
 
 export const REPLAY_TV_DECISION_ORDER: ReplayTvDecision[] = [
-  'wait',
   'research_more',
+  'wait',
+  'mark_invalidation',
   'skip',
+  'review_other',
   'write_thesis',
   'protect_attention',
 ];

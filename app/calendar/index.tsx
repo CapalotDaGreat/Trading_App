@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 import { CalendarEventCard } from '@/features/calendar/components/CalendarEventCard';
 import { useEconomicCalendar } from '@/features/calendar/hooks/useEconomicCalendar';
 import type { EventImpact } from '@/features/calendar/services/economic-calendar.service';
+import { DataSourceBadge } from '@/features/markets/components/DataSourceBadge';
 import { EmptyState } from '@/shared/components/feedback/EmptyState';
 import { Header } from '@/shared/components/layout/Header';
 import { Screen } from '@/shared/components/layout/Screen';
@@ -17,8 +18,9 @@ const IMPACTS: EventImpact[] = ['high', 'medium', 'low'];
 export default function CalendarScreen() {
   const router = useRouter();
   const { colors } = useTheme();
-  const { grouped, impactFilter, toggleImpact, isLoading, isError, refetch } =
+  const { grouped, events, impactFilter, toggleImpact, isLoading, isError, refetch } =
     useEconomicCalendar();
+  const usesMock = events.some((event) => event.source === 'mock');
 
   if (isLoading) {
     return (
@@ -45,6 +47,14 @@ export default function CalendarScreen() {
   return (
     <Screen scrollable contentClassName="pb-8">
       <Header title="Economic Calendar" onBack={() => router.back()} />
+      {usesMock ? (
+        <View className="mt-3 flex-row items-center gap-2">
+          <DataSourceBadge kind="mock" />
+          <Text variant="caption" className="flex-1 text-text-tertiary">
+            Sample calendar for Guest/demo — not a live economic schedule.
+          </Text>
+        </View>
+      ) : null}
 
       <View className="mt-4 gap-4">
         <View className="flex-row gap-2">

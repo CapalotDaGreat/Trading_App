@@ -222,44 +222,35 @@ export async function fetchEconomicCalendar(filter?: CalendarFilter): Promise<Ec
   const toDate = new Date(toMs).toISOString().split('T')[0] ?? '';
 
   if (canUseVendorProxy()) {
-    try {
-      const proxied = await proxyEconomicCalendar(fromDate, toDate);
-      if (proxied?.events.length) {
-        const events: EconomicEvent[] = proxied.events.map((event) => {
-          const title = event.event ?? 'Economic Event';
-          const scheduledAt = event.time ? Date.parse(event.time) : Date.now();
-          const country = event.country ?? 'Unknown';
-          return {
-            id: hashEventId(title, scheduledAt, country),
-            title,
-            country,
-            countryCode: country.slice(0, 2).toUpperCase(),
-            category: mapCategory(title),
-            impact: mapImpact(event.impact),
-            actual: event.actual,
-            forecast: event.estimate,
-            previous: event.prev,
-            unit: event.unit,
-            scheduledAt,
-            source: 'finnhub',
-          };
-        });
-        return applyFilter(events, filter);
-      }
-    } catch {
-      // Fall through to mock / dev direct.
-    }
+    const proxied = await proxyEconomicCalendar(fromDate, toDate);
+    const events: EconomicEvent[] = (proxied?.events ?? []).map((event) => {
+      const title = event.event ?? 'Economic Event';
+      const scheduledAt = event.time ? Date.parse(event.time) : Date.now();
+      const country = event.country ?? 'Unknown';
+      return {
+        id: hashEventId(title, scheduledAt, country),
+        title,
+        country,
+        countryCode: country.slice(0, 2).toUpperCase(),
+        category: mapCategory(title),
+        impact: mapImpact(event.impact),
+        actual: event.actual,
+        forecast: event.estimate,
+        previous: event.prev,
+        unit: event.unit,
+        scheduledAt,
+        source: 'finnhub',
+      };
+    });
+    return applyFilter(events, filter);
   }
 
   if (FINNHUB_API_KEY) {
-    try {
-      const events = await fetchFromFinnhub(fromDate, toDate);
-      return applyFilter(events, filter);
-    } catch {
-      return applyFilter(getMockEvents(fromMs, toMs), filter);
-    }
+    const events = await fetchFromFinnhub(fromDate, toDate);
+    return applyFilter(events, filter);
   }
 
+  // Guest / demo only — UI must show a mock/sample badge.
   return applyFilter(getMockEvents(fromMs, toMs), filter);
 }
 

@@ -15,6 +15,9 @@ export type ConfidencePillarId =
   | 'regimeFit'
   | 'dataFreshness';
 
+/** Qualitative evidence coverage — never a price-direction probability. */
+export type AiEvidenceLevel = 'high' | 'moderate' | 'limited' | 'insufficient';
+
 export interface ConfidencePillar {
   id: ConfidencePillarId;
   label: string;
@@ -25,11 +28,13 @@ export interface ConfidencePillar {
 }
 
 export interface ConfidenceBreakdown {
-  /** Aggregate evidence/output quality 0–100. */
+  /** Aggregate evidence/output quality 0–100 — never P(price direction). */
   overall: number;
   label: string;
   pillars: ConfidencePillar[];
   notice: string;
+  /** User-facing uncertainty. Never a substitute for a probability. */
+  evidenceLevel: AiEvidenceLevel;
 }
 
 export type EvidenceModuleId =
@@ -113,6 +118,52 @@ export interface AiTrustMeta {
   indicatorCitations: AiCitation[];
 }
 
+export type AiAnswerMode =
+  | 'quick'
+  | 'deep_research'
+  | 'coach'
+  | 'review'
+  | 'explain'
+  | 'replay_coach';
+
+export type AiAnswerDepth = 'concise' | 'balanced' | 'detailed';
+
+export interface AiSourceAttribution {
+  label: string;
+  timestamp: number;
+  freshness: DataFreshnessLevel;
+  dataKind: DataSourceKind;
+}
+
+export interface AiMentorMemoryUse {
+  used: string[];
+  notUsed: string[];
+  disclosure: string;
+}
+
+export interface AiSelfCheckResult {
+  passed: boolean;
+  downgraded: boolean;
+  evidenceLevel: AiEvidenceLevel;
+  flags: string[];
+}
+
+export interface AiStructuredMentorAnswer {
+  mode: AiAnswerMode;
+  depth: AiAnswerDepth;
+  evidenceLevel: AiEvidenceLevel;
+  whatIKnow: string[];
+  whatIDontKnow: string[];
+  evidence: string[];
+  whyItMatters: string;
+  whatChanged: string;
+  whatWouldChange: string[];
+  suggestedResearchAction: string;
+  memoryUse: AiMentorMemoryUse;
+  sources: AiSourceAttribution[];
+  selfCheck: AiSelfCheckResult;
+}
+
 /** Phase B — always-on research analyst briefing (never signal language). */
 export interface AiTrustBriefing {
   /** One-line reliability answer: “How reliable is this?” */
@@ -149,6 +200,8 @@ export interface AiTrustPayload {
   whyChanged?: AiWhyChanged | null;
   confidenceHistory?: AiConfidenceHistoryPoint[];
   meta: AiTrustMeta;
+  evidenceLevel: AiEvidenceLevel;
+  mentorAnswer?: AiStructuredMentorAnswer;
 }
 
 /**

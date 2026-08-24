@@ -19,7 +19,6 @@ import {
   fetchFearGreedIndex,
   fetchQuoteWithMetadata,
 } from '@/features/markets/services/market-data.service';
-import { fetchFinancialNews } from '@/features/news/services/news.service';
 import { performanceDiagnostics } from '@/shared/services/performance';
 import type { Candle, Quote } from '@/shared/types/market';
 
@@ -439,7 +438,7 @@ async function buildDecisionBriefInternal(input?: {
     8_000,
     [],
   );
-  const [regime, calendarEvents, news, setups, logRecords] = await Promise.all([
+  const [regime, calendarEvents, setups, logRecords] = await Promise.all([
     withBudget(detectRegime(quotes), 8_000, {
       regime: 'ranging' as const,
       label: 'Range / mixed',
@@ -465,33 +464,25 @@ async function buildDecisionBriefInternal(input?: {
       6_000,
       [],
     ),
-    withBudget(fetchFinancialNews({ pageSize: 4 }), 6_000, {
-      articles: [],
-      totalResults: 0,
-      source: 'rss' as const,
-    }),
     withBudget(buildSetupRadar(watch, quotes), 12_000, []),
     withBudget(getDecisionRecords(input?.uid), 4_000, []),
   ]);
 
   const logSummary = summarizeDecisionLog(logRecords);
-  const calendarSource =
-    calendarEvents.length && calendarEvents[0]?.source === 'finnhub' ? 'finnhub' : 'mock';
+  const calendarSource: DecisionBrief['calendarSource'] = calendarEvents.some(
+    (event) => event.source === 'mock',
+  )
+    ? 'mock'
+    : calendarEvents.length
+      ? 'finnhub'
+      : undefined;
 
-  const events =
-    calendarEvents.length > 0
-      ? calendarEvents.slice(0, 4).map((e) => ({
-          id: e.id,
-          title: e.title,
-          at: e.scheduledAt,
-          impact: e.impact as ImpactLevel,
-        }))
-      : news.articles.slice(0, 3).map((a, i) => ({
-          id: a.id,
-          title: a.title,
-          at: now + i * 3600_000,
-          impact: (i === 0 ? 'high' : 'medium') as ImpactLevel,
-        }));
+  const events = calendarEvents.slice(0, 4).map((e) => ({
+    id: e.id,
+    title: e.title,
+    at: e.scheduledAt,
+    impact: e.impact as ImpactLevel,
+  }));
 
   const quotesFetchedAt = oldestTimestamp(quotes.map((quote) => quote.observedAt)) ?? 0;
   const budget = input?.timeBudgetMinutes ?? 20;
@@ -634,6 +625,9 @@ async function buildDecisionBriefInternal(input?: {
         : [],
     ),
   ];
+  if (calendarSource === 'mock') {
+    provenanceInputs.push({ kind: 'mock', provider: 'sample', asOf: now });
+  }
   const provenance = aggregateProvenance(provenanceInputs);
 
   const draftBrief = {
@@ -655,9 +649,7 @@ async function buildDecisionBriefInternal(input?: {
     provenance,
     startHereSymbol: startSymbol,
     processScoreWeek: logSummary.processScore,
-    calendarSource: (calendarEvents.length
-      ? calendarSource
-      : 'rss') as DecisionBrief['calendarSource'],
+    calendarSource,
     timeBudgetPick,
     focusSummary: {
       opportunities: topSetups.length,

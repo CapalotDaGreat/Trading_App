@@ -26,13 +26,16 @@ export function ReplayTvDecisionChooser({
   return (
     <View className="gap-2" testID="replay-tv-decision-chooser">
       <Text variant="caption" className="text-text-tertiary">
-        Process decisions only — never a buy/sell instruction.
+        What would you do with your research time? Process decisions only — never a buy/sell instruction.
       </Text>
       {order.map((decision) => (
         <Button
           key={decision}
           variant={
-            decision === 'protect_attention' || decision === 'wait' || decision === 'skip'
+            decision === 'protect_attention' ||
+            decision === 'wait' ||
+            decision === 'skip' ||
+            decision === 'review_other'
               ? 'secondary'
               : 'primary'
           }

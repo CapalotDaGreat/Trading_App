@@ -5,6 +5,11 @@ export const ANALYTICS_EVENTS = [
   'feature_use',
   'academy_complete',
   'replay_complete',
+  'replay_started',
+  'replay_completed',
+  'replay_abandoned',
+  'replay_skill_completed',
+  'replay_difficulty_selected',
   'mentor_open',
   'passport_open',
   'decision_graph_open',
@@ -35,6 +40,9 @@ export const ANALYTICS_PROP_KEYS = [
   'count',
   'lessonId',
   'outcome',
+  'difficulty',
+  'skill',
+  'episodeId',
 ] as const;
 
 export type AnalyticsPropKey = (typeof ANALYTICS_PROP_KEYS)[number];

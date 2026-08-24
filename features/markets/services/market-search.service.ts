@@ -7,6 +7,7 @@ import type { Asset, MarketType } from '@/shared/types/market';
 
 import { POPULAR_SYMBOLS } from '@/shared/constants/markets';
 
+import { searchCanonicalInstruments } from '../content/canonical-instruments';
 import { buildAssetFromSymbol } from './market-data.service';
 import { proxyMarketSearch } from './market-proxy.service';
 
@@ -153,6 +154,23 @@ function searchLocal(query: string, marketType: MarketType | undefined, limit: n
     .slice(0, limit);
 }
 
+function catalogSearch(query: string, marketType: MarketType | undefined, limit: number): SearchResult[] {
+  return searchCanonicalInstruments(query, limit)
+    .filter((item) => !marketType || item.marketType === marketType)
+    .map((item, index) => ({
+      id: item.id,
+      symbol: item.canonicalSymbol,
+      name: item.name,
+      marketType: item.marketType,
+      assetClass: item.assetClass,
+      currency: item.currency,
+      exchange: item.exchange,
+      logoUrl: item.logoUrl,
+      isActive: item.isActive,
+      relevance: 100 - index,
+    }));
+}
+
 export async function searchMarkets(options: MarketSearchOptions): Promise<SearchResult[]> {
   const { query, marketType, limit = 20 } = options;
   const trimmed = query.trim();
@@ -170,13 +188,14 @@ export async function searchMarkets(options: MarketSearchOptions): Promise<Searc
     searches.push(searchStocks(trimmed, limit).catch(() => []));
   }
 
+  const catalogResults = catalogSearch(trimmed, marketType, limit);
   const localResults = searchLocal(trimmed, marketType, limit);
   const forexResults = !marketType || marketType === 'forex' ? searchForex(trimmed, limit) : [];
 
   const remoteResults = await Promise.all(searches);
   const merged = new Map<string, SearchResult>();
 
-  for (const result of [...localResults, ...forexResults, ...remoteResults.flat()]) {
+  for (const result of [...catalogResults, ...localResults, ...forexResults, ...remoteResults.flat()]) {
     const key = result.symbol.toUpperCase();
     const existing = merged.get(key);
     if (!existing || result.relevance > existing.relevance) {

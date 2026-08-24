@@ -13,6 +13,7 @@ import type {
   ReplayTvCollectionId,
   ReplayTvDecision,
   ReplayTvProgress,
+  ReplayTvReasoning,
   ReplayTvSession,
 } from '@/features/decision-replay-tv/types/replay-tv.types';
 import { createPersistedStorage } from '@/shared/stores/create-persisted-storage';
@@ -46,7 +47,7 @@ interface ReplayTvState {
   restartEpisode: () => ReplayTvSession | null;
   advancePhase: () => void;
   updateChecklist: (patch: Partial<ReplayTvChecklist>) => void;
-  submitDecision: (decision: ReplayTvDecision, reasoning: string) => void;
+  submitDecision: (decision: ReplayTvDecision, reasoning: string, structured?: ReplayTvReasoning) => void;
   markComplete: (input: {
     episodeId: string;
     collectionIds: ReplayTvCollectionId[];
@@ -98,7 +99,7 @@ export const useReplayTvStore = create<ReplayTvState>()(
         if (!active) return;
         set({ activeSession: patchReplayTvChecklist(active, patch) });
       },
-      submitDecision: (decision, reasoning) => {
+      submitDecision: (decision, reasoning, structured) => {
         const active = get().activeSession;
         if (!active) return;
         set({
@@ -106,6 +107,7 @@ export const useReplayTvStore = create<ReplayTvState>()(
             session: active,
             decision,
             reasoning,
+            structured,
           }),
         });
       },

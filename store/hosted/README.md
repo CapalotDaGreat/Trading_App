@@ -21,8 +21,8 @@ Required live URLs (HTTP 200):
 
 ## Before production
 
-1. Replace `APPLE_TEAM_ID` in `.well-known/apple-app-site-association`.
+1. Replace `APPLE_TEAM_ID` in `.well-known/apple-app-site-association`. Do not invent a Team ID.
 2. Replace `REPLACE_WITH_PLAY_APP_SIGNING_SHA256` in `.well-known/assetlinks.json`
    with the Play App Signing certificate SHA-256 fingerprint.
-3. Have counsel insert the registered legal entity into `store/legal/*`, then re-run
-   `python scripts/sync-legal-docs.py` and this script.
+3. Replace `[LEGAL ENTITY NAME REQUIRED]`, `[VAT/UID REQUIRED]`, and contact
+   placeholders in `store/legal/*`, then re-run `npm run legal`.

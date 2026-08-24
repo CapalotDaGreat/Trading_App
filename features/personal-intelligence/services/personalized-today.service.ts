@@ -54,16 +54,18 @@ export function resolveTodayArchetype(input: {
 function applyDnaAdaptations(
   focus: PersonalizedTodayFocus,
   dna: TradingDnaProfile,
+  nowMs?: number,
+  uid?: string,
 ): PersonalizedTodayFocus {
   const adaptations: string[] = [];
   const patience = getTraitScore(dna, 'patience');
   const researchEfficiency = getTraitScore(dna, 'researchEfficiency');
+  const invalidation = dna.traits.find((t) => t.id === 'invalidationDiscipline');
+  const overAnalysis = dna.observedTendencies.find((t) => t.id === 'over_analysis');
   const risk = dna.traits.find((t) => t.id === 'riskAwareness');
   let sectionOrder = [...focus.sectionOrder];
-  let detail = focus.detail;
-  let headline = focus.headline;
 
-  if (patience != null && patience < 50) {
+  if (patience != null && patience < 50 && dna.traits.find((t) => t.id === 'patience')?.trend !== 'up') {
     adaptations.push('fewer_research_priorities');
     sectionOrder = uniqueOrder([
       'header',
@@ -75,31 +77,84 @@ function applyDnaAdaptations(
       'researchQueue',
       ...sectionOrder,
     ]);
-    detail = `${detail} Patience is a growth edge — fewer research opens, more deliberate skips.`;
   }
 
   if (researchEfficiency != null && researchEfficiency < 50) {
     adaptations.push('time_budget_emphasis');
-    if (!detail.toLowerCase().includes('budget')) {
-      detail = `${detail} Protect your research time budget: deepen only higher-value ideas.`;
-    }
-    if (focus.archetype === 'balanced' || focus.archetype === 'experienced') {
-      headline = headline.toLowerCase().includes('budget') ? headline : 'Budget today’s research';
-    }
   }
 
   if (risk?.status === 'scored' && risk.trend === 'up' && (risk.score ?? 0) >= 60) {
     adaptations.push('reduce_risk_reminders');
-    detail = detail.replace(/\s*Define invalidation before depth of research\.?/i, '').trim();
   }
+
+  const cue = pickTodayCue({
+    dna,
+    overAnalysisLevel: overAnalysis?.level ?? 'not_observed',
+    invalidation,
+    researchEfficiency,
+    nowMs,
+    uid,
+  });
+  if (cue) adaptations.push(cue.id);
 
   return {
     ...focus,
-    headline,
-    detail: detail.trim(),
     sectionOrder,
+    todayCue: cue?.text ?? null,
     dnaAdaptations: adaptations,
   };
+}
+
+function dayKey(nowMs: number): string {
+  const d = new Date(nowMs);
+  return `${d.getUTCFullYear()}-${d.getUTCMonth() + 1}-${d.getUTCDate()}`;
+}
+
+function hashPick(key: string, modulo: number): number {
+  let h = 0;
+  for (let i = 0; i < key.length; i += 1) h = (h * 31 + key.charCodeAt(i)) >>> 0;
+  return modulo === 0 ? 0 : h % modulo;
+}
+
+function pickTodayCue(input: {
+  dna: TradingDnaProfile;
+  overAnalysisLevel: 'not_observed' | 'mild' | 'clear';
+  invalidation?: TradingDnaProfile['traits'][number];
+  researchEfficiency: number | null;
+  nowMs?: number;
+  uid?: string;
+}): { id: string; text: string } | null {
+  const candidates: Array<{ id: string; text: string }> = [];
+  const overImproving =
+    input.dna.traits.find((t) => t.id === 'researchEfficiency')?.longitudinalTrend === 'improving' ||
+    input.dna.traits.find((t) => t.id === 'researchEfficiency')?.trend === 'up';
+  const invalidationImproving =
+    input.invalidation?.longitudinalTrend === 'improving' || input.invalidation?.trend === 'up';
+
+  if (
+    (input.overAnalysisLevel === 'clear' || input.overAnalysisLevel === 'mild' || (input.researchEfficiency != null && input.researchEfficiency < 50)) &&
+    !overImproving
+  ) {
+    candidates.push({
+      id: 'research_budget_cue',
+      text: 'Two assets are enough for today’s research budget.',
+    });
+  }
+
+  if (
+    input.invalidation?.status === 'scored' &&
+    (input.invalidation.score ?? 100) < 55 &&
+    !invalidationImproving
+  ) {
+    candidates.push({
+      id: 'invalidation_cue',
+      text: 'Before continuing, define what would change your thesis.',
+    });
+  }
+
+  if (!candidates.length) return null;
+  const key = `${input.uid ?? 'demo-guest'}:${dayKey(input.nowMs ?? Date.now())}`;
+  return candidates[hashPick(key, candidates.length)] ?? candidates[0];
 }
 
 /**
@@ -114,6 +169,8 @@ export function buildPersonalizedToday(input: {
   academyNextTitle?: string | null;
   startHereSymbol?: string | null;
   researchGreeting?: string | null;
+  nowMs?: number;
+  uid?: string;
 }): PersonalizedTodayFocus {
   const archetype = resolveTodayArchetype(input);
   const becoming = input.dna.becomingLabel;
@@ -151,7 +208,7 @@ export function buildPersonalizedToday(input: {
         eyebrow: becoming,
         headline: "Today's replay",
         detail:
-          'Your edge compounds from reflection. Replay one Process Tape frame before hunting new setups.',
+          'Your edge compounds from reflection. Replay one Process Tape frame before opening new research.',
         primaryCta: { label: 'Open Decision Replay', href: '/decision/decision-replay' },
         secondaryCta: { label: 'Decision Graph', href: '/decision/intelligence' },
         sectionOrder: uniqueOrder([
@@ -255,5 +312,5 @@ export function buildPersonalizedToday(input: {
       };
   }
 
-  return applyDnaAdaptations(focus, input.dna);
+  return applyDnaAdaptations(focus, input.dna, input.nowMs, input.uid);
 }

@@ -4,6 +4,7 @@ import type { JournalCoachInsight, TraderMemory, TradingDna } from '@/features/d
 import { buildTradingDna } from '@/features/decision/services/setup-enrichment.service';
 
 import type {
+  DnaJournalEvidence,
   DnaStyleFingerprint,
   TradingDnaProfile,
   TradingDnaTraitId,
@@ -15,6 +16,8 @@ import {
   collectEvidence,
   confidenceFromEvidence,
   evidenceItem,
+  formatWhySummary,
+  invalidationRatioSentence,
   totalEvidenceCount,
   type DnaEvidenceBundle,
 } from './dna-evidence.service';
@@ -39,105 +42,137 @@ const TRAIT_META: Record<
     minEvidence: 3,
     detail: (s) =>
       s >= 65
-        ? 'You gather checklist evidence before going deeper.'
-        : 'Slow down and collect structure evidence before depth.',
+        ? 'Observed tendency: checklist evidence shows up before research deepens.'
+        : 'Observed tendency: depth sometimes starts before structure evidence is collected.',
   },
   riskAwareness: {
     label: 'Risk Awareness',
     minEvidence: 3,
     detail: (s) =>
       s >= 65
-        ? 'Risk and invalidation stay present in your process.'
-        : 'Define what would change your mind before researching further.',
+        ? 'Observed tendency: risk and invalidation stay present in the process.'
+        : 'Observed tendency: risk notes are thinner than research volume.',
   },
   patience: {
     label: 'Patience',
     minEvidence: 2,
     detail: (s) =>
       s >= 65
-        ? 'You wait for confirmation more often than you chase.'
-        : 'Impulse research still shows up — protect attention with skips.',
+        ? 'Observed tendency: confirmation and skips show up more often than chase opens.'
+        : 'Observed tendency: research opens sometimes arrive before confirmation.',
   },
   thesisClarity: {
     label: 'Thesis Clarity',
     minEvidence: 3,
     detail: (s) =>
       s >= 65
-        ? 'Decision quality reflects structured theses.'
-        : 'Write a one-sentence thesis before expanding research.',
+        ? 'Observed tendency: decision quality reflects a written thesis.'
+        : 'Observed tendency: theses are still short or missing on several loops.',
   },
   invalidationDiscipline: {
     label: 'Invalidation Discipline',
     minEvidence: 2,
     detail: (s) =>
       s >= 65
-        ? 'You name and honour what would invalidate the case.'
-        : 'Practise stating invalidation before the next deep research block.',
+        ? 'Observed tendency: invalidation is named before the case continues.'
+        : 'Observed tendency: cases often proceed without an explicit invalidation.',
   },
   processConsistency: {
     label: 'Process Consistency',
     minEvidence: 4,
     detail: (s) =>
       s >= 65
-        ? 'Process cadence is steady across weeks.'
-        : 'Small daily loops beat occasional intensity spikes.',
+        ? 'Observed tendency: process cadence is steady across weeks.'
+        : 'Observed tendency: activity clusters in bursts rather than a steady loop.',
   },
   emotionalAwareness: {
     label: 'Emotional Awareness',
     minEvidence: 2,
     detail: (s) =>
       s >= 65
-        ? 'Psychology notes show cooler recovery after mistakes.'
-        : 'Name the feeling before the next research session.',
+        ? 'Observed tendency: psychology notes appear after charged sessions.'
+        : 'Observed tendency: feeling-state is rarely named before the next session.',
   },
   fomoResistance: {
     label: 'FOMO Resistance',
     minEvidence: 3,
     detail: (s) =>
       s >= 65
-        ? 'You pass on urgency that lacks evidence.'
-        : 'When urgency rises, require one extra confirmation step.',
+        ? 'Observed tendency: urgency without evidence is passed over.'
+        : 'Observed tendency: urgency still opens research before an evidence gate.',
   },
   overtradingResistance: {
     label: 'Overtrading Resistance',
     minEvidence: 4,
     detail: (s) =>
       s >= 65
-        ? 'Research volume stays matched to reflection.'
-        : 'Cap depth: journal or skip before opening another symbol.',
+        ? 'Observed tendency: research volume stays matched to reflection.'
+        : 'Observed tendency: research volume outpaces closed loops.',
   },
   adaptability: {
     label: 'Adaptability',
     minEvidence: 3,
     detail: (s) =>
       s >= 65
-        ? 'You revise beliefs when evidence changes.'
-        : 'When regime shifts, update the thesis instead of forcing the old one.',
+        ? 'Observed tendency: cases are revised when evidence changes.'
+        : 'Observed tendency: older theses sometimes persist after the tape changes.',
   },
   researchEfficiency: {
     label: 'Research Efficiency',
     minEvidence: 3,
     detail: (s) =>
       s >= 65
-        ? 'Research sessions are purposeful, not noisy.'
-        : 'Fewer, higher-value research blocks beat volume.',
+        ? 'Observed tendency: research blocks stay purposeful rather than noisy.'
+        : 'Observed tendency: attention spreads across more symbols than closed loops.',
   },
   reflectionQuality: {
     label: 'Reflection Quality',
     minEvidence: 2,
     detail: (s) =>
       s >= 65
-        ? 'You close loops with journals and replay reflection.'
-        : 'Reflect after research so DNA can learn from the loop.',
+        ? 'Observed tendency: journals and replay close the research loop.'
+        : 'Observed tendency: research often ends without a written reflection.',
   },
   learningMomentum: {
-    label: 'Learning Momentum',
+    label: 'Learning consistency',
     minEvidence: 2,
     detail: (s) =>
       s >= 65
-        ? 'Academy, replay, and lab practice are compounding.'
-        : 'One deliberate practice session moves identity more than more charts.',
+        ? 'Observed tendency: Academy, replay, and lab practice keep compounding.'
+        : 'Observed tendency: practice sessions are still infrequent versus chart time.',
   },
+};
+
+const STRENGTH_HABITS: Partial<Record<TradingDnaTraitId, string>> = {
+  patience: 'Patient research',
+  invalidationDiscipline: 'Clear invalidation',
+  processConsistency: 'Consistent review',
+  reflectionQuality: 'Closing the loop',
+  evidenceDiscipline: 'Evidence before depth',
+  researchEfficiency: 'Focused research budget',
+  riskAwareness: 'Risk kept in view',
+  adaptability: 'Updating when evidence changes',
+  learningMomentum: 'Deliberate practice',
+  thesisClarity: 'Written theses',
+  fomoResistance: 'Passing on urgency',
+  overtradingResistance: 'Matching volume to reflection',
+  emotionalAwareness: 'Naming the feeling',
+};
+
+const FOCUS_COACHING: Partial<Record<TradingDnaTraitId, string>> = {
+  invalidationDiscipline: 'Pause before committing when evidence is mixed — define what would change your thesis.',
+  patience: 'When the case is mixed, wait for one more confirmation before deepening research.',
+  researchEfficiency: 'Two assets are enough for today’s research budget.',
+  overtradingResistance: 'Close or skip a loop before opening another symbol.',
+  evidenceDiscipline: 'Collect structure evidence before depth.',
+  reflectionQuality: 'Write one short reflection after the next research block.',
+  processConsistency: 'One brief → research or skip → journal loop beats a burst of charts.',
+  fomoResistance: 'When urgency rises, require one extra confirmation step.',
+  thesisClarity: 'Write a one-sentence thesis before expanding research.',
+  adaptability: 'When conditions change, update the thesis instead of forcing the old one.',
+  riskAwareness: 'Name the risk case before the next deep research block.',
+  emotionalAwareness: 'Name the feeling before the next research session.',
+  learningMomentum: 'One Replay or Academy session moves process more than more charts.',
 };
 
 export interface DnaTraitsInput {
@@ -149,6 +184,10 @@ export interface DnaTraitsInput {
   nowMs?: number;
   /** Mentor-setup struggle labels — coaching priors only, not fake scores. */
   mentorStruggles?: string[];
+  /** Live journal signals (edits/deletes). Undefined falls back to decision-log journaled events. */
+  journalEvidence?: DnaJournalEvidence[] | null;
+  /** When set, score this exact window instead of auto week/month. */
+  evidenceSinceMs?: number;
 }
 
 function styleFingerprint(memory: TraderMemory, dna: TradingDna): DnaStyleFingerprint {
@@ -210,6 +249,11 @@ function scoreTrait(input: {
     confidenceValue,
     evidence: input.evidence,
     lastUpdated: input.now,
+    whySummary: insufficient ? 'Not enough observable process events yet.' : formatWhySummary(input.evidence),
+    score30dAgo: null,
+    score90dAgo: null,
+    allTimeScore: null,
+    longitudinalTrend: 'insufficient',
   };
 }
 
@@ -223,6 +267,7 @@ function computeRawScores(bundle: DnaEvidenceBundle, processScoreWeek?: number) 
       Math.min(25, bundle.researched * 6) +
       Math.min(20, bundle.checklist * 10) +
       Math.min(15, bundle.journaled * 5) +
+      Math.min(10, (bundle.replayTvEvidence ?? 0) * 5) +
       (bundle.briefOpened > 0 ? 5 : 0),
   );
 
@@ -242,7 +287,8 @@ function computeRawScores(bundle: DnaEvidenceBundle, processScoreWeek?: number) 
   const patience = clamp(
     40 +
       Math.min(25, bundle.skipped * 8) +
-      Math.min(15, bundle.replay * 6) -
+      Math.min(15, bundle.replay * 6) +
+      Math.min(10, (bundle.replayTvPatience ?? 0) * 5) -
       Math.min(20, bundle.ignored * 7) +
       (earlyPrior ? -8 : 8),
   );
@@ -257,6 +303,7 @@ function computeRawScores(bundle: DnaEvidenceBundle, processScoreWeek?: number) 
     40 +
       Math.min(35, bundle.invalidated * 12) +
       Math.min(15, bundle.replay * 5) +
+      Math.min(12, (bundle.replayTvInvalidation ?? 0) * 6) +
       Math.min(10, bundle.checklist * 4),
   );
 
@@ -440,42 +487,47 @@ export function buildTradingDnaTraits(input: DnaTraitsInput): TradingDnaProfile 
   const dna = input.memory.dna ?? buildTradingDna(input.memory);
   const fingerprint = styleFingerprint(input.memory, dna);
 
-  const recent = buildEvidenceBundle({
+  const bundleInput = {
     records: input.records,
     memory: input.memory,
     heatmapScores: input.heatmapScores,
     journalCoach: input.journalCoach,
-    sinceMs: weekAgo,
-    windowMs: 7 * 86_400_000,
+    journalEvidence: input.journalEvidence,
+  };
+
+  const forcedSince = input.evidenceSinceMs;
+  const recent = buildEvidenceBundle({
+    ...bundleInput,
+    sinceMs: forcedSince ?? weekAgo,
+    windowMs: forcedSince != null ? Math.max(1, now - forcedSince) : 7 * 86_400_000,
   });
 
   const priorRecords = input.records.filter((r) => r.createdAt >= priorStart && r.createdAt < priorEnd);
+  const priorJournal =
+    input.journalEvidence?.filter((j) => j.createdAtMs >= priorStart && j.createdAtMs < priorEnd) ??
+    input.journalEvidence;
   const prior = buildEvidenceBundle({
     records: priorRecords,
     memory: input.memory,
     heatmapScores: input.heatmapScores,
     journalCoach: input.journalCoach,
+    journalEvidence: Array.isArray(input.journalEvidence) ? priorJournal : undefined,
     sinceMs: priorStart,
     windowMs: 23 * 86_400_000,
   });
 
   // Prefer month window when week is thin so early users can still score honestly.
   const monthBundle = buildEvidenceBundle({
-    records: input.records,
-    memory: input.memory,
-    heatmapScores: input.heatmapScores,
-    journalCoach: input.journalCoach,
-    sinceMs: monthAgo,
-    windowMs: 30 * 86_400_000,
+    ...bundleInput,
+    sinceMs: forcedSince ?? monthAgo,
+    windowMs: forcedSince != null ? Math.max(1, now - forcedSince) : 30 * 86_400_000,
   });
-  const active =
-    totalEvidenceCount(
-      collectEvidence(
-        evidenceItem('decision_log', recent.researched + recent.skipped + recent.journaled, 'week'),
-      ),
-    ) >= 3
-      ? recent
-      : monthBundle;
+  const weekUnits = totalEvidenceCount(
+    collectEvidence(
+      evidenceItem('decision_log', recent.researched + recent.skipped + recent.journaled, 'week'),
+    ),
+  );
+  const active = forcedSince != null ? recent : weekUnits >= 3 ? recent : monthBundle;
 
   const raw = computeRawScores(active, input.processScoreWeek);
   const priorRaw = computeRawScores(prior, input.processScoreWeek);
@@ -505,22 +557,35 @@ export function buildTradingDnaTraits(input: DnaTraitsInput): TradingDnaProfile 
   });
 
   const scored = traits.filter((t) => t.status === 'scored' && t.score != null);
-  const strengths = [...scored]
-    .sort((a, b) => (b.score ?? 0) - (a.score ?? 0))
+  const rankedHigh = [...scored].sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
+  const rankedLow = [...scored].sort((a, b) => (a.score ?? 100) - (b.score ?? 100));
+  const strengths = rankedHigh.slice(0, 3).map((t) => t.label);
+  const growthEdges = rankedLow.slice(0, 2).map((t) => t.label);
+  const strengthHabits = rankedHigh
     .slice(0, 3)
-    .map((t) => t.label);
-  const growthEdges = [...scored]
-    .sort((a, b) => (a.score ?? 100) - (b.score ?? 100))
-    .slice(0, 3)
-    .map((t) => t.label);
+    .map((t) => STRENGTH_HABITS[t.id] ?? t.label);
+  const focusAreas = rankedLow
+    .slice(0, 2)
+    .map((t) => FOCUS_COACHING[t.id] ?? `Practise ${t.label.toLowerCase()} on the next loop.`)
+    .slice(0, 2);
+
+  const invTrait = traits.find((t) => t.id === 'invalidationDiscipline');
+  if (invTrait && invTrait.status === 'scored') {
+    const ratio = invalidationRatioSentence(input.records);
+    if (ratio) invTrait.ratioSentence = ratio;
+  }
 
   return {
     styleLabel: dna.styleLabel,
     becomingLabel: buildBecomingLabel(dna.styleLabel, traits),
+    decisionStyleSummary: buildDecisionStyleSummary(traits, scored.length),
     styleFingerprint: fingerprint,
     traits,
     strengths: strengths.length ? strengths : ['Building evidence'],
+    strengthHabits: strengthHabits.length ? strengthHabits : ['Gathering process evidence'],
     growthEdges: growthEdges.length ? growthEdges : ['Gather more process evidence'],
+    focusAreas: scored.length ? focusAreas : [],
+    observedTendencies: [],
     updatedAt: now,
     evidenceCount: traits.reduce((sum, t) => sum + totalEvidenceCount(t.evidence), 0),
   };
@@ -547,6 +612,23 @@ function buildBecomingLabel(styleLabel: string, traits: TradingDnaTraitScore[]):
   return styleLabel.includes('Trader') || styleLabel.includes('Operator')
     ? styleLabel
     : `${styleLabel} Decision-Maker`;
+}
+
+function buildDecisionStyleSummary(traits: TradingDnaTraitScore[], scoredCount: number): string {
+  if (scoredCount < 3) {
+    return 'Not enough process evidence yet to describe how you decide.';
+  }
+  const top = [...traits]
+    .filter((t) => t.status === 'scored' && t.score != null)
+    .sort((a, b) => (b.score ?? 0) - (a.score ?? 0))[0];
+  const edge = [...traits]
+    .filter((t) => t.status === 'scored' && t.score != null)
+    .sort((a, b) => (a.score ?? 100) - (b.score ?? 100))[0];
+  if (!top) return 'Process evidence is accumulating — scores describe habits, not profitability.';
+  if (edge && edge.id !== top.id) {
+    return `Observed: ${top.label.toLowerCase()} is currently the strongest habit; ${edge.label.toLowerCase()} is the quieter growth edge. Not a diagnosis, and not a P&L score.`;
+  }
+  return `Observed: ${top.label.toLowerCase()} is the strongest current habit in your process. Not a diagnosis, and not a P&L score.`;
 }
 
 export function getTraitScore(dna: TradingDnaProfile, id: TradingDnaTraitId): number | null {

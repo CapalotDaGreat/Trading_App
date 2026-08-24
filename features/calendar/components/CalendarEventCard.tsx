@@ -1,5 +1,6 @@
 import { View } from 'react-native';
 
+import { DataSourceBadge } from '@/features/markets/components/DataSourceBadge';
 import { Badge } from '@/shared/components/ui/Badge';
 import { GlassCard } from '@/shared/components/ui/GlassCard';
 import { Text } from '@/shared/components/ui/Text';
@@ -25,6 +26,7 @@ export function CalendarEventCard({ event }: CalendarEventCardProps) {
           <View className="mb-1 flex-row flex-wrap items-center gap-2">
             <Badge label={event.countryCode} variant="outline" size="sm" />
             <Badge label={event.impact} variant={impactVariant[event.impact]} size="sm" />
+            {event.source === 'mock' ? <DataSourceBadge kind="mock" /> : null}
           </View>
           <Text variant="h3" numberOfLines={2}>
             {event.title}

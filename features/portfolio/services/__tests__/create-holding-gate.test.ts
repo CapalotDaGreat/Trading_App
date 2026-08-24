@@ -1,4 +1,4 @@
-import { createHolding, findDuplicateHolding } from '../portfolio.service';
+import { createHolding, findDuplicateHolding, calculateHoldingPnL, calculatePortfolioSummary } from '../portfolio.service';
 import type { CreateHoldingInput, Holding } from '../../types/portfolio.types';
 import { DuplicateHoldingError } from '../../types/portfolio.types';
 
@@ -73,6 +73,34 @@ describe('createHolding instrument gate', () => {
         currentPrice: 0,
       }),
     ).rejects.toThrow(/never invented|valid market price/i);
+  });
+
+  it('does not treat a missing price as a $0 position', () => {
+    const holding: Holding = {
+      id: 'h1',
+      symbol: 'AAPL',
+      name: 'Apple Inc.',
+      marketType: 'stocks',
+      assetClass: 'equity',
+      quantity: 2,
+      averageCost: 100,
+      currentPrice: Number.NaN,
+      currency: 'USD',
+      side: 'long',
+      instrumentId: 'equity:AAPL',
+      canonicalSymbol: 'AAPL',
+      provider: 'finnhub',
+      providerSymbol: 'AAPL',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    const pnl = calculateHoldingPnL(holding);
+    expect(pnl.priceAvailable).toBe(false);
+    expect(pnl.marketValue).toBe(0);
+    const summary = calculatePortfolioSummary([holding]);
+    expect(summary.totalValue).toBe(0);
+    expect(summary.holdingsCount).toBe(1);
+    expect(summary.totalCost).toBe(200);
   });
 
   it('creates when instrument fields are present and detects duplicates', async () => {

@@ -31,34 +31,8 @@ PAGES = {
     "risk": ("risk-disclaimer.md", "Risk & Investment Disclaimer"),
     "security": ("security-notice.md", "Security Notice"),
     "account-deletion": ("account-deletion.md", "Account Deletion"),
+    "support": ("support.md", "Support"),
 }
-
-SUPPORT_HTML = """<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>TradeInsight Support · Aithera</title>
-  <style>
-    body { font-family: system-ui, sans-serif; max-width: 42rem; margin: 2rem auto; padding: 0 1rem; line-height: 1.55; color: #111; }
-    a { color: #0f766e; }
-  </style>
-</head>
-<body>
-  <h1>TradeInsight Support</h1>
-  <p>TradeInsight by Aithera</p>
-  <p>Email: <a href="mailto:support@tradevision.ai">support@tradevision.ai</a></p>
-  <p>TradeInsight is an educational research and decision-coaching app. It is not a broker and does not provide buy/sell signals or execute trades.</p>
-  <ul>
-    <li><a href="/privacy">Privacy Policy</a></li>
-    <li><a href="/terms">Terms of Service</a></li>
-    <li><a href="/risk">Risk Disclaimer</a></li>
-    <li><a href="/security">Security Notice</a></li>
-    <li><a href="/account-deletion">Account Deletion</a></li>
-  </ul>
-</body>
-</html>
-"""
 
 AASA = """{
   "applinks": {
@@ -219,11 +193,6 @@ def main() -> None:
         folder.mkdir(exist_ok=True)
         (folder / "index.html").write_text(page, encoding="utf-8")
 
-    support_dir = HOSTED / "support"
-    support_dir.mkdir(exist_ok=True)
-    (HOSTED / "support.html").write_text(SUPPORT_HTML, encoding="utf-8")
-    (support_dir / "index.html").write_text(SUPPORT_HTML, encoding="utf-8")
-
     (WELL_KNOWN / "apple-app-site-association").write_text(AASA, encoding="utf-8")
     (WELL_KNOWN / "assetlinks.json").write_text(ASSETLINKS, encoding="utf-8")
 
@@ -252,11 +221,11 @@ Required live URLs (HTTP 200):
 
 ## Before production
 
-1. Replace `APPLE_TEAM_ID` in `.well-known/apple-app-site-association`.
+1. Replace `APPLE_TEAM_ID` in `.well-known/apple-app-site-association`. Do not invent a Team ID.
 2. Replace `REPLACE_WITH_PLAY_APP_SIGNING_SHA256` in `.well-known/assetlinks.json`
    with the Play App Signing certificate SHA-256 fingerprint.
-3. Have counsel insert the registered legal entity into `store/legal/*`, then re-run
-   `python scripts/sync-legal-docs.py` and this script.
+3. Replace `[LEGAL ENTITY NAME REQUIRED]`, `[VAT/UID REQUIRED]`, and contact
+   placeholders in `store/legal/*`, then re-run `npm run legal`.
 """,
         encoding="utf-8",
     )

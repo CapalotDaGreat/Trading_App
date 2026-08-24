@@ -1,21 +1,27 @@
 # Terms of Service
 
-**Last updated:** 24 July 2026  
-**Version:** 2026.07.24  
-**Operator:** Aithera (“Aithera”, “we”, “us”, “our”)  
-**Contact:** support@tradevision.ai | https://tradevision.ai  
+**Last updated:** 24 August 2026  
+**Version:** 2026.08.24  
+**Brand / product:** Aithera / TradeInsight  
+**Operator:** [LEGAL ENTITY NAME REQUIRED], trading as Aithera (“Aithera”, “we”, “us”, “our”)  
+**Registered address:** Höglerstrasse 55, 8600 Dübendorf, Switzerland  
+**VAT/UID:** [VAT/UID REQUIRED]  
+**Contact:** [SUPPORT EMAIL REQUIRED]  
+**Website:** [OFFICIAL DOMAIN REQUIRED]  
 
 These Terms of Service (“Terms”) govern your access to and use of the TradeInsight mobile application and related services (the “Service”). By creating an account, tapping accept, or using cloud features of the Service, you agree to these Terms and our Privacy Policy, Risk & Investment Disclaimer, and Account Deletion Notice. Exploring Guest/demo mode remains subject to the educational and risk notices shown in the app.
 
-**Have Swiss, EU/EEA, and U.S. counsel review these Terms (including your legal entity name, registered address, and consumer-law adaptations) before production launch.** Mandatory consumer protections in your country of residence that cannot be waived remain unaffected.
+**This document is a compliance-oriented template.** Bracketed fields are not production values. Have Swiss, EU/EEA, and U.S. counsel review these Terms (including the legal entity name, VAT/UID, and consumer-law adaptations) before production launch. Mandatory consumer protections in your country of residence that cannot be waived remain unaffected.
 
 ---
 
-## 1. Eligibility
+## 1. Eligibility and age layers
 
 Downloading the app or exploring **Guest/demo mode** does not require you to be 18.
 
 You must be at least **18** years old, or the age of majority in your jurisdiction, to create an account or purchase a subscription, and you must be legally able to enter a binding contract.
+
+**Store content rating is separate.** Apple **12+** / Google Play **Teen** ratings describe content suitability. They do **not** mean a person under 18 may open a cloud account, purchase Premium, or treat TradeInsight as authorisation to trade.
 
 The Service is an educational trading research and coaching platform for a general audience. It is **not directed toward young children**. You may not use cloud account features if applicable sanctions or export laws prohibit you from doing so.
 
@@ -30,6 +36,7 @@ TradeInsight provides **decision-process coaching**, research prioritisation con
 - We **do not** execute, clear, settle, or custody trades or funds.
 - We **do not** provide personalised investment recommendations, suitability assessments, or buy/sell/hold signals as regulated advice.
 - Market data may be **live, delayed, approximate, sample, or mock** and is labelled accordingly when shown.
+- AI / explainability features (when shown) describe process and evidence. They are not signals.
 
 **Nothing in the Service is financial, investment, tax, accounting, or legal advice.** See the separate **Risk & Investment Disclaimer**.
 
@@ -39,7 +46,7 @@ You alone decide whether, when, and how to trade or invest, including with any t
 
 ## 3. Accounts and security
 
-You must provide accurate registration information and keep credentials confidential. You are responsible for activity under your account. Enable multi-factor authentication where available. Notify us promptly of unauthorised access at support@tradevision.ai.
+You must provide accurate registration information and keep credentials confidential. You are responsible for activity under your account. Enable multi-factor authentication where available. Notify us promptly of unauthorised access at [SUPPORT EMAIL REQUIRED].
 
 We may require email verification before cloud sync. **Guest/demo mode** lets anyone explore educational features locally (interface, demo data, Academy, Decision Replay, Decision Lab, charts, and AI explanations). Guest mode does **not** create cloud journals, sync data, store portfolios online, or allow subscription purchases.
 
@@ -65,7 +72,7 @@ Refunds are handled by Apple, Google, or the payment provider under their polici
 
 ### Illustrative plan identifiers
 
-Product IDs (subject to store configuration): `monthly`, `yearly`, `lifetime` (Aithera Pro entitlement). Displayed prices control over any marketing copy.
+Product IDs (subject to store configuration): `monthly` and `yearly` (entitlement **Aithera Pro**). Lifetime is **not offered at launch**. Displayed prices control over any marketing copy. A seven-day trial, if offered, applies only to the yearly product when shown on the store purchase sheet.
 
 ---
 
@@ -98,6 +105,8 @@ We may suspend or terminate access for violations, risk to the Service, or legal
 
 The Service depends on third parties (Firebase, RevenueCat, Sentry if consented, market-data vendors, Apple, Google). Their terms and availability apply. We are not responsible for third-party outages, data errors, or store billing decisions beyond our control.
 
+Production third-party cloud AI is disabled in this release. If enabled later, additional processor terms will apply.
+
 ---
 
 ## 8. Disclaimers
@@ -123,13 +132,13 @@ Some jurisdictions do not allow certain limitations; in those cases, our liabili
 
 ## 10. Indemnity
 
-To the extent permitted by law, you will indemnify TradeInsight and its operators against claims arising from your misuse of the Service, your trading decisions, or your violation of these Terms or law, except to the extent caused by our wilful misconduct.
+To the extent permitted by law, you will indemnify [LEGAL ENTITY NAME REQUIRED] (trading as Aithera) and its operators against claims arising from your misuse of the Service, your trading decisions, or your violation of these Terms or law, except to the extent caused by our wilful misconduct.
 
 ---
 
 ## 11. Privacy
 
-Personal data is processed as described in the **Privacy Policy**. Optional crash reporting requires separate consent.
+Personal data is processed as described in the **Privacy Policy**. Optional crash reporting and optional product analytics require separate consent.
 
 ---
 
@@ -157,7 +166,7 @@ These Terms are governed by the substantive laws of **Switzerland**, excluding c
 
 Courts of **Zurich, Switzerland** have jurisdiction, except that consumers may bring proceedings in the courts of their residence where mandatory law so provides, and we may seek injunctive relief in any venue for IP or security breaches.
 
-Optional amicable resolution: contact support@tradevision.ai before formal proceedings.
+Optional amicable resolution: contact [SUPPORT EMAIL REQUIRED] before formal proceedings.
 
 ---
 
@@ -169,6 +178,7 @@ If any provision is unenforceable, the remainder stays in effect. Failure to enf
 
 ## 17. Contact
 
-support@tradevision.ai  
-privacy@tradevision.ai  
-https://tradevision.ai
+[SUPPORT EMAIL REQUIRED]  
+[PRIVACY EMAIL REQUIRED]  
+Registered address: Höglerstrasse 55, 8600 Dübendorf, Switzerland  
+[OFFICIAL DOMAIN REQUIRED]

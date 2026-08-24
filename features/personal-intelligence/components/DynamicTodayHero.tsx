@@ -18,7 +18,7 @@ interface DynamicTodayHeroProps {
 
 export function DynamicTodayHero({
   focus,
-  becomingQuestion = 'Who am I becoming as a trader?',
+  becomingQuestion = 'How do I make decisions — and how am I changing over time?',
 }: DynamicTodayHeroProps) {
   const router = useRouter();
   const { colors } = useTheme();
@@ -36,9 +36,14 @@ export function DynamicTodayHero({
         <Text variant="body-sm" className="mt-3 max-w-md leading-6 text-text-secondary">
           {focus.detail}
         </Text>
-        <Text variant="caption" className="mt-4 text-text-tertiary">
-          {becomingQuestion}
-        </Text>
+          <Text variant="caption" className="mt-4 text-text-tertiary">
+            {becomingQuestion}
+          </Text>
+          {focus.todayCue ? (
+            <Text variant="body-sm" className="mt-3 text-text-secondary">
+              {focus.todayCue}
+            </Text>
+          ) : null}
         <View className="mt-6 flex-row gap-3">
           <Pressable
             accessibilityRole="button"

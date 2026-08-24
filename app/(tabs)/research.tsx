@@ -12,6 +12,7 @@ import { CollapsibleSection } from '@/shared/components/patterns/CollapsibleSect
 import { HubPathList } from '@/shared/components/patterns/HubPathList';
 import { Skeleton } from '@/shared/components/ui/Skeleton';
 import { useTheme } from '@/shared/hooks/useTheme';
+import { CALM_ATTENTION } from '@/shared/constants/trust-language';
 import { useSettingsStore } from '@/shared/stores/settings.store';
 
 type ResearchGroup = {
@@ -34,7 +35,7 @@ export default function ResearchScreen() {
     const definitions = [
       {
         key: 'now' as const,
-        eyebrow: 'RESEARCH NOW',
+        eyebrow: 'YOUR FOCUS',
         title: 'Best fit for this session',
         description: `Fits your ${timeBudgetMinutes}-minute research budget and current context.`,
         accepts: (item: ResearchQueueItem) => item.priority === 'high',
@@ -107,8 +108,8 @@ export default function ResearchScreen() {
         {brief && groups.length === 0 ? (
           <StatusState
             status="empty"
-            title="No ranked research yet"
-            description="There is not enough current evidence to rank an idea honestly. Explore context or refresh later so RVS and DQS stay evidence-based."
+            title={CALM_ATTENTION.nothingRequiresAttention}
+            description={CALM_ATTENTION.nothingRequiresAttentionDetail}
             actionLabel="Refresh"
             onAction={() => void briefQuery.refetch()}
           />

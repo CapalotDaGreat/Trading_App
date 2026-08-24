@@ -55,6 +55,25 @@ describe('root onboarding route gate', () => {
     }
   });
 
+  it('lets guests and new users read in-app legal pages without leaving the flow', () => {
+    expect(
+      resolveRootRedirect({
+        status: 'unauthenticated',
+        firebaseConfigured: true,
+        firstSegment: 'legal',
+        onboarding: null,
+      }),
+    ).toBeNull();
+    expect(
+      resolveRootRedirect({
+        status: 'authenticated',
+        firebaseConfigured: true,
+        firstSegment: 'legal',
+        onboarding: incomplete,
+      }),
+    ).toBeNull();
+  });
+
   it('sends completed and migrated users out of onboarding without a loop', () => {
     expect(
       resolveRootRedirect({

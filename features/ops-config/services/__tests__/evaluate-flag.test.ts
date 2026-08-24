@@ -6,7 +6,9 @@ describe('feature flag evaluation', () => {
   it('keeps defaults safe for guest/offline', () => {
     const snap = createDefaultOpsBootstrap();
     expect(snap.source).toBe('defaults');
-    expect(snap.remote.aiAnalysisMonthlyFree).toBe(20);
+    expect(snap.remote.aiDailyLimitFree).toBe(3);
+    expect(snap.remote.aiDailyLimitPremium).toBe(100);
+    expect(snap.remote.aiAnalysisMonthlyFree).toBe(3);
     expect(snap.flags.globalKill.enabled).toBe(false);
     expect(snap.flags.aiChatEnabled.enabled).toBe(true);
   });

@@ -25,6 +25,10 @@ function decisionProcessPts(decision: ReplayTvDecision): number {
       return 90;
     case 'skip':
       return 84;
+    case 'review_other':
+      return 82;
+    case 'mark_invalidation':
+      return 86;
     case 'research_more':
       return 72;
     case 'write_thesis':
@@ -81,7 +85,49 @@ function alternativePts(decisions: ReplayTvDecisionRecord[], checklist: ReplayTv
   const notes = decisions.map((d) => d.reasoning).join(' ');
   let score = checklist.consideredAlternative ? 70 : 30;
   if (/instead|alternative|or skip|could also|vs\.|versus/i.test(notes)) score += 20;
-  if (decisions.some((d) => d.decision === 'skip' || d.decision === 'wait')) score += 10;
+  if (decisions.some((d) => d.decision === 'skip' || d.decision === 'wait' || d.decision === 'review_other')) {
+    score += 10;
+  }
+  return clamp(score);
+}
+
+function adaptabilityPts(decisions: ReplayTvDecisionRecord[]): number {
+  if (decisions.length < 2) {
+    return decisions.some((d) => d.decision === 'wait' || d.decision === 'skip') ? 70 : 55;
+  }
+  const unique = new Set(decisions.map((d) => d.decision));
+  const switched = unique.size > 1;
+  return clamp(switched ? 78 : 62);
+}
+
+function consistencyPts(decisions: ReplayTvDecisionRecord[], checklist: ReplayTvChecklist): number {
+  if (!decisions.length) return 40;
+  const structuredCount = decisions.filter((d) => d.structured?.thesis && d.structured?.evidence).length;
+  const invalidationCount = decisions.filter(
+    (d) => d.decision === 'mark_invalidation' || Boolean(d.structured?.invalidation?.trim()),
+  ).length;
+  return clamp(
+    35 +
+      (checklist.wroteReasoning ? 15 : 0) +
+      (structuredCount / decisions.length) * 30 +
+      (invalidationCount / decisions.length) * 20,
+  );
+}
+
+function researchEfficiencyPts(
+  decisions: ReplayTvDecisionRecord[],
+  episode: ReplayTvEpisode,
+): number {
+  const inaction = decisions.filter(
+    (d) =>
+      d.decision === 'wait' ||
+      d.decision === 'skip' ||
+      d.decision === 'protect_attention' ||
+      d.decision === 'review_other',
+  ).length;
+  const research = decisions.filter((d) => d.decision === 'research_more').length;
+  let score = 50 + inaction * 12 - research * 6;
+  if (episode.inactionIsValidProcess && inaction > 0) score += 15;
   return clamp(score);
 }
 
@@ -114,6 +160,9 @@ export function scoreReplayTvSession(input: {
   const riskAwareness = riskPts(input.decisions, input.checklist);
   const invalidationClarity = invalidationPts(input.decisions, input.checklist);
   const alternativeConsideration = alternativePts(input.decisions, input.checklist);
+  const adaptability = adaptabilityPts(input.decisions);
+  const consistency = consistencyPts(input.decisions, input.checklist);
+  const researchEfficiency = researchEfficiencyPts(input.decisions, input.episode);
 
   const patienceBoost = input.decisions.some(
     (d) => d.decision === 'wait' || d.decision === 'protect_attention' || d.decision === 'skip',
@@ -155,13 +204,15 @@ export function scoreReplayTvSession(input: {
   );
 
   const overall = clamp(
-    processQuality * 0.4 +
-      reasoningAvg * 0.2 +
-      checklistPts * 0.12 +
-      patience * 0.08 +
-      evidenceQuality * 0.08 +
-      riskAwareness * 0.06 +
-      invalidationClarity * 0.06,
+    processQuality * 0.34 +
+      reasoningAvg * 0.12 +
+      checklistPts * 0.08 +
+      patience * 0.1 +
+      evidenceQuality * 0.1 +
+      invalidationClarity * 0.1 +
+      adaptability * 0.06 +
+      consistency * 0.05 +
+      researchEfficiency * 0.05,
   );
 
   const coaching: string[] = [
@@ -197,15 +248,15 @@ export function scoreReplayTvSession(input: {
     riskAwareness,
     invalidationClarity,
     alternativeConsideration,
+    adaptability,
+    consistency,
+    researchEfficiency,
     overall,
     coaching,
     journalPrompt: [
       `Replay TV · ${input.episode.title}.`,
-      `Process ${processQuality}/100 · evidence ${evidenceQuality}/100 · invalidation ${invalidationClarity}/100.`,
+      `DQS ${overall}/100 · process ${processQuality} · evidence ${evidenceQuality} · invalidation ${invalidationClarity}.`,
       'What did you learn about your decision process — not the historical outcome?',
-      input.decisions[0]?.reasoning?.trim()
-        ? `First pause note: “${input.decisions[0].reasoning.trim().slice(0, 100)}”`
-        : 'Add the invalidation you wish you had written at the first pause.',
     ].join(' '),
     academyHint: {
       lessonId,

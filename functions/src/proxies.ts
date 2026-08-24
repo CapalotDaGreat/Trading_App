@@ -2,7 +2,7 @@ import * as admin from 'firebase-admin';
 import * as functions from 'firebase-functions';
 import { onCall, type CallableRequest } from 'firebase-functions/v2/https';
 
-import { consumeQuota } from './quota';
+import { clampAiDailyLimit, consumeQuota, readLedgerCount } from './quota';
 import {
   isPremiumUser,
   requireAppCheck,
@@ -10,7 +10,15 @@ import {
   requirePremium,
   sanitizeVendorError,
 } from './security';
-import { parseInterval, parseLimit, parseMarketType, parseQuery, parseSymbol } from './validation';
+import {
+  parseCalendarRange,
+  parseInterval,
+  parseLimit,
+  parseMarketType,
+  parseNewsCategory,
+  parseQuery,
+  parseSymbol,
+} from './validation';
 import {
   alphaVantageCandles,
   alphaVantageQuote,
@@ -18,13 +26,17 @@ import {
   finnhubEconomicCalendar,
   finnhubQuote,
   finnhubSearch,
+  isFinnhubConfigured,
+  isMarketDataConfigured,
+  isNewsConfigured,
   newsApiHeadlines,
 } from './vendors';
 import { recordAiOps } from './ops/ai-ops';
 import { SERVER_DEFAULT_REMOTE } from './ops/defaults';
 
 const callableOpts = {
-  // Soft-enforce via requireAppCheck when APP_CHECK_ENFORCE=false (Expo Go rollout).
+  // Token verification still happens when request.app is present.
+  // Missing tokens fail closed unless APP_CHECK_SOFT / emulator (see requireAppCheck).
   enforceAppCheck: false,
   timeoutSeconds: 30,
   memory: '256MiB' as const,
@@ -34,15 +46,26 @@ function invalidArg(message: string): never {
   throw new functions.https.HttpsError('invalid-argument', message);
 }
 
-async function gate(request: CallableRequest, bucket: Parameters<typeof consumeQuota>[1]) {
+function notConfigured(message: string): never {
+  throw new functions.https.HttpsError('failed-precondition', message);
+}
+
+async function gate(
+  request: CallableRequest,
+  bucket: Parameters<typeof consumeQuota>[1],
+  assertConfigured?: () => void,
+) {
   requireAppCheck(request);
   const uid = requireAuth(request);
+  assertConfigured?.();
   const quota = await consumeQuota(uid, bucket);
   return { uid, quota };
 }
 
 export const marketQuote = onCall(callableOpts, async (request) => {
-  const { quota } = await gate(request, 'market_quote');
+  const { quota } = await gate(request, 'market_quote', () => {
+    if (!isMarketDataConfigured()) notConfigured('Market data is not configured.');
+  });
   let symbol: string;
   try {
     symbol = parseSymbol(request.data?.symbol);
@@ -74,7 +97,9 @@ export const marketQuote = onCall(callableOpts, async (request) => {
 });
 
 export const marketCandles = onCall(callableOpts, async (request) => {
-  const { quota } = await gate(request, 'market_candles');
+  const { quota } = await gate(request, 'market_candles', () => {
+    if (!isMarketDataConfigured()) notConfigured('Market data is not configured.');
+  });
   let symbol: string;
   let interval: string;
   let limit: number;
@@ -125,7 +150,9 @@ export const marketCandles = onCall(callableOpts, async (request) => {
 });
 
 export const marketSearch = onCall(callableOpts, async (request) => {
-  const { quota } = await gate(request, 'market_search');
+  const { quota } = await gate(request, 'market_search', () => {
+    if (!isFinnhubConfigured()) notConfigured('Market data is not configured.');
+  });
   let query: string;
   try {
     query = parseQuery(request.data?.query, 64);
@@ -157,16 +184,14 @@ export const marketSearch = onCall(callableOpts, async (request) => {
 });
 
 export const economicCalendar = onCall(callableOpts, async (request) => {
-  const { quota } = await gate(request, 'economic_calendar');
-  const from =
-    typeof request.data?.from === 'string'
-      ? request.data.from
-      : new Date().toISOString().slice(0, 10);
-  const to =
-    typeof request.data?.to === 'string'
-      ? request.data.to
-      : new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10);
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(from) || !/^\d{4}-\d{2}-\d{2}$/.test(to)) {
+  const { quota } = await gate(request, 'economic_calendar', () => {
+    if (!isFinnhubConfigured()) notConfigured('Market data is not configured.');
+  });
+  let from: string;
+  let to: string;
+  try {
+    ({ from, to } = parseCalendarRange(request.data?.from, request.data?.to));
+  } catch {
     invalidArg('Invalid calendar date range.');
   }
 
@@ -180,10 +205,12 @@ export const economicCalendar = onCall(callableOpts, async (request) => {
 });
 
 export const newsHeadlines = onCall(callableOpts, async (request) => {
-  const { uid, quota } = await gate(request, 'news');
+  const { uid, quota } = await gate(request, 'news', () => {
+    if (!isNewsConfigured()) notConfigured('News is not configured.');
+  });
   const pageSize = parseLimit(request.data?.pageSize, 50);
   const page = parseLimit(request.data?.page ?? 1, 10);
-  const category = typeof request.data?.category === 'string' ? request.data.category : 'business';
+  const category = parseNewsCategory(request.data?.category);
   let query: string | undefined;
   if (request.data?.query != null) {
     try {
@@ -216,38 +243,31 @@ async function loadAiLimits(): Promise<{ free: number; premium: number; model: s
       .get();
     const data = snap.data() ?? {};
     return {
-      free:
-        typeof data.aiAnalysisMonthlyFree === 'number' &&
-        Number.isFinite(data.aiAnalysisMonthlyFree)
-          ? data.aiAnalysisMonthlyFree
-          : SERVER_DEFAULT_REMOTE.aiAnalysisMonthlyFree,
-      premium:
-        typeof data.aiAnalysisMonthlyPremium === 'number' &&
-        Number.isFinite(data.aiAnalysisMonthlyPremium)
-          ? data.aiAnalysisMonthlyPremium
-          : SERVER_DEFAULT_REMOTE.aiAnalysisMonthlyPremium,
-      model: typeof data.aiModel === 'string' ? data.aiModel : SERVER_DEFAULT_REMOTE.aiModel,
+      free: clampAiDailyLimit(data.aiDailyLimitFree, SERVER_DEFAULT_REMOTE.aiDailyLimitFree),
+      premium: clampAiDailyLimit(
+        data.aiDailyLimitPremium,
+        SERVER_DEFAULT_REMOTE.aiDailyLimitPremium,
+      ),
+      model: typeof data.aiModel === 'string' ? data.aiModel.slice(0, 80) : SERVER_DEFAULT_REMOTE.aiModel,
     };
   } catch {
     return {
-      free: SERVER_DEFAULT_REMOTE.aiAnalysisMonthlyFree,
-      premium: SERVER_DEFAULT_REMOTE.aiAnalysisMonthlyPremium,
+      free: SERVER_DEFAULT_REMOTE.aiDailyLimitFree,
+      premium: SERVER_DEFAULT_REMOTE.aiDailyLimitPremium,
       model: SERVER_DEFAULT_REMOTE.aiModel,
     };
   }
 }
 
 /**
- * Cloud AI stub — auth, App Check, premium, and quota enforced.
- * Returns failed-precondition until a provider is approved (CLOUD_AI server flag).
- * Records metadata-only AI ops (never prompts).
+ * Cloud AI stub — auth, App Check, and premium enforced.
+ * Fails closed before quota so a disabled stub cannot burn allowance.
  */
 export const aiAnalysis = onCall(callableOpts, async (request) => {
   const started = Date.now();
   requireAppCheck(request);
   const uid = requireAuth(request);
   await requirePremium(uid);
-  await consumeQuota(uid, 'ai');
   const limits = await loadAiLimits();
   await recordAiOps({
     ok: false,
@@ -271,13 +291,13 @@ export const recordAiUsage = onCall(callableOpts, async (request) => {
   const limits = await loadAiLimits();
   const category =
     typeof request.data?.category === 'string'
-      ? String(request.data.category).slice(0, 40)
+      ? String(request.data.category).replace(/[^a-zA-Z0-9._-]/g, '').slice(0, 40)
       : 'local_engine';
   await recordAiOps({
     ok: true,
     latencyMs: Date.now() - started,
     model: limits.model,
-    category,
+    category: category || 'local_engine',
     fallback: false,
     estTokens: typeof request.data?.estTokens === 'number' ? request.data.estTokens : undefined,
   });
@@ -288,23 +308,33 @@ export const getAiQuota = onCall(callableOpts, async (request) => {
   requireAppCheck(request);
   const uid = requireAuth(request);
   const now = new Date();
-  const month = `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, '0')}`;
-  const snap = await admin
-    .firestore()
-    .collection('usage')
-    .doc(uid)
-    .collection('monthly')
-    .doc(month)
-    .get();
-  const used = (snap.data()?.counts as Record<string, number> | undefined)?.ai ?? 0;
+  const day = now.toISOString().slice(0, 10);
+  let counts: unknown;
+  try {
+    const snap = await admin
+      .firestore()
+      .collection('usage')
+      .doc(uid)
+      .collection('daily')
+      .doc(day)
+      .get();
+    counts = snap.data()?.counts;
+  } catch {
+    throw new functions.https.HttpsError(
+      'unavailable',
+      'AI quota could not be verified. Try again later.',
+    );
+  }
   const premium = await isPremiumUser(uid);
   const limits = await loadAiLimits();
   const limit = premium ? limits.premium : limits.free;
+  const ledger = readLedgerCount(counts, 'ai');
+  const used = ledger.malformed ? limit : ledger.used;
   return {
     usedToday: used,
     limit,
-    remaining: limit < 0 ? -1 : Math.max(0, limit - used),
-    resetsAt: Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1),
+    remaining: Math.max(0, limit - used),
+    resetsAt: Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1),
     model: limits.model,
   };
 });

@@ -122,9 +122,9 @@ firebase deploy --only firestore:rules
 ## RevenueCat setup (EAS Dev Client / production)
 
 1. Create a project at [app.revenuecat.com](https://app.revenuecat.com)
-2. Add products: `monthly`, `yearly`, `lifetime` (match App Store Connect / Play Console IDs)
+2. Add products: `monthly`, `yearly` (match App Store Connect / Play Console IDs). Do not create Lifetime at launch.
 3. Attach a **7-day free trial** introductory offer to the yearly product
-4. Create an **`Aithera Pro`** entitlement and attach all three products
+4. Create an **`Aithera Pro`** entitlement and attach monthly + yearly
 5. Build a Paywall on the **current** offering and enable **Customer Center**
 6. Copy the **Public SDK keys** to `.env`:
    - `EXPO_PUBLIC_REVENUECAT_API_KEY` (test/shared), and/or

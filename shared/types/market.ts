@@ -12,6 +12,7 @@ export type AssetClass =
   | 'crypto'
   | 'forex'
   | 'commodity'
+  | 'metal'
   | 'index'
   | 'option'
   | 'bond'

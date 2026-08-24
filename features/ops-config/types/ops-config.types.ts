@@ -27,12 +27,15 @@ export interface FeatureFlagDefinition {
 export interface OpsRemoteConfig {
   schemaVersion: number;
   aiModel: string;
-  /** @deprecated Prefer aiAnalysisMonthlyFree — kept for older clients. */
+  /** Daily combined AI cap for free (Ask / analysis / mentor). */
   aiDailyLimitFree: number;
-  /** @deprecated Prefer aiAnalysisMonthlyPremium. */
+  /** Daily combined AI fair-use cap for Premium. */
   aiDailyLimitPremium: number;
+  /** @deprecated Prefer aiDailyLimitFree — kept so older remote docs still parse. */
   aiMentorMonthlyFree: number;
+  /** @deprecated Prefer aiDailyLimitFree. */
   aiAnalysisMonthlyFree: number;
+  /** @deprecated Prefer aiDailyLimitPremium. */
   aiAnalysisMonthlyPremium: number;
   replaySessionsMonthlyFree: number;
   watchlistCountFree: number;

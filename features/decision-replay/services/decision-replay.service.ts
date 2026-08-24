@@ -623,7 +623,7 @@ export function buildWeeklyGameTape(
     mostDisciplined:
       skips.length >= 2
         ? `Skipped ${skips.length} ideas instead of forcing trades`
-        : 'Opened the brief before hunting new tickets',
+        : 'Opened the brief before starting new research',
     mostEmotional:
       emotional.length > 0
         ? `${emotional[0]!.symbol} journal tagged ${emotional[0]!.emotion}`

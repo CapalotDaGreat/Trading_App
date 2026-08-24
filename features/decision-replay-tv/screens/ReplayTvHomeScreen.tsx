@@ -1,6 +1,6 @@
 import { useRouter } from 'expo-router';
-import { useMemo } from 'react';
-import { View } from 'react-native';
+import { useMemo, useState } from 'react';
+import { ScrollView, View } from 'react-native';
 
 import { ReplayTvEpisodeCard } from '@/features/decision-replay-tv/components/ReplayTvEpisodeCard';
 import {
@@ -14,6 +14,12 @@ import {
 import { useReplayTv } from '@/features/decision-replay-tv/hooks/useReplayTv';
 import { episodeRequiresPremium } from '@/features/decision-replay-tv/services/replay-tv-access.service';
 import {
+  filterReplayTvLibrary,
+  type ReplayTvDifficultyFilter,
+  type ReplayTvMarketFilter,
+  type ReplayTvThemeFilter,
+} from '@/features/decision-replay-tv/services/replay-tv-filter.service';
+import {
   episodesForDnaGrowth,
   rankReplayTvEpisodes,
 } from '@/features/decision-replay-tv/services/replay-tv-rank.service';
@@ -25,8 +31,10 @@ import { PremiumPreviewCard } from '@/features/subscription/components/PremiumPr
 import { ScreenScaffold } from '@/shared/components/layout/ScreenScaffold';
 import { CollapsibleSection } from '@/shared/components/patterns/CollapsibleSection';
 import { Button } from '@/shared/components/ui/Button';
+import { Chip } from '@/shared/components/ui/Chip';
 import { Surface } from '@/shared/components/ui/Surface';
 import { Text } from '@/shared/components/ui/Text';
+import { trackEvent } from '@/shared/services/analytics';
 
 const EMPTY_GROWTH_EDGES: string[] = [];
 
@@ -87,6 +95,9 @@ export function ReplayTvHomeScreen() {
   const { profile } = useCoachProfile();
   const intelligence = usePersonalIntelligence();
   const growthEdges = intelligence.data?.dna.growthEdges ?? EMPTY_GROWTH_EDGES;
+  const [difficultyFilter, setDifficultyFilter] = useState<ReplayTvDifficultyFilter>('all');
+  const [marketFilter, setMarketFilter] = useState<ReplayTvMarketFilter>('all');
+  const [themeFilter, setThemeFilter] = useState<ReplayTvThemeFilter>('all');
 
   const rankInput = useMemo(
     () => ({
@@ -141,6 +152,20 @@ export function ReplayTvHomeScreen() {
   );
   const shortSessions = useMemo(() => listShortSessions(15), []);
   const twentyMinute = useMemo(() => listSessionsAroundMinutes(20), []);
+  const filteredLibrary = useMemo(
+    () =>
+      rankReplayTvEpisodes(
+        filterReplayTvLibrary(REPLAY_TV_EPISODES, {
+          difficulty: difficultyFilter,
+          market: marketFilter,
+          theme: themeFilter,
+        }),
+        rankInput,
+      ),
+    [difficultyFilter, marketFilter, themeFilter, rankInput],
+  );
+  const filtersActive =
+    difficultyFilter !== 'all' || marketFilter !== 'all' || themeFilter !== 'all';
 
   const onBegin = (id: string) => {
     void beginEpisode(id).catch(() => {
@@ -199,7 +224,7 @@ export function ReplayTvHomeScreen() {
         ) : recommended[0] ? (
           <Surface tone="accent" emphasis="outlined">
             <Text variant="label" className="text-accent">
-              RECOMMENDED FOR YOU
+              NEXT SESSION
             </Text>
             <Text variant="h2" headingLevel={2} className="mt-2">
               {recommended[0].title}
@@ -231,6 +256,90 @@ export function ReplayTvHomeScreen() {
             Mastery and streaks celebrate process completion — never profits.
           </Text>
         </Surface>
+
+        <Surface padding="sm" tone="subtle" testID="replay-tv-filters">
+          <Text variant="label">Library filters</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mt-3">
+            <View className="flex-row gap-2 pr-4">
+              {(
+                [
+                  ['all', 'All levels'],
+                  ['beginner', 'Beginner'],
+                  ['intermediate', 'Intermediate'],
+                  ['advanced', 'Advanced'],
+                ] as const
+              ).map(([id, label]) => (
+                <Chip
+                  key={id}
+                  label={label}
+                  selected={difficultyFilter === id}
+                  onPress={() => {
+                    setDifficultyFilter(id);
+                    if (id !== 'all') {
+                      void trackEvent('replay_difficulty_selected', { difficulty: id });
+                    }
+                  }}
+                />
+              ))}
+            </View>
+          </ScrollView>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mt-2">
+            <View className="flex-row gap-2 pr-4">
+              {(
+                [
+                  ['all', 'All markets'],
+                  ['forex', 'Forex'],
+                  ['crypto', 'Crypto'],
+                  ['stocks', 'Stocks'],
+                  ['indices', 'Indices'],
+                  ['commodities', 'Commodities'],
+                  ['macro', 'Macro'],
+                ] as const
+              ).map(([id, label]) => (
+                <Chip
+                  key={id}
+                  label={label}
+                  selected={marketFilter === id}
+                  onPress={() => setMarketFilter(id)}
+                />
+              ))}
+            </View>
+          </ScrollView>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mt-2">
+            <View className="flex-row gap-2 pr-4">
+              {(
+                [
+                  ['all', 'All themes'],
+                  ['macro', 'Macro events'],
+                  ['patterns', 'Technical patterns'],
+                  ['psychology', 'Psychology'],
+                  ['risk', 'Risk management'],
+                  ['volatility', 'Volatility'],
+                  ['patience', 'Patience'],
+                ] as const
+              ).map(([id, label]) => (
+                <Chip
+                  key={id}
+                  label={label}
+                  selected={themeFilter === id}
+                  onPress={() => setThemeFilter(id)}
+                />
+              ))}
+            </View>
+          </ScrollView>
+        </Surface>
+
+        {filtersActive ? (
+          <EpisodeRow
+            title="Filtered library"
+            description="Matching difficulty, market, and theme — spoiler-safe teasers only."
+            episodes={filteredLibrary}
+            progress={progress}
+            isStarting={isStarting}
+            isPremium={isPremium}
+            onBegin={onBegin}
+          />
+        ) : null}
 
         <EpisodeRow
           title="Recommended for You"

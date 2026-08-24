@@ -23,7 +23,7 @@ export function useDecisionLog() {
 
   const query = useQuery({
     queryKey: decisionLogKeys.list(uid),
-    queryFn: () => getDecisionRecords(uid),
+    queryFn: () => getDecisionRecords(uid, 300),
     enabled: Boolean(uid),
     staleTime: 30_000,
   });
@@ -31,7 +31,7 @@ export function useDecisionLog() {
   const summaryQuery = useQuery({
     queryKey: decisionLogKeys.summary(uid),
     queryFn: async (): Promise<DecisionLogSummary> =>
-      summarizeDecisionLog(await getDecisionRecords(uid)),
+      summarizeDecisionLog(await getDecisionRecords(uid, 300)),
     enabled: Boolean(uid),
     staleTime: 30_000,
   });

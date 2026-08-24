@@ -3,7 +3,10 @@ import { useEffect, useState } from 'react';
 import { Pressable, View } from 'react-native';
 
 import { CandlestickChart } from '@/features/charts/components/CandlestickChart';
+import { ReplayTvCoachCard } from '@/features/decision-replay-tv/components/ReplayTvCoachCard';
 import { ReplayTvDecisionChooser } from '@/features/decision-replay-tv/components/ReplayTvDecisionChooser';
+import { ReplayTvReasoningForm, emptyReplayTvReasoning } from '@/features/decision-replay-tv/components/ReplayTvReasoningForm';
+import { ReplayTvReportCard } from '@/features/decision-replay-tv/components/ReplayTvReportCard';
 import { useReplayTv } from '@/features/decision-replay-tv/hooks/useReplayTv';
 import {
   REPLAY_TV_DECISION_LABELS,
@@ -15,7 +18,6 @@ import { Header } from '@/shared/components/layout/Header';
 import { Screen } from '@/shared/components/layout/Screen';
 import { Button } from '@/shared/components/ui/Button';
 import { GlassCard } from '@/shared/components/ui/GlassCard';
-import { Input } from '@/shared/components/ui/Input';
 import { Text } from '@/shared/components/ui/Text';
 import { useResponsiveLayout } from '@/shared/hooks/useResponsiveLayout';
 
@@ -39,7 +41,7 @@ export function ReplayTvSessionScreen() {
     journalSaved,
     clearActive,
   } = useReplayTv();
-  const [reasoning, setReasoning] = useState('');
+  const [reasoning, setReasoning] = useState(() => emptyReplayTvReasoning());
 
   useEffect(() => {
     if (!activeSession) {
@@ -71,8 +73,8 @@ export function ReplayTvSessionScreen() {
     phase !== 'complete';
 
   const onChoose = (decision: ReplayTvDecision) => {
-    submitDecision(decision, reasoning);
-    setReasoning('');
+    submitDecision(decision, '', reasoning);
+    setReasoning(emptyReplayTvReasoning());
   };
 
   const onFinish = async () => {
@@ -87,7 +89,7 @@ export function ReplayTvSessionScreen() {
 
   const onRestart = () => {
     restartEpisode();
-    setReasoning('');
+    setReasoning(emptyReplayTvReasoning());
   };
 
   return (
@@ -226,7 +228,7 @@ export function ReplayTvSessionScreen() {
               Replay paused
             </Text>
             <Text variant="body" className="mt-2 text-text-secondary">
-              {checkpoint?.prompt ?? 'What would you do?'}
+              {checkpoint?.prompt ?? 'What would you do with your research time?'}
             </Text>
             {checkpoint?.availableDataNotes?.length ? (
               <View className="mt-3 gap-1">
@@ -246,7 +248,7 @@ export function ReplayTvSessionScreen() {
         {phase === 'decision' ? (
           <GlassCard className="p-4" bordered>
             <Text variant="h3" headingLevel={2}>
-              What would you do?
+              What would you do with your research time?
             </Text>
             <Text variant="body-sm" className="mt-2 text-text-secondary">
               {checkpoint?.prompt}
@@ -284,15 +286,7 @@ export function ReplayTvSessionScreen() {
             </View>
 
             <View className="mt-4">
-              <Input
-                label="Reasoning"
-                value={reasoning}
-                onChangeText={setReasoning}
-                multiline
-                numberOfLines={3}
-                placeholder="Why this process decision? What would invalidate it?"
-                accessibilityLabel="Replay TV reasoning note"
-              />
+              <ReplayTvReasoningForm value={reasoning} onChange={setReasoning} />
             </View>
 
             <View className="mt-4">
@@ -307,11 +301,17 @@ export function ReplayTvSessionScreen() {
         {phase === 'mentor' ? (
           <GlassCard className="p-4" bordered>
             <Text variant="h3" headingLevel={2}>
-              AI Mentor
+              Process coach
             </Text>
-            <Text variant="body" className="mt-2 text-text-secondary">
-              {activeSession.mentorReply}
-            </Text>
+            {activeSession.lastCoach ? (
+              <View className="mt-3">
+                <ReplayTvCoachCard note={activeSession.lastCoach} />
+              </View>
+            ) : (
+              <Text variant="body" className="mt-2 text-text-secondary">
+                {activeSession.mentorReply}
+              </Text>
+            )}
             {activeSession.decisions.length > 0 ? (
               <Text variant="caption" className="mt-3 text-text-tertiary">
                 You chose{' '}
@@ -351,34 +351,29 @@ export function ReplayTvSessionScreen() {
         ) : null}
 
         {phase === 'coaching' && activeSession.scores ? (
-          <GlassCard className="p-4" bordered>
-            <Text variant="h3" headingLevel={2}>
-              Coaching review
-            </Text>
-            <Text variant="body-sm" className="mt-2 text-text-secondary">
-              Process {activeSession.scores.processQuality} · Evidence{' '}
-              {activeSession.scores.evidenceQuality} · Risk{' '}
-              {activeSession.scores.riskAwareness} · Invalidation{' '}
-              {activeSession.scores.invalidationClarity} · Alternatives{' '}
-              {activeSession.scores.alternativeConsideration} · Patience{' '}
-              {activeSession.scores.patience}
-            </Text>
-            <View className="mt-3 gap-2">
-              {activeSession.scores.coaching.map((line) => (
-                <Text key={line} variant="body-sm" className="text-text-secondary">
-                  • {line}
-                </Text>
-              ))}
-            </View>
-            <Button
-              className="mt-4"
-              loading={isFinishing}
-              disabled={isFinishing}
-              onPress={() => void onFinish()}
-            >
-              Save to Passport & Decision Log
-            </Button>
-          </GlassCard>
+          <View className="gap-4">
+            <ReplayTvReportCard scores={activeSession.scores} />
+            <GlassCard className="p-4" bordered>
+              <Text variant="h3" headingLevel={2}>
+                Coaching review
+              </Text>
+              <View className="mt-3 gap-2">
+                {activeSession.scores.coaching.map((line) => (
+                  <Text key={line} variant="body-sm" className="text-text-secondary">
+                    • {line}
+                  </Text>
+                ))}
+              </View>
+              <Button
+                className="mt-4"
+                loading={isFinishing}
+                disabled={isFinishing}
+                onPress={() => void onFinish()}
+              >
+                Save to Passport & Decision Log
+              </Button>
+            </GlassCard>
+          </View>
         ) : null}
 
         {phase === 'complete' && activeSession.scores ? (

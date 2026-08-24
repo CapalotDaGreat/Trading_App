@@ -14,11 +14,13 @@ import { buildDecisionDebt } from '@/features/decision/services/decision-os.serv
 import { loadDisciplineStreak } from '@/features/decision/services/coaching-loop.service';
 import { selectTodayTimeBudget } from '@/features/decision/services/today-sections.service';
 import { useDecisionLog } from '@/features/decision-log/hooks/useDecisionLog';
+import { useJournal } from '@/features/journal/hooks/useJournal';
 import { useAlerts } from '@/features/alerts/hooks/useAlerts';
 import { DEMO_USER_UID } from '@/firebase/config';
 import { useSettingsStore } from '@/shared/stores/settings.store';
 
 import { buildPersonalIntelligence } from '../services/personal-intelligence.service';
+import { toDnaJournalEvidence } from '../services/dna-evidence.service';
 import { useDnaGoalsStore } from '../stores/dna-goals.store';
 import type {
   DecisionGraphPeriod,
@@ -40,6 +42,7 @@ export function usePersonalIntelligence(initialPeriod: DecisionGraphPeriod = 'we
   const memoryQuery = useTraderMemory();
   const journalCoachQuery = useJournalCoach();
   const { summary: logSummary, records } = useDecisionLog();
+  const { entries: journalEntries } = useJournal();
   const { practicedCount, totalCount } = useAcademy();
   const { alerts } = useAlerts();
   const lessons = useAcademyProgressStore((s) => s.lessons);
@@ -108,6 +111,8 @@ export function usePersonalIntelligence(initialPeriod: DecisionGraphPeriod = 'we
     logSummary?.total ?? 0,
     logSummary?.processScore ?? 0,
     records?.length ?? 0,
+    journalEntries.length,
+    journalEntries.map((e) => e.id + e.updatedAt).join(','),
     practicedCount,
     academyRecommendation?.lesson.id ?? 'none',
     debt.score,
@@ -127,6 +132,7 @@ export function usePersonalIntelligence(initialPeriod: DecisionGraphPeriod = 'we
       return buildPersonalIntelligence({
         memory,
         records: records ?? [],
+        journalEvidence: toDnaJournalEvidence(journalEntries),
         logSummary,
         journalCoach: journalCoachQuery.data,
         streak,

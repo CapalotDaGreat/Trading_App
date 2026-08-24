@@ -90,6 +90,7 @@ export interface HoldingPnL {
   unrealizedPnLPercent: number;
   dayChange: number;
   dayChangePercent: number;
+  priceAvailable: boolean;
 }
 
 export interface PortfolioSummary {

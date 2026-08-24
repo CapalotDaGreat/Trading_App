@@ -8,6 +8,8 @@ import { useTheme } from '@/shared/hooks/useTheme';
 import { cn } from '@/shared/utils/cn';
 import { formatRelativeTime } from '@/shared/utils/date';
 
+import { EVIDENCE_LEVEL_COPY } from '@/shared/constants/trust-language';
+
 import type { AiMessage } from '../types/ai.types';
 import { AiTrustCenter } from './AiTrustCenter';
 
@@ -46,12 +48,15 @@ export function AiChatBubble({ message }: AiChatBubbleProps) {
 
         {!isUser && message.metadata?.source ? (
           <View className="mt-2.5 flex-row flex-wrap items-center gap-2">
-            <Badge label="Research engine" variant="default" size="sm" />
-            {message.metadata.confidence != null || trust?.confidence.overall != null ? (
-              <Text variant="caption" className="text-text-tertiary">
-                {trust?.confidence.overall ?? message.metadata.confidence}% evidence quality
-              </Text>
-            ) : null}
+            <Badge
+              label={
+                trust?.evidenceLevel
+                  ? EVIDENCE_LEVEL_COPY[trust.evidenceLevel].label
+                  : 'Research engine'
+              }
+              variant="default"
+              size="sm"
+            />
             <Text variant="caption" className="text-text-tertiary">
               {formatRelativeTime(message.timestamp)}
             </Text>

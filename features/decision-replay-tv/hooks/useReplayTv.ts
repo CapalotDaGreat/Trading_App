@@ -21,11 +21,13 @@ import { useReplayTvStore } from '@/features/decision-replay-tv/stores/replay-tv
 import type {
   ReplayTvChecklist,
   ReplayTvDecision,
+  ReplayTvReasoning,
 } from '@/features/decision-replay-tv/types/replay-tv.types';
 import { useAppendDecisionRecord } from '@/features/decision-log/hooks/useDecisionLog';
 import { useDecisionPassportStore } from '@/features/decision-passport/stores/passport.store';
 import { useEntitlement } from '@/features/subscription/hooks/useEntitlement';
 import { DEMO_USER_UID } from '@/firebase/config';
+import { trackEvent } from '@/shared/services/analytics';
 
 export function useReplayTv() {
   const router = useRouter();
@@ -67,6 +69,10 @@ export function useReplayTv() {
         throw new Error(access.message ?? 'Replay TV session unavailable.');
       }
       setAccessBlock(null);
+      void trackEvent('replay_started', {
+        episodeId: ep.id.slice(0, 64),
+        difficulty: ep.difficulty,
+      });
       return startEpisode(episodeId);
     },
     onSuccess: () => {
@@ -88,6 +94,18 @@ export function useReplayTv() {
         collectionIds: ep.collectionIds,
         processScore: session.scores.processQuality,
       });
+
+      void trackEvent('replay_completed', {
+        episodeId: ep.id.slice(0, 64),
+        difficulty: ep.difficulty,
+      });
+      void trackEvent('replay_complete', {
+        episodeId: ep.id.slice(0, 64),
+        difficulty: ep.difficulty,
+      });
+      for (const skill of ep.skills.slice(0, 4)) {
+        void trackEvent('replay_skill_completed', { skill: skill.slice(0, 64) });
+      }
 
       await recordReplayTvMonthlyConsumption(uid);
 
@@ -172,13 +190,21 @@ export function useReplayTv() {
     advancePhase,
     restartEpisode,
     updateChecklist: (patch: Partial<ReplayTvChecklist>) => updateChecklist(patch),
-    submitDecision: (decision: ReplayTvDecision, reasoning: string) =>
-      submitDecision(decision, reasoning),
+    submitDecision: (decision: ReplayTvDecision, reasoning: string, structured?: ReplayTvReasoning) =>
+      submitDecision(decision, reasoning, structured),
     finishSession: finishMutation.mutateAsync,
     isFinishing: finishMutation.isPending,
     saveReflectionToJournal: saveJournalMutation.mutateAsync,
     isSavingJournal: saveJournalMutation.isPending,
     journalSaved: Boolean(saveJournalMutation.data),
-    clearActive,
+    clearActive: () => {
+      const session = useReplayTvStore.getState().activeSession;
+      if (session && session.phase !== 'complete') {
+        void trackEvent('replay_abandoned', {
+          episodeId: session.episodeId.slice(0, 64),
+        });
+      }
+      clearActive();
+    },
   };
 }

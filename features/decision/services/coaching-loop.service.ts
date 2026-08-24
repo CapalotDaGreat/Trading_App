@@ -87,7 +87,7 @@ export function buildTradingDayPlan(brief: DecisionBrief): TradingDayPlan {
     },
     {
       id: 'during-wait',
-      label: 'Wait for confirmation — no FOMO entries',
+      label: 'Wait for confirmation — no urgency entries',
       phase: 'during',
       done: false,
     },

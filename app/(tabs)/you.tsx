@@ -62,13 +62,6 @@ export default function YouScreen() {
             >
               {mentorSetupCompleted ? 'Edit Coach Profile' : 'Set up Coach Profile'}
             </Button>
-            <Button
-              size="sm"
-              variant="ghost"
-              onPress={() => router.push('/ai?source=you' as never)}
-            >
-              Ask
-            </Button>
           </View>
         </Surface>
 

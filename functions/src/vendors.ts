@@ -14,6 +14,18 @@ function newsKey(): string {
   return process.env.NEWS_API_KEY ?? '';
 }
 
+export function isMarketDataConfigured(): boolean {
+  return Boolean(finnhubKey() || alphaKey());
+}
+
+export function isFinnhubConfigured(): boolean {
+  return Boolean(finnhubKey());
+}
+
+export function isNewsConfigured(): boolean {
+  return Boolean(newsKey());
+}
+
 async function fetchJson<T>(url: string): Promise<T> {
   const response = await fetch(url, {
     headers: { Accept: 'application/json' },
@@ -276,15 +288,15 @@ export async function finnhubEconomicCalendar(from: string, to: string): Promise
   }>(
     `${FINNHUB_BASE}/calendar/economic?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}&token=${encodeURIComponent(key)}`,
   );
-  return (data.economicCalendar ?? []).map((e) => ({
-    event: e.event ?? 'Event',
-    country: e.country ?? '',
-    impact: e.impact ?? 'medium',
-    actual: e.actual,
-    estimate: e.estimate,
-    prev: e.prev,
-    unit: e.unit,
-    time: e.time,
+  return (data.economicCalendar ?? []).slice(0, 250).map((e) => ({
+    event: String(e.event ?? 'Event').slice(0, 200),
+    country: String(e.country ?? '').slice(0, 8),
+    impact: String(e.impact ?? 'medium').slice(0, 16),
+    actual: e.actual != null ? String(e.actual).slice(0, 40) : undefined,
+    estimate: e.estimate != null ? String(e.estimate).slice(0, 40) : undefined,
+    prev: e.prev != null ? String(e.prev).slice(0, 40) : undefined,
+    unit: e.unit != null ? String(e.unit).slice(0, 24) : undefined,
+    time: e.time != null ? String(e.time).slice(0, 40) : undefined,
   }));
 }
 
@@ -337,13 +349,14 @@ export async function newsApiHeadlines(input: {
 
   const articles = (data.articles ?? [])
     .filter((a) => a.title && a.url)
+    .slice(0, Math.min(input.pageSize, 50))
     .map((a) => ({
       id: Buffer.from(a.url!).toString('base64url').slice(0, 32),
-      title: a.title!,
-      description: a.description ?? '',
-      url: a.url!,
-      source: a.source?.name ?? 'News',
-      imageUrl: a.urlToImage,
+      title: a.title!.slice(0, 300),
+      description: (a.description ?? '').slice(0, 500),
+      url: a.url!.slice(0, 2000),
+      source: (a.source?.name ?? 'News').slice(0, 80),
+      imageUrl: a.urlToImage ? a.urlToImage.slice(0, 2000) : undefined,
       publishedAt: a.publishedAt ? Date.parse(a.publishedAt) : Date.now(),
     }));
 

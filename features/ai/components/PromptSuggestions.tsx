@@ -47,11 +47,11 @@ export function PromptSuggestions({
 
 /** Credibility-first prompts — research desk, not signal bot. */
 export const DEFAULT_CHAT_PROMPTS = [
-  'What supports vs contradicts this idea?',
+  'What do you know vs not know here?',
+  'What would change this assessment?',
   'What evidence is missing?',
-  'What would invalidate this thesis?',
-  'How reliable is this research pack?',
-  'Help me write a why-not skip',
+  'Coach me on invalidation',
+  'Review what changed',
 ];
 
 export const DEFAULT_ANALYSIS_PROMPTS = [

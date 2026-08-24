@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -23,8 +23,10 @@ import { SegmentedControl } from '@/shared/components/ui/SegmentedControl';
 import { Surface } from '@/shared/components/ui/Surface';
 import { Text } from '@/shared/components/ui/Text';
 import { useTheme } from '@/shared/hooks/useTheme';
+import { useSettingsStore } from '@/shared/stores/settings.store';
 import { useSubscriptionStore } from '@/shared/stores/subscription.store';
 
+import { AiAnswerModeBar } from '../components/AiAnswerModeBar';
 import { AiChatBubble } from '../components/AiChatBubble';
 import { AiUsageBanner } from '../components/AiUsageBanner';
 import { DEFAULT_CHAT_PROMPTS, PromptSuggestions } from '../components/PromptSuggestions';
@@ -33,6 +35,7 @@ import { useAiChat } from '../hooks/useAiChat';
 import { useAiLearningMemory } from '../hooks/useAiLearningMemory';
 import { aiService } from '../services/ai.service';
 import type { AiMessage } from '../types/ai.types';
+import type { AiAnswerMode } from '../types/ai-trust.types';
 import { AiAnalysisScreen } from './AiAnalysisScreen';
 
 type AskMode = 'chat' | 'tools';
@@ -46,14 +49,25 @@ export function AiChatScreen({ symbol }: AiChatScreenProps) {
   const aiChatEnabled = useFeatureFlag('aiChatEnabled');
   const [mode, setMode] = useState<AskMode>(params.mode === 'tools' ? 'tools' : 'chat');
   const [input, setInput] = useState('');
+  const [answerMode, setAnswerMode] = useState<AiAnswerMode>('quick');
+  const aiAnswerDepth = useSettingsStore((s) => s.aiAnswerDepth);
+  const setAiAnswerDepth = useSettingsStore((s) => s.setAiAnswerDepth);
   const listRef = useRef<FlatList<AiMessage>>(null);
   const { colors } = useTheme();
   const isPremium = useSubscriptionStore((s) => s.isPremium);
   const { usage } = useAiAnalysis();
   const memoryQuery = useAiLearningMemory();
-  const { messages, sendMessage, clearChat, isSending, error } = useAiChat(
-    symbol ? { symbol } : undefined,
+  const { messages, sendMessage, setContext, clearChat, isSending, error } = useAiChat(
+    symbol ? { symbol, answerMode, answerDepth: aiAnswerDepth } : { answerMode, answerDepth: aiAnswerDepth },
   );
+
+  useEffect(() => {
+    setContext(
+      symbol
+        ? { symbol, answerMode, answerDepth: aiAnswerDepth }
+        : { answerMode, answerDepth: aiAnswerDepth },
+    );
+  }, [aiAnswerDepth, answerMode, setContext, symbol]);
 
   const handleSend = useCallback(async () => {
     const text = input.trim();
@@ -140,8 +154,9 @@ export function AiChatScreen({ symbol }: AiChatScreenProps) {
               <View className="gap-4">
                 <Surface padding="sm" tone="subtle" testID="ask-trust-sentence">
                   <Text variant="body-sm" className="text-text-secondary">
-                    Answers stay local and evidence-first. Every reply should separate bottom line,
-                    why, evidence, what could change, unknowns, and the next research step.
+                    Answers stay local and evidence-first. Every reply separates what is known,
+                    what is not, evidence, what would change the assessment, and the next research
+                    step — never a certainty score.
                   </Text>
                 </Surface>
                 <PromptSuggestions
@@ -190,6 +205,19 @@ export function AiChatScreen({ symbol }: AiChatScreenProps) {
 
           <View className="border-t border-border bg-background-secondary/80 px-4 pb-4 pt-2">
             <AiUsageBanner usage={usage} isPremium={isPremium} className="mb-2" />
+            <AiAnswerModeBar value={answerMode} onChange={setAnswerMode} disabled={isSending} />
+            <View className="mt-2">
+              <SegmentedControl
+                options={[
+                  { value: 'concise', label: 'Concise' },
+                  { value: 'balanced', label: 'Balanced' },
+                  { value: 'detailed', label: 'Detailed' },
+                ]}
+                value={aiAnswerDepth}
+                onChange={setAiAnswerDepth}
+                testID="ai-answer-depth"
+              />
+            </View>
             {messages.length > 0 ? (
               <PromptSuggestions
                 suggestions={DEFAULT_CHAT_PROMPTS}

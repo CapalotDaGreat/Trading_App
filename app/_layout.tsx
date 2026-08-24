@@ -190,6 +190,7 @@ function RootLayoutNav() {
         <Stack.Screen name="calendar" />
         <Stack.Screen name="asset/[symbol]" />
         <Stack.Screen name="settings" />
+        <Stack.Screen name="legal" />
         <Stack.Screen name="subscription" />
         <Stack.Screen name="+not-found" />
       </Stack>
@@ -223,6 +224,7 @@ function RootLayoutNav() {
       <Stack.Screen name="calendar" />
       <Stack.Screen name="asset/[symbol]" />
       <Stack.Screen name="settings" />
+      <Stack.Screen name="legal" />
       <Stack.Screen name="subscription" />
       <Stack.Screen name="+not-found" />
     </Stack>

@@ -13,6 +13,7 @@ import { buildAiCounterfactuals } from './ai-counterfactual.service';
 import { buildConfidenceBreakdown } from './ai-confidence.service';
 import { buildEvidencePack } from './ai-evidence.service';
 import { buildAiTrustBriefing } from './ai-trust-briefing.service';
+import { resolveAiEvidenceLevel } from './ai-evidence-level.service';
 
 export function buildAiTrustPayload(
   context: AiEnrichedContext,
@@ -41,13 +42,20 @@ export function buildAiTrustPayload(
     freshness,
   });
 
+  const evidenceLevel = resolveAiEvidenceLevel({
+    context,
+    evidence,
+    conflictingPillars: confidence.pillars.filter((p) => !p.agrees).length,
+  });
+
   return {
-    confidence,
+    confidence: { ...confidence, evidenceLevel },
     evidence,
     counterfactuals,
     briefing,
     whyChanged: input?.whyChanged ?? null,
     confidenceHistory: input?.confidenceHistory,
+    evidenceLevel,
     meta: {
       dataAsOf: context.assembledAt,
       freshness,

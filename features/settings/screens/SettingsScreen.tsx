@@ -16,8 +16,7 @@ import { Screen } from '@/shared/components/layout/Screen';
 import { Button } from '@/shared/components/ui/Button';
 import { GlassCard } from '@/shared/components/ui/GlassCard';
 import { Text } from '@/shared/components/ui/Text';
-import { LEGAL_URLS } from '@/shared/constants/legal';
-import { openExternalUrl } from '@/shared/utils/open-url';
+import { legalPath } from '@/shared/legal';
 
 export function SettingsScreen() {
   const router = useRouter();
@@ -74,7 +73,7 @@ export function SettingsScreen() {
             <View className="flex-1 pr-4">
               <Text variant="h3">Continue your growth</Text>
               <Text variant="body-sm" className="mt-1 text-text-secondary">
-                Deeper DNA, Decision Graph, unlimited mentor coaching, and full research depth.
+                Deeper DNA, Replay TV, fair-use AI coaching, and full research depth.
               </Text>
             </View>
             <PremiumBadge size="md" />
@@ -226,37 +225,37 @@ export function SettingsScreen() {
           icon="document-text-outline"
           label="Terms of Service"
           showChevron
-          onPress={() => router.push('/settings/legal/terms' as never)}
+          onPress={() => router.push(legalPath('terms'))}
         />
         <SettingsRow
           icon="lock-closed-outline"
           label="Privacy Policy"
           showChevron
-          onPress={() => router.push('/settings/legal/privacy' as never)}
+          onPress={() => router.push(legalPath('privacy'))}
         />
         <SettingsRow
           icon="warning-outline"
           label="Risk & Investment Disclaimer"
           showChevron
-          onPress={() => router.push('/settings/legal/risk' as never)}
+          onPress={() => router.push(legalPath('risk'))}
         />
         <SettingsRow
           icon="shield-outline"
           label="Security & Cybersecurity"
           showChevron
-          onPress={() => router.push('/settings/legal/security' as never)}
+          onPress={() => router.push(legalPath('security'))}
         />
         <SettingsRow
           icon="information-circle-outline"
           label="Account deletion information"
           showChevron
-          onPress={() => router.push('/settings/legal/accountDeletion' as never)}
+          onPress={() => router.push(legalPath('accountDeletion'))}
         />
         <SettingsRow
           icon="help-circle-outline"
           label="Support"
           showChevron
-          onPress={() => void openExternalUrl(LEGAL_URLS.support)}
+          onPress={() => router.push(legalPath('support'))}
         />
       </GlassCard>
 

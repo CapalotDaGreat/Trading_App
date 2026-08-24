@@ -8,8 +8,9 @@ import { Text } from '@/shared/components/ui/Text';
 import { formatPercent, formatPrice } from '@/shared/utils/format';
 import { formatRelativeTime } from '@/shared/utils/date';
 
-import type { AiAnalysisResult } from '../types/ai.types';
+import { EVIDENCE_LEVEL_COPY } from '@/shared/constants/trust-language';
 import { LOCAL_ANALYSIS_LABEL } from '../constants/ai-release';
+import type { AiAnalysisResult } from '../types/ai.types';
 import { AiDisclaimer } from './AiDisclaimer';
 import { AiTrustPanel } from './AiTrustPanel';
 
@@ -34,7 +35,9 @@ export function AiAnalysisCard({ result }: AiAnalysisCardProps) {
                 size="sm"
               />
               <Text variant="caption">
-                {meta.trust?.confidence.overall ?? meta.confidence}% evidence quality
+                {meta.trust?.evidenceLevel
+                  ? EVIDENCE_LEVEL_COPY[meta.trust.evidenceLevel].label
+                  : LOCAL_ANALYSIS_LABEL}
               </Text>
               <Text variant="caption">· {formatRelativeTime(meta.dataAsOf)}</Text>
             </View>

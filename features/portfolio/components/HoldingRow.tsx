@@ -11,6 +11,8 @@ import {
   getPriceColorClass,
 } from '@/shared/utils/format';
 
+import { INSTRUMENT_RESOLUTION_COPY, isUsableMarketPrice } from '@/features/markets/types/instrument.types';
+
 import type { Holding, HoldingPnL } from '../types/portfolio.types';
 
 interface HoldingRowProps {
@@ -21,12 +23,17 @@ interface HoldingRowProps {
 }
 
 function HoldingRowComponent({ holding, pnl, onPress, onLongPress }: HoldingRowProps) {
+  const priceAvailable = pnl.priceAvailable && isUsableMarketPrice(holding.currentPrice);
   const pnlColor = getPriceColorClass(pnl.unrealizedPnL);
 
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={`${holding.symbol}, ${formatPrice(holding.currentPrice, holding.currency)}, P and L ${formatPercent(pnl.unrealizedPnLPercent)}`}
+      accessibilityLabel={
+        priceAvailable
+          ? `${holding.symbol}, ${formatPrice(holding.currentPrice, holding.currency)}, P and L ${formatPercent(pnl.unrealizedPnLPercent)}`
+          : `${holding.symbol}, ${INSTRUMENT_RESOLUTION_COPY.priceUnavailable}`
+      }
       onPress={() => onPress?.(holding)}
       onLongPress={() => onLongPress?.(holding)}
       className="min-h-11"
@@ -47,14 +54,22 @@ function HoldingRowComponent({ holding, pnl, onPress, onLongPress }: HoldingRowP
           </View>
 
           <View className="items-end">
-            <Text variant="price">{formatPrice(holding.currentPrice, holding.currency)}</Text>
-            <Text variant="caption" className={pnlColor}>
-              {formatChange(pnl.unrealizedPnL, holding.currency)} (
-              {formatPercent(pnl.unrealizedPnLPercent)})
-            </Text>
-            <Text variant="caption" className="text-text-tertiary">
-              {formatPrice(pnl.marketValue, holding.currency, { compact: true })}
-            </Text>
+            {priceAvailable ? (
+              <>
+                <Text variant="price">{formatPrice(holding.currentPrice, holding.currency)}</Text>
+                <Text variant="caption" className={pnlColor}>
+                  {formatChange(pnl.unrealizedPnL, holding.currency)} (
+                  {formatPercent(pnl.unrealizedPnLPercent)})
+                </Text>
+                <Text variant="caption" className="text-text-tertiary">
+                  {formatPrice(pnl.marketValue, holding.currency, { compact: true })}
+                </Text>
+              </>
+            ) : (
+              <Text variant="caption" className="text-text-secondary">
+                {INSTRUMENT_RESOLUTION_COPY.priceUnavailable}
+              </Text>
+            )}
           </View>
         </View>
       </GlassCard>

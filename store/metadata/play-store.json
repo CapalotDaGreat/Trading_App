@@ -1,19 +1,21 @@
 {
   "appName": "TradeInsight",
   "packageName": "ai.tradevision.app",
+  "developerName": "Aithera",
   "versionCode": 1,
   "versionName": "1.0.0",
   "primaryCategory": "FINANCE",
   "contentRating": "Teen",
+  "contentRatingNote": "Store content suitability only. Not contractual eligibility and not permission to trade.",
+  "accountEligibility": "18+ or age of majority for accounts and purchases. Guest/demo does not require being 18.",
   "shortDescription": "Educational trading research and coaching — not buy/sell signals.",
-  "fullDescription": "TradeInsight by Aithera is an educational decision-first research and coaching app. Research smarter. Decide with clarity. Improve your process.\n\nIt helps discretionary traders decide what deserves research time with a Today brief, research-value queue, regime context, decision journal, replay, Decision Lab practice, and Academy lessons.\n\nAnyone may download and explore Guest mode. Creating an account or purchasing a subscription requires being at least 18 (or the age of majority where required).\n\nScores measure research priority and decision-process quality; they do not predict price direction. TradeInsight is not a broker, does not execute trades, does not handle real money, and does not provide buy/sell signals.\n\nPremium adds deeper decision radar, portfolio context, faster quote polling, advanced charts, and data export. Monthly and yearly subscriptions renew automatically unless cancelled in Google Play subscription settings. Cancellation stops renewal while access continues through the store-reported paid-through date. The yearly plan includes a 7-day trial only when shown on the Google Play purchase sheet.\n\nFeatures:\n• Decision Brief and research-value queue\n• Rules-based decision coaching and explainability\n• Educational Academy and risk-free Decision Lab practice\n• Portfolio context and risk tools (Premium)\n• Price alerts and economic calendar",
+  "fullDescription": "TradeInsight by Aithera helps discretionary traders research smarter, decide with clarity, and improve their process.\n\nIt is an educational research and coaching app: a Today brief, research-value queue, regime and market context, decision journal, replay, Decision Lab practice, Academy lessons, and explainable decision coaching. Scores measure research priority (Research Value Score, RVS) and decision-process quality (Decision Quality Score, DQS). They do not predict price direction.\n\nAnyone may download and explore Guest mode. Creating an account or purchasing a subscription requires being at least 18 (or the age of majority where required). A Teen Play rating is content suitability only — it does not mean a minor may legally trade.\n\nTradeInsight is not a broker, does not execute trades, does not handle real money, and does not provide buy/sell signals or investment advice.\n\nPremium deepens radar, Trading DNA, Replay TV, portfolio intelligence, and export. Free remains a complete daily research product. Monthly and yearly subscriptions renew automatically unless cancelled in Google Play subscription settings. Lifetime is not offered. Cancellation stops renewal while access continues through the store-reported paid-through date. The yearly plan includes a 7-day trial only when shown on the Google Play purchase sheet.\n\nFeatures:\n• Decision Brief and research-value queue\n• Journal, replay, and process review\n• Explainable decision coaching (not signals)\n• Educational Academy and risk-free Decision Lab practice\n• Portfolio context and risk tools (Premium)\n• Price alerts and economic calendar",
   "keywords": [
-    "trading",
-    "stocks",
+    "trading education",
     "decision journal",
-    "finance",
-    "portfolio",
     "research",
+    "finance",
+    "risk awareness",
     "coaching",
     "education"
   ],
@@ -22,7 +24,9 @@
     "tablet": [],
     "featureGraphic": null
   },
-  "contactEmail": "support@tradevision.ai",
+  "listingUrlsReady": false,
+  "listingUrlNote": "Do not paste these URLs into Play Console until [OFFICIAL DOMAIN REQUIRED] serves HTTP 200 copies of store/hosted/. Values below are a technical fallback only.",
+  "contactEmail": "[SUPPORT EMAIL REQUIRED]",
   "supportUrl": "https://tradevision.ai/support",
   "termsUrl": "https://tradevision.ai/terms",
   "privacyPolicyUrl": "https://tradevision.ai/privacy",
@@ -30,13 +34,22 @@
   "securityNoticeUrl": "https://tradevision.ai/security",
   "dataSafetyDisclosure": {
     "crashDiagnostics": "Optional; disabled by default and sent to Sentry only after explicit consent",
-    "usageAnalytics": false,
+    "usageAnalytics": "Optional first-party allowlisted aggregates; disabled by default; explicit consent required",
     "advertisingOrTracking": false,
     "storeAgeRating": "Teen",
     "accountEligibility": "18+ (or age of majority) for accounts and subscriptions",
+    "neverInAnalytics": [
+      "journal text",
+      "AI chat content",
+      "portfolio values",
+      "private trading theses",
+      "passwords",
+      "authentication tokens",
+      "API keys"
+    ],
     "jurisdictions": ["CH", "EU", "US"]
   },
   "accountDeletionUrl": "https://tradevision.ai/account-deletion",
   "screenshotInventory": "store/screenshots/README.md",
-  "website": "https://tradevision.ai"
+  "website": "[OFFICIAL DOMAIN REQUIRED]"
 }

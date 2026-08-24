@@ -1,4 +1,5 @@
-import { View } from 'react-native';
+import { useRouter } from 'expo-router';
+import { Pressable, View } from 'react-native';
 
 import { PremiumOsGate } from '@/features/decision/components/PremiumOsGate';
 import { CollapsibleSection } from '@/shared/components/patterns/CollapsibleSection';
@@ -49,6 +50,7 @@ export function DnaReviewsPanel({
   coachingActions,
   isPremium,
 }: DnaReviewsPanelProps) {
+  const router = useRouter();
   return (
     <View className="gap-4" testID="dna-reviews-panel">
       <Surface>
@@ -98,12 +100,48 @@ export function DnaReviewsPanel({
 
       {isPremium ? (
         <>
-          <CollapsibleSection title="Monthly review" description="Compare yourself across 30 / 60 / 90 days.">
+          <CollapsibleSection title="Monthly evolution" description="What improved, what drifted, what to practice.">
             <Text variant="body-sm" className="mb-3 text-text-secondary">
               {monthlyReview.comparison}
             </Text>
+            <Text variant="caption" className="text-text-tertiary">
+              What improved
+            </Text>
+            <BulletList items={monthlyReview.improved} />
+            <Text variant="caption" className="mt-2 text-text-tertiary">
+              What became inconsistent
+            </Text>
+            <BulletList items={monthlyReview.becameInconsistent} />
+            <Text variant="caption" className="mt-2 text-text-tertiary">
+              What you learned
+            </Text>
+            <BulletList items={monthlyReview.learned} />
+            <Text variant="caption" className="mt-3 text-text-tertiary">
+              What to practice next
+            </Text>
+            <View className="mt-1 gap-2">
+              {monthlyReview.practiceNext.map((link) => (
+                <Pressable
+                  key={link.href}
+                  accessibilityRole="button"
+                  accessibilityLabel={link.label}
+                  onPress={() => router.push(link.href as never)}
+                  className="min-h-11 justify-center"
+                >
+                  <Text variant="body-sm" className="text-accent">
+                    {link.kind === 'replay'
+                      ? 'Replay'
+                      : link.kind === 'academy'
+                        ? 'Academy'
+                        : 'Journal'}
+                    {' · '}
+                    {link.label}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
             {monthlyReview.windows.map((window) => (
-              <View key={window.days} className="mb-3">
+              <View key={window.days} className="mb-3 mt-3">
                 <Text variant="label">{window.label}</Text>
                 <Text variant="caption" className="mt-1 text-text-secondary">
                   {window.insight}

@@ -5,6 +5,7 @@ import { create } from 'zustand';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { MARKET_DATA_POLICY } from '@/features/markets/constants/freshness';
 import { quotesToPriceMap, useLiveQuotes } from '@/features/markets/hooks/useLiveQuotes';
+import { isUsableMarketPrice } from '@/features/markets/types/instrument.types';
 import { useSubscriptionStore } from '@/shared/stores/subscription.store';
 
 import {
@@ -63,8 +64,17 @@ export function usePortfolio() {
   const holdings: Holding[] = useMemo(
     () =>
       storedHoldings.map((h) => {
-        const live = priceMap[h.symbol.toUpperCase()];
-        return live !== undefined ? { ...h, currentPrice: live } : h;
+        const live =
+          priceMap[h.symbol.toUpperCase()] ??
+          (h.canonicalSymbol ? priceMap[h.canonicalSymbol.toUpperCase()] : undefined) ??
+          (h.providerSymbol ? priceMap[h.providerSymbol.toUpperCase()] : undefined);
+        if (isUsableMarketPrice(live)) {
+          return { ...h, currentPrice: live };
+        }
+        if (!isUsableMarketPrice(h.currentPrice)) {
+          return { ...h, currentPrice: Number.NaN };
+        }
+        return h;
       }),
     [storedHoldings, priceMap],
   );

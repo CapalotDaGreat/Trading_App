@@ -149,15 +149,17 @@ function buildFromCandles(
 }
 
 function buildMockAnalysis(symbol: string): TechnicalAnalysis {
+  const seed = [...symbol.toUpperCase()].reduce((acc, char) => acc + char.charCodeAt(0), 0);
   const candles: Candle[] = Array.from({ length: 60 }, (_, i) => {
-    const base = 150 + Math.sin(i / 8) * 10;
+    const base = 80 + (seed % 120) + Math.sin((i + seed) / 8) * 10;
+    const wobble = ((seed + i * 17) % 7) - 3;
     return {
       timestamp: Date.now() - (60 - i) * 24 * 60 * 60 * 1000,
       open: base,
       high: base + 2,
       low: base - 2,
-      close: base + (Math.random() - 0.5) * 3,
-      volume: 1_000_000 + Math.random() * 500_000,
+      close: base + wobble * 0.4,
+      volume: 1_000_000 + seed * 100 + i * 50,
     };
   });
   return buildFromCandles(symbol, candles, 'mock');

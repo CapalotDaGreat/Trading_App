@@ -4,7 +4,9 @@ import type {
   DecisionDebtSnapshot,
   DecisionFatigueInsight,
 } from '@/features/decision/types/decision.types';
+import { waitingReviewCount } from '@/features/decision/services/decision-os.service';
 import { Text } from '@/shared/components/ui/Text';
+import { waitingReviewCopy } from '@/shared/constants/trust-language';
 
 export function DecisionFatigueCard({ fatigue }: { fatigue: DecisionFatigueInsight }) {
   return (
@@ -16,10 +18,10 @@ export function DecisionFatigueCard({ fatigue }: { fatigue: DecisionFatigueInsig
       }
     >
       <Text variant="caption" className="mb-1 font-semibold text-text-tertiary">
-        DECISION FATIGUE
+        RESEARCH LOAD
       </Text>
       <Text variant="h3" className="mb-1">
-        {fatigue.shouldStop ? 'Stop researching' : 'Research load'}
+        {fatigue.shouldStop ? 'Enough for today' : 'Research load'}
       </Text>
       <Text variant="body-sm" className="text-text-secondary">
         {fatigue.message}
@@ -32,11 +34,13 @@ export function DecisionFatigueCard({ fatigue }: { fatigue: DecisionFatigueInsig
 }
 
 export function DecisionDebtCard({ debt }: { debt: DecisionDebtSnapshot }) {
+  const waiting = waitingReviewCount(debt);
+
   if (debt.score === 0 && debt.items.length === 0) {
     return (
       <View className="rounded-2xl bg-background-elevated p-4">
         <Text variant="caption" className="mb-1 font-semibold text-text-tertiary">
-          DECISION DEBT
+          WAITING FOR REVIEW
         </Text>
         <Text variant="h3" className="mb-1 text-bullish">
           Desk clear
@@ -51,10 +55,10 @@ export function DecisionDebtCard({ debt }: { debt: DecisionDebtSnapshot }) {
   return (
     <View className="rounded-2xl bg-background-elevated p-4">
       <Text variant="caption" className="mb-1 font-semibold text-text-tertiary">
-        DECISION DEBT · {debt.score}/100
+        WAITING FOR REVIEW
       </Text>
       <Text variant="h3" className="mb-2">
-        Finish before hunting
+        {waitingReviewCopy(waiting)}
       </Text>
       {debt.items.slice(0, 4).map((item) => (
         <Text key={item.id} variant="caption" className="mb-1 text-text-secondary">

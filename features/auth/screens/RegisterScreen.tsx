@@ -6,9 +6,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Button } from '@/shared/components/ui/Button';
 import { Text } from '@/shared/components/ui/Text';
-import { LEGAL_ACCEPTANCE_VERSION, LEGAL_URLS } from '@/shared/constants/legal';
+import { LEGAL_ACCEPTANCE_VERSION } from '@/shared/constants/legal';
+import { legalPath } from '@/shared/legal';
 import { useTheme } from '@/shared/hooks/useTheme';
-import { openExternalUrl } from '@/shared/utils/open-url';
 
 import { AuthDivider } from '../components/AuthDivider';
 import { AuthInput } from '../components/AuthInput';
@@ -177,7 +177,7 @@ export function RegisterScreen() {
                   <View className="mt-2 flex-row flex-wrap gap-x-2 gap-y-1">
                     <Pressable
                       accessibilityRole="link"
-                      onPress={() => void openExternalUrl(LEGAL_URLS.terms)}
+                      onPress={() => router.push(legalPath('terms'))}
                     >
                       <Text variant="label" className="text-accent">
                         Terms
@@ -185,7 +185,7 @@ export function RegisterScreen() {
                     </Pressable>
                     <Pressable
                       accessibilityRole="link"
-                      onPress={() => void openExternalUrl(LEGAL_URLS.privacy)}
+                      onPress={() => router.push(legalPath('privacy'))}
                     >
                       <Text variant="label" className="text-accent">
                         Privacy
@@ -193,7 +193,7 @@ export function RegisterScreen() {
                     </Pressable>
                     <Pressable
                       accessibilityRole="link"
-                      onPress={() => void openExternalUrl(LEGAL_URLS.risk)}
+                      onPress={() => router.push(legalPath('risk'))}
                     >
                       <Text variant="label" className="text-accent">
                         Risk disclaimer

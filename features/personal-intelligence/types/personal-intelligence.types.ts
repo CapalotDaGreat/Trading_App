@@ -19,6 +19,36 @@ export type TradingDnaTraitId =
 export type TraitTrend = 'up' | 'flat' | 'down';
 export type TraitConfidenceLevel = 'low' | 'medium' | 'high';
 export type TraitScoreStatus = 'scored' | 'insufficient';
+export type LongitudinalTrend = 'improving' | 'stable' | 'declining' | 'insufficient';
+
+/** Structured journal signals for DNA — never raw journal bodies. */
+export interface DnaJournalEvidence {
+  id: string;
+  createdAtMs: number;
+  hasPsychology: boolean;
+  hasLesson: boolean;
+  planAdhered?: boolean | null;
+  emotion?: string | null;
+  mistakeCategory?: string | null;
+}
+
+export type DnaObservedTendencyId =
+  | 'over_analysis'
+  | 'confirmation_seeking'
+  | 'decision_fatigue';
+
+export type ObservedTendencyLevel = 'not_observed' | 'mild' | 'clear';
+
+export interface DnaObservedTendency {
+  id: DnaObservedTendencyId;
+  label: string;
+  level: ObservedTendencyLevel;
+  /** Always "Observed tendency" — never a diagnosis. */
+  framing: 'Observed tendency';
+  detail: string;
+  whySummary: string;
+  evidence: DnaEvidenceItem[];
+}
 
 export type DnaEvidenceSource =
   | 'decision_log'
@@ -44,8 +74,18 @@ export interface TradingDnaTraitScore {
   /** Null when status is insufficient. */
   score: number | null;
   previousScore: number | null;
+  /** Snapshot of this trait as of ~30 days ago (null if insufficient then). */
+  score30dAgo: number | null;
+  /** Snapshot of this trait as of ~90 days ago (null if insufficient then). */
+  score90dAgo: number | null;
+  allTimeScore: number | null;
   trend: TraitTrend;
+  longitudinalTrend: LongitudinalTrend;
   detail: string;
+  /** Expandable "Why do you think this?" — counts only, never raw journal text. */
+  whySummary: string;
+  /** Optional ratio sentence, e.g. invalidation recorded in 18 of last 22 decisions. */
+  ratioSentence?: string;
   status: TraitScoreStatus;
   confidence: TraitConfidenceLevel;
   confidenceValue: number;
@@ -62,10 +102,17 @@ export interface DnaStyleFingerprint {
 export interface TradingDnaProfile {
   styleLabel: string;
   becomingLabel: string;
+  /** Answers "How do I make decisions?" from observable process, never P&L. */
+  decisionStyleSummary: string;
   styleFingerprint: DnaStyleFingerprint;
   traits: TradingDnaTraitScore[];
   strengths: string[];
+  /** 2–3 habit lines for the strengths strip. */
+  strengthHabits: string[];
   growthEdges: string[];
+  /** Max 1–2 coaching lines — never a pile of weaknesses. */
+  focusAreas: string[];
+  observedTendencies: DnaObservedTendency[];
   updatedAt: number;
   evidenceCount: number;
 }
@@ -183,6 +230,8 @@ export interface PersonalizedTodayFocus {
   sectionOrder: TodaySection[];
   /** Soft DNA adaptations applied (for tests / mentor context). */
   dnaAdaptations?: string[];
+  /** At most one quiet Today cue — omitted when the related trait is improving. */
+  todayCue?: string | null;
 }
 
 export type CoachingReferenceId =
@@ -249,10 +298,21 @@ export interface DnaMonthlyWindow {
   insight: string;
 }
 
+export interface DnaPracticeLink {
+  label: string;
+  href: string;
+  kind: 'replay' | 'academy' | 'journal';
+}
+
 export interface DnaMonthlyReview {
   windows: DnaMonthlyWindow[];
   comparison: string;
   hasEnoughEvidence: boolean;
+  /** Monthly evolution — self vs self, never vs other traders. */
+  improved: string[];
+  becameInconsistent: string[];
+  learned: string[];
+  practiceNext: DnaPracticeLink[];
 }
 
 export interface DnaCoachingAction {
@@ -276,9 +336,15 @@ export interface DnaMentorSummary {
   observationLine: string;
 }
 
+export const DNA_CORE_QUESTIONS = {
+  howIDecide: 'How do I make decisions?',
+  howIChange: 'How am I changing over time?',
+} as const;
+
 export interface PersonalIntelligenceSnapshot {
   generatedAt: number;
   becomingQuestion: string;
+  coreQuestions: typeof DNA_CORE_QUESTIONS;
   today: PersonalizedTodayFocus;
   dna: TradingDnaProfile;
   evolution: DnaEvolutionPoint[];

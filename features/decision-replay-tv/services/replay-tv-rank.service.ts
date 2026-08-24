@@ -76,7 +76,10 @@ export function rankReplayTvEpisodes(
       if (markets.includes('crypto') && ep.markets.includes('crypto')) value += 4;
       if (markets.includes('forex') && ep.markets.includes('forex')) value += 3;
       if (markets.includes('stocks') && ep.markets.includes('stocks')) value += 2;
-      if (markets.includes('indices') && ep.markets.includes('macro')) value += 2;
+      if (markets.includes('indices') && (ep.markets.includes('indices') || ep.markets.includes('macro'))) {
+        value += 2;
+      }
+      if (markets.includes('commodities') && ep.markets.includes('commodities')) value += 3;
 
       for (const style of styles) {
         const mapped = STYLE_MAP[style as TradingStyleInterest];

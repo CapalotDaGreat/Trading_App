@@ -13,21 +13,21 @@ import { Header } from '@/shared/components/layout/Header';
 import { Screen } from '@/shared/components/layout/Screen';
 import { Button } from '@/shared/components/ui/Button';
 import { Text } from '@/shared/components/ui/Text';
-import { LEGAL_URLS } from '@/shared/constants/legal';
+import { LAUNCH_FEATURE_COMPARISON } from '@/shared/constants/monetization';
+import { legalPath } from '@/shared/legal';
 import { useResponsiveLayout } from '@/shared/hooks/useResponsiveLayout';
 import { useTheme } from '@/shared/hooks/useTheme';
 import { cn } from '@/shared/utils/cn';
-import { openExternalUrl } from '@/shared/utils/open-url';
 
 import { PremiumBadge } from './PremiumBadge';
 
 const OUTCOMES = [
-  'Trade with more confidence',
-  'Build better habits',
-  'Improve consistency',
-  'Reduce emotional decisions',
-  'Learn faster',
-  'Become more disciplined',
+  'Deeper radar and research context',
+  'Full replay and Replay TV library',
+  'Trading DNA and Personal Intelligence',
+  'Process progression you can review',
+  'Fair-use AI coaching — not buy/sell signals',
+  'Export and portfolio intelligence',
 ] as const;
 
 export function PaywallScreen() {
@@ -60,36 +60,22 @@ export function PaywallScreen() {
   const [useNativePaywall, setUseNativePaywall] = useState(true);
   const freeLimits = useMemo(
     () => ({
-      aiMentor: getLimit('aiMentorMonthly', 'free'),
-      aiAnalysis: getLimit('aiAnalysisMonthly', 'free'),
-      replay: getLimit('replaySessionsMonthly', 'free'),
-      queue: getLimit('researchQueueDepth', 'free'),
-      watchlists: getLimit('watchlistCount', 'free'),
+      aiDaily: getLimit('aiDaily', 'free'),
       symbols: getLimit('symbolsPerWatchlist', 'free'),
     }),
     [remote],
   );
-  const freeVsPremium = useMemo(
-    () => [
-      { label: 'AI Mentor', free: `${freeLimits.aiMentor} chats / month`, premium: 'Unlimited' },
-      { label: 'AI analyses', free: `${freeLimits.aiAnalysis} / month`, premium: 'Unlimited' },
-      { label: 'Research Queue', free: `Top ${freeLimits.queue}`, premium: 'Full queue' },
-      { label: 'Decision Replay', free: `${freeLimits.replay} / month`, premium: 'Unlimited' },
-      {
-        label: 'Watchlists',
-        free: `${freeLimits.watchlists} · ${freeLimits.symbols} symbols`,
-        premium: 'Unlimited',
-      },
-      { label: 'Trading DNA & Graph', free: 'Preview', premium: 'Full insights' },
-      { label: 'Academy', free: 'Foundations', premium: 'Advanced paths' },
-      { label: 'Journal export', free: '—', premium: 'CSV & JSON' },
-    ],
-    [freeLimits],
-  );
+  const freeVsPremium = LAUNCH_FEATURE_COMPARISON;
 
   useEffect(() => {
     if (actionMessage) AccessibilityInfo.announceForAccessibility(actionMessage);
   }, [actionMessage]);
+
+  useEffect(() => {
+    if (plans.length && !plans.some((plan) => plan.id === selectedPlan)) {
+      setSelectedPlan(plans.find((plan) => plan.isPopular)?.id ?? plans[0].id);
+    }
+  }, [plans, selectedPlan]);
 
   const selected = useMemo(
     () => plans.find((p) => p.id === selectedPlan) ?? plans[0],
@@ -135,7 +121,7 @@ export function PaywallScreen() {
   }
 
   if (isPremium) {
-    const isLifetime = subscription?.planId === 'lifetime' || !subscription?.expiresAt;
+    const isLifetime = subscription?.planId === 'lifetime';
     const expiryLabel = subscription?.expiresAt
       ? new Date(subscription.expiresAt).toLocaleDateString()
       : null;
@@ -160,7 +146,8 @@ export function PaywallScreen() {
             You&apos;re on Aithera Pro
           </Text>
           <Text variant="body-sm" className="mt-2 text-center">
-            Enjoy deeper queue, portfolio, review, practice, and export capabilities.
+            Enjoy deeper radar, DNA, Replay TV, portfolio intelligence, and export.
+          Free remains a complete daily research habit.
           </Text>
           <Text variant="body-sm" className="mt-3 text-center text-text-secondary">
             {statusText}
@@ -217,8 +204,8 @@ export function PaywallScreen() {
           Grow calmer, clearer decisions
         </Text>
         <Text variant="body-sm" className="mt-2 max-w-sm text-center text-text-secondary">
-          Free stays useful for a daily habit. Premium deepens coaching, DNA, and practice — never
-          buy/sell signals.
+          Free is a complete daily product. Premium adds depth, personalization, and
+          progression — never buy/sell signals.
         </Text>
       </View>
 
@@ -227,8 +214,9 @@ export function PaywallScreen() {
           7-DAY FREE TRIAL ON YEARLY
         </Text>
         <Text variant="body-sm" className="text-text-secondary">
-          Try Aithera Pro with no pressure. Free remains available if you cancel before the trial
-          ends. No hidden charges — store prices control.
+          Try Aithera Pro with no pressure. The trial applies only to Yearly when the store
+          shows it. Free remains available if you cancel before the trial ends. Store prices
+          control.
         </Text>
       </View>
 
@@ -259,9 +247,9 @@ export function PaywallScreen() {
           </Text>
         </View>
         {freeVsPremium.map((row) => (
-          <View key={row.label} className="mb-2 flex-row">
+          <View key={row.feature} className="mb-2 flex-row">
             <Text variant="caption" className="w-[36%] text-text-primary">
-              {row.label}
+              {row.feature}
             </Text>
             <Text variant="caption" className="w-[32%] text-text-secondary">
               {row.free}
@@ -483,18 +471,18 @@ export function PaywallScreen() {
       <Text variant="caption" className="mt-4 text-center leading-5 text-text-secondary">
         Payment is charged to your Apple ID or Google Play account at confirmation. Subscriptions
         auto-renew unless cancelled at least 24 hours before the end of the current period in your
-        store account settings. Lifetime is a one-time purchase and does not renew. After a free
-        trial, the listed plan price is charged. Cancelling stops renewal; Aithera Pro remains
-        available until the paid-through date. Free remains available afterwards. Prices shown come
-        from the store when available. Aithera Pro does not provide brokerage execution or
-        exchange-tick realtime data. Free includes {freeLimits.aiAnalysis} AI analyses/month and up
-        to {freeLimits.symbols} symbols in one research universe.
+        store account settings. After a free trial, the listed plan price is charged. Cancelling
+        stops renewal; Aithera Pro remains available until the paid-through date. Free remains
+        available afterwards. Prices shown come from the store when available. Aithera Pro does
+        not provide brokerage execution or exchange-tick realtime data. Lifetime is not offered
+        at launch. Free includes {freeLimits.aiDaily} AI uses/day and up to {freeLimits.symbols}{' '}
+        symbols in one research universe.
       </Text>
 
       <View className="mt-3 flex-row flex-wrap items-center justify-center gap-x-3 gap-y-2 pb-4">
         <Pressable
           accessibilityRole="link"
-          onPress={() => router.push('/settings/legal/terms' as never)}
+          onPress={() => router.push(legalPath('terms'))}
         >
           <Text variant="caption" className="text-accent">
             Terms of Service
@@ -502,7 +490,7 @@ export function PaywallScreen() {
         </Pressable>
         <Pressable
           accessibilityRole="link"
-          onPress={() => router.push('/settings/legal/privacy' as never)}
+          onPress={() => router.push(legalPath('privacy'))}
         >
           <Text variant="caption" className="text-accent">
             Privacy Policy
@@ -510,7 +498,7 @@ export function PaywallScreen() {
         </Pressable>
         <Pressable
           accessibilityRole="link"
-          onPress={() => router.push('/settings/legal/risk' as never)}
+          onPress={() => router.push(legalPath('risk'))}
         >
           <Text variant="caption" className="text-accent">
             Risk Disclaimer
@@ -518,7 +506,7 @@ export function PaywallScreen() {
         </Pressable>
         <Pressable
           accessibilityRole="link"
-          onPress={() => void openExternalUrl(LEGAL_URLS.support)}
+          onPress={() => router.push(legalPath('support'))}
         >
           <Text variant="caption" className="text-accent">
             Support

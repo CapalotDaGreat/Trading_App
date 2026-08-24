@@ -18,6 +18,8 @@ import {
   getEducationalCandles,
   visibleCandlesAt,
 } from '../replay-tv-path.service';
+import { filterReplayTvLibrary, inferReplayTvEpisodeKinds } from '../replay-tv-filter.service';
+import { composeReplayTvCoachNote, composeReplayTvReasoning } from '../replay-tv-coach.service';
 import { episodesForDnaGrowth, rankReplayTvEpisodes } from '../replay-tv-rank.service';
 import { scoreReplayTvSession } from '../replay-tv-score.service';
 import {
@@ -28,6 +30,7 @@ import {
   getVisibleCandlesForSession,
   getVisibleNewsForSession,
   hydrateReplayTvSessionCandles,
+  replayTvHasFutureLeak,
   submitReplayTvDecision,
 } from '../replay-tv-session.service';
 import { evaluatePassportAchievements } from '@/features/decision-passport/services/passport-achievements.service';
@@ -56,6 +59,14 @@ describe('Decision Replay TV', () => {
     expect(getReplayTvEpisode('inflation-shock-2022')).toBeTruthy();
     expect(getReplayTvEpisode('svb-stress')).toBeTruthy();
     expect(getReplayTvEpisode('false-breakout-drill')).toBeTruthy();
+    expect(getReplayTvEpisode('ecb-decision-week')?.markets).toEqual(
+      expect.arrayContaining(['forex']),
+    );
+    expect(getReplayTvEpisode('failed-setup-patience')?.inactionIsValidProcess).toBe(true);
+    expect(getReplayTvEpisode('btc-vol-spike')?.kinds).toEqual(
+      expect.arrayContaining(['volatility']),
+    );
+    expect(getReplayTvEpisode('gold-regime-risk')?.premiumOnly).toBe(true);
     expect(listShortSessions(15).length).toBeGreaterThan(0);
 
     for (const episode of REPLAY_TV_EPISODES) {
@@ -108,6 +119,7 @@ describe('Decision Replay TV', () => {
     const news = getVisibleNewsForSession(session);
     const freeze = getReplayTvEpisode('nvidia-earnings')!.checkpoints[0]!.freezeIndex;
     expect(news.every((n) => n.availableAtIndex <= freeze)).toBe(true);
+    expect(replayTvHasFutureLeak(session)).toBe(false);
   });
 
   it('preserves freeze on resume hydrate and restart-like recreate', () => {
@@ -315,6 +327,7 @@ describe('Decision Replay TV', () => {
     expect(note).toContain('rtv:calm_vol');
     expect(note).toContain('rtv:evidence');
     expect(note).toContain('rtv:invalidation');
+    expect(note).toContain('rtv:patience');
     expect(note).toContain('skills:');
   });
 
@@ -356,5 +369,112 @@ describe('Decision Replay TV', () => {
     expect(achievements.find((a) => a.id === 'replay_tv_calm_vol')?.unlocked).toBe(true);
     expect(achievements.find((a) => a.id === 'replay_tv_evidence')?.unlocked).toBe(true);
     expect(achievements.find((a) => a.id === 'replay_tv_invalidation')?.unlocked).toBe(true);
+  });
+
+  it('filters the library by difficulty, market, and patience theme', () => {
+    const forex = filterReplayTvLibrary(REPLAY_TV_EPISODES, { market: 'forex' });
+    expect(forex.some((ep) => ep.id === 'ecb-decision-week')).toBe(true);
+    const beginner = filterReplayTvLibrary(REPLAY_TV_EPISODES, { difficulty: 'beginner' });
+    expect(beginner.every((ep) => ep.difficulty === 'foundation')).toBe(true);
+    const patience = filterReplayTvLibrary(REPLAY_TV_EPISODES, { theme: 'patience' });
+    expect(patience.some((ep) => ep.inactionIsValidProcess)).toBe(true);
+    expect(inferReplayTvEpisodeKinds(getReplayTvEpisode('ecb-decision-week')!)).toContain(
+      'macro_event',
+    );
+  });
+
+  it('coaches process after a commit without leaking the future or buy/sell language', () => {
+    const episode = getReplayTvEpisode('failed-setup-patience')!;
+    const structured = {
+      thesis: 'No confirmation yet',
+      evidence: 'Level poke without acceptance',
+      invalidation: 'I stop if I cannot name a confirmation rule',
+      confidence: 2,
+      mainUncertainty: 'Whether the break holds',
+    };
+    const note = composeReplayTvCoachNote({
+      episode,
+      checkpointPrompt: episode.checkpoints[0]!.prompt,
+      mentorFollowUp: episode.checkpoints[0]!.mentorFollowUp,
+      decision: 'skip',
+      structured,
+      checklist: {
+        namedInvalidation: true,
+        notedRegime: false,
+        consideredTimeBudget: true,
+        wroteReasoning: true,
+        consideredAlternative: true,
+      },
+      previous: null,
+    });
+    const blob = JSON.stringify(note).toLowerCase();
+    expect(blob).not.toMatch(/buy|sell|bought|sold|you should have/);
+    expect(blob).not.toContain(episode.historicalOutcome.slice(0, 20).toLowerCase());
+    expect(note.noticed).toMatch(/skip/i);
+    expect(composeReplayTvReasoning(structured)).toMatch(/Thesis:/);
+  });
+
+  it('scores DQS dimensions and treats inaction as valid process', () => {
+    const episode = getReplayTvEpisode('failed-setup-patience')!;
+    const scores = scoreReplayTvSession({
+      episode,
+      decisions: [
+        {
+          checkpointId: 'c1',
+          decision: 'skip',
+          reasoning: 'No confirmation. Invalidation is missing acceptance.',
+          structured: {
+            thesis: 'Not a research case yet',
+            evidence: 'False-break narrative without hold',
+            invalidation: 'No acceptance above the level',
+            confidence: 2,
+            mainUncertainty: 'Whether a later freeze confirms',
+          },
+          at: Date.now(),
+        },
+        {
+          checkpointId: 'c2',
+          decision: 'wait',
+          reasoning: 'Still waiting. Alternative is skip.',
+          at: Date.now(),
+        },
+      ],
+      checklist: {
+        namedInvalidation: true,
+        notedRegime: true,
+        consideredTimeBudget: true,
+        wroteReasoning: true,
+        consideredAlternative: true,
+      },
+    });
+    expect(scores.overall).toBeGreaterThan(50);
+    expect(scores.patience).toBeGreaterThan(50);
+    expect(scores.adaptability).toBeGreaterThan(0);
+    expect(scores.consistency).toBeGreaterThan(0);
+    expect(scores.researchEfficiency).toBeGreaterThan(50);
+    expect(JSON.stringify(scores).toLowerCase()).not.toMatch(/profitability score|p&l contest/);
+  });
+
+  it('does not leak future state after a structured commit', () => {
+    let session = createReplayTvSession('ecb-decision-week');
+    session = advanceReplayTvPhase(session);
+    session = advanceReplayTvPhase(session);
+    session = advanceReplayTvPhase(session);
+    session = submitReplayTvDecision({
+      session,
+      decision: 'wait',
+      reasoning: '',
+      structured: {
+        thesis: 'Event risk is too high for depth',
+        evidence: 'Calendar is known; print is not',
+        invalidation: 'I stop if I start predicting the print',
+        confidence: 3,
+        mainUncertainty: 'The policy outcome',
+      },
+    });
+    expect(session.phase).toBe('mentor');
+    expect(session.lastCoach).toBeTruthy();
+    expect(replayTvHasFutureLeak(session)).toBe(false);
+    expect(session.mentorReply?.toLowerCase()).not.toMatch(/buy|sell/);
   });
 });

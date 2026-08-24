@@ -2,6 +2,7 @@ import type { DecisionRecord } from '@/features/decision-log/services/decision-l
 
 import type {
   DnaBehaviourPattern,
+  DnaJournalEvidence,
   TradingDnaProfile,
 } from '../types/personal-intelligence.types';
 import {
@@ -17,6 +18,7 @@ import { getTraitScore } from './trading-dna-traits.service';
 export function buildDnaPatterns(input: {
   records: DecisionRecord[];
   dna: TradingDnaProfile;
+  journalEvidence?: DnaJournalEvidence[] | null;
   nowMs?: number;
 }): DnaBehaviourPattern[] {
   const now = input.nowMs ?? Date.now();
@@ -35,6 +37,7 @@ export function buildDnaPatterns(input: {
       notes: [],
       updatedAt: now,
     },
+    journalEvidence: input.journalEvidence,
     sinceMs: weekAgo,
     windowMs: 7 * 86_400_000,
   });
@@ -95,12 +98,13 @@ export function buildDnaPatterns(input: {
     });
   }
 
-  if (b.journaled >= 2 && /tilt|revenge|fomo|anxious|frustrated/i.test(
-    input.records
-      .filter((r) => r.action === 'journaled' && r.createdAt >= weekAgo)
-      .map((r) => r.note ?? '')
-      .join(' '),
-  )) {
+  const chargedJournal = (input.journalEvidence ?? []).filter(
+    (item) =>
+      item.createdAtMs >= weekAgo &&
+      (/fomo|fearful|greedy/.test(item.emotion ?? '') ||
+        /fomo|revenge/.test(item.mistakeCategory ?? '')),
+  );
+  if (b.journaled >= 2 && chargedJournal.length >= 1) {
     patterns.push({
       id: 'emotional_reactivity',
       title: 'Emotional notes after decisions',

@@ -24,7 +24,7 @@
     <a href="/support">Support</a>
   </nav>
   <h1>Privacy Policy</h1>
-<p><strong>Last updated:</strong> 24 July 2026 <strong>Version:</strong> 2026.07.24 <strong>Controller / Operator:</strong> Aithera (“Aithera”, “we”, “us”, “our”), operator of the TradeInsight mobile application and https://tradevision.ai <strong>Privacy contact:</strong> privacy@tradevision.ai <strong>Support contact:</strong> support@tradevision.ai</p>
+<p><strong>Last updated:</strong> 24 August 2026 <strong>Version:</strong> 2026.08.24 <strong>Brand / product:</strong> Aithera / TradeInsight <strong>Controller / Operator:</strong> [LEGAL ENTITY NAME REQUIRED], trading as Aithera (“Aithera”, “we”, “us”, “our”), operator of the TradeInsight mobile application <strong>Registered address:</strong> Höglerstrasse 55, 8600 Dübendorf, Switzerland <strong>VAT/UID:</strong> [VAT/UID REQUIRED] <strong>Privacy contact:</strong> [PRIVACY EMAIL REQUIRED] <strong>Support contact:</strong> [SUPPORT EMAIL REQUIRED] <strong>Website:</strong> [OFFICIAL DOMAIN REQUIRED]</p>
 <p>This Privacy Policy explains how we collect, use, store, share, and protect personal data when you use TradeInsight. It is designed to meet transparency and rights requirements under:</p>
 <ul>
 <li>the Swiss Federal Act on Data Protection (<strong>nFADP</strong> / revDSG);</li>
@@ -32,17 +32,27 @@
 <li>U.S. state privacy laws including the California Consumer Privacy Act as amended by the CPRA (<strong>CCPA/CPRA</strong>), and similar state laws; and</li>
 <li>related cybersecurity and breach-notification expectations.</li>
 </ul>
-<p><strong>This document is a compliance-oriented template for the shipped product behaviour. Have qualified counsel in Switzerland, the EU/EEA, and relevant U.S. states review and adapt it (including your registered legal entity name, postal address, and VAT/UID) before production launch.</strong></p>
+<p><strong>This document is a compliance-oriented template for the shipped product behaviour.</strong> Bracketed fields are not production values. Have qualified counsel in Switzerland, the EU/EEA, and relevant U.S. states review and adapt it (including the registered legal entity name, VAT/UID, and official contact mailboxes) before production launch.</p>
 <hr />
 <h2>1. Who we are and scope</h2>
 <p>TradeInsight is a <strong>decision-first trading research and coaching application</strong>. It is <strong>not</strong> a broker-dealer, bank, investment adviser, portfolio manager, or execution venue. Scores such as Research Value Score (RVS) and Decision Quality Score (DQS) describe research priority and process quality; they <strong>do not</strong> predict price direction.</p>
 <p>This Policy applies to:</p>
 <ul>
 <li>the iOS and Android apps (including demo/guest mode);</li>
-<li>related cloud services we operate (e.g. Firebase Auth/Firestore/Storage, Cloud Functions); and</li>
-<li>our public legal/support pages.</li>
+<li>related cloud services we operate when configured (Firebase Auth, Firestore, Storage, Cloud Functions); and</li>
+<li>public legal/support pages once they are hosted on [OFFICIAL DOMAIN REQUIRED].</li>
 </ul>
 <p>It does <strong>not</strong> govern third-party stores (Apple, Google), payment processors, or market-data vendors’ own processing beyond what we disclose below.</p>
+<hr />
+<h2>1A. Store rating, contractual eligibility, and privacy eligibility</h2>
+<p>These are <strong>different</strong> rules. TradeInsight does <strong>not</strong> tell anyone that a 12+ store rating authorises trading, brokerage, or investment advice.</p>
+<pre>
+| Layer | What it means |
+| --- | --- |
+| **Store content rating** | Apple App Store **12+** and Google Play **Teen** describe *content suitability* for the store questionnaire. They are **not** a licence to trade and **not** an invitation for children to open cloud accounts. |
+| **Contractual eligibility** | Creating an account or purchasing a subscription requires being at least **18**, or the age of majority where you live. Guest/demo exploration of local educational features does not require being 18. |
+| **Privacy / children’s eligibility** | Cloud account features (registration, cloud sync, online journals, online portfolios, paid subscriptions) are **not** offered to young children. We do not knowingly collect personal data from young children through cloud accounts. The app is **not directed toward young children**. |
+</pre>
 <hr />
 <h2>2. Categories of personal data</h2>
 <p>Depending on how you use the app, we may process:</p>
@@ -52,7 +62,7 @@
 | Account &amp; identity | Email, display name, Firebase UID, auth provider identifiers, email verification status | You; Google/Apple Sign-In |
 | Security / MFA | Multi-factor authentication factors (e.g. TOTP enrolment metadata), recent authentication timestamps | You; Firebase Auth |
 | Device &amp; push | Device type/OS, Expo/FCM push tokens, app version/release | Device; OS |
-| Preferences | Theme, haptics, notification settings, crash-reporting consent and version/timestamp | You |
+| Preferences | Theme, haptics, notification settings, crash-reporting consent and version/timestamp, product-analytics consent | You |
 | Product content you create | Watchlists, alerts, journal entries, decision records, holdings you enter, onboarding answers | You |
 | Subscription | Entitlement status, product IDs, expiry/paid-through dates, RevenueCat app user ID (= Firebase UID) | Apple/Google via RevenueCat webhook (server-side) |
 | Diagnostics (optional) | Crash/error events, route names, release/build metadata, limited device/OS context — **redacted** of common credentials and personal fields | App, only if you enable Crash Reporting |
@@ -66,7 +76,14 @@
 <li>behavioural advertising profiles or cross-app tracking;</li>
 <li>payment card numbers (billing is handled by Apple/Google).</li>
 </ul>
-<p>Optional <strong>product analytics</strong> (screen/feature aggregates only) is <strong>off by default</strong> and requires explicit consent. We never intentionally collect journal text, AI conversation content, passwords, or portfolio monetary values in analytics.</p>
+<p>Optional <strong>product analytics</strong> (allowlisted screen/feature aggregates only) is <strong>off by default</strong> and requires explicit consent. Analytics <strong>never</strong> intentionally collects:</p>
+<ul>
+<li>journal text;</li>
+<li>AI chat content or prompts/completions;</li>
+<li>portfolio monetary values or private trading theses;</li>
+<li>passwords, authentication tokens, or API keys;</li>
+<li>sensitive financial credentials.</li>
+</ul>
 <p>Market quotes and news are <strong>market data</strong>, not personal data about you, though requests may be associated with your session/account for rate limiting and service delivery.</p>
 <hr />
 <h2>3. Purposes and legal bases</h2>
@@ -88,7 +105,7 @@
 <h2>4. How we use and store data</h2>
 <ul>
 <li><strong>Client storage:</strong> Preferences and demo/local content may be stored on-device (e.g. AsyncStorage / SecureStore as applicable).</li>
-<li><strong>Cloud:</strong> Authenticated, email-verified users may sync data to <strong>Google Firebase</strong> (Auth, Firestore, Storage) under security rules that restrict access to the account owner (and server-only paths for subscriptions).</li>
+<li><strong>Cloud:</strong> Authenticated, email-verified users may sync data to <strong>Google Firebase</strong> (Auth, Firestore, Storage) under security rules that restrict access to the account owner (and server-only paths for subscriptions). Firebase Storage is used for user-scoped files under <code>users/{uid}/</code> when the signed-in user stores files there.</li>
 <li><strong>Guest / demo mode:</strong> Designed to stay <strong>local</strong>; it does not create a verified cloud identity for personal cloud writes under our hardened rules.</li>
 <li><strong>Encryption in transit:</strong> TLS for network traffic to our providers.</li>
 <li><strong>Encryption at rest:</strong> Provider-managed encryption for Firebase/Google Cloud and Sentry as offered by those vendors.</li>
@@ -96,9 +113,21 @@
 </ul>
 <p>We apply <strong>data minimisation</strong> and <strong>purpose limitation</strong>: we process what is needed for the purposes above and do not sell personal information.</p>
 <hr />
+<h2>4A. AI processing</h2>
+<p>TradeInsight’s in-app “Ask” / analysis features are <strong>decision-coaching aids</strong>. They describe process and evidence. They are <strong>not</strong> buy/sell signals and <strong>not</strong> price predictions.</p>
+<p>For this release:</p>
+<ul>
+<li><strong>On-device / local rules-and-template analysis</strong> runs in the app. Prompts and answers stay on the device unless you later enable an approved cloud path.</li>
+<li><strong>Production third-party cloud AI is disabled</strong> in the shipped client (<code>CLOUD_AI_ENABLED = false</code>). We do not currently send journal text, chat transcripts, or portfolio values to a third-party generative-AI provider.</li>
+<li>If cloud AI is enabled in a future release, this Policy will be updated, a new legal-acceptance version may be required, and any processor will be named here before that feature is marketed.</li>
+</ul>
+<p>AI usage counters (how many analyses you used) may be stored locally and, when you are signed in, as <strong>quota metadata</strong> on the server. Those counters are not the text of your questions or answers.</p>
+<p>Optional crash reports and product analytics <strong>do not</strong> include AI conversation content.</p>
+<hr />
 <h2>5. Sharing and processors (recipients)</h2>
 <p>We share personal data only with:</p>
 <p>1. <strong>Infrastructure processors</strong> acting on our instructions, including:    - <strong>Google Firebase / Google Cloud</strong> — authentication, database, storage, functions;    - <strong>RevenueCat</strong> — subscription entitlement sync (server webhook; no client secret keys);    - <strong>Sentry</strong> — optional crash diagnostics <strong>after consent</strong>;    - <strong>Expo / Apple / Google</strong> — app distribution, push delivery infrastructure as configured; 2. <strong>Market-data / news providers</strong> (e.g. Finnhub, Alpha Vantage, CoinGecko, NewsAPI or successors) — typically receive technical requests (symbols, IP as seen by their edge) necessary to return quotes/news; their policies apply to their processing; 3. <strong>Professional advisers</strong> or authorities when legally required; 4. A <strong>successor</strong> in a merger or asset transfer, subject to continued protection consistent with this Policy.</p>
+<p>We <strong>do not</strong> currently share personal data with a third-party generative-AI cloud provider because that path is disabled.</p>
 <p>We <strong>do not sell</strong> personal information and <strong>do not share</strong> it for cross-context behavioural advertising as those terms are used under CCPA/CPRA. We <strong>do not</strong> use your journal or decision content for advertising.</p>
 <hr />
 <h2>6. International transfers</h2>
@@ -108,7 +137,7 @@
 <li><strong>Standard Contractual Clauses</strong> (or Swiss-recognised equivalents) and vendor DPAs; and/or</li>
 <li>other lawful transfer tools.</li>
 </ul>
-<p>You may request information about transfer safeguards via privacy@tradevision.ai.</p>
+<p>You may request information about transfer safeguards via [PRIVACY EMAIL REQUIRED].</p>
 <hr />
 <h2>7. Retention</h2>
 <p>We retain personal data only as long as needed for the purposes above:</p>
@@ -117,6 +146,8 @@
 <li><strong>Decision/journal/watchlist content:</strong> until you delete it or delete the account;</li>
 <li><strong>Subscription entitlement records:</strong> while needed to provide Premium access and resolve billing disputes, then deleted or minimised;</li>
 <li><strong>RevenueCat webhook event references tied to your UID:</strong> removed as part of account deletion where implemented;</li>
+<li><strong>User-scoped security/ops event documents tied to your UID:</strong> removed as part of account deletion where implemented;</li>
+<li><strong>Aggregated product-analytics counters:</strong> not stored as your journal or chat text; they are not a substitute for deleting your account content;</li>
 <li><strong>Crash diagnostics:</strong> according to Sentry retention settings for consented data; stopped when consent is withdrawn (future events not sent);</li>
 <li><strong>Security logs:</strong> typically short periods unless needed for investigations or legal holds;</li>
 <li><strong>Legal holds:</strong> longer retention when required to establish, exercise, or defend legal claims.</li>
@@ -130,14 +161,15 @@
 <p>We do <strong>not</strong> use solely automated decision-making that produces legal or similarly significant effects about you within the meaning of GDPR Art. 22. In-app scores are research/coaching aids you control; they are not credit, employment, or similarly significant automated decisions.</p>
 <h3>8.3 United States (including California CCPA/CPRA)</h3>
 <p>Depending on your state, you may have rights to <strong>know/access</strong>, <strong>delete</strong>, <strong>correct</strong>, and <strong>opt out of sale/sharing</strong>. We do not sell or share personal information for cross-context behavioural advertising. We do not use or disclose sensitive personal information for purposes that require a right to limit under CPRA beyond what is necessary to provide the service.</p>
-<p><strong>How to exercise rights:</strong> use in-app controls (Privacy &amp; Security, Delete Account, Manage Subscription) or email privacy@tradevision.ai. We will verify requests as required by law and will not discriminate against you for exercising privacy rights.</p>
+<p><strong>How to exercise rights:</strong> use in-app controls (Privacy &amp; Security, Delete Account, Manage Subscription) or email [PRIVACY EMAIL REQUIRED]. We will verify requests as required by law and will not discriminate against you for exercising privacy rights.</p>
 <hr />
 <h2>9. Children’s privacy and audience</h2>
 <p>TradeInsight is intended for a <strong>general audience</strong>. Anyone may download the app and explore educational Guest/demo features that remain local on the device.</p>
-<p><strong>Cloud account features</strong> — including registration, cloud sync, online journals, online portfolios, and paid subscriptions — are available only to users who meet the minimum eligibility requirements: at least <strong>18</strong> years old, or the age of majority in their jurisdiction. We do not knowingly collect personal data from young children through cloud accounts. The application is <strong>not directed toward young children</strong>. If you believe a minor has created an account or provided personal data, contact privacy@tradevision.ai and we will delete it.</p>
+<p><strong>Cloud account features</strong> — including registration, cloud sync, online journals, online portfolios, and paid subscriptions — are available only to users who meet the minimum eligibility requirements: at least <strong>18</strong> years old, or the age of majority in their jurisdiction. We do not knowingly collect personal data from young children through cloud accounts. The application is <strong>not directed toward young children</strong>. If you believe a minor has created an account or provided personal data, contact [PRIVACY EMAIL REQUIRED] and we will delete it.</p>
+<p>A <strong>12+ / Teen store rating does not change this.</strong> It does not mean a minor may legally trade, receive investment advice, or open a TradeInsight cloud account.</p>
 <hr />
 <h2>10. Cookies and similar technologies</h2>
-<p>The native apps do not use web advertising cookies. If you visit tradevision.ai in a browser, any cookies or local storage will be described on that site. Push tokens and local preference stores are used as described above.</p>
+<p>The native apps do not use web advertising cookies. If you visit [OFFICIAL DOMAIN REQUIRED] in a browser, any cookies or local storage will be described on that site. Push tokens and local preference stores are used as described above.</p>
 <hr />
 <h2>11. Security and cybersecurity</h2>
 <p>We implement technical and organisational measures appropriate to the risk, including:</p>
@@ -145,11 +177,12 @@
 <li>TLS in transit; provider encryption at rest;</li>
 <li>authentication, optional MFA, verified-email write rules, and deletion re-authentication windows;</li>
 <li>least-privilege Firestore/Storage rules and server-owned subscription records;</li>
-<li>redaction of common secrets/PII in optional crash reports;</li>
+<li>redaction of common secrets/PII and user-content fields in optional crash reports;</li>
+<li>debug console logging restricted to development builds;</li>
 <li>dependency and CI hygiene practices for the codebase.</li>
 </ul>
 <p>No method of transmission or storage is perfectly secure. If a breach is likely to result in a high risk to your rights, we will notify you and/or competent authorities as required under Swiss nFADP, GDPR (including the 72-hour supervisory notification rule where applicable), and applicable U.S. state breach laws.</p>
-<p>Report suspected security issues to <strong>security@tradevision.ai</strong> (or support@tradevision.ai if that address is not yet active).</p>
+<p>Report suspected security issues to <strong>[SECURITY EMAIL REQUIRED]</strong> (or [SUPPORT EMAIL REQUIRED] if that address is not yet active).</p>
 <hr />
 <h2>12. Account deletion</h2>
 <p>You may delete your account in <strong>Settings</strong>. Deletion is intended to remove:</p>
@@ -157,17 +190,19 @@
 <li>Firebase Authentication account;</li>
 <li>your Firestore user document tree and settings;</li>
 <li>server subscription-access record and related webhook event references we store;</li>
-<li>files under your Storage path;</li>
+<li>files under your Storage path <code>users/{uid}/</code>;</li>
+<li>user-scoped security/ops event documents we stored for your UID;</li>
 <li>local app user data (device theme preference may be preserved).</li>
 </ul>
-<p><strong>Deleting the TradeInsight account does not cancel Apple App Store or Google Play billing.</strong> Manage or cancel the store subscription first. Store purchase records remain with Apple/Google under their policies.</p>
-<p>More detail: https://tradevision.ai/account-deletion and the in-app Account Deletion notice.</p>
+<p>Shared educational content (Academy lessons, public catalogs) is <strong>not</strong> deleted; it is not your personal account data.</p>
+<p><strong>Deleting the TradeInsight account does not cancel Apple App Store or Google Play billing.</strong> Manage or cancel the store subscription first via <strong>Settings → Manage Subscription</strong>. Store purchase records remain with Apple/Google under their policies.</p>
+<p>More detail: in-app <strong>Settings → Account deletion information</strong>, and the hosted Account Deletion notice once [OFFICIAL DOMAIN REQUIRED] is live.</p>
 <hr />
 <h2>13. Changes</h2>
 <p>We may update this Policy. Material changes will be indicated by updating the “Last updated” date and, where required, seeking fresh consent (e.g. for crash reporting). Continued use after the effective date constitutes acceptance where permitted by law; where consent is required, we will ask again.</p>
 <hr />
 <h2>14. Contact</h2>
-<p><strong>Privacy:</strong> privacy@tradevision.ai <strong>Support:</strong> support@tradevision.ai <strong>Website:</strong> https://tradevision.ai</p>
+<p><strong>Privacy:</strong> [PRIVACY EMAIL REQUIRED] <strong>Support:</strong> [SUPPORT EMAIL REQUIRED] <strong>Registered address:</strong> Höglerstrasse 55, 8600 Dübendorf, Switzerland <strong>Website:</strong> [OFFICIAL DOMAIN REQUIRED]</p>
 <p>Please include your registered email / account identifier so we can verify your request.</p>
 </body>
 </html>

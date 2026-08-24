@@ -16,21 +16,23 @@ import { greetingForResearchTime } from '@/features/onboarding/services/coach-pe
 import type {
   CoachingReference,
   DecisionGraphPeriod,
+  DnaJournalEvidence,
   PersonalIntelligenceSnapshot,
   ProcessGoalId,
 } from '../types/personal-intelligence.types';
+import { DNA_CORE_QUESTIONS } from '../types/personal-intelligence.types';
 import { buildAdaptiveGoals } from './adaptive-goals.service';
 import { buildAiMemoryTimeline } from './ai-memory-timeline.service';
 import { buildDecisionGraph } from './decision-graph.service';
 import { buildDnaChangeInsights } from './dna-change.service';
 import { buildDnaCoachingActions } from './dna-coaching-actions.service';
 import { buildDnaEvolution } from './dna-evolution.service';
+import { composeTradingDna } from './dna-longitudinal.service';
 import { buildDnaMentorSummary } from './dna-mentor-summary.service';
 import { buildDnaMonthlyReview } from './dna-monthly-review.service';
 import { buildDnaPatterns } from './dna-patterns.service';
 import { buildDnaWeeklyReview } from './dna-weekly-review.service';
 import { buildPersonalizedToday } from './personalized-today.service';
-import { buildTradingDnaTraits } from './trading-dna-traits.service';
 
 export function buildCoachingReferences(input: {
   dnaLabel: string;
@@ -112,6 +114,7 @@ export interface PersonalIntelligenceInput {
   selectedGoals?: ProcessGoalId[];
   uid?: string;
   mentorStruggles?: string[];
+  journalEvidence?: DnaJournalEvidence[] | null;
 }
 
 /**
@@ -130,11 +133,12 @@ export function buildPersonalIntelligence(
     learningEvents: input.learningEvents,
   });
 
-  const dna = buildTradingDnaTraits({
+  const dna = composeTradingDna({
     memory: input.memory,
     records,
     heatmapScores: heatmap.scores,
     journalCoach: input.journalCoach,
+    journalEvidence: input.journalEvidence,
     processScoreWeek: input.processScoreWeek ?? input.logSummary?.processScore,
     nowMs,
     mentorStruggles: input.mentorStruggles ?? input.memory.typicalMistakes,
@@ -146,7 +150,12 @@ export function buildPersonalIntelligence(
     nowMs,
   });
 
-  const patterns = buildDnaPatterns({ records, dna, nowMs });
+  const patterns = buildDnaPatterns({
+    records,
+    dna,
+    journalEvidence: input.journalEvidence,
+    nowMs,
+  });
   const whatsChanging = buildDnaChangeInsights({ dna, records, nowMs });
   const weeklyReview = buildDnaWeeklyReview({
     dna,
@@ -160,8 +169,11 @@ export function buildPersonalIntelligence(
     records,
     heatmapScores: heatmap.scores,
     journalCoach: input.journalCoach,
+    journalEvidence: input.journalEvidence,
     processScoreWeek: input.processScoreWeek ?? input.logSummary?.processScore,
+    academyNextTitle: input.academyNextTitle,
     nowMs,
+    dna,
   });
   const coachingActions = buildDnaCoachingActions({ dna });
   const mentorSummary = buildDnaMentorSummary({
@@ -181,6 +193,8 @@ export function buildPersonalIntelligence(
     academyNextTitle: input.academyNextTitle,
     startHereSymbol: input.startHereSymbol,
     researchGreeting: greetingForResearchTime(input.memory.researchTimeOfDay),
+    nowMs,
+    uid: input.uid,
   });
 
   const graph = buildDecisionGraph({
@@ -218,7 +232,8 @@ export function buildPersonalIntelligence(
 
   return {
     generatedAt: nowMs,
-    becomingQuestion: 'Who am I becoming as a decision-maker?',
+    becomingQuestion: `${DNA_CORE_QUESTIONS.howIDecide} ${DNA_CORE_QUESTIONS.howIChange}`,
+    coreQuestions: DNA_CORE_QUESTIONS,
     today,
     dna,
     evolution,

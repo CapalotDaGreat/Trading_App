@@ -6,6 +6,8 @@ import { Text } from '@/shared/components/ui/Text';
 import { useTheme } from '@/shared/hooks/useTheme';
 import { cn } from '@/shared/utils/cn';
 
+import { EVIDENCE_LEVEL_COPY } from '@/shared/constants/trust-language';
+
 import type { ConfidenceBreakdown, ConfidencePillar } from '../types/ai-trust.types';
 
 interface ConfidenceBreakdownPanelProps {
@@ -20,7 +22,7 @@ function PillarRow({ pillar }: { pillar: ConfidencePillar }) {
     <Pressable
       accessibilityRole="button"
       accessibilityState={{ expanded: open }}
-      accessibilityLabel={`${pillar.label} ${pillar.score} percent. ${open ? 'Hide' : 'Show'} explanation`}
+      accessibilityLabel={`${pillar.label} ${pillar.agrees ? 'present' : 'thin'}. ${open ? 'Hide' : 'Show'} explanation`}
       onPress={() => setOpen((v) => !v)}
       className="rounded-xl border border-border/50 bg-background/40 px-3 py-2"
     >
@@ -32,7 +34,7 @@ function PillarRow({ pillar }: { pillar: ConfidencePillar }) {
           variant="caption"
           className={cn('font-semibold', pillar.agrees ? 'text-bullish' : 'text-text-secondary')}
         >
-          {pillar.score}%
+          {pillar.agrees ? 'Present' : 'Thin'}
         </Text>
       </View>
       <View className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-surface">
@@ -72,10 +74,10 @@ export function ConfidenceBreakdownPanel({
             {breakdown.label}
           </Text>
           <Text variant="h3" className="mt-0.5">
-            {breakdown.overall}%
+            {EVIDENCE_LEVEL_COPY[breakdown.evidenceLevel].label}
           </Text>
           <Text variant="caption" className="text-text-secondary">
-            Evidence quality — not a price prediction
+            {EVIDENCE_LEVEL_COPY[breakdown.evidenceLevel].meaning}
           </Text>
         </View>
         <Ionicons

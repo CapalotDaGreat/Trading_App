@@ -1,5 +1,5 @@
 const SENSITIVE_KEY =
-  /authorization|cookie|password|passcode|secret|token|email|phone|address|displayname|firstname|lastname|idtoken|credential|dsn/i;
+  /authorization|cookie|password|passcode|secret|token|email|phone|address|displayname|firstname|lastname|idtoken|credential|dsn|apikey|api_key|journal|thesis|prompt|completion|conversation|holding|holdings|portfolio|notional|quantity|pnl/i;
 const URL_CREDENTIALS = /([?&](?:token|key|secret|code|email)=)[^&\s]+/gi;
 const EMAIL = /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/gi;
 const BEARER = /\bBearer\s+[A-Za-z0-9._~+/=-]+/gi;

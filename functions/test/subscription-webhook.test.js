@@ -109,7 +109,9 @@ test('scopes account deletion to the authenticated uid', () => {
     userDocument: 'users/firebase-uid',
     userSettingsDocument: 'userSettings/firebase-uid',
     subscriptionDocument: 'subscriptions/firebase-uid',
+    usageDocument: 'usage/firebase-uid',
     revenueCatEventsCollection: 'revenuecatWebhookEvents',
+    securityEventsCollection: 'securityEvents',
     storagePrefix: 'users/firebase-uid/',
   });
 });

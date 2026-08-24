@@ -19,6 +19,10 @@ import { DataSourceBadge } from '@/features/markets/components/DataSourceBadge';
 import { getDataFreshness } from '@/features/markets/constants/freshness';
 import { useMarketQuote } from '@/features/markets/hooks/useMarketQuote';
 import { buildAssetFromSymbol } from '@/features/markets/services/market-data.service';
+import {
+  INSTRUMENT_RESOLUTION_COPY,
+  isUsableMarketPrice,
+} from '@/features/markets/types/instrument.types';
 import { AddToWatchlistSheet } from '@/features/watchlists/components/AddToWatchlistSheet';
 import { AccessibleChartFrame } from '@/shared/components/charts/AccessibleChartFrame';
 import { ScreenScaffold } from '@/shared/components/layout/ScreenScaffold';
@@ -183,7 +187,7 @@ export default function AssetDetailScreen() {
       <View className="gap-4">
         {quoteLoading ? (
           <Skeleton height={48} />
-        ) : quote ? (
+        ) : quote && isUsableMarketPrice(quote.price) ? (
           <Surface padding="sm" tone="subtle" testID="asset-price-provenance">
             <Text
               variant="price-lg"
@@ -198,6 +202,7 @@ export default function AssetDetailScreen() {
             </Text>
             <View className="mt-1 flex-row flex-wrap items-center gap-2">
               <Text variant="body-sm" className={changeClass}>
+                {quote.changePercent > 0 ? 'Up' : quote.changePercent < 0 ? 'Down' : 'Unchanged'}{' '}
                 {formatChange(quote.change, quote.currency)} ({formatPercent(quote.changePercent)})
               </Text>
               <Badge label={quote.status} size="sm" variant="outline" />
@@ -205,7 +210,14 @@ export default function AssetDetailScreen() {
               <DataFreshnessBadge fetchedAt={quote.fetchedAt ?? dataUpdatedAt} />
             </View>
           </Surface>
-        ) : null}
+        ) : (
+          <Surface padding="sm" tone="subtle" testID="asset-price-unavailable">
+            <Text variant="body">{INSTRUMENT_RESOLUTION_COPY.priceUnavailable}</Text>
+            <Text variant="caption" className="mt-1 text-text-tertiary">
+              {INSTRUMENT_RESOLUTION_COPY.reliableDataOnly}
+            </Text>
+          </Surface>
+        )}
 
         <View className="flex-row rounded-2xl bg-surface p-1" accessibilityRole="tablist">
           {tabs.map((tab) => (
@@ -287,9 +299,13 @@ export default function AssetDetailScreen() {
                     </Text>
                   ) : null}
                   {mtfQuery.data ? (
-                    <View className="mt-3">
+                    <CollapsibleSection
+                      title="Timeframe context"
+                      description="Multi-timeframe consensus for this research case."
+                      className="mt-3"
+                    >
                       <MtfConsensusCard data={mtfQuery.data} />
-                    </View>
+                    </CollapsibleSection>
                   ) : null}
                 </Surface>
 
@@ -325,7 +341,7 @@ export default function AssetDetailScreen() {
                       onPress={() => recordOutcome('ignored')}
                       disabled={appendDecision.isPending}
                     >
-                      Ignore
+                      Dismiss
                     </Button>
                   </View>
                   {decisionOutcome ? (
@@ -335,7 +351,7 @@ export default function AssetDetailScreen() {
                         ? 'Research'
                         : decisionOutcome === 'skipped'
                           ? 'Skip'
-                          : 'Ignore'}
+                          : 'Dismiss'}
                     </Text>
                   ) : null}
                   <Button

@@ -1,10 +1,12 @@
 import { useRouter } from 'expo-router';
-import { Pressable, View } from 'react-native';
+import { View } from 'react-native';
 
 import type { ResearchQueueItem, SetupCardData } from '@/features/decision/types/decision.types';
 import { useAppendDecisionRecord } from '@/features/decision-log/hooks/useDecisionLog';
-import { GlassCard } from '@/shared/components/ui/GlassCard';
+import { Button } from '@/shared/components/ui/Button';
+import { Surface } from '@/shared/components/ui/Surface';
 import { Text } from '@/shared/components/ui/Text';
+import { CALM_ATTENTION, TRUST_LANGUAGE } from '@/shared/constants/trust-language';
 
 export type StartHereAction = 'researched' | 'skipped';
 
@@ -48,20 +50,32 @@ export function StartHereCard({ symbol, setup, queueItem, regime, onOutcome }: S
     onOutcome?.(action);
   };
 
+  const minutes = queueItem?.estimatedMinutes;
+
   return (
-    <GlassCard className="border border-accent/30 p-4" testID="today-start-here">
-      <Text variant="caption" className="mb-1 font-semibold text-accent">
-        START HERE
+    <Surface padding="md" emphasis="outlined" testID="today-start-here">
+      <Text variant="caption" className="mb-1 font-medium text-text-tertiary">
+        {CALM_ATTENTION.worthResearching}
       </Text>
-      <Text variant="h2" className="mb-1">
+      <Text variant="h2" headingLevel={2} className="mb-1">
         {normalizedSymbol}
         {setup?.setupTypeLabel || queueItem?.setupTitle
           ? ` · ${setup?.setupTypeLabel ?? queueItem?.setupTitle}`
           : ''}
       </Text>
-      <Text variant="caption" className="mb-2 text-text-secondary">
+      <Text
+        variant="caption"
+        className="mb-2 text-text-secondary"
+        accessibilityLabel={[
+          minutes ? `${minutes} minutes estimated research` : null,
+          rvs != null ? `${TRUST_LANGUAGE.rvs.short} ${rvs}. ${TRUST_LANGUAGE.rvs.meaning}` : null,
+          dqs != null ? `${TRUST_LANGUAGE.dqs.short} ${dqs}. ${TRUST_LANGUAGE.dqs.meaning}` : null,
+        ]
+          .filter(Boolean)
+          .join('. ')}
+      >
         {[
-          queueItem?.estimatedMinutes ? `~${queueItem.estimatedMinutes} min` : null,
+          minutes ? `${minutes} min estimated research` : null,
           rvs != null ? `RVS ${rvs}` : null,
           dqs != null ? `DQS ${dqs}` : null,
         ]
@@ -75,32 +89,27 @@ export function StartHereCard({ symbol, setup, queueItem, regime, onOutcome }: S
         RVS ranks research attention. DQS grades decision process, not price direction.
       </Text>
       <View className="flex-row gap-2">
-        <Pressable
-          accessibilityRole="button"
+        <Button
+          className="flex-1"
           accessibilityLabel={`Research ${normalizedSymbol} from Start Here`}
           testID="start-here-research"
           onPress={() => {
             recordOutcome('researched');
             router.push(`/asset/${encodeURIComponent(normalizedSymbol)}` as never);
           }}
-          className="min-h-11 flex-1 items-center justify-center rounded-xl bg-accent px-4"
         >
-          <Text variant="label" className="text-text-inverse">
-            Research
-          </Text>
-        </Pressable>
-        <Pressable
-          accessibilityRole="button"
+          Research
+        </Button>
+        <Button
+          className="flex-1"
+          variant="outline"
           accessibilityLabel={`Skip ${normalizedSymbol} from Start Here`}
           testID="start-here-skip"
           onPress={() => recordOutcome('skipped')}
-          className="min-h-11 flex-1 items-center justify-center rounded-xl bg-accent-muted px-4"
         >
-          <Text variant="label" className="text-accent">
-            Skip
-          </Text>
-        </Pressable>
+          Skip
+        </Button>
       </View>
-    </GlassCard>
+    </Surface>
   );
 }

@@ -19,6 +19,8 @@ interface SettingsState {
   marketingEmailsEnabled: boolean;
   /** Keep Trading DNA behavioural coaching on-device (default true). */
   tradingDnaLocalOnly: boolean;
+  /** Mentor answer length: concise | balanced | detailed. */
+  aiAnswerDepth: 'concise' | 'balanced' | 'detailed';
   hasHydrated: boolean;
   hasCompletedOnboarding: boolean;
   /** Phase X — full AI Mentor Setup + Research Universe completed. */
@@ -32,6 +34,7 @@ interface SettingsState {
   setSessionTimeoutMinutes: (minutes: 0 | 15 | 30 | 60 | 120) => void;
   setMarketingEmailsEnabled: (enabled: boolean) => void;
   setTradingDnaLocalOnly: (enabled: boolean) => void;
+  setAiAnswerDepth: (depth: 'concise' | 'balanced' | 'detailed') => void;
   setOnboardingCompleted: (completed: boolean) => void;
   setMentorSetupCompleted: (completed: boolean) => void;
   setLastSyncAt: (timestamp: number) => void;
@@ -53,6 +56,7 @@ const initialState = {
   sessionTimeoutMinutes: 0 as 0 | 15 | 30 | 60 | 120,
   marketingEmailsEnabled: false,
   tradingDnaLocalOnly: true,
+  aiAnswerDepth: 'balanced' as const,
   hasHydrated: false,
   hasCompletedOnboarding: false,
   mentorSetupCompleted: false,
@@ -102,6 +106,12 @@ export function migrateSettingsState(
       tradingDnaLocalOnly: next.tradingDnaLocalOnly ?? true,
     };
   }
+  if (version < 8) {
+    next = {
+      ...next,
+      aiAnswerDepth: next.aiAnswerDepth ?? 'balanced',
+    };
+  }
   return next;
 }
 
@@ -130,6 +140,7 @@ export const useSettingsStore = create<SettingsState>()(
       setSessionTimeoutMinutes: (sessionTimeoutMinutes) => set({ sessionTimeoutMinutes }),
       setMarketingEmailsEnabled: (marketingEmailsEnabled) => set({ marketingEmailsEnabled }),
       setTradingDnaLocalOnly: (tradingDnaLocalOnly) => set({ tradingDnaLocalOnly }),
+      setAiAnswerDepth: (aiAnswerDepth) => set({ aiAnswerDepth }),
       setOnboardingCompleted: (hasCompletedOnboarding) => set({ hasCompletedOnboarding }),
       setMentorSetupCompleted: (mentorSetupCompleted) => set({ mentorSetupCompleted }),
       setLastSyncAt: (lastSyncAt) => set({ lastSyncAt }),
@@ -137,7 +148,7 @@ export const useSettingsStore = create<SettingsState>()(
     }),
     {
       name: 'tradevision-settings',
-      version: 7,
+      version: 8,
       storage: createPersistedStorage(),
       partialize: (state) => {
         const { hasHydrated: _, ...persisted } = state;

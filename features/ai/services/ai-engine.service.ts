@@ -12,6 +12,11 @@ import type {
 } from '../types/ai.types';
 import { getPrimaryIndicator, getPrimaryPattern } from './ai-context.service';
 import { buildAiTrustPayload } from './ai-trust.service';
+import {
+  composeStructuredMentorAnswer,
+  formatMentorAnswer,
+  inferAiAnswerMode,
+} from './ai-mentor-response.service';
 
 function todayKey(): string {
   return new Date().toISOString().split('T')[0] ?? '';
@@ -726,136 +731,43 @@ export function generateEngineChatResponse(
   context: AiRequestContext,
 ): { content: string; metadata: AiAnalysisMetadata; sentiment?: AiSentiment } {
   const enriched = context.enriched;
-  const symbol = context.symbol ?? enriched?.symbol;
-  const lower = prompt.toLowerCase();
-
-  if (symbol && enriched?.quote) {
-    if (lower.includes('should i buy') || lower.includes('should i sell') || lower.includes('trade')) {
-      const analysis = buildTradeSuggestion(enriched);
-      const ts = analysis.tradeSuggestion;
-      const content = [
-        `**${symbol}** @ ${formatPrice(enriched.quote.price)} (${formatPercent(enriched.quote.changePercent)})`,
-        '',
-        analysis.content,
-        '',
-        '**Research evidence (not a prediction):**',
-        ...(ts?.why.map((w) => `• ${w}`) ?? []),
-        '',
-        ts?.observationZone
-          ? `Observation zone: ${formatPrice(ts.observationZone.low)} – ${formatPrice(ts.observationZone.high)}`
-          : '',
-        ts?.invalidationLevel
-          ? `Invalidation reference: ${formatPrice(ts.invalidationLevel)}`
-          : '',
-        ts?.nextResearchLevel
-          ? `Next level to research: ${formatPrice(ts.nextResearchLevel)}`
-          : '',
-        '',
-        '_This is educational analysis, not financial advice._',
-      ]
-        .filter(Boolean)
-        .join('\n');
-
-      return {
-        content,
-        metadata: analysis.metadata!,
-        sentiment: analysis.sentiment,
-      };
-    }
-
-    if (lower.includes('rsi') || lower.includes('indicator') || lower.includes('macd')) {
-      const indicator = lower.includes('macd') ? 'MACD' : lower.includes('atr') ? 'ATR' : 'RSI (14)';
-      const analysis = buildIndicatorExplanation(enriched, indicator);
-      return {
-        content: `${analysis.indicatorExplanation?.interpretation}\n\n${analysis.indicatorExplanation?.explanation}`,
-        metadata: analysis.metadata!,
-        sentiment: analysis.sentiment,
-      };
-    }
-
-    if (lower.includes('risk') || lower.includes('stop') || lower.includes('position size')) {
-      const analysis = buildRiskAnalysis(enriched);
-      const ra = analysis.riskAnalysis;
-      const content = [
-        ra?.summary ?? '',
-        '',
-        '**Risk factors:**',
-        ...(ra?.factors.map((f) => `• **${f.label}**: ${f.detail}`) ?? []),
-        '',
-        ra?.positionSizing ?? '',
-      ].join('\n');
-      return { content, metadata: analysis.metadata!, sentiment: 'neutral' };
-    }
-
-    if (lower.includes('pattern')) {
-      const analysis = buildPatternExplanation(enriched, getPrimaryPattern(enriched));
-      return {
-        content: analysis.patternExplanation?.explanation ?? analysis.content,
-        metadata: analysis.metadata!,
-        sentiment: analysis.sentiment,
-      };
-    }
-
-    const bias = enriched.overallBias ?? 'neutral';
-    const di = enriched.decisionIntelligence;
-    const content = [
-      `**${symbol}** snapshot:`,
-      `• Price: ${formatPrice(enriched.quote.price)} (${formatPercent(enriched.quote.changePercent)})`,
-      enriched.trend ? `• Trend: ${enriched.trend}` : '',
-      enriched.rsi ? `• RSI: ${enriched.rsi.value} (${enriched.rsi.signal})` : '',
-      enriched.macd ? `• MACD: ${enriched.macd.signal}` : '',
-      enriched.supportLevels?.length
-        ? `• Support: ${enriched.supportLevels.slice(0, 2).map((p) => formatPrice(p)).join(', ')}`
-        : '',
-      enriched.resistanceLevels?.length
-        ? `• Resistance: ${enriched.resistanceLevels.slice(0, 2).map((p) => formatPrice(p)).join(', ')}`
-        : '',
-      '',
-      `Overall bias: **${bias}** (${enriched.biasConfidence ?? 'N/A'}% structure confidence — not a price prediction).`,
-      di
-        ? [
-            '',
-            '**Decision Intelligence Context**',
-            `• Focus: ${di.recommendedFocus}`,
-            `• Psychology: ${di.psychologyReminder}`,
-            di.tradingStyle ? `• Your style: ${di.tradingStyle}` : '',
-            di.typicalMistakes?.length
-              ? `• Watch for: ${di.typicalMistakes.join('; ')}`
-              : '',
-          ]
-            .filter(Boolean)
-            .join('\n')
-        : '',
-      '',
-      'Ask about RSI, MACD, risk, patterns, or whether this deserves research time.',
-    ]
-      .filter(Boolean)
-      .join('\n');
-
-    return {
-      content,
-      metadata: buildMetadata(enriched, enriched.biasConfidence ?? 55),
-      sentiment: bias,
-    };
+  const mode = context.answerMode ?? inferAiAnswerMode(prompt);
+  const depth = context.answerDepth ?? 'balanced';
+  const trust = enriched
+    ? buildAiTrustPayload(enriched, { sentiment: enriched.overallBias })
+    : undefined;
+  const mentor = composeStructuredMentorAnswer({
+    prompt,
+    context,
+    trust,
+    mode,
+    depth,
+    evidenceLevel: trust?.evidenceLevel ?? 'insufficient',
+  });
+  if (trust) {
+    trust.mentorAnswer = mentor;
+    trust.evidenceLevel = mentor.evidenceLevel;
   }
 
-  if (lower.includes('rsi')) {
-    return {
-      content:
-        'RSI measures momentum (0–100). Above 70 = overbought, below 30 = oversold. In trends, RSI can stay extended — always confirm with price structure and volume.',
-      metadata: {
+  const content = formatMentorAnswer(mentor);
+  const metadata: AiAnalysisMetadata = enriched
+    ? {
+        ...buildMetadata(enriched, 50, [], { sentiment: enriched.overallBias }),
+        trust,
+        modelVersion: 'tradevision-mentor-2.0',
+      }
+    : {
         source: 'engine',
-        confidence: 80,
+        confidence: 0,
         dataAsOf: Date.now(),
-        citations: [{ label: 'Topic', value: 'RSI' }],
-        modelVersion: 'tradevision-engine-1.0',
-      },
-    };
-  }
+        citations: [{ label: 'Topic', value: 'process' }],
+        modelVersion: 'tradevision-mentor-2.0',
+        trust,
+      };
 
-  const coach = buildPsychologyCoach(prompt);
   return {
-    content: coach.psychologyCoach?.advice ?? coach.content,
-    metadata: coach.metadata!,
+    content,
+    metadata,
+    sentiment: enriched?.overallBias,
   };
 }

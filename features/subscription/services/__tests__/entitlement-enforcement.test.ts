@@ -10,6 +10,8 @@ describe('entitlement enforcement', () => {
   it('uses the central free-tier limits', () => {
     expect(getLimit('alertsMax', 'free')).toBe(5);
     expect(getLimit('portfolioPositions', 'free')).toBe(10);
+    expect(getLimit('aiDaily', 'free')).toBe(3);
+    expect(getLimit('aiDaily', 'premium')).toBe(100);
   });
 
   it('blocks monthly consumption at the configured allowance', async () => {

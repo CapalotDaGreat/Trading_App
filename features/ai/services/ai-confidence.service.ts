@@ -7,6 +7,7 @@ import type {
   ConfidencePillar,
   ConfidencePillarId,
 } from '../types/ai-trust.types';
+import { resolveAiEvidenceLevel } from './ai-evidence-level.service';
 
 function clamp(n: number, min = 35, max = 95): number {
   return Math.min(max, Math.max(min, Math.round(n)));
@@ -174,11 +175,16 @@ export function buildConfidenceBreakdown(context: AiEnrichedContext): Confidence
   const weighted =
     pillars.reduce((s, p) => s + p.score, 0) / Math.max(1, pillars.length);
   const overall = clamp(weighted);
+  const evidenceLevel = resolveAiEvidenceLevel({
+    context,
+    conflictingPillars: pillars.filter((p) => !p.agrees).length,
+  });
 
   return {
     overall,
     label: TRUST_LANGUAGE.outputQuality.name,
     pillars,
     notice: NON_PREDICTION_COPY,
+    evidenceLevel,
   };
 }

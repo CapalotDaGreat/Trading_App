@@ -3,16 +3,17 @@
 Native IAP uses `react-native-purchases` + `react-native-purchases-ui` (SDK 10.4.x).
 Store purchases require an **EAS development or production build** — not Expo Go.
 
+Launch catalog: [MONETIZATION.md](./MONETIZATION.md). **Lifetime is not offered at launch.**
+
 ## Dashboard checklist
 
 1. **Entitlement:** `Aithera Pro` (exact spelling)
 2. **Products** (store product IDs must match):
    - `monthly` — auto-renewing subscription
-   - `yearly` — auto-renewing subscription (attach 7-day intro trial in ASC / Play)
-   - `lifetime` — non-consumable / non-renewing purchase
-3. Attach all three products to **Aithera Pro**
-4. Put all three packages on the **current** Offering
-5. Design a **Paywall** on that offering (Templates or Components)
+   - `yearly` — auto-renewing subscription (**attach 7-day intro trial** in App Store Connect / Play)
+3. Attach **monthly** and **yearly** to **Aithera Pro**. Do not attach a Lifetime product at launch.
+4. Put those packages on the **current** Offering
+5. Design a **Paywall** on that offering (Templates or Components) — monthly + yearly only
 6. Enable **Customer Center** for manage / restore / cancel help
 7. Copy **public** SDK keys (never secret keys into the app):
    - Test/shared → `EXPO_PUBLIC_REVENUECAT_API_KEY`
@@ -25,8 +26,9 @@ EXPO_PUBLIC_REVENUECAT_API_KEY=test_…
 EXPO_PUBLIC_REVENUECAT_ENTITLEMENT_ID=Aithera Pro
 EXPO_PUBLIC_RC_PRODUCT_MONTHLY=monthly
 EXPO_PUBLIC_RC_PRODUCT_YEARLY=yearly
-EXPO_PUBLIC_RC_PRODUCT_LIFETIME=lifetime
 ```
+
+`EXPO_PUBLIC_RC_PRODUCT_LIFETIME` may remain unset. The client still maps a `lifetime` identifier if a webhook ever sends one; the paywall does not sell it.
 
 Functions webhook:
 
@@ -36,7 +38,6 @@ REVENUECAT_WEBHOOK_AUTH_TOKEN=…
 # optional overrides if store IDs differ:
 # REVENUECAT_PRODUCT_MONTHLY=monthly
 # REVENUECAT_PRODUCT_YEARLY=yearly
-# REVENUECAT_PRODUCT_LIFETIME=lifetime
 ```
 
 ## Client APIs
@@ -46,7 +47,7 @@ REVENUECAT_WEBHOOK_AUTH_TOKEN=…
 | Configure + identify | `subscriptionService.configureForUser(uid)` |
 | Entitlement check | `hasAitheraProEntitlement` / `useSubscription().hasAitheraPro` |
 | RevenueCat Paywall | `presentPaywall()` / `presentPaywallIfNeeded()` |
-| Manual package purchase | `purchase('monthly' \| 'yearly' \| 'lifetime')` |
+| Manual package purchase | `purchase('monthly' \| 'yearly')` |
 | Customer Center | `openCustomerCenter()` (preferred for active Pro) |
 | Restore | `restore()` |
 | Live updates | `addCustomerInfoListener` (wired in `useSubscription`) |

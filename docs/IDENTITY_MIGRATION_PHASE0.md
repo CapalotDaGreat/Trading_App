@@ -48,7 +48,7 @@ Source of truth for in-app constants: [`shared/constants/brand.ts`](../shared/co
 ### RevenueCat
 
 - Entitlement already **`Aithera Pro`** — no rename in Phase 0.
-- Products: `monthly` / `yearly` / `lifetime`.
+- Phase 0 listed `monthly` / `yearly` / `lifetime`. **Phase 2 launch offering is monthly + yearly only** (see [MONETIZATION.md](./MONETIZATION.md)).
 - Play subscription management URLs correctly use `package=ai.tradevision.app` while the bundle is frozen.
 
 ### Firebase

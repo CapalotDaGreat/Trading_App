@@ -29,20 +29,52 @@ const PREMIUM_DAILY: Record<Exclude<QuotaBucket, 'ai' | 'ai_mentor'>, number> = 
   news: 200,
 };
 
+/** Hard cap for AI daily limits — never treat negative as unlimited. */
+export const AI_DAILY_HARD_MAX = 1_000;
+export const VENDOR_BURST_PER_MINUTE = 40;
+export const AI_BURST_PER_MINUTE = 15;
+
 function todayKey(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
-function monthKey(): string {
-  const now = new Date();
-  return `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, '0')}`;
+/** UTC minute window, e.g. 2026-08-24T12-03 */
+export function burstWindowKey(now = new Date()): string {
+  return now.toISOString().slice(0, 16).replace(':', '-');
 }
 
 function isAiBucket(bucket: QuotaBucket): boolean {
   return bucket === 'ai' || bucket === 'ai_mentor';
 }
 
-async function aiLimit(premium: boolean, bucket: QuotaBucket): Promise<number> {
+export function clampAiDailyLimit(value: unknown, fallback: number): number {
+  const n = typeof value === 'number' && Number.isFinite(value) ? value : fallback;
+  return Math.max(0, Math.min(AI_DAILY_HARD_MAX, Math.round(n)));
+}
+
+/**
+ * Ledger counts must be finite non-negative numbers.
+ * Malformed values fail closed (treated as exhausted).
+ */
+export function readLedgerCount(
+  counts: unknown,
+  key: string,
+): { used: number; malformed: boolean } {
+  if (!counts || typeof counts !== 'object') return { used: 0, malformed: false };
+  const val = (counts as Record<string, unknown>)[key];
+  if (val === undefined) return { used: 0, malformed: false };
+  if (typeof val === 'number' && Number.isFinite(val) && val >= 0) {
+    return { used: val, malformed: false };
+  }
+  return { used: 0, malformed: true };
+}
+
+function asCountMap(value: unknown): Record<string, unknown> {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return {};
+  return { ...(value as Record<string, unknown>) };
+}
+
+async function aiDailyLimit(premium: boolean): Promise<number> {
   let remote: Record<string, unknown> = {};
   try {
     const snap = await admin
@@ -56,26 +88,18 @@ async function aiLimit(premium: boolean, bucket: QuotaBucket): Promise<number> {
   } catch {
     // Release-safe defaults remain authoritative when ops config is unavailable.
   }
-  if (bucket === 'ai_mentor') {
-    const free =
-      typeof remote.aiMentorMonthlyFree === 'number' && Number.isFinite(remote.aiMentorMonthlyFree)
-        ? remote.aiMentorMonthlyFree
-        : SERVER_DEFAULT_REMOTE.aiMentorMonthlyFree;
-    return premium ? -1 : Math.max(0, Math.round(free));
-  }
-  const configured = premium ? remote.aiAnalysisMonthlyPremium : remote.aiAnalysisMonthlyFree;
+  const configured = premium ? remote.aiDailyLimitPremium : remote.aiDailyLimitFree;
   const fallback = premium
-    ? SERVER_DEFAULT_REMOTE.aiAnalysisMonthlyPremium
-    : SERVER_DEFAULT_REMOTE.aiAnalysisMonthlyFree;
-  const value =
-    typeof configured === 'number' && Number.isFinite(configured) ? configured : fallback;
-  return Math.max(-1, Math.round(value));
+    ? SERVER_DEFAULT_REMOTE.aiDailyLimitPremium
+    : SERVER_DEFAULT_REMOTE.aiDailyLimitFree;
+  return clampAiDailyLimit(configured, fallback);
 }
 
 /**
- * Atomically consume one unit from the usage ledger.
+ * Atomically consume one unit from the usage ledger (daily + per-minute burst).
  * Daily path: usage/{uid}/daily/{yyyy-mm-dd}
- * Monthly AI path: usage/{uid}/monthly/{yyyy-mm}
+ * Burst path: usage/{uid}/burst/{yyyy-mm-ddTHH-MM}
+ * Ask / mentor share the `ai` daily count.
  */
 export async function consumeQuota(
   uid: string,
@@ -86,93 +110,72 @@ export async function consumeQuota(
   remaining: number;
 }> {
   const premium = await isPremiumUser(uid);
-
-  if (isAiBucket(bucket)) {
-    const limit = await aiLimit(premium, bucket);
-    if (limit < 0) {
-      return { used: 0, limit: -1, remaining: -1 };
-    }
-    const month = monthKey();
-    const ref = admin.firestore().collection('usage').doc(uid).collection('monthly').doc(month);
-    const result = await admin.firestore().runTransaction(async (tx) => {
-      const snap = await tx.get(ref);
-      const data = snap.data() ?? {};
-      const counts = (data.counts as Record<string, number> | undefined) ?? {};
-      const used = typeof counts[bucket] === 'number' ? counts[bucket] : 0;
-      if (used >= limit) {
-        return { blocked: true as const, used, limit };
-      }
-      const next = used + 1;
-      tx.set(
-        ref,
-        {
-          uid,
-          month,
-          counts: { ...counts, [bucket]: next },
-          updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-        },
-        { merge: true },
-      );
-      return { blocked: false as const, used: next, limit };
-    });
-
-    if (result.blocked) {
-      await logSecurityEvent({
-        uid,
-        endpoint: bucket,
-        reason: 'quota_exceeded',
-        meta: { used: result.used, limit: result.limit, period: 'monthly' },
-      });
-      throw new functions.https.HttpsError(
-        'resource-exhausted',
-        `Monthly ${bucket.replace(/_/g, ' ')} allowance reached. Resets next calendar month.`,
-      );
-    }
-
-    return {
-      used: result.used,
-      limit: result.limit,
-      remaining: Math.max(0, result.limit - result.used),
-    };
-  }
-
-  const dailyBucket = bucket as Exclude<QuotaBucket, 'ai' | 'ai_mentor'>;
-  const limit = (premium ? PREMIUM_DAILY : FREE_DAILY)[dailyBucket];
+  const limit = isAiBucket(bucket)
+    ? await aiDailyLimit(premium)
+    : (premium ? PREMIUM_DAILY : FREE_DAILY)[bucket as Exclude<QuotaBucket, 'ai' | 'ai_mentor'>];
+  const dailyField = isAiBucket(bucket) ? 'ai' : bucket;
+  const burstField = isAiBucket(bucket) ? 'ai' : 'vendor';
+  const burstLimit = isAiBucket(bucket) ? AI_BURST_PER_MINUTE : VENDOR_BURST_PER_MINUTE;
   const day = todayKey();
-  const ref = admin.firestore().collection('usage').doc(uid).collection('daily').doc(day);
+  const windowId = burstWindowKey();
+  const dailyRef = admin.firestore().collection('usage').doc(uid).collection('daily').doc(day);
+  const burstRef = admin.firestore().collection('usage').doc(uid).collection('burst').doc(windowId);
 
   const result = await admin.firestore().runTransaction(async (tx) => {
-    const snap = await tx.get(ref);
-    const data = snap.data() ?? {};
-    const counts = (data.counts as Record<string, number> | undefined) ?? {};
-    const used = typeof counts[bucket] === 'number' ? counts[bucket] : 0;
-    if (used >= limit) {
-      return { blocked: true as const, used, limit };
+    const [dailySnap, burstSnap] = await Promise.all([tx.get(dailyRef), tx.get(burstRef)]);
+    const dailyCounts = dailySnap.data()?.counts;
+    const burstCounts = burstSnap.data()?.counts;
+    const daily = readLedgerCount(dailyCounts, dailyField);
+    const burst = readLedgerCount(burstCounts, burstField);
+
+    if (daily.malformed || burst.malformed || daily.used >= limit || burst.used >= burstLimit) {
+      return {
+        blocked: true as const,
+        used: daily.malformed ? limit : daily.used,
+        limit,
+        reason: burst.malformed || burst.used >= burstLimit ? 'burst' : 'daily',
+      };
     }
-    const next = used + 1;
+
+    const nextDaily = daily.used + 1;
+    const nextBurst = burst.used + 1;
     tx.set(
-      ref,
+      dailyRef,
       {
         uid,
         day,
-        counts: { ...counts, [bucket]: next },
+        counts: { ...asCountMap(dailyCounts), [dailyField]: nextDaily },
         updatedAt: admin.firestore.FieldValue.serverTimestamp(),
       },
       { merge: true },
     );
-    return { blocked: false as const, used: next, limit };
+    tx.set(
+      burstRef,
+      {
+        uid,
+        windowId,
+        counts: { ...asCountMap(burstCounts), [burstField]: nextBurst },
+        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      },
+      { merge: true },
+    );
+    return { blocked: false as const, used: nextDaily, limit, reason: 'ok' as const };
   });
 
   if (result.blocked) {
     await logSecurityEvent({
       uid,
       endpoint: bucket,
-      reason: 'quota_exceeded',
-      meta: { used: result.used, limit: result.limit },
+      reason: result.reason === 'burst' ? 'burst_exceeded' : 'quota_exceeded',
+      meta: { used: result.used, limit: result.limit, period: result.reason },
     });
     throw new functions.https.HttpsError(
       'resource-exhausted',
-      `Daily ${bucket.replace(/_/g, ' ')} limit reached. Resets at midnight UTC.`,
+      result.reason === 'burst'
+        ? 'Too many requests. Wait a minute and try again.'
+        : isAiBucket(bucket)
+          ? 'Daily AI allowance reached. Resets at midnight UTC.'
+          : `Daily ${bucket.replace(/_/g, ' ')} limit reached. Resets at midnight UTC.`,
     );
   }
 

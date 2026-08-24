@@ -27,6 +27,14 @@ const SNAPSHOT_TRAITS = [
   'reflectionQuality',
 ] as const;
 
+function trendLabel(trait: TradingDnaTraitScore): string {
+  if (trait.status === 'insufficient') return 'Not enough evidence';
+  if (trait.longitudinalTrend === 'improving') return 'Improving';
+  if (trait.longitudinalTrend === 'declining') return 'Softer vs baseline';
+  if (trait.longitudinalTrend === 'stable') return 'Stable';
+  return 'Building baseline';
+}
+
 function TraitRow({
   trait,
   index,
@@ -48,8 +56,9 @@ function TraitRow({
         <Pressable
           onPress={onToggle}
           accessibilityRole="button"
-          accessibilityLabel={`${trait.label} details`}
-          className="min-h-11 justify-center"
+          accessibilityLabel={`${trait.label}. ${trendLabel(trait)}. Why do you think this?`}
+          accessibilityHint="Shows evidence and 30 / 90 day comparison"
+          className="min-h-11 flex-1 justify-center pr-3"
         >
           <Text variant="caption" className="text-text-primary">
             {trait.label}
@@ -58,17 +67,13 @@ function TraitRow({
         <Text
           variant="caption"
           className={cn(
-            trait.trend === 'up' && 'text-accent',
-            trait.trend === 'down' && 'text-text-secondary',
-            trait.trend === 'flat' && 'text-text-tertiary',
+            trait.longitudinalTrend === 'improving' && 'text-accent',
+            trait.longitudinalTrend === 'declining' && 'text-text-secondary',
+            (trait.longitudinalTrend === 'stable' || trait.longitudinalTrend === 'insufficient') &&
+              'text-text-tertiary',
           )}
         >
           {trait.status === 'insufficient' ? '—' : trait.score}
-          {trait.status === 'scored' && trait.trend === 'up'
-            ? ' ↑'
-            : trait.status === 'scored' && trait.trend === 'down'
-              ? ' ↓'
-              : ''}
         </Text>
       </View>
       <View className="h-1.5 overflow-hidden rounded-full bg-border">
@@ -89,9 +94,27 @@ function TraitRow({
             {trait.detail}
           </Text>
           <Text variant="caption" className="text-text-tertiary">
-            Confidence: {trait.confidence}
-            {trait.previousScore != null ? ` · Was ${trait.previousScore}` : ''}
+            Current: {trait.status === 'scored' ? trait.score : '—'}
+            {' · '}
+            30 days ago: {trait.score30dAgo ?? '—'}
+            {' · '}
+            90 days ago: {trait.score90dAgo ?? '—'}
           </Text>
+          <Text variant="caption" className="text-text-tertiary">
+            All-time trend: {trendLabel(trait)}
+            {trait.allTimeScore != null ? ` · All-time ${trait.allTimeScore}` : ''}
+          </Text>
+          <Text variant="caption" className="mt-1 font-medium text-text-secondary">
+            Why do you think this?
+          </Text>
+          <Text variant="caption" className="text-text-tertiary">
+            {trait.ratioSentence ?? trait.whySummary}
+          </Text>
+          {trait.ratioSentence ? (
+            <Text variant="caption" className="text-text-tertiary">
+              {trait.whySummary}
+            </Text>
+          ) : null}
           {trait.evidence.slice(0, 4).map((item) => (
             <Text key={`${trait.id}-${item.label}`} variant="caption" className="text-text-tertiary">
               · {item.count} {item.label}
@@ -128,7 +151,10 @@ export function TradingDnaCard({ dna, compact = false, limited = false }: Tradin
           {dna.becomingLabel}
         </Text>
         <Text variant="caption" className="mt-1 text-text-secondary">
-          Coaching indicators from your process — never P&L.
+          {dna.decisionStyleSummary}
+        </Text>
+        <Text variant="caption" className="mt-1 text-text-tertiary">
+          Observed tendencies from your process — never P&L, never a diagnosis.
           {dna.styleFingerprint.labels.length
             ? ` Style lean: ${dna.styleFingerprint.labels.join(' · ')}`
             : ''}
@@ -146,15 +172,45 @@ export function TradingDnaCard({ dna, compact = false, limited = false }: Tradin
           ))}
         </View>
 
-        {!compact && dna.strengths.length ? (
-          <Text variant="caption" className="mt-3 text-text-secondary">
-            Strengths: {dna.strengths.join(' · ')}
-          </Text>
+        {!compact && dna.strengthHabits.length ? (
+          <View className="mt-4 gap-1">
+            <Text variant="caption" className="font-semibold text-text-secondary">
+              Strongest habits
+            </Text>
+            {dna.strengthHabits.slice(0, 3).map((habit) => (
+              <Text key={habit} variant="caption" className="text-text-secondary">
+                ✓ {habit}
+              </Text>
+            ))}
+          </View>
         ) : null}
-        {!compact && dna.growthEdges.length ? (
-          <Text variant="caption" className="mt-1 text-text-secondary">
-            Growth edges: {dna.growthEdges.join(' · ')}
-          </Text>
+
+        {!compact && dna.focusAreas.length ? (
+          <View className="mt-3 gap-1">
+            <Text variant="caption" className="font-semibold text-text-secondary">
+              Your next opportunity
+            </Text>
+            {dna.focusAreas.slice(0, 2).map((line) => (
+              <Text key={line} variant="caption" className="text-text-secondary">
+                {line}
+              </Text>
+            ))}
+          </View>
+        ) : null}
+
+        {!compact && dna.observedTendencies.some((t) => t.level !== 'not_observed') ? (
+          <View className="mt-3 gap-1">
+            <Text variant="caption" className="font-semibold text-text-secondary">
+              Other observed tendencies
+            </Text>
+            {dna.observedTendencies
+              .filter((t) => t.level !== 'not_observed')
+              .map((item) => (
+                <Text key={item.id} variant="caption" className="text-text-tertiary">
+                  {item.framing}: {item.detail}
+                </Text>
+              ))}
+          </View>
         ) : null}
 
         {limited && !compact ? (

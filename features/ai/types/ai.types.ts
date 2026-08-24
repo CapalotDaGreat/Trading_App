@@ -1,4 +1,9 @@
-import type { AiTrustPayload } from './ai-trust.types';
+import type {
+  AiAnswerDepth,
+  AiAnswerMode,
+  AiEvidenceLevel,
+  AiTrustPayload,
+} from './ai-trust.types';
 
 export type AiDataSource = 'cloud' | 'engine';
 
@@ -40,13 +45,16 @@ export interface AiMessage {
   role: AiChatRole;
   content: string;
   timestamp: number;
-  metadata?: {
+    metadata?: {
     symbol?: string;
     analysisType?: AiAnalysisType;
     source?: AiDataSource;
     confidence?: number;
     citations?: AiCitation[];
     trust?: AiTrustPayload;
+    answerMode?: AiAnswerMode;
+    answerDepth?: AiAnswerDepth;
+    evidenceLevel?: AiEvidenceLevel;
   };
 }
 
@@ -254,6 +262,8 @@ export interface AiRequestContext {
   timeframe?: string;
   customPrompt?: string;
   enriched?: AiEnrichedContext;
+  answerMode?: AiAnswerMode;
+  answerDepth?: AiAnswerDepth;
 }
 
 export interface AiUsageStats {

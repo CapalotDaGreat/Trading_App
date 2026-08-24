@@ -10,7 +10,8 @@ let appCheck: AppCheck | null = null;
  * Initialize Firebase App Check.
  * - __DEV__ / Expo Go: debug token (register printed token in Firebase Console).
  * - Production native: CustomProvider placeholder until DeviceCheck/Play Integrity
- *   native module is attached in EAS builds; Functions use soft requireAppCheck.
+ *   is attached in EAS builds. Cloud Functions reject missing App Check tokens
+ *   unless APP_CHECK_SOFT=true (do not set that in production).
  */
 export function initializeFirebaseAppCheck(app: FirebaseApp): AppCheck | null {
   if (appCheck) return appCheck;

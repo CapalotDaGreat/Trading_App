@@ -4,6 +4,7 @@ import { Pressable, View } from 'react-native';
 import { Skeleton } from '@/shared/components/ui/Skeleton';
 import { Text } from '@/shared/components/ui/Text';
 import type { Asset, Quote } from '@/shared/types/market';
+import { INSTRUMENT_RESOLUTION_COPY, isUsableMarketPrice } from '@/features/markets/types/instrument.types';
 import { getPriceAccessibilityLabel } from '@/shared/utils/accessibility';
 import { formatPercent, formatPrice, formatVolume, getPriceColorClass } from '@/shared/utils/format';
 import { cn } from '@/shared/utils/cn';
@@ -60,7 +61,7 @@ function QuoteRowComponent({
       <View className="min-w-[80px] items-end">
         {isLoading && !quote ? (
           <Skeleton width={64} height={18} />
-        ) : quote ? (
+        ) : quote && isUsableMarketPrice(quote.price) ? (
           <>
             <Text variant="mono" className="font-semibold">
               {formatPrice(quote.price, quote.currency)}
@@ -70,7 +71,7 @@ function QuoteRowComponent({
             </Text>
           </>
         ) : (
-          <Text variant="caption">—</Text>
+          <Text variant="caption">{INSTRUMENT_RESOLUTION_COPY.priceUnavailable}</Text>
         )}
       </View>
     </View>

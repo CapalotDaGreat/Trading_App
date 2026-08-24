@@ -83,7 +83,7 @@ service cloud.firestore {
         && data.name.size() <= 120
         && data.marketType in ['stocks', 'forex', 'crypto', 'commodities', 'indices', 'options']
         && data.assetClass in [
-          'equity', 'etf', 'crypto', 'forex', 'commodity',
+          'equity', 'etf', 'crypto', 'forex', 'commodity', 'metal',
           'index', 'option', 'bond', 'futures'
         ]
         && data.currency is string
@@ -282,6 +282,11 @@ service cloud.firestore {
       allow write: if false;
 
       match /daily/{dayId} {
+        allow read: if isOwner(userId);
+        allow write: if false;
+      }
+
+      match /burst/{windowId} {
         allow read: if isOwner(userId);
         allow write: if false;
       }

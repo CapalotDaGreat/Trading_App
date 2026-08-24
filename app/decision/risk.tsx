@@ -12,10 +12,12 @@ import { GlassCard } from '@/shared/components/ui/GlassCard';
 import { Skeleton } from '@/shared/components/ui/Skeleton';
 import { Text } from '@/shared/components/ui/Text';
 import { useTheme } from '@/shared/hooks/useTheme';
+import { useSubscriptionStore } from '@/shared/stores/subscription.store';
 
 export default function RiskCenterScreen() {
   const router = useRouter();
   const { colors } = useTheme();
+  const isPremium = useSubscriptionStore((s) => s.isPremium);
   const { data, isLoading, isRefetching, refetch } = useRiskCenter();
 
   return (
@@ -49,9 +51,16 @@ export default function RiskCenterScreen() {
         </GlassCard>
         {isLoading && !data ? <Skeleton height={240} rounded="lg" /> : null}
         {data ? (
-          <PremiumOsGate feature="portfolioIntelligence">
-            <RiskCenterCard data={data} />
-          </PremiumOsGate>
+          <>
+            <RiskCenterCard data={data} compact={!isPremium} limited={!isPremium} />
+            {isPremium ? null : (
+              <PremiumOsGate feature="portfolioIntelligence">
+                <Text variant="body-sm" className="text-text-secondary">
+                  Premium includes concentration, stress tests, and exposure detail.
+                </Text>
+              </PremiumOsGate>
+            )}
+          </>
         ) : null}
       </View>
     </Screen>

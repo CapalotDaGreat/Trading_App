@@ -16,7 +16,7 @@ const WELCOME_MESSAGE: AiMessage = {
   id: 'welcome',
   role: 'assistant',
   content:
-    'TradeInsight research desk. Ask about process, evidence, risk, or psychology. Every answer should show what supports it, what contradicts it, and what is missing — never a buy/sell signal or price prediction.',
+    'TradeInsight research mentor. Answers separate what is known, what is not, evidence, and what would change the assessment — never a buy/sell call or a fake certainty score.',
   timestamp: Date.now(),
 };
 

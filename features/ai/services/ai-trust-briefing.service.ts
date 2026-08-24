@@ -1,6 +1,6 @@
 import { freshnessLabel, type DataFreshnessLevel } from '@/features/markets/constants/freshness';
 import { LOCAL_ANALYSIS_LABEL } from '@/features/ai/constants/ai-release';
-import { NON_PREDICTION_COPY } from '@/shared/constants/trust-language';
+import { EVIDENCE_LEVEL_COPY, NON_PREDICTION_COPY } from '@/shared/constants/trust-language';
 
 import type { AiEnrichedContext } from '../types/ai.types';
 import type {
@@ -9,6 +9,7 @@ import type {
   ConfidenceBreakdown,
   EvidencePack,
 } from '../types/ai-trust.types';
+import { resolveAiEvidenceLevel } from './ai-evidence-level.service';
 
 function freshnessExplanation(level: DataFreshnessLevel, dataAsOf: number): string {
   const ageSec = Math.max(0, Math.round((Date.now() - dataAsOf) / 1000));
@@ -26,12 +27,12 @@ function freshnessExplanation(level: DataFreshnessLevel, dataAsOf: number): stri
 
 function dataQualityExplanation(
   evidence: EvidencePack,
-  confidence: ConfidenceBreakdown,
+  _confidence: ConfidenceBreakdown,
 ): string {
   const present = evidence.items.filter((i) => i.present).length;
   const total = evidence.items.length;
   const coverage = total ? Math.round((present / total) * 100) : 0;
-  return `Evidence coverage ${present}/${total} modules (~${coverage}%). Output quality score ${confidence.overall}% measures checklist completeness — ${NON_PREDICTION_COPY}`;
+  return `Evidence coverage ${present}/${total} modules (~${coverage}% of checklist). This is coverage, not a probability. ${NON_PREDICTION_COPY}`;
 }
 
 /**
@@ -127,12 +128,13 @@ export function buildAiTrustBriefing(input: {
         ? 'Alternative view: defensive structure can still deserve research if your process says the skip criteria are unmet — write why-not first.'
         : 'Alternative view: mixed evidence usually means protecting attention is the high-quality decision.';
 
-  const reliabilitySummary =
-    confidence.overall >= 70 && freshness !== 'stale' && missing.length <= 2
-      ? `Moderately reliable as a research checklist (${confidence.overall}% evidence quality). Still not a forecast.`
-      : confidence.overall >= 50
-        ? `Usable with caution (${confidence.overall}% evidence quality). Several gaps remain — verify missing inputs.`
-        : `Low reliability for decisions (${confidence.overall}% evidence quality). Prefer clarifying questions or a skip.`;
+  const evidenceLevel = resolveAiEvidenceLevel({
+    context,
+    evidence,
+    conflictingPillars: disagreeing.length,
+  });
+  const levelCopy = EVIDENCE_LEVEL_COPY[evidenceLevel];
+  const reliabilitySummary = `${levelCopy.label}. ${levelCopy.meaning} Coverage is a reliability/quality label, not a forecast.`;
 
   return {
     reliabilitySummary,

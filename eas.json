@@ -22,16 +22,25 @@
     },
     "preview": {
       "distribution": "internal",
-      "channel": "preview"
+      "channel": "preview",
+      "env": {
+        "EXPO_PUBLIC_MARKET_DATA_DIRECT": "false"
+      }
     },
     "beta": {
       "distribution": "internal",
       "channel": "beta",
-      "autoIncrement": true
+      "autoIncrement": true,
+      "env": {
+        "EXPO_PUBLIC_MARKET_DATA_DIRECT": "false"
+      }
     },
     "production": {
       "channel": "production",
-      "autoIncrement": true
+      "autoIncrement": true,
+      "env": {
+        "EXPO_PUBLIC_MARKET_DATA_DIRECT": "false"
+      }
     }
   },
   "submit": {

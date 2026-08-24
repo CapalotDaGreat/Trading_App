@@ -23,7 +23,36 @@ import type {
 } from '@/features/markets/types/instrument.types';
 import type { AssetClass, MarketType } from '@/shared/types/market';
 
+import { INSTRUMENT_RESOLUTION_COPY } from '@/features/markets/types/instrument.types';
+
 const CAPABILITY_PROBE_LIMIT = 5;
+const RESOLVE_CACHE_TTL_MS = 60_000;
+
+const resolveCache = new Map<string, { at: number; value: InstrumentResolution }>();
+
+export function clearInstrumentResolveCache(): void {
+  resolveCache.clear();
+}
+
+function cacheGet(key: string): InstrumentResolution | undefined {
+  const hit = resolveCache.get(key);
+  if (!hit) return undefined;
+  if (Date.now() - hit.at > RESOLVE_CACHE_TTL_MS) {
+    resolveCache.delete(key);
+    return undefined;
+  }
+  return hit.value;
+}
+
+function cacheSet(key: string, value: InstrumentResolution): InstrumentResolution {
+  resolveCache.set(key, { at: Date.now(), value });
+  return value;
+}
+
+const UNSUPPORTED_REASON = `${INSTRUMENT_RESOLUTION_COPY.couldNotVerify} ${INSTRUMENT_RESOLUTION_COPY.reliableDataOnly}`;
+const NOT_FOUND_REASON =
+  "We couldn't find a supported market asset. Try a company name, ticker, crypto, currency pair, or commodity name. Examples: Apple, AAPL, Bitcoin, BTC/USD, Gold.";
+const AMBIGUOUS_REASON = INSTRUMENT_RESOLUTION_COPY.whichAsset;
 
 function providerForMarket(marketType: MarketType, assetClass: AssetClass): InstrumentProvider {
   if (marketType === 'crypto' || assetClass === 'crypto') return 'coingecko';
@@ -140,10 +169,7 @@ export async function probeInstrumentCapabilities(
     };
   }
 
-  const quoteSymbol =
-    instrument.marketType === 'commodities' || instrument.providerSymbol.includes('=')
-      ? instrument.providerSymbol
-      : instrument.canonicalSymbol;
+  const quoteSymbol = instrument.canonicalSymbol;
 
   try {
     const result = await fetchQuoteWithMetadata(quoteSymbol, instrument.marketType);
@@ -230,16 +256,19 @@ export async function searchInstruments(
 /**
  * Full resolution pipeline for portfolio / Decision OS identity.
  * Never returns a creatable instrument without a successful quote capability check.
+ * Never silently picks among multiple plausible matches.
  */
 export async function resolveInstrument(query: string): Promise<InstrumentResolution> {
   const normalized = normalizeInstrumentQuery(query);
   if (!normalized) {
     return {
       status: 'not_found',
-      reason:
-        "We couldn't find a supported market asset. Try a company name, ticker, crypto, currency pair, or commodity name.",
+      reason: NOT_FOUND_REASON,
     };
   }
+
+  const cached = cacheGet(normalized);
+  if (cached) return cached;
 
   // Explicit unsupported demo identities
   const unsupportedHit = UNSUPPORTED_INSTRUMENT_EXAMPLES.find((item) => {
@@ -247,33 +276,42 @@ export async function resolveInstrument(query: string): Promise<InstrumentResolu
     return keys.includes(instrumentMatchKey(normalized));
   });
   if (unsupportedHit) {
-    return {
+    return cacheSet(normalized, {
       status: 'unsupported',
       instrument: unsupportedHit,
-      reason:
-        'We found this asset, but TradeInsight cannot currently provide reliable market data for it. It has not been added to your portfolio.',
-    };
+      reason: UNSUPPORTED_REASON,
+    });
   }
 
   const exact = findExactCanonicalInstrument(normalized);
+
+  // Exact catalog identity — skip remote search (no unnecessary provider calls).
+  if (exact?.isSupported && exact.isTradableDataSource) {
+    const probed = await probeInstrumentCapabilities(exact);
+    if (probed.dataCapabilities.quote && probed.isSupported) {
+      return cacheSet(normalized, {
+        status: 'resolved',
+        instrument: probed,
+        confidence: 'exact',
+      });
+    }
+    return cacheSet(normalized, {
+      status: 'unsupported',
+      instrument: probed,
+      reason: UNSUPPORTED_REASON,
+    });
+  }
+
   const hits = await searchInstruments(normalized, { limit: 12 });
 
-  // Promote exact catalog match to front
-  let ranked = hits;
-  if (exact) {
-    const exactHit = rankScore(normalized, exact);
-    ranked = [exactHit, ...hits.filter((h) => h.instrument.id !== exact.id)];
-  }
-
-  if (ranked.length === 0) {
-    return {
+  if (hits.length === 0) {
+    return cacheSet(normalized, {
       status: 'not_found',
-      reason:
-        "We couldn't find a supported market asset. Try a company name, ticker symbol, crypto name, currency pair, or commodity name. Examples: Apple, AAPL, Bitcoin, BTC/USD, Gold.",
-    };
+      reason: NOT_FOUND_REASON,
+    });
   }
 
-  const top = ranked.slice(0, CAPABILITY_PROBE_LIMIT);
+  const top = hits.slice(0, CAPABILITY_PROBE_LIMIT);
   const probed = await Promise.all(top.map((hit) => probeInstrumentCapabilities(hit.instrument)));
   const supported = probed
     .map((instrument, index) => ({
@@ -285,60 +323,34 @@ export async function resolveInstrument(query: string): Promise<InstrumentResolu
   if (supported.length === 0) {
     const known = probed[0];
     if (known && !known.dataCapabilities.quote) {
-      return {
+      return cacheSet(normalized, {
         status: 'unsupported',
         instrument: known,
-        reason:
-          'We found this asset, but TradeInsight cannot currently provide reliable market data for it. It has not been added to your portfolio.',
-      };
+        reason: UNSUPPORTED_REASON,
+      });
     }
-    return {
+    return cacheSet(normalized, {
       status: 'not_found',
-      reason:
-        "We couldn't find a supported market asset. Try a company name, ticker symbol, crypto name, currency pair, or commodity name.",
-    };
+      reason: NOT_FOUND_REASON,
+    });
   }
 
   const best = supported[0]!;
-  const bestConfidence = confidenceFromHit(best.hit);
-  const nearBest = supported.filter(
-    (s) => s.hit.rankScore >= best.hit.rankScore - 15 && s.hit.rankScore >= 65,
-  );
 
-  // Exact single match → resolved
-  if (
-    (bestConfidence === 'exact' || exact?.id === best.instrument.id) &&
-    nearBest.length <= 1
-  ) {
-    return {
-      status: 'resolved',
-      instrument: best.instrument,
-      confidence: bestConfidence,
-    };
-  }
-
-  // Multiple strong candidates → user must choose
-  if (nearBest.length > 1) {
-    return {
+  // Multiple usable matches → user must choose. Never guess silently.
+  if (supported.length > 1) {
+    return cacheSet(normalized, {
       status: 'ambiguous',
-      candidates: nearBest.map((s) => s.instrument),
-      reason: 'Multiple supported assets match. Select the one you mean.',
-    };
+      candidates: supported.slice(0, 8).map((s) => s.instrument),
+      reason: AMBIGUOUS_REASON,
+    });
   }
 
-  if (bestConfidence === 'medium' && ranked.length > 1 && supported.length > 1) {
-    return {
-      status: 'ambiguous',
-      candidates: supported.slice(0, 6).map((s) => s.instrument),
-      reason: 'Multiple supported assets match. Select the one you mean.',
-    };
-  }
-
-  return {
+  return cacheSet(normalized, {
     status: 'resolved',
     instrument: best.instrument,
-    confidence: bestConfidence,
-  };
+    confidence: confidenceFromHit(best.hit),
+  });
 }
 
 export function getInstrumentById(id: string): Instrument | undefined {
@@ -355,9 +367,7 @@ export async function assertCreatableInstrument(
   }
   const probed = await probeInstrumentCapabilities(shape);
   if (!probed.dataCapabilities.quote || !probed.isSupported) {
-    throw new Error(
-      'This asset cannot be added — reliable market data is unavailable.',
-    );
+    throw new Error(UNSUPPORTED_REASON);
   }
   return probed;
 }

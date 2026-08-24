@@ -15,6 +15,8 @@ interface RiskCenterCardProps {
   data: RiskCenterSnapshot;
   /** Compact home-friendly mode: score + recommendation only until expanded. */
   compact?: boolean;
+  /** Free advanced-risk view: score + recommendation, no exposure/portfolio intelligence. */
+  limited?: boolean;
 }
 
 const CORRELATION_VARIANT: Record<ImpactLevel, 'success' | 'warning' | 'danger'> = {
@@ -53,9 +55,9 @@ function riskTone(score: number): {
   };
 }
 
-export function RiskCenterCard({ data, compact = false }: RiskCenterCardProps) {
+export function RiskCenterCard({ data, compact = false, limited = false }: RiskCenterCardProps) {
   const { colors } = useTheme();
-  const [open, setOpen] = useState(!compact);
+  const [open, setOpen] = useState(!compact && !limited);
   const score = Math.max(0, Math.min(100, Math.round(data.riskScore)));
   const tone = riskTone(score);
 
@@ -83,85 +85,93 @@ export function RiskCenterCard({ data, compact = false }: RiskCenterCardProps) {
         {data.recommendation}
       </Text>
 
-      {data.health?.stressTest ? (
+      {limited ? null : data.health?.stressTest ? (
         <Text variant="caption" className="mb-2 leading-relaxed text-text-tertiary">
           Stress: {data.health.stressTest}
         </Text>
       ) : null}
 
-      {data.concentrationWarning ? (
+      {limited ? null : data.concentrationWarning ? (
         <Text variant="caption" className="mb-2 leading-relaxed text-warning">
           {data.concentrationWarning}
         </Text>
       ) : null}
 
-      <Pressable
-        accessibilityRole="button"
-        onPress={() => setOpen((v) => !v)}
-        className="flex-row items-center justify-between pt-3"
-      >
-        <Text variant="caption" className="font-semibold text-text-secondary">
-          {open ? 'Hide exposure details' : 'Show exposure details'}
+      {limited ? (
+        <Text variant="caption" className="pt-3 text-text-tertiary">
+          Full exposure, concentration, and stress detail is included with Premium.
         </Text>
-        <Ionicons
-          name={open ? 'chevron-up' : 'chevron-down'}
-          size={16}
-          color={colors.text.tertiary}
-        />
-      </Pressable>
+      ) : (
+        <>
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => setOpen((v) => !v)}
+            className="flex-row items-center justify-between pt-3"
+          >
+            <Text variant="caption" className="font-semibold text-text-secondary">
+              {open ? 'Hide exposure details' : 'Show exposure details'}
+            </Text>
+            <Ionicons
+              name={open ? 'chevron-up' : 'chevron-down'}
+              size={16}
+              color={colors.text.tertiary}
+            />
+          </Pressable>
 
-      {open ? (
-        <View className="mt-3 gap-3">
-          {data.sectorExposure.length > 0 ? (
-            <View className="gap-2.5">
-              <Text variant="caption" className="font-semibold text-text-secondary">
-                Where the money sits
+          {open ? (
+            <View className="mt-3 gap-3">
+              {data.sectorExposure.length > 0 ? (
+                <View className="gap-2.5">
+                  <Text variant="caption" className="font-semibold text-text-secondary">
+                    Where the money sits
+                  </Text>
+                  {data.sectorExposure.map((sector) => {
+                    const width = Math.max(0, Math.min(100, sector.percent));
+                    return (
+                      <View key={sector.label}>
+                        <View className="mb-1 flex-row items-center justify-between">
+                          <Text variant="caption" className="text-text-primary">
+                            {sector.label}
+                          </Text>
+                          <Text variant="caption">
+                            {formatPercent(width, { showSign: false, decimals: 0 })}
+                          </Text>
+                        </View>
+                        <View className="h-2 overflow-hidden rounded-full bg-surface-active">
+                          <View
+                            className="h-full rounded-full bg-accent"
+                            style={{ width: `${width}%` }}
+                          />
+                        </View>
+                      </View>
+                    );
+                  })}
+                </View>
+              ) : null}
+
+              <View className="flex-row flex-wrap gap-3">
+                <MetricChip
+                  label="Cash"
+                  value={formatPercent(data.cashPercent, { showSign: false, decimals: 0 })}
+                />
+                <MetricChip label="Beta" value={data.betaEstimate.toFixed(2)} />
+                <View className="flex-row items-center gap-1.5">
+                  <Text variant="caption">Moves together</Text>
+                  <Badge
+                    label={data.correlation}
+                    variant={CORRELATION_VARIANT[data.correlation]}
+                    size="sm"
+                  />
+                </View>
+              </View>
+
+              <Text variant="caption" className="text-text-tertiary">
+                {data.holdingsCount} holdings · updated {formatRelativeTime(data.asOf)}
               </Text>
-              {data.sectorExposure.map((sector) => {
-                const width = Math.max(0, Math.min(100, sector.percent));
-                return (
-                  <View key={sector.label}>
-                    <View className="mb-1 flex-row items-center justify-between">
-                      <Text variant="caption" className="text-text-primary">
-                        {sector.label}
-                      </Text>
-                      <Text variant="caption">
-                        {formatPercent(width, { showSign: false, decimals: 0 })}
-                      </Text>
-                    </View>
-                    <View className="h-2 overflow-hidden rounded-full bg-surface-active">
-                      <View
-                        className="h-full rounded-full bg-accent"
-                        style={{ width: `${width}%` }}
-                      />
-                    </View>
-                  </View>
-                );
-              })}
             </View>
           ) : null}
-
-          <View className="flex-row flex-wrap gap-3">
-            <MetricChip
-              label="Cash"
-              value={formatPercent(data.cashPercent, { showSign: false, decimals: 0 })}
-            />
-            <MetricChip label="Beta" value={data.betaEstimate.toFixed(2)} />
-            <View className="flex-row items-center gap-1.5">
-              <Text variant="caption">Moves together</Text>
-              <Badge
-                label={data.correlation}
-                variant={CORRELATION_VARIANT[data.correlation]}
-                size="sm"
-              />
-            </View>
-          </View>
-
-          <Text variant="caption" className="text-text-tertiary">
-            {data.holdingsCount} holdings · updated {formatRelativeTime(data.asOf)}
-          </Text>
-        </View>
-      ) : null}
+        </>
+      )}
     </GlassCard>
   );
 }

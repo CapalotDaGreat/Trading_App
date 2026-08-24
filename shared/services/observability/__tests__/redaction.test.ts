@@ -21,6 +21,22 @@ describe('observability redaction', () => {
     });
   });
 
+  it('does not pass journal, AI, or portfolio payloads through as-is', () => {
+    expect(
+      redact({
+        journal: 'sold everything after CPI',
+        prompt: 'should I buy EURUSD',
+        holdings: [{ quantity: 10, notional: 5000 }],
+        apiKey: 'sk-test',
+      }),
+    ).toEqual({
+      journal: '[REDACTED]',
+      prompt: '[REDACTED]',
+      holdings: '[REDACTED]',
+      apiKey: '[REDACTED]',
+    });
+  });
+
   it('handles cycles without leaking or throwing', () => {
     const value: Record<string, unknown> = {};
     value.self = value;

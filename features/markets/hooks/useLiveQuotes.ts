@@ -37,5 +37,9 @@ export function useLiveQuotes(symbols: string[], enabled = true) {
 
 export function quotesToPriceMap(quotes: LiveQuote[] | undefined): Record<string, number> {
   if (!quotes?.length) return {};
-  return Object.fromEntries(quotes.map((q) => [q.symbol.toUpperCase(), q.price]));
+  return Object.fromEntries(
+    quotes
+      .filter((q) => Number.isFinite(q.price) && q.price > 0)
+      .map((q) => [q.symbol.toUpperCase(), q.price]),
+  );
 }

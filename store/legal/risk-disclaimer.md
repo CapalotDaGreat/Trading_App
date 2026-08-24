@@ -1,10 +1,12 @@
 # Risk & Investment Disclaimer
 
-**Last updated:** 24 July 2026  
-**Version:** 2026.07.24  
-**Operator:** Aithera  
+**Last updated:** 24 August 2026  
+**Version:** 2026.08.24  
+**Operator:** [LEGAL ENTITY NAME REQUIRED], trading as Aithera  
+**Registered address:** Höglerstrasse 55, 8600 Dübendorf, Switzerland  
+**Contact:** [SUPPORT EMAIL REQUIRED]  
 
-This Risk & Investment Disclaimer forms part of your agreement with Aithera together with the Terms of Service and Privacy Policy. **Read it carefully before using the app.**
+This Risk & Investment Disclaimer forms part of your agreement with Aithera / [LEGAL ENTITY NAME REQUIRED] together with the Terms of Service and Privacy Policy. **Read it carefully before using the app.**
 
 ---
 
@@ -21,6 +23,8 @@ It is **not**:
 - a prediction of future prices, volatility, or returns.
 
 **Research Value Score (RVS)** ranks whether an idea may deserve research time. **Decision Quality Score (DQS)** grades checklist/process completeness. **Neither score predicts market direction or trading outcomes.**
+
+A **12+ / Teen store rating** is a content-suitability label. It is not permission to trade and not a statement that under-18 users may legally trade.
 
 ---
 
@@ -44,7 +48,7 @@ You should only risk capital you can afford to lose and ensure you understand th
 
 Market data, news, calendars, indicators, regimes, heatmaps, and any AI-assisted text may be **delayed, incomplete, approximate, sampled, mocked, or wrong**. Labels such as live / delayed / approximate / sample / mock are informational, not guarantees.
 
-Rules-based or model outputs can be biased, unstable, or unsuitable for your situation. Cloud AI features may be disabled; when present they are assistive only and may hallucinate or omit context.
+Rules-based or model outputs can be biased, unstable, or unsuitable for your situation. Production third-party **cloud AI is disabled** in this release; local explainability features (when present) are assistive only and may be incomplete or wrong.
 
 **You must independently verify any information before acting.**
 
@@ -85,5 +89,6 @@ By using the Service you acknowledge that:
 
 ## 8. Contact
 
-support@tradevision.ai  
-https://tradevision.ai
+[SUPPORT EMAIL REQUIRED]  
+Höglerstrasse 55, 8600 Dübendorf, Switzerland  
+[OFFICIAL DOMAIN REQUIRED]

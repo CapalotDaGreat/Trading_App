@@ -23,9 +23,11 @@ function usageStorageKey(uid: string, capability: EntitlementCapability): string
 export function getRemoteEntitlementOverrides(): EntitlementRemoteOverrides {
   const remote = useOpsConfigStore.getState().snapshot.remote;
   return {
+    aiDailyLimitFree: remote.aiDailyLimitFree,
+    aiDailyLimitPremium: remote.aiDailyLimitPremium,
     aiMentorMonthlyFree: remote.aiMentorMonthlyFree,
-    aiAnalysisMonthlyFree: remote.aiAnalysisMonthlyFree ?? remote.aiDailyLimitFree,
-    aiAnalysisMonthlyPremium: remote.aiAnalysisMonthlyPremium ?? remote.aiDailyLimitPremium,
+    aiAnalysisMonthlyFree: remote.aiAnalysisMonthlyFree,
+    aiAnalysisMonthlyPremium: remote.aiAnalysisMonthlyPremium,
     replaySessionsMonthlyFree: remote.replaySessionsMonthlyFree,
     watchlistCountFree: remote.watchlistCountFree,
     symbolsPerWatchlistFree: remote.symbolsPerWatchlistFree,

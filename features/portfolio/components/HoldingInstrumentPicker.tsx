@@ -4,7 +4,11 @@ import { ActivityIndicator, Pressable, View } from 'react-native';
 import { useInstrumentSearch } from '@/features/markets/hooks/useInstrumentSearch';
 import { resolveInstrument } from '@/features/markets/services/instrument-resolver.service';
 import type { Instrument } from '@/features/markets/types/instrument.types';
-import { instrumentClassLabel } from '@/features/markets/types/instrument.types';
+import {
+  INSTRUMENT_RESOLUTION_COPY,
+  instrumentClassLabel,
+  instrumentCountryLabel,
+} from '@/features/markets/types/instrument.types';
 import { Input } from '@/shared/components/ui/Input';
 import { Text } from '@/shared/components/ui/Text';
 
@@ -19,6 +23,7 @@ export function HoldingInstrumentPicker({
 }: HoldingInstrumentPickerProps) {
   const [query, setQuery] = useState('');
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  const [statusTitle, setStatusTitle] = useState<string | null>(null);
   const [isResolving, setIsResolving] = useState(false);
   const [candidates, setCandidates] = useState<Instrument[] | null>(null);
 
@@ -27,6 +32,7 @@ export function HoldingInstrumentPicker({
   const runResolve = async (raw: string) => {
     setIsResolving(true);
     setStatusMessage(null);
+    setStatusTitle(null);
     setCandidates(null);
     try {
       const result = await resolveInstrument(raw);
@@ -37,22 +43,22 @@ export function HoldingInstrumentPicker({
       }
       if (result.status === 'ambiguous') {
         setCandidates(result.candidates);
-        setStatusMessage(result.reason ?? 'Select the asset you mean.');
+        setStatusTitle(INSTRUMENT_RESOLUTION_COPY.whichAsset);
+        setStatusMessage(result.reason ?? INSTRUMENT_RESOLUTION_COPY.neverGuess);
         return;
       }
       if (result.status === 'unsupported') {
-        setStatusMessage(
-          result.reason ??
-            'We found this asset, but TradeInsight cannot currently provide reliable market data for it.',
-        );
+        setStatusTitle(INSTRUMENT_RESOLUTION_COPY.couldNotVerify);
+        setStatusMessage(INSTRUMENT_RESOLUTION_COPY.reliableDataOnly);
         return;
       }
+      setStatusTitle(INSTRUMENT_RESOLUTION_COPY.couldNotVerify);
       setStatusMessage(
-        result.reason ??
-          "We couldn't find a supported market asset. Try Apple, AAPL, Bitcoin, BTC/USD, or Gold.",
+        result.reason ?? INSTRUMENT_RESOLUTION_COPY.reliableDataOnly,
       );
     } catch {
-      setStatusMessage('Search is temporarily unavailable. Try again in a moment.');
+      setStatusTitle(INSTRUMENT_RESOLUTION_COPY.couldNotVerify);
+      setStatusMessage(INSTRUMENT_RESOLUTION_COPY.reliableDataOnly);
     } finally {
       setIsResolving(false);
     }
@@ -61,6 +67,7 @@ export function HoldingInstrumentPicker({
   const selectCandidate = async (instrument: Instrument) => {
     setIsResolving(true);
     setStatusMessage(null);
+    setStatusTitle(null);
     try {
       const result = await resolveInstrument(instrument.canonicalSymbol);
       if (result.status === 'resolved') {
@@ -70,20 +77,18 @@ export function HoldingInstrumentPicker({
         return;
       }
       if (result.status === 'unsupported') {
-        setStatusMessage(
-          result.reason ??
-            'TradeInsight cannot currently provide reliable market data for this asset.',
-        );
+        setStatusTitle(INSTRUMENT_RESOLUTION_COPY.couldNotVerify);
+        setStatusMessage(INSTRUMENT_RESOLUTION_COPY.reliableDataOnly);
         return;
       }
-      // Already capability-checked in list path — accept selected instrument if quote-capable
       if (instrument.dataCapabilities.quote) {
         onResolved(instrument);
         setCandidates(null);
         setQuery('');
         return;
       }
-      setStatusMessage('This asset could not be confirmed with market data.');
+      setStatusTitle(INSTRUMENT_RESOLUTION_COPY.couldNotVerify);
+      setStatusMessage(INSTRUMENT_RESOLUTION_COPY.reliableDataOnly);
     } finally {
       setIsResolving(false);
     }
@@ -107,6 +112,7 @@ export function HoldingInstrumentPicker({
         onChangeText={(text) => {
           setQuery(text);
           setStatusMessage(null);
+          setStatusTitle(null);
           setCandidates(null);
         }}
         placeholder="Apple, AAPL, Bitcoin, Gold…"
@@ -133,6 +139,11 @@ export function HoldingInstrumentPicker({
         </View>
       ) : null}
 
+      {statusTitle ? (
+        <Text variant="body" className="text-text-primary" accessibilityLiveRegion="polite">
+          {statusTitle}
+        </Text>
+      ) : null}
       {statusMessage ? (
         <Text
           variant="body-sm"
@@ -146,30 +157,43 @@ export function HoldingInstrumentPicker({
 
       {showList && hits.length > 0 ? (
         <View className="overflow-hidden rounded-2xl bg-background-elevated">
-          {hits.slice(0, 8).map((item) => (
-            <Pressable
-              key={item.id}
-              disabled={disabled || isResolving}
-              onPress={() => void selectCandidate(item)}
-              accessibilityRole="button"
-              accessibilityLabel={`${item.name}, ${item.canonicalSymbol}, ${instrumentClassLabel(item.assetClass)}`}
-              className="min-h-14 border-b border-border px-4 py-3.5 active:bg-surface"
-            >
-              <Text variant="body">{item.name}</Text>
-              <Text variant="caption" className="mt-1 text-text-tertiary">
-                {item.canonicalSymbol} · {instrumentClassLabel(item.assetClass)}
-                {item.exchange ? ` · ${item.exchange}` : ''}
-                {item.currency ? ` · ${item.currency}` : ''}
-              </Text>
-            </Pressable>
-          ))}
+          {hits.slice(0, 8).map((item) => {
+            const country = instrumentCountryLabel(item.country);
+            return (
+              <Pressable
+                key={item.id}
+                disabled={disabled || isResolving}
+                onPress={() => void selectCandidate(item)}
+                accessibilityRole="button"
+                accessibilityLabel={`${item.name}, ${item.canonicalSymbol}, ${instrumentClassLabel(item.assetClass)}`}
+                className="min-h-14 border-b border-border px-4 py-3.5 active:bg-surface"
+              >
+                <Text variant="body">{item.name}</Text>
+                <Text variant="caption" className="mt-1 text-text-tertiary">
+                  {[
+                    item.canonicalSymbol,
+                    item.exchange,
+                    instrumentClassLabel(item.assetClass),
+                    country,
+                  ]
+                    .filter(Boolean)
+                    .join(' · ')}
+                </Text>
+              </Pressable>
+            );
+          })}
         </View>
       ) : null}
 
       {showList && !search.isFetching && !isResolving && hits.length === 0 && query.trim() ? (
-        <Text variant="body-sm" className="text-text-secondary">
-          No supported matches yet. Try a company name, ticker, crypto pair, or commodity.
-        </Text>
+        <View className="gap-1">
+          <Text variant="body-sm" className="text-text-secondary">
+            {INSTRUMENT_RESOLUTION_COPY.couldNotVerify}
+          </Text>
+          <Text variant="caption" className="text-text-tertiary">
+            {INSTRUMENT_RESOLUTION_COPY.reliableDataOnly}
+          </Text>
+        </View>
       ) : null}
     </View>
   );

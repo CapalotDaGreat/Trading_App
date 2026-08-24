@@ -43,7 +43,7 @@ export default function ReviewScreen() {
           testID="review-continue-hero"
         >
           <Text variant="label" className="text-accent">
-            CONTINUE
+            NEXT
           </Text>
           <Text variant="h2" headingLevel={2} className="mt-2">
             {continueItem.title}
@@ -57,7 +57,7 @@ export default function ReviewScreen() {
       <CollapsibleSection
         title="Continue"
         description="Return to your current process review or Replay TV session."
-        defaultExpanded
+        defaultExpanded={false}
         className="mt-4"
       >
         <HubPathList sections={CONTINUE} emphasizeFirst={false} />

@@ -28,6 +28,7 @@ export function resolveRootRedirect({
 }: RootRouteGateInput): string | null {
   const inAuth = firstSegment === '(auth)';
   const inOnboarding = firstSegment === 'onboarding';
+  const inLegal = firstSegment === 'legal';
   const inActivationCompanion = firstSegment === 'journal' || firstSegment === 'asset';
 
   if (firebaseConfigured) {
@@ -39,14 +40,16 @@ export function resolveRootRedirect({
       return inAuth && secondSegment === 'verify-email' ? null : '/(auth)/verify-email';
     }
     if (status === 'unauthenticated') {
-      return inAuth ? null : '/(auth)/welcome';
+      return inAuth || inLegal ? null : '/(auth)/welcome';
     }
   }
 
   if (status !== 'authenticated') return null;
   if (!onboarding) return null;
   // New users: Mentor Setup is required before tabs.
-  if (!onboarding.completed) return inOnboarding || inActivationCompanion ? null : '/onboarding';
+  if (!onboarding.completed) {
+    return inOnboarding || inActivationCompanion || inLegal ? null : '/onboarding';
+  }
   // Soft invite path: allow /onboarding until Mentor Setup is finished.
   if (inOnboarding && !mentorSetupCompleted) return null;
   if (inOnboarding || inAuth) return '/(tabs)';

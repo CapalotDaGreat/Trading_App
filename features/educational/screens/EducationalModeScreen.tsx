@@ -115,7 +115,7 @@ export function EducationalModeScreen() {
         <EducationalPanel
           variant="risk"
           body="TradeInsight does not execute trades, custody funds, or guarantee future performance. You remain responsible for every live decision with your own broker."
-          learnMoreHref="/settings/legal/risk"
+          learnMoreHref="/legal/risk"
           learnMoreLabel="Read risk disclaimer"
         />
       </View>

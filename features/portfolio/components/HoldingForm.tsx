@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import { View } from 'react-native';
 
-import { DataSourceBadge } from '@/features/markets/components/DataSourceBadge';
+import { InstrumentIdentityCard } from '@/features/markets/components/InstrumentIdentityCard';
 import type { Instrument } from '@/features/markets/types/instrument.types';
-import { instrumentClassLabel } from '@/features/markets/types/instrument.types';
+import { INSTRUMENT_RESOLUTION_COPY, isUsableMarketPrice } from '@/features/markets/types/instrument.types';
 import { Button } from '@/shared/components/ui/Button';
 import { GlassCard } from '@/shared/components/ui/GlassCard';
 import { Input } from '@/shared/components/ui/Input';
@@ -92,7 +92,7 @@ export function HoldingForm({
     const parsedAverageCost = Number(averageCost);
     const price = instrument.lastQuotePrice;
     if (!price || price <= 0) {
-      setError('Market data is unavailable for this asset — it cannot be added.');
+      setError(INSTRUMENT_RESOLUTION_COPY.priceUnavailable);
       return;
     }
     if (
@@ -159,44 +159,16 @@ export function HoldingForm({
       ) : null}
 
       {!holding && step === 'confirm' && instrument ? (
-        <View className="gap-3">
-          <Text variant="label">Select asset</Text>
-          <View className="rounded-2xl bg-surface px-4 py-3">
-            <Text variant="h3" headingLevel={3}>
-              {instrument.name}
-            </Text>
-            <Text variant="body-sm" className="mt-1 text-text-secondary">
-              {instrument.canonicalSymbol} · {instrumentClassLabel(instrument.assetClass)}
-              {instrument.exchange ? ` · ${instrument.exchange}` : ''}
-            </Text>
-            <View className="mt-3 flex-row items-center gap-2">
-              {instrument.lastQuoteKind ? (
-                <DataSourceBadge kind={instrument.lastQuoteKind} />
-              ) : null}
-              <Text variant="caption" className="text-text-tertiary">
-                Market data available
-                {instrument.lastQuotePrice != null
-                  ? ` · last ${instrument.lastQuotePrice.toFixed(2)} ${instrument.currency}`
-                  : ''}
-              </Text>
-            </View>
-          </View>
-          <Button
-            onPress={() => setStep('lot')}
-            accessibilityLabel="Continue with selected asset"
-          >
-            Continue
-          </Button>
-          <Button
-            variant="ghost"
-            onPress={() => {
-              setInstrument(null);
-              setStep('search');
-            }}
-          >
-            Choose a different asset
-          </Button>
-        </View>
+        <InstrumentIdentityCard
+          instrument={instrument}
+          confirmLabel="Add this asset"
+          onConfirm={() => setStep('lot')}
+          onCancel={() => {
+            setInstrument(null);
+            setStep('search');
+          }}
+          disabled={isSaving}
+        />
       ) : null}
 
       {(holding || step === 'lot') && (
@@ -207,8 +179,9 @@ export function HoldingForm({
                 {instrument.name} · {instrument.canonicalSymbol}
               </Text>
               <Text variant="caption" className="mt-1 text-text-tertiary">
-                Last market price {instrument.lastQuotePrice?.toFixed(2)} {instrument.currency}{' '}
-                (used as current price — not a recommendation)
+                {isUsableMarketPrice(instrument.lastQuotePrice)
+                  ? `Last market price ${instrument.lastQuotePrice!.toFixed(2)} ${instrument.currency} (used as current price — not a recommendation)`
+                  : INSTRUMENT_RESOLUTION_COPY.priceUnavailable}
               </Text>
             </View>
           ) : null}

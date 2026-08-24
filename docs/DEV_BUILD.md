@@ -1,4 +1,6 @@
-# TradeVision Dev Client & native reliability
+# TradeInsight Dev Client & native reliability
+
+Production EAS audit (SDK 54, PASS / WARN / BLOCKER): [PRODUCTION_BUILD_AUDIT.md](./PRODUCTION_BUILD_AUDIT.md).
 
 Expo Go remains fine for most UI and Decision OS work. **Native IAP, reliable
 background alert evaluation, production push credentials, and home-screen widgets**
@@ -116,7 +118,7 @@ rates — do not treat task-manager alone as the final reliability answer.
 
 ## IAP checklist (Dev Client / production)
 
-1. RevenueCat `Aithera Pro` entitlement + `monthly` / `yearly` / `lifetime` products (see README).
+1. RevenueCat `Aithera Pro` entitlement + `monthly` / `yearly` products (see [MONETIZATION.md](./MONETIZATION.md)). Do not create Lifetime at launch.
 2. Platform SDK keys: `EXPO_PUBLIC_REVENUECAT_IOS_API_KEY` / `_ANDROID_…` (or shared `EXPO_PUBLIC_REVENUECAT_API_KEY` for test keys). Never put secret API keys in `EXPO_PUBLIC_*`.
 3. Configure a Paywall + Customer Center on the current offering in the RevenueCat dashboard.
 4. Sandbox (iOS) / license testers (Android): purchase → Aithera Pro unlocks (RC customerInfo optimistic + webhook Firestore).
@@ -138,7 +140,7 @@ never as `EXPO_PUBLIC_*` in production EAS profiles. Guest/demo uses sample/publ
 ## RevenueCat subscriptions
 
 1. Set platform-specific public SDK keys (above).
-2. Configure the `Aithera Pro` entitlement and attach `monthly`, `yearly`, and `lifetime`.
+2. Configure the `Aithera Pro` entitlement and attach `monthly` and `yearly`.
 3. Attach a Paywall to the current offering; enable Customer Center for management.
 4. Webhook → `revenueCatWebhook` with `REVENUECAT_WEBHOOK_AUTH_TOKEN`.
    Set Functions `REVENUECAT_ENTITLEMENT_ID=Aithera Pro` to match.

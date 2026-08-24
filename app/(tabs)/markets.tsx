@@ -131,7 +131,7 @@ export default function MarketsScreen() {
           Popular {activeTab}
         </Text>
         <Text variant="caption" className="mb-3 text-text-secondary">
-          Live quotes · tap any row for the chart
+          Live or delayed quotes as labelled · tap a row to research
         </Text>
         <View className="gap-1">
           {popularAssets.slice(0, 6).map((asset) => (

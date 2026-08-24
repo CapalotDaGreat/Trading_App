@@ -79,11 +79,46 @@ export const INSTRUMENT_CLASS_DISPLAY: Record<AssetClass, string> = {
   crypto: 'Crypto',
   forex: 'Forex',
   commodity: 'Commodity',
+  metal: 'Metal',
   index: 'Index',
   option: 'Option',
   bond: 'Bond',
   futures: 'Futures',
 };
+
+export const INSTRUMENT_RESOLUTION_COPY = {
+  couldNotVerify: "We couldn't verify this instrument.",
+  reliableDataOnly:
+    'TradeInsight can only manage assets for which reliable market data is available.',
+  whichAsset: 'Which asset did you mean?',
+  priceUnavailable: 'Price unavailable',
+  neverGuess: 'Never guess silently — pick the asset you mean.',
+} as const;
+
+const COUNTRY_LABELS: Record<string, string> = {
+  US: 'United States',
+  GB: 'United Kingdom',
+  EU: 'Eurozone',
+  JP: 'Japan',
+  CA: 'Canada',
+  AU: 'Australia',
+  CH: 'Switzerland',
+  HK: 'Hong Kong',
+  DE: 'Germany',
+  FR: 'France',
+};
+
+export function instrumentCountryLabel(country?: string): string | undefined {
+  if (!country?.trim()) return undefined;
+  const trimmed = country.trim();
+  if (trimmed.length > 3) return trimmed;
+  return COUNTRY_LABELS[trimmed.toUpperCase()] ?? trimmed;
+}
+
+/** True only for a real, positive market price — never 0 / NaN / invented. */
+export function isUsableMarketPrice(price: unknown): boolean {
+  return typeof price === 'number' && Number.isFinite(price) && price > 0;
+}
 
 export function instrumentClassLabel(assetClass: AssetClass): string {
   return INSTRUMENT_CLASS_DISPLAY[assetClass] ?? assetClass;

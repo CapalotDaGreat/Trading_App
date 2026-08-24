@@ -7,9 +7,15 @@ Universal instrument identity for TradeInsight (TradeVision AI) — used before 
 **Never trust user-entered symbols as valid asset identifiers.**
 
 ```text
-user input → normalize → canonical / provider search → capability check → Instrument
-                                                                          ↓
-                                                              portfolio holding
+user input
+  → normalization
+  → search provider (skipped on exact catalog match)
+  → candidate ranking
+  → asset-class classification
+  → canonical symbol + exchange / provider identity
+  → quote verification
+  → user confirmation
+  → portfolio insertion
 ```
 
 If resolution fails (`not_found` / `unsupported` / user does not select from `ambiguous`), **do not create a holding**.
@@ -18,6 +24,7 @@ If resolution fails (`not_found` / `unsupported` / user does not select from `am
 
 | Layer | Location |
 | --- | --- |
+| Identity (shared) | [`features/markets/services/instrument-identity.service.ts`](../features/markets/services/instrument-identity.service.ts) |
 | Types | [`features/markets/types/instrument.types.ts`](../features/markets/types/instrument.types.ts) |
 | Normalize | [`features/markets/services/instrument-normalize.service.ts`](../features/markets/services/instrument-normalize.service.ts) |
 | Catalog | [`features/markets/content/canonical-instruments.ts`](../features/markets/content/canonical-instruments.ts) |
@@ -25,7 +32,7 @@ If resolution fails (`not_found` / `unsupported` / user does not select from `am
 | Search reuse | [`features/markets/services/market-search.service.ts`](../features/markets/services/market-search.service.ts) |
 | Quotes | [`features/markets/services/market-data.service.ts`](../features/markets/services/market-data.service.ts) |
 | Portfolio gate | [`features/portfolio/services/portfolio.service.ts`](../features/portfolio/services/portfolio.service.ts) |
-| UX | [`features/portfolio/components/HoldingInstrumentPicker.tsx`](../features/portfolio/components/HoldingInstrumentPicker.tsx) |
+| Confirmation UX | [`features/markets/components/InstrumentIdentityCard.tsx`](../features/markets/components/InstrumentIdentityCard.tsx), [`features/portfolio/components/HoldingInstrumentPicker.tsx`](../features/portfolio/components/HoldingInstrumentPicker.tsx) |
 | Server | [`functions/src/portfolio-holdings.ts`](../functions/src/portfolio-holdings.ts), [`functions/src/instruments-catalog.ts`](../functions/src/instruments-catalog.ts) |
 
 Uses existing `Asset` / `AssetClass` / `MarketType` terminology (`equity` not a separate `stock` type). Display labels map Equity → “Stock”.
@@ -38,26 +45,33 @@ Uses existing `Asset` / `AssetClass` / `MarketType` terminology (`equity` not a 
 | Crypto | Catalog + CoinGecko search | CoinGecko / sample |
 | Forex | Catalog + local pair list | Open ER API / sample |
 | Indices (ETF proxies) | Catalog (SPY, QQQ, DIA, …) | Same as stocks |
-| Commodities / metals | Catalog (Gold→`GC=F`, Silver→`SI=F`, Oil, Brent, Copper) | Finnhub futures symbols |
+| Commodities | Catalog (Oil, Brent, Copper) | Finnhub futures symbols |
+| Metals | Catalog (Gold→`XAU/USD` / `GC=F`, Silver→`XAG/USD` / `SI=F`) | Finnhub futures symbols |
+| Other | Options / bonds / futures types exist; generally out of catalog scope | — |
 
 This is **not** a Bloomberg security master. Coverage is limited to what providers and the curated catalog actually support.
 
 ## Resolution flow
 
 1. **Normalize** — trim, pair forms (`BTCUSD`→`BTC/USD`), length ≤ 64, reject unsafe characters  
-2. **Exact catalog / alias match** — highest confidence  
-3. **Remote search** — existing `searchMarkets` (proxy Finnhub + CoinGecko + local FX/popular)  
+2. **Exact catalog / alias match** — skip remote search; probe quote  
+3. **Remote search** — existing `searchMarkets` (proxy Finnhub + CoinGecko + local FX/popular + catalog overlay)  
 4. **Rank** — exact symbol → exact name → pair → prefix → alias → fuzzy  
-5. **Capability probe** — `fetchQuoteWithMetadata` on top candidates; no usable quote → `unsupported`  
-6. **Outcome** — `resolved` | `ambiguous` (user must choose) | `unsupported` | `not_found`
+5. **Asset-class + provider identity** — `resolveMarketIdentity` (shared by Markets, Charts, Research, Decision, Portfolio, Alerts, AI, Journal, Replay via `buildAssetFromSymbol`)  
+6. **Capability probe** — `fetchQuoteWithMetadata`; no usable quote → `unsupported`  
+7. **Outcome** — `resolved` | `ambiguous` (“Which asset did you mean?”) | `unsupported` | `not_found`  
+8. **User confirmation** — identity card (name, canonical symbol, exchange, class, country) → **Add this asset**  
+9. **Portfolio insert** — requires resolved identity + positive market price
+
+Exact catalog matches do **not** call the search provider. Resolve results are cached for 60s (plus React Query on the picker).
 
 ## Ambiguity & unsupported
 
-- **Ambiguous:** multiple plausible supported instruments — UI requires explicit selection.  
-- **Unsupported:** identity known (or found) but TradeInsight cannot retrieve reliable market data.  
+- **Ambiguous:** multiple plausible supported instruments — UI asks “Which asset did you mean?” Never guess silently.  
+- **Unsupported:** “We couldn't verify this instrument.” + “TradeInsight can only manage assets for which reliable market data is available.”  
 - **Not found:** no reliable identification.
 
-Never invent prices, synthetic candles, or fake providers for portfolio create.
+Missing/zero quotes render **Price unavailable** — never 0, fake, or synthetic prices in portfolio math.
 
 ## Demo / offline
 
@@ -84,7 +98,7 @@ Duplicates (same `instrumentId` / canonical symbol) surface “Update holding”
 
 ## Caching
 
-React Query via `useInstrumentSearch` — ~300ms debounce, 60s staleTime (same pattern as market search).
+React Query via `useInstrumentSearch` — ~300ms debounce, 60s staleTime. In-memory `resolveInstrument` cache (60s). Exact catalog hits skip remote search.
 
 ## Testing
 

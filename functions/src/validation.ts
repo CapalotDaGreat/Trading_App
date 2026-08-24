@@ -41,3 +41,47 @@ export function parseMarketType(raw: unknown): string {
   if (typeof raw !== 'string' || !allowed.has(raw)) return 'stocks';
   return raw;
 }
+
+const NEWS_CATEGORIES = new Set([
+  'business',
+  'entertainment',
+  'general',
+  'health',
+  'science',
+  'sports',
+  'technology',
+]);
+
+export function parseNewsCategory(raw: unknown): string {
+  if (typeof raw !== 'string' || !NEWS_CATEGORIES.has(raw)) return 'business';
+  return raw;
+}
+
+function isIsoDate(value: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const ms = Date.parse(`${value}T00:00:00.000Z`);
+  if (!Number.isFinite(ms)) return false;
+  return new Date(ms).toISOString().slice(0, 10) === value;
+}
+
+const MAX_CALENDAR_RANGE_MS = 31 * 86_400_000;
+
+export function parseCalendarRange(
+  fromRaw: unknown,
+  toRaw: unknown,
+  nowMs = Date.now(),
+): { from: string; to: string } {
+  const fromDefault = new Date(nowMs).toISOString().slice(0, 10);
+  const toDefault = new Date(nowMs + 7 * 86_400_000).toISOString().slice(0, 10);
+  const from = typeof fromRaw === 'string' ? fromRaw : fromDefault;
+  const to = typeof toRaw === 'string' ? toRaw : toDefault;
+  if (!isIsoDate(from) || !isIsoDate(to)) {
+    throw new Error('invalid_calendar_range');
+  }
+  const fromMs = Date.parse(`${from}T00:00:00.000Z`);
+  const toMs = Date.parse(`${to}T00:00:00.000Z`);
+  if (fromMs > toMs || toMs - fromMs > MAX_CALENDAR_RANGE_MS) {
+    throw new Error('invalid_calendar_range');
+  }
+  return { from, to };
+}

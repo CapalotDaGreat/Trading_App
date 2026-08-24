@@ -1,75 +1,71 @@
-# Store launch checklist — execution status
+# Store launch checklist — TradeInsight by Aithera
 
-**Date:** 2026-08-05  
-**Commit under test:** run `git rev-parse HEAD` when attaching evidence  
-**Repo gate verdict:** **PASS** (automated)  
-**Store submission verdict:** **NO-GO** until manual console / hosting / signed-build items below are complete
+**Date:** 2026-08-24  
+**Identity:** product **TradeInsight**, company **Aithera**, bundle **`ai.tradevision.app`** (frozen)  
+**Privacy audit:** [PRIVACY_AUDIT.md](./PRIVACY_AUDIT.md)
 
-This file records what the engineering agent completed in-repo on 2026-08-05, and what only a human with Apple / Google / Expo / Firebase / counsel access can finish.
+## Verdict
+
+| Gate | Status |
+| --- | --- |
+| **REPO COMPLETE** | Legal templates, monetization catalog, in-app legal reader, metadata copy, reviewer notes, analytics allowlist, redaction, deletion paths in source |
+| **Store submission** | **NO-GO — MANUAL ACTION REQUIRED** |
+
+Do not submit until hosted legal URLs return HTTP 200 on `[OFFICIAL DOMAIN REQUIRED]` and console items below are done.
 
 ---
 
-## A. Completed in-repo (2026-08-05)
+## REPO COMPLETE
 
-### Automated release gate
+### Product / billing IDs (in source)
 
-| Check | Result |
-| --- | --- |
-| `npm run typecheck` | PASS |
-| `npm test -- --runInBand` | PASS — 54 suites, 180 tests |
-| `npm run functions:build` | PASS |
-| `npm --prefix functions test` | PASS — 11 tests |
-| `npm run test:rules` | PASS — Firestore + Storage rules (10 tests) |
-| `npx expo config --type public` | PASS — SDK 54, bundle `ai.tradevision.app` |
-| `updates.enabled` | **false** in local env (no `EXPO_PUBLIC_EAS_PROJECT_ID`) |
-| ESLint | Fixed hooks error in `AiChatScreen`; ignored `ops/admin/` Vite app at root lint |
+- Entitlement: `Aithera Pro` (do not rename to a generic `premium` string in RevenueCat)
+- Launch products: `monthly` / `yearly` — **no Lifetime at launch**
+- 7-day trial: yearly only, when the store intro offer is attached
+- Catalog: [MONETIZATION.md](./MONETIZATION.md)
 
-### Product / billing IDs (consistent)
+### Legal pack (templates)
 
-- Entitlement: `Aithera Pro`
-- Monthly: `monthly`
-- Yearly: `yearly`
-- Lifetime: `lifetime`
-- Present in: `shared/constants/subscription.ts`, Functions webhook, reviewer notes, metadata
+- Canonical markdown in `store/legal/` including Support
+- In-app reader: Settings → Legal & Support and `/legal/[doc]`
+- Sync: `npm run legal` → `shared/legal/document-text.ts` + `store/hosted/`
+- Operator placeholders remain: `[LEGAL ENTITY NAME REQUIRED]`, `[VAT/UID REQUIRED]`, contact emails, `[OFFICIAL DOMAIN REQUIRED]`
+- Postal address in templates: Höglerstrasse 55, 8600 Dübendorf
+- Age layers documented: store **12+ / Teen** vs accounts **18+** vs Guest (no 18+ gate)
 
-### Cloud Functions present in source
+### Privacy behaviour (in source)
 
-- `revenueCatWebhook` — `functions/src/index.ts`
-- `deleteAccount` — `functions/src/index.ts`
-- No `aiBrief` export found in Functions source
+- Crash reporting and product analytics **off by default**, consent-versioned
+- Analytics allowlist: no journal, AI chat, portfolio values, secrets
+- Sentry redaction + `__DEV__`-only console logs
+- Official mailboxes stay empty until `EXPO_PUBLIC_LEGAL_*_EMAIL` is set (no invented `*@tradevision.ai`)
+- Cloud generative AI **disabled** (`CLOUD_AI_ENABLED = false`)
+- `deleteAccount` removes Auth, user Firestore tree, settings, subscription record, Storage prefix, uid-scoped RevenueCat + security event docs
 
-### Legal pack
+### Store copy in repo
 
-- Canonical markdown in `store/legal/`
-- Synced into app via `python scripts/sync-legal-docs.py` → `shared/legal/document-text.ts`
-- Static hostable HTML generated via `python scripts/build-hosted-legal.py` → `store/hosted/`
-- Deep-link templates: `store/hosted/.well-known/apple-app-site-association`, `assetlinks.json`
-
-### Store asset scaffolding
-
-- Screenshot folders created under `store/screenshots/**` (empty `.gitkeep` placeholders)
-- Evidence template: `store/EVIDENCE_TEMPLATE.md`
-- Metadata ready: `store/metadata/app-store.json`, `play-store.json`
-- Reviewer notes ready: `store/reviewer-notes.md`
+- `store/metadata/app-store.json`, `play-store.json` (`listingUrlsReady: false`)
+- `store/reviewer-notes.md`
 
 ### Hosted URL probe (live site)
 
-Probed `https://tradevision.ai/{privacy,terms,support,account-deletion}` on 2026-08-05 — responses were **not** the TradeInsight / Aithera legal pages (placeholder / unrelated content). **Legal hosting remains a hard blocker.** Product display name is **TradeInsight**; bundle id stays `ai.tradevision.app`.
+Previously probed `https://tradevision.ai/{privacy,terms,support,account-deletion}` — **not** Aithera legal pages. **Legal hosting remains a hard blocker.** That origin is a technical fallback only.
 
 ---
 
-## B. Manual — you must do these
+## MANUAL ACTION REQUIRED
 
-### 1. Legal hosting + counsel (blocker)
+### 1. Legal entity + hosting (blocker)
 
-- [ ] Insert registered legal entity name, postal address, VAT/UID into `store/legal/*`
-- [ ] Counsel review (CH / EU / US as needed)
-- [ ] Re-run `npm run legal:sync` and `npm run legal:host`
-- [ ] Deploy `store/hosted/` to `tradevision.ai` site root so these return **HTTP 200** with correct HTML:
-  - `/privacy` `/terms` `/risk` `/security` `/account-deletion` `/support`
-- [ ] Replace `APPLE_TEAM_ID` in hosted AASA
+- [ ] Replace `[LEGAL ENTITY NAME REQUIRED]` and `[VAT/UID REQUIRED]` after counsel review
+- [ ] Activate real `[PRIVACY EMAIL REQUIRED]`, `[SECURITY EMAIL REQUIRED]`, `[SUPPORT EMAIL REQUIRED]`
+- [ ] Set `EXPO_PUBLIC_LEGAL_SITE_ORIGIN` and email env overrides to those values
+- [ ] `npm run legal` then deploy `store/hosted/` to `[OFFICIAL DOMAIN REQUIRED]`
+- [ ] Confirm HTTP 200: `/privacy` `/terms` `/risk` `/security` `/account-deletion` `/support`
+- [ ] Replace `APPLE_TEAM_ID` in hosted AASA (do not invent)
 - [ ] Replace Play signing SHA-256 in hosted `assetlinks.json`
 - [ ] Serve AASA as `application/json` **without** `.json` extension
+- [ ] Set `listingUrlsReady` true in metadata JSON only after the above
 
 ### 2. Expo / EAS (blocker)
 
@@ -87,14 +83,14 @@ Probed `https://tradevision.ai/{privacy,terms,support,account-deletion}` on 2026
 - [ ] Deploy Firestore rules, Storage rules, Functions (`revenueCatWebhook`, `deleteAccount`, ops)
 - [ ] Set Functions secrets: `REVENUECAT_WEBHOOK_AUTH_TOKEN`, vendor keys
 - [ ] Seed `opsAdmins/{uid}` if using ops admin
-- [ ] Prove account deletion on a real test user (Auth + Firestore + Storage)
+- [ ] Prove account deletion on a real test user (Auth + Firestore + Storage + uid security events)
 
 ### 4. Billing consoles (blocker)
 
 - [ ] App Store Connect: Paid Apps Agreement, tax, banking
-- [ ] Create products + 7-day yearly trial matching IDs above
+- [ ] Create products `monthly` and `yearly` + 7-day yearly trial matching IDs above. Do not create Lifetime at launch.
 - [ ] Play Console: same products + trial
-- [ ] RevenueCat: both stores, entitlement `premium`, webhook → Functions URL
+- [ ] RevenueCat: both stores, entitlement **`Aithera Pro`**, monthly + yearly on current offering, webhook → Functions URL. Confirm Paywall UI has no Lifetime package.
 - [ ] Sandbox / license tester matrix (purchase, restore, cancel, paid-through, refund, resubscribe)
 
 ### 5. Signed-device QA (blocker)
@@ -102,16 +98,15 @@ Probed `https://tradevision.ai/{privacy,terms,support,account-deletion}` on 2026
 - [ ] Install signed builds on real iOS + Android devices
 - [ ] Complete `docs/QA.md` signed smoke checklist
 - [ ] Fill `store/EVIDENCE_TEMPLATE.md` with build IDs and results
-- [ ] Optional: Maestro flows on signed client
 - [ ] VoiceOver + TalkBack + tablet landscape + Reduce Motion
 
 ### 6. Screenshots & listings (blocker)
 
-- [ ] Capture required scenes from **signed RC** into `store/screenshots/**` (see README there)
+- [ ] Capture required scenes from **signed RC** into `store/screenshots/**`
 - [ ] Play feature graphic
 - [ ] Upload to App Store Connect + Play Console
-- [ ] Paste listing copy from `store/metadata/*.json`
-- [ ] Fill Apple Privacy Nutrition Labels + Google Data Safety (match shipped consent behavior)
+- [ ] Paste listing copy from `store/metadata/*.json` **after** URLs are live
+- [ ] Fill Apple Privacy Nutrition Labels + Google Data Safety (match shipped consent behaviour)
 - [ ] Age: Apple **12+**, Play **Teen**; account eligibility **18+**
 
 ### 7. Review submission
@@ -123,33 +118,26 @@ Probed `https://tradevision.ai/{privacy,terms,support,account-deletion}` on 2026
 
 ---
 
-## C. Quick commands for you
+## Commands
 
 ```bash
-# After legal edits
-npm run legal:sync
-npm run legal:host
-
-# Repo gate before every RC
+npm run legal
 npm run typecheck
 npm test -- --runInBand
 npm run functions:build
 npm --prefix functions test
-npm run test:rules
-
-# When EAS env is set
-npx expo config --type public   # confirm updates.enabled + projectId
-eas build --profile preview --platform all
 ```
 
 ---
 
-## D. Related docs
+## Related docs
 
-- `docs/STORE_SUBMISSION.md` — external console gate
-- `docs/APP_STORE_REVIEW.md` — Apple guideline map
-- `docs/QA.md` — signed smoke + a11y
-- `docs/DEV_BUILD.md` — Expo Go vs store capabilities
-- `docs/ops/PRODUCTION_CHECKLIST.md` — ops
-- `store/hosted/README.md` — deploy legal/deep links
-- `store/EVIDENCE_TEMPLATE.md` — attach to release ticket
+- [PRODUCTION_BUILD_AUDIT.md](./PRODUCTION_BUILD_AUDIT.md)
+- [MONETIZATION.md](./MONETIZATION.md)
+- [STORE_SUBMISSION.md](./STORE_SUBMISSION.md)
+- [APP_STORE_REVIEW.md](./APP_STORE_REVIEW.md)
+- [PRIVACY_AUDIT.md](./PRIVACY_AUDIT.md)
+- [DEV_BUILD.md](./DEV_BUILD.md)
+- [IDENTITY_MIGRATION_PHASE0.md](./IDENTITY_MIGRATION_PHASE0.md)
+- `store/hosted/README.md`
+- `store/EVIDENCE_TEMPLATE.md`

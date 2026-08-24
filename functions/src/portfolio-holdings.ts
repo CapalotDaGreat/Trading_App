@@ -26,6 +26,7 @@ const ASSET_CLASSES = new Set([
   'crypto',
   'forex',
   'commodity',
+  'metal',
   'index',
   'option',
   'bond',
@@ -240,7 +241,9 @@ export const createPortfolioHolding = onCall(callableOpts, async (request) => {
         (r) => r.symbol.toUpperCase() === payload.canonicalSymbol.toUpperCase(),
       );
       if (!hit) {
-        failedPrecondition('Instrument could not be verified with market data providers.');
+        failedPrecondition(
+          "We couldn't verify this instrument. TradeInsight can only manage assets for which reliable market data is available.",
+        );
       } else {
         trusted = {
           ...trusted,
@@ -263,7 +266,7 @@ export const createPortfolioHolding = onCall(callableOpts, async (request) => {
     const quoteOk = await hasUsableQuote(trusted);
     if (!quoteOk) {
       failedPrecondition(
-        'TradeInsight cannot currently provide reliable market data for this asset.',
+        "We couldn't verify this instrument. TradeInsight can only manage assets for which reliable market data is available.",
       );
     }
 

@@ -14,7 +14,7 @@ interface RegimeCardProps {
   regime: RegimeSnapshot;
 }
 
-function plainGuidance(regime: RegimeSnapshot): string {
+export function marketConditionWhy(regime: RegimeSnapshot): string {
   const best = regime.bestStrategies[0];
   const avoid = regime.avoidStrategies[0];
   if (best && avoid) {
@@ -61,7 +61,7 @@ export function RegimeCard({ regime }: RegimeCardProps) {
           </View>
         </View>
         <Text variant="body-sm" className="leading-relaxed text-text-secondary">
-          {plainGuidance(regime)}
+          {marketConditionWhy(regime)}
         </Text>
       </Pressable>
 

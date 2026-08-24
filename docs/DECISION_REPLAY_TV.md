@@ -39,7 +39,7 @@ Educational historical decision rooms — the “Netflix of trading education”
 | Decision Graph / DNA / Weekly | Counts `replay_completed`; tags feed process evidence |
 | Mentor | Weekly replay recommendation → Replay TV; home ranking uses Mentor Setup |
 | Journal | Soft save reflection + deep link after completion |
-| Entitlements | Free monthly session cap; Premium for unlimited + advanced/expert library |
+| Entitlements | Free: foundation rooms + monthly session cap; Premium: full library + no monthly cap |
 
 ## Module
 

@@ -92,7 +92,7 @@ export function ResearchQueueCard({
             >
               <Text variant="label" className="text-text-primary">
                 {index + 1}. {item.symbol}
-                {item.priority === 'high' ? ' · Priority' : ''}
+                {item.priority === 'high' ? ' · Worth researching' : ''}
               </Text>
               <Text variant="caption" className="mt-0.5 text-text-secondary">
                 ~{item.estimatedMinutes} min
@@ -159,7 +159,7 @@ export function ResearchQueueCard({
                   >
                     <Text variant="label" className="text-text-primary">
                       {freePending.length + offset + 1}. {item.symbol}
-                      {item.priority === 'high' ? ' · Priority' : ''}
+                      {item.priority === 'high' ? ' · Worth researching' : ''}
                     </Text>
                     <Text variant="caption" className="mt-0.5 text-text-secondary">
                       ~{item.estimatedMinutes} min

@@ -9,6 +9,7 @@ import { buildDnaPatterns } from '../dna-patterns.service';
 import { buildDecisionGraph } from '../decision-graph.service';
 import { buildPersonalIntelligence } from '../personal-intelligence.service';
 import { buildPersonalizedToday, resolveTodayArchetype } from '../personalized-today.service';
+import { composeTradingDna } from '../dna-longitudinal.service';
 import { buildTradingDnaTraits } from '../trading-dna-traits.service';
 
 const NOW = Date.UTC(2026, 7, 10, 12, 0, 0);
@@ -226,7 +227,11 @@ describe('Trading DNA 2.0 personal intelligence', () => {
       uid: 'demo-guest',
     });
 
-    expect(snapshot.becomingQuestion).toContain('decision-maker');
+    expect(snapshot.becomingQuestion).toContain('How do I make decisions?');
+    expect(snapshot.coreQuestions.howIChange).toContain('changing over time');
+    expect(snapshot.dna.focusAreas.length).toBeLessThanOrEqual(2);
+    expect(snapshot.dna.strengthHabits.length).toBeLessThanOrEqual(3);
+    expect(snapshot.monthlyReview.practiceNext.some((l) => l.kind === 'replay')).toBe(true);
     expect(snapshot.patterns).toBeDefined();
     expect(snapshot.whatsChanging.length).toBeGreaterThan(0);
     expect(snapshot.weeklyReview).toBeDefined();
@@ -250,5 +255,212 @@ describe('Trading DNA 2.0 personal intelligence', () => {
       nowMs: NOW,
     });
     expect(goals.some((g) => g.id === 'academy_lesson' || g.id === 'replay_sessions')).toBe(true);
+  });
+
+  it('derives DNA deterministically from the same event spine', () => {
+    const a = composeTradingDna({ memory, records, nowMs: NOW });
+    const b = composeTradingDna({ memory, records, nowMs: NOW });
+    expect(JSON.stringify(a.traits)).toEqual(JSON.stringify(b.traits));
+    expect(a.decisionStyleSummary).toBe(b.decisionStyleSummary);
+  });
+
+  it('compares current vs 90-day invalidation without fabricating history', () => {
+    const historic: DecisionRecord[] = [
+      record('researched', 93),
+      record('researched', 92),
+      record('skipped', 92),
+      record('journaled', 91),
+      record('invalidated', 91),
+      record('researched', 2, { invalidation: 'Close below last swing' }),
+      record('researched', 1, { invalidation: 'Regime flip' }),
+      record('invalidated', 1),
+      record('invalidated', 0),
+      record('checklist_done', 0),
+      record('replay_completed', 1, { note: 'rtv:invalidation' }),
+      record('journaled', 0),
+      record('skipped', 0),
+    ];
+    const dna = composeTradingDna({ memory, records: historic, nowMs: NOW });
+    const invalidation = dna.traits.find((t) => t.id === 'invalidationDiscipline');
+    expect(invalidation?.status).toBe('scored');
+    expect(invalidation?.score90dAgo == null || typeof invalidation?.score90dAgo === 'number').toBe(
+      true,
+    );
+    expect(invalidation?.whySummary.toLowerCase()).not.toMatch(/dear diary|buy|sell/);
+    if (invalidation?.score != null && invalidation.score90dAgo != null) {
+      expect(invalidation.longitudinalTrend).toMatch(/improving|stable|declining/);
+    }
+    expect(invalidation?.ratioSentence ?? '').toMatch(/invalidation conditions/i);
+  });
+
+  it('drops journaled DNA evidence when the live journal is deleted', () => {
+    const log: DecisionRecord[] = [
+      record('researched', 1),
+      record('skipped', 1),
+      record('journaled', 1, { eventKey: 'journal:j1' }),
+      record('checklist_done', 1),
+      record('replay_completed', 2, { note: 'rtv:patience' }),
+    ];
+    const live = [
+      {
+        id: 'j1',
+        createdAtMs: NOW - 86_400_000,
+        hasPsychology: true,
+        hasLesson: true,
+        planAdhered: true,
+        emotion: 'neutral' as const,
+        mistakeCategory: null,
+      },
+    ];
+    const withJournal = composeTradingDna({
+      memory,
+      records: log,
+      journalEvidence: live,
+      nowMs: NOW,
+    });
+    const afterDelete = composeTradingDna({
+      memory,
+      records: log,
+      journalEvidence: [],
+      nowMs: NOW,
+    });
+    const journalCount = (dna: typeof withJournal) =>
+      dna.traits
+        .flatMap((t) => t.evidence)
+        .filter((e) => e.source === 'journal')
+        .reduce((s, e) => s + e.count, 0);
+    expect(journalCount(withJournal)).toBeGreaterThan(journalCount(afterDelete));
+  });
+
+  it('reacts to edited journal structured fields without ingesting raw notes', () => {
+    const log: DecisionRecord[] = [
+      record('researched', 1),
+      record('skipped', 1),
+      record('journaled', 1, { eventKey: 'journal:j1', note: 'plan-held' }),
+      record('journaled', 2, { eventKey: 'journal:j2', note: 'plan-held' }),
+    ];
+    const before = composeTradingDna({
+      memory,
+      records: log,
+      journalEvidence: [
+        {
+          id: 'j1',
+          createdAtMs: NOW - 86_400_000,
+          hasPsychology: false,
+          hasLesson: false,
+          planAdhered: true,
+          emotion: 'neutral',
+          mistakeCategory: null,
+        },
+        {
+          id: 'j2',
+          createdAtMs: NOW - 2 * 86_400_000,
+          hasPsychology: false,
+          hasLesson: false,
+          planAdhered: true,
+          emotion: 'neutral',
+          mistakeCategory: null,
+        },
+      ],
+      nowMs: NOW,
+    });
+    const after = composeTradingDna({
+      memory,
+      records: log,
+      journalEvidence: [
+        {
+          id: 'j1',
+          createdAtMs: NOW - 86_400_000,
+          hasPsychology: true,
+          hasLesson: true,
+          planAdhered: false,
+          emotion: 'fomo',
+          mistakeCategory: 'fomo',
+        },
+        {
+          id: 'j2',
+          createdAtMs: NOW - 2 * 86_400_000,
+          hasPsychology: true,
+          hasLesson: true,
+          planAdhered: false,
+          emotion: 'fearful',
+          mistakeCategory: 'revenge',
+        },
+      ],
+      nowMs: NOW,
+    });
+    const blob = JSON.stringify(after);
+    expect(blob).not.toMatch(/secret diary|I bought 400 shares/i);
+    const patterns = buildDnaPatterns({
+      records: log,
+      dna: after,
+      journalEvidence: after.observedTendencies.length
+        ? [
+            {
+              id: 'j1',
+              createdAtMs: NOW - 86_400_000,
+              hasPsychology: true,
+              hasLesson: true,
+              emotion: 'fomo',
+              mistakeCategory: 'fomo',
+            },
+            {
+              id: 'j2',
+              createdAtMs: NOW - 2 * 86_400_000,
+              hasPsychology: true,
+              hasLesson: true,
+              emotion: 'fearful',
+              mistakeCategory: 'revenge',
+            },
+          ]
+        : undefined,
+      nowMs: NOW,
+    });
+    expect(patterns.some((p) => p.id === 'emotional_reactivity')).toBe(true);
+    expect(before.observedTendencies.find((t) => t.id === 'over_analysis')?.framing).toBe(
+      'Observed tendency',
+    );
+  });
+
+  it('keeps replay tags in DNA and stays useful in demo with empty history', () => {
+    const replayRecords: DecisionRecord[] = [
+      record('replay_completed', 1, { note: 'rtv:patience rtv:invalidation rtv:evidence' }),
+      record('replay_completed', 2, { note: 'rtv:patience' }),
+      record('skipped', 1),
+      record('researched', 1),
+    ];
+    const dna = composeTradingDna({ memory, records: replayRecords, nowMs: NOW });
+    const patience = dna.traits.find((t) => t.id === 'patience');
+    expect(patience?.evidence.some((e) => e.source === 'replay')).toBe(true);
+    const empty = composeTradingDna({ memory, records: [], nowMs: NOW });
+    expect(empty.traits.every((t) => t.status === 'insufficient' || t.score == null || t.score >= 0)).toBe(
+      true,
+    );
+    expect(empty.decisionStyleSummary.toLowerCase()).toContain('not enough');
+  });
+
+  it('does not nag Today when the related trait is already improving', () => {
+    const improving = composeTradingDna({
+      memory,
+      records: [
+        record('invalidated', 1),
+        record('invalidated', 2),
+        record('checklist_done', 1),
+        record('journaled', 1),
+        record('skipped', 1),
+        record('researched', 1),
+        record('replay_completed', 1, { note: 'rtv:invalidation' }),
+      ],
+      nowMs: NOW,
+    });
+    const inv = improving.traits.find((t) => t.id === 'invalidationDiscipline');
+    if (inv) {
+      inv.trend = 'up';
+      inv.longitudinalTrend = 'improving';
+      inv.score = 70;
+    }
+    const today = buildPersonalizedToday({ dna: improving, nowMs: NOW, uid: 'test-user' });
+    expect(today.dnaAdaptations ?? []).not.toContain('invalidation_cue');
+    expect(today.detail.toLowerCase()).not.toContain('growth edge');
   });
 });

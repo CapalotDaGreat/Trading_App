@@ -15,7 +15,8 @@ import { Screen } from '@/shared/components/layout/Screen';
 import { Button } from '@/shared/components/ui/Button';
 import { GlassCard } from '@/shared/components/ui/GlassCard';
 import { Text } from '@/shared/components/ui/Text';
-import { LEGAL_URLS } from '@/shared/constants/legal';
+import { LEGAL_URLS, isLegalMailboxConfigured } from '@/shared/constants/legal';
+import { legalPath } from '@/shared/legal';
 import { openExternalUrl } from '@/shared/utils/open-url';
 
 const TIMEOUT_OPTIONS: { minutes: SessionTimeoutMinutes; label: string }[] = [
@@ -247,19 +248,19 @@ export function PrivacyScreen() {
           icon="lock-closed-outline"
           label="Privacy Policy"
           showChevron
-          onPress={() => router.push('/settings/legal/privacy' as never)}
+          onPress={() => router.push(legalPath('privacy'))}
         />
         <SettingsRow
           icon="shield-outline"
           label="Security notice"
           showChevron
-          onPress={() => router.push('/settings/legal/security' as never)}
+          onPress={() => router.push(legalPath('security'))}
         />
         <SettingsRow
           icon="document-text-outline"
           label="Account deletion policy"
           showChevron
-          onPress={() => router.push('/settings/legal/accountDeletion' as never)}
+          onPress={() => router.push(legalPath('accountDeletion'))}
         />
       </GlassCard>
 
@@ -270,16 +271,28 @@ export function PrivacyScreen() {
         <Text
           variant="caption"
           className="text-accent"
-          onPress={() => void openExternalUrl(LEGAL_URLS.privacyEmail)}
+          onPress={() => {
+            if (isLegalMailboxConfigured(LEGAL_URLS.privacyEmail)) {
+              void openExternalUrl(LEGAL_URLS.privacyEmail);
+              return;
+            }
+            router.push(legalPath('privacy'));
+          }}
         >
-          Contact privacy@tradevision.ai
+          Contact privacy
         </Text>
         <Text
           variant="caption"
           className="text-accent"
-          onPress={() => void openExternalUrl(LEGAL_URLS.securityEmail)}
+          onPress={() => {
+            if (isLegalMailboxConfigured(LEGAL_URLS.securityEmail)) {
+              void openExternalUrl(LEGAL_URLS.securityEmail);
+              return;
+            }
+            router.push(legalPath('security'));
+          }}
         >
-          Report security issues to security@tradevision.ai
+          Report a security issue
         </Text>
       </View>
     </Screen>

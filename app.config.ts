@@ -4,6 +4,7 @@ const APP_SCHEME = 'tradevision';
 const BUNDLE_IDENTIFIER = 'ai.tradevision.app';
 const EAS_PROJECT_ID = process.env.EXPO_PUBLIC_EAS_PROJECT_ID?.trim();
 const EAS_OWNER = process.env.EAS_OWNER?.trim();
+const EAS_BUILD_PROFILE = process.env.EAS_BUILD_PROFILE?.trim();
 
 if (
   EAS_PROJECT_ID &&
@@ -11,6 +12,41 @@ if (
 ) {
   throw new Error('EXPO_PUBLIC_EAS_PROJECT_ID must be a valid EAS project UUID.');
 }
+
+/** Fail store-like EAS profiles if vendor/debug secrets would be baked into the client. */
+function assertStoreLikeClientEnv(): void {
+  const storeLike =
+    EAS_BUILD_PROFILE === 'production' ||
+    EAS_BUILD_PROFILE === 'beta' ||
+    EAS_BUILD_PROFILE === 'preview';
+  if (!storeLike) return;
+
+  if (!EAS_PROJECT_ID) {
+    throw new Error(
+      'EXPO_PUBLIC_EAS_PROJECT_ID is required for preview/beta/production EAS builds (OTA + push).',
+    );
+  }
+
+  const leakedVendorKeys = [
+    'EXPO_PUBLIC_FINNHUB_API_KEY',
+    'EXPO_PUBLIC_ALPHA_VANTAGE_API_KEY',
+    'EXPO_PUBLIC_NEWS_API_KEY',
+    'EXPO_PUBLIC_APPCHECK_DEBUG_TOKEN',
+    'EXPO_PUBLIC_AI_API_KEY',
+  ].filter((key) => Boolean(process.env[key]?.trim()));
+
+  if (process.env.EXPO_PUBLIC_MARKET_DATA_DIRECT?.trim() === 'true') {
+    leakedVendorKeys.push('EXPO_PUBLIC_MARKET_DATA_DIRECT');
+  }
+
+  if (leakedVendorKeys.length > 0) {
+    throw new Error(
+      `Store-like EAS profile "${EAS_BUILD_PROFILE}" must not bake client-visible vendor/debug secrets: ${leakedVendorKeys.join(', ')}`,
+    );
+  }
+}
+
+assertStoreLikeClientEnv();
 
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,

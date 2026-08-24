@@ -13,7 +13,10 @@ import {
 
 import { requireDb } from '@/firebase/config';
 import { proxyCreatePortfolioHolding } from '@/features/markets/services/market-proxy.service';
-import type { InstrumentProvider } from '@/features/markets/types/instrument.types';
+import {
+  isUsableMarketPrice,
+  type InstrumentProvider,
+} from '@/features/markets/types/instrument.types';
 import { getLimit } from '@/features/subscription/services/entitlement.service';
 import { hasReachedLimit, type SubscriptionTier } from '@/shared/constants/subscription';
 import { canUseVendorProxy } from '@/shared/services/firebase/callable-proxy';
@@ -66,7 +69,7 @@ function toHolding(id: string, data: DocumentData): Holding {
     assetClass: (data.assetClass as Holding['assetClass']) ?? 'equity',
     quantity: (data.quantity as number) ?? 0,
     averageCost: (data.averageCost as number) ?? 0,
-    currentPrice: (data.currentPrice as number) ?? 0,
+    currentPrice: (data.currentPrice as number) ?? Number.NaN,
     currency: (data.currency as string) ?? 'USD',
     side: (data.side as Holding['side']) ?? 'long',
     notes: (data.notes as string | undefined) ?? undefined,
@@ -114,8 +117,24 @@ export function findDuplicateHolding(
 
 export function calculateHoldingPnL(holding: Holding, previousClose?: number): HoldingPnL {
   const multiplier = holding.side === 'short' ? -1 : 1;
-  const marketValue = holding.quantity * holding.currentPrice * multiplier;
   const costBasis = holding.quantity * holding.averageCost;
+  const priceAvailable = isUsableMarketPrice(holding.currentPrice);
+
+  if (!priceAvailable) {
+    return {
+      holdingId: holding.id,
+      symbol: holding.symbol,
+      marketValue: 0,
+      costBasis,
+      unrealizedPnL: 0,
+      unrealizedPnLPercent: 0,
+      dayChange: 0,
+      dayChangePercent: 0,
+      priceAvailable: false,
+    };
+  }
+
+  const marketValue = holding.quantity * holding.currentPrice * multiplier;
   const unrealizedPnL = marketValue - costBasis * multiplier;
   const unrealizedPnLPercent = costBasis > 0 ? (unrealizedPnL / costBasis) * 100 : 0;
 
@@ -137,6 +156,7 @@ export function calculateHoldingPnL(holding: Holding, previousClose?: number): H
     unrealizedPnLPercent,
     dayChange,
     dayChangePercent,
+    priceAvailable: true,
   };
 }
 
@@ -154,9 +174,10 @@ export function calculatePortfolioSummary(holdings: Holding[]): PortfolioSummary
     };
   }
 
-  const pnls = holdings.map((h) => calculateHoldingPnL(h));
+  const priced = holdings.filter((h) => isUsableMarketPrice(h.currentPrice));
+  const pnls = priced.map((h) => calculateHoldingPnL(h));
   const totalValue = pnls.reduce((sum, p) => sum + p.marketValue, 0);
-  const totalCost = pnls.reduce((sum, p) => sum + p.costBasis, 0);
+  const totalCost = holdings.reduce((sum, h) => sum + h.quantity * h.averageCost, 0);
   const totalPnL = pnls.reduce((sum, p) => sum + p.unrealizedPnL, 0);
   const dayChange = pnls.reduce((sum, p) => sum + p.dayChange, 0);
   const totalPnLPercent = totalCost > 0 ? (totalPnL / totalCost) * 100 : 0;
@@ -319,8 +340,14 @@ export async function updateHoldingPrices(
 ): Promise<void> {
   const holdings = await getHoldings(uid);
   const updates = holdings
-    .filter((h) => prices[h.symbol] !== undefined)
-    .map((h) => updateHolding(uid, h.id, { currentPrice: prices[h.symbol] }));
+    .filter((h) => {
+      const live = prices[h.symbol] ?? (h.providerSymbol ? prices[h.providerSymbol] : undefined);
+      return isUsableMarketPrice(live);
+    })
+    .map((h) => {
+      const live = prices[h.symbol] ?? (h.providerSymbol ? prices[h.providerSymbol] : undefined);
+      return updateHolding(uid, h.id, { currentPrice: live });
+    });
 
   await Promise.all(updates);
 }

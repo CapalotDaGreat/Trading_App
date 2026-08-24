@@ -4,6 +4,7 @@ import { RefreshControl, View } from 'react-native';
 import { PremiumOsGate } from '@/features/decision/components/PremiumOsGate';
 import { useEntitlement } from '@/features/subscription/hooks/useEntitlement';
 import { ScreenScaffold } from '@/shared/components/layout/ScreenScaffold';
+import { CollapsibleSection } from '@/shared/components/patterns/CollapsibleSection';
 import { StatusState } from '@/shared/components/feedback/StatusState';
 import { Text } from '@/shared/components/ui/Text';
 import { useTheme } from '@/shared/hooks/useTheme';
@@ -31,7 +32,7 @@ export function PersonalIntelligenceScreen() {
   return (
     <ScreenScaffold
       title="Trading DNA"
-      subtitle="Who am I becoming as a decision-maker?"
+      subtitle="How do I make decisions — and how am I changing over time?"
       contentClassName="pb-12"
       showBack
       onBack={() => router.back()}
@@ -50,7 +51,7 @@ export function PersonalIntelligenceScreen() {
           <StatusState
             status="loading"
             title="Composing your process profile"
-            description="Trading DNA derives from Decision Log, Journal, Replay, and practice — never P&L."
+            description="Trading DNA derives from Decision Log, Journal, Replay, and practice — never P&L, never a diagnosis."
           />
         ) : data ? (
           <>
@@ -58,16 +59,24 @@ export function PersonalIntelligenceScreen() {
             <TradingDnaCard dna={data.dna} limited={!isPremium} />
             <DnaProcessGoalsCard isPremium={isPremium} />
             <AdaptiveGoalsCard goals={data.goals} />
-            <DnaReviewsPanel
-              whatsChanging={data.whatsChanging}
-              weeklyReview={data.weeklyReview}
-              monthlyReview={data.monthlyReview}
-              patterns={data.patterns}
-              coachingActions={data.coachingActions}
-              isPremium={isPremium}
-            />
+            <CollapsibleSection
+              title="What's changing"
+              description="Reviews, patterns, and coaching actions."
+            >
+              <DnaReviewsPanel
+                whatsChanging={data.whatsChanging}
+                weeklyReview={data.weeklyReview}
+                monthlyReview={data.monthlyReview}
+                patterns={data.patterns}
+                coachingActions={data.coachingActions}
+                isPremium={isPremium}
+              />
+            </CollapsibleSection>
             {isPremium ? (
-              <>
+              <CollapsibleSection
+                title="Deeper profile"
+                description="Evolution, graph, memory timeline, and coaching references."
+              >
                 <DnaEvolutionTimeline points={data.evolution} />
                 <DecisionGraphCard
                   graph={data.graph}
@@ -76,7 +85,7 @@ export function PersonalIntelligenceScreen() {
                 />
                 <AiMemoryTimeline events={data.memoryTimeline} />
                 <CoachingReferencesCard references={data.coachingReferences} />
-              </>
+              </CollapsibleSection>
             ) : (
               <PremiumOsGate feature="tradingDnaInsights">
                 <Text variant="body-sm" className="text-text-secondary">

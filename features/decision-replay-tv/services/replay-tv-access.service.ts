@@ -82,10 +82,12 @@ export function buildReplayTvDecisionLogNote(input: {
   ) {
     tags.push('rtv:calm_vol');
   }
+  if (input.patience >= 70) tags.push('rtv:patience');
   if (input.evidenceQuality >= 70) tags.push('rtv:evidence');
   if (input.namedInvalidation && input.invalidationClarity >= 75) {
     tags.push('rtv:invalidation');
   }
+  if (input.episode.inactionIsValidProcess) tags.push('rtv:inaction_ok');
 
   return [
     `Replay TV · ${input.episode.title} · process ${input.processQuality}`,

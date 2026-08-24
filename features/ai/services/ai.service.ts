@@ -27,37 +27,37 @@ import { enrichRequestContext } from './ai-context.service';
 import { generateEngineAnalysis, generateEngineChatResponse } from './ai-engine.service';
 import { attachWhyChanged } from './ai-trust.service';
 
-const AI_USAGE_KEY = 'tradevision-ai-usage';
+const AI_USAGE_KEY = 'tradevision-ai-usage-daily-v1';
 
 interface StoredUsage {
   date: string;
   count: number;
 }
 
-function monthKey(): string {
-  return new Date().toISOString().slice(0, 7);
+function dayKey(): string {
+  return new Date().toISOString().slice(0, 10);
 }
 
 function nextResetTimestamp(): number {
   const now = new Date();
-  return Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1);
+  return Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1);
 }
 
 async function getStoredUsage(): Promise<StoredUsage> {
   try {
     const raw = await AsyncStorage.getItem(AI_USAGE_KEY);
-    if (!raw) return { date: monthKey(), count: 0 };
+    if (!raw) return { date: dayKey(), count: 0 };
     const parsed = JSON.parse(raw) as StoredUsage;
-    if (parsed.date !== monthKey()) return { date: monthKey(), count: 0 };
+    if (parsed.date !== dayKey()) return { date: dayKey(), count: 0 };
     return parsed;
   } catch {
-    return { date: monthKey(), count: 0 };
+    return { date: dayKey(), count: 0 };
   }
 }
 
 async function incrementUsage(): Promise<number> {
   const usage = await getStoredUsage();
-  const updated = { date: monthKey(), count: usage.count + 1 };
+  const updated = { date: dayKey(), count: usage.count + 1 };
   await AsyncStorage.setItem(AI_USAGE_KEY, JSON.stringify(updated));
   return updated.count;
 }
@@ -77,12 +77,12 @@ export async function getAiUsage(tier: SubscriptionTier): Promise<AiUsageStats> 
         isAtLimit: hasReachedLimit(remote.usedToday, remote.limit),
       };
     } catch {
-      // Fall back to local counter for offline / App Check soft failures.
+      // Fall back to local counter when the server quota cannot be read.
     }
   }
 
   const usage = await getStoredUsage();
-  const limit = getLimit('aiAnalysisMonthly', tier);
+  const limit = getLimit('aiDaily', tier);
   const usedToday = usage.count;
   return {
     usedToday,
@@ -118,7 +118,7 @@ export function checkAiAccess(
   usedToday: number,
   requiresPremium = false,
 ): AiServiceError | null {
-  const limit = getLimit('aiAnalysisMonthly', tier);
+  const limit = getLimit('aiDaily', tier);
 
   if (requiresPremium && tier === 'free') {
     return createAiError('SUBSCRIPTION_REQUIRED', 'This deeper analysis is included with Premium.');
@@ -127,8 +127,8 @@ export function checkAiAccess(
   if (hasReachedLimit(usedToday, limit)) {
     const message =
       tier === 'premium'
-        ? 'Monthly fair-use AI allowance reached. It resets next calendar month.'
-        : `Monthly AI allowance reached (${limit}/month). Continue your growth with Premium for unlimited analyses.`;
+        ? 'Daily fair-use AI allowance reached. It resets at midnight UTC.'
+        : `Daily AI allowance reached (${limit}/day). Premium raises fair use to about 100 analyses per day.`;
     return createAiError('DAILY_LIMIT_REACHED', message);
   }
 
@@ -250,6 +250,9 @@ export const aiService = {
         confidence: trust?.confidence.overall ?? engineResponse.metadata.confidence,
         citations: engineResponse.metadata.citations,
         trust,
+        answerMode: trust?.mentorAnswer?.mode ?? enrichedContext.answerMode,
+        answerDepth: trust?.mentorAnswer?.depth ?? enrichedContext.answerDepth,
+        evidenceLevel: trust?.evidenceLevel ?? trust?.mentorAnswer?.evidenceLevel,
       },
     };
 

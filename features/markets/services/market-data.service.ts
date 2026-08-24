@@ -9,6 +9,10 @@ import type { Asset, Candle, CandleInterval, MarketType, Quote } from '@/shared/
 
 import type { DataSourceKind, MarketDataProvider } from '../constants/data-source';
 import { MARKET_DATA_POLICY } from '../constants/freshness';
+import {
+  instrumentToAsset,
+  resolveMarketIdentity,
+} from './instrument-identity.service';
 import { proxyFetchCandles, proxyFetchQuote } from './market-proxy.service';
 
 const COINGECKO_BASE = 'https://api.coingecko.com/api/v3';
@@ -101,15 +105,7 @@ function parseCryptoSymbol(symbol: string): { base: string; quote: string } {
 }
 
 function detectMarketType(symbol: string): MarketType {
-  if (symbol.includes('/')) {
-    const [base] = symbol.split('/');
-    if (CRYPTO_ID_MAP[base.toUpperCase()]) return 'crypto';
-    return 'forex';
-  }
-  if (symbol.startsWith('^') || symbol.endsWith('=F')) {
-    return symbol.endsWith('=F') ? 'commodities' : 'indices';
-  }
-  return 'stocks';
+  return resolveMarketIdentity(symbol).marketType;
 }
 
 function getCryptoId(symbol: string): string {
@@ -513,12 +509,17 @@ export async function fetchQuoteWithMetadata(
   symbol: string,
   marketType?: MarketType,
 ): Promise<QuoteResult> {
-  const type = marketType ?? detectMarketType(symbol);
-  return marketDataScheduler.quote(
-    { symbol, marketType: type },
-    () => fetchQuoteWithMetadataDirect(symbol, type),
+  const identity = resolveMarketIdentity(symbol, marketType);
+  const result = await marketDataScheduler.quote(
+    { symbol: identity.quoteSymbol, marketType: identity.marketType },
+    () => fetchQuoteWithMetadataDirect(identity.quoteSymbol, identity.marketType),
     { ttlMs: MARKET_DATA_POLICY.quoteStaleMs, direct: USE_DIRECT_MARKET_DATA },
   );
+  if (result.quote.symbol === identity.displaySymbol) return result;
+  return {
+    ...result,
+    quote: { ...result.quote, symbol: identity.displaySymbol },
+  };
 }
 
 export async function fetchQuote(symbol: string, marketType?: MarketType): Promise<Quote> {
@@ -914,9 +915,11 @@ export async function fetchCandlesWithMetadataDirect(
 }
 
 export async function fetchCandlesWithMetadata(request: CandlesRequest): Promise<CandleResult> {
-  const normalizedRequest = {
+  const identity = resolveMarketIdentity(request.symbol, request.marketType);
+  const normalizedRequest: CandlesRequest = {
     ...request,
-    marketType: request.marketType ?? detectMarketType(request.symbol),
+    symbol: identity.quoteSymbol,
+    marketType: identity.marketType,
   };
   return marketDataScheduler.candles(
     normalizedRequest,
@@ -942,25 +945,22 @@ export async function fetchQuotesWithMetadata(symbols: string[]): Promise<QuoteR
 }
 
 export function buildAssetFromSymbol(symbol: string, marketType?: MarketType): Asset {
-  const type = marketType ?? detectMarketType(symbol);
+  const identity = resolveMarketIdentity(symbol, marketType);
+  if (identity.instrument) {
+    return instrumentToAsset(identity.instrument);
+  }
+
+  const type = identity.marketType;
   const coinId = type === 'crypto' ? getCryptoId(symbol) : undefined;
 
   return {
     id: coinId ?? symbol,
-    symbol,
-    name: type === 'crypto' ? (CRYPTO_NAME_MAP[coinId!] ?? symbol.split('/')[0]) : symbol,
+    symbol: identity.displaySymbol || symbol,
+    name: type === 'crypto' ? (CRYPTO_NAME_MAP[coinId!] ?? symbol.split('/')[0]) : identity.name,
     marketType: type,
-    assetClass:
-      type === 'crypto'
-        ? 'crypto'
-        : type === 'forex'
-          ? 'forex'
-          : type === 'commodities'
-            ? 'commodity'
-            : type === 'indices'
-              ? 'index'
-              : 'equity',
+    assetClass: identity.assetClass,
     currency: 'USD',
+    exchange: identity.exchange,
     isActive: true,
   };
 }

@@ -131,6 +131,7 @@ export function TradingMentorScreen() {
             <CollapsibleSection
               title="Practice this next"
               description="Academy and Replay recommendations for this week."
+              defaultExpanded={false}
             >
               {data.weekly.academyRecommendation ? (
                 <Pressable

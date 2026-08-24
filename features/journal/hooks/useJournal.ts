@@ -53,10 +53,10 @@ export function useJournal() {
         regime: entry.regimeNote?.trim() || 'journal',
         action: 'journaled',
         note: [
-          entry.notes,
-          entry.lessonsLearned ? `Lesson: ${entry.lessonsLearned}` : null,
           entry.emotion ? `Emotion: ${entry.emotion}` : null,
-          entry.improvementCommitment ? `Commit: ${entry.improvementCommitment}` : null,
+          entry.planAdhered === false ? 'plan-drift' : entry.planAdhered ? 'plan-held' : null,
+          entry.mistakeCategory ? `mistake:${entry.mistakeCategory}` : null,
+          entry.lessonsLearned ? 'lesson-logged' : null,
         ]
           .filter(Boolean)
           .join(' · '),

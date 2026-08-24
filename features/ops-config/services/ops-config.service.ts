@@ -34,6 +34,18 @@ function mergeRemote(remote?: Partial<OpsRemoteConfig> | null): OpsRemoteConfig 
   const merged = { ...DEFAULT_OPS_REMOTE, ...(remote ?? {}) };
   return {
     ...merged,
+    aiDailyLimitFree: boundedNumber(
+      remote?.aiDailyLimitFree,
+      DEFAULT_OPS_REMOTE.aiDailyLimitFree,
+      0,
+      10_000,
+    ),
+    aiDailyLimitPremium: boundedNumber(
+      remote?.aiDailyLimitPremium,
+      DEFAULT_OPS_REMOTE.aiDailyLimitPremium,
+      -1,
+      100_000,
+    ),
     aiMentorMonthlyFree: boundedNumber(
       remote?.aiMentorMonthlyFree,
       DEFAULT_OPS_REMOTE.aiMentorMonthlyFree,

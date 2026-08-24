@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { FlatList, Pressable, View } from 'react-native';
 
 import { Input } from '@/shared/components/ui/Input';
@@ -8,8 +8,13 @@ import { MARKET_TYPE_LIST } from '@/shared/constants/markets';
 import type { MarketType } from '@/shared/types/market';
 import { cn } from '@/shared/utils/cn';
 
-import { useMarketSearch } from '../hooks/useMarketSearch';
+import { useInstrumentSearch } from '../hooks/useInstrumentSearch';
+import { instrumentToAsset } from '../services/instrument-identity.service';
 import type { SearchResult } from '../services/market-search.service';
+import {
+  INSTRUMENT_RESOLUTION_COPY,
+  instrumentClassLabel,
+} from '../types/instrument.types';
 
 interface MarketSearchBarProps {
   onSelect: (result: SearchResult) => void;
@@ -21,19 +26,28 @@ interface MarketSearchBarProps {
 export function MarketSearchBar({
   onSelect,
   initialMarketType,
-  placeholder = 'Search stocks, crypto, forex...',
+  placeholder = 'Search stocks, crypto, forex, metals…',
   className,
 }: MarketSearchBarProps) {
   const [query, setQuery] = useState('');
   const [marketType, setMarketType] = useState<MarketType | undefined>(initialMarketType);
 
-  const { data: results, isLoading, isFetching } = useMarketSearch({
+  const search = useInstrumentSearch({
     query,
-    marketType,
-    enabled: query.length >= 1,
+    enabled: query.trim().length >= 1,
   });
 
-  const showResults = query.length >= 1;
+  const results = useMemo((): SearchResult[] => {
+    const hits = search.data ?? [];
+    return hits
+      .filter((hit) => !marketType || hit.instrument.marketType === marketType)
+      .map((hit) => ({
+        ...instrumentToAsset(hit.instrument),
+        relevance: hit.rankScore,
+      }));
+  }, [search.data, marketType]);
+
+  const showResults = query.trim().length >= 1;
 
   return (
     <View className={cn('w-full', className)}>
@@ -41,9 +55,10 @@ export function MarketSearchBar({
         value={query}
         onChangeText={setQuery}
         placeholder={placeholder}
-        autoCapitalize="characters"
+        autoCapitalize="none"
         autoCorrect={false}
         returnKeyType="search"
+        accessibilityLabel="Search markets by name or symbol"
       />
 
       <View className="mt-3 flex-row flex-wrap gap-2">
@@ -79,13 +94,13 @@ export function MarketSearchBar({
 
       {showResults ? (
         <View className="mt-3 max-h-64 overflow-hidden rounded-2xl bg-background-elevated">
-          {isLoading || isFetching ? (
+          {search.isLoading || search.isFetching ? (
             <View className="gap-2 p-3">
               <Skeleton height={40} />
               <Skeleton height={40} />
               <Skeleton height={40} />
             </View>
-          ) : results?.length ? (
+          ) : results.length ? (
             <FlatList
               data={results}
               keyExtractor={(item) => item.id}
@@ -96,19 +111,22 @@ export function MarketSearchBar({
                     onSelect(item);
                     setQuery('');
                   }}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${item.name}, ${item.symbol}, ${instrumentClassLabel(item.assetClass)}`}
                   className="px-4 py-3.5 active:bg-surface"
                 >
                   <View className="flex-row items-center justify-between">
                     <View className="flex-1">
                       <Text variant="body" className="font-semibold">
-                        {item.symbol}
+                        {item.name}
                       </Text>
                       <Text variant="caption" numberOfLines={1}>
-                        {item.name}
+                        {item.symbol}
+                        {item.exchange ? ` · ${item.exchange}` : ''}
                       </Text>
                     </View>
                     <Text variant="caption" className="text-text-tertiary">
-                      {item.marketType}
+                      {instrumentClassLabel(item.assetClass)}
                     </Text>
                   </View>
                 </Pressable>
@@ -117,7 +135,7 @@ export function MarketSearchBar({
           ) : (
             <View className="p-4">
               <Text variant="body-sm" className="text-center">
-                No results found
+                {INSTRUMENT_RESOLUTION_COPY.couldNotVerify}
               </Text>
             </View>
           )}

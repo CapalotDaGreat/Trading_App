@@ -14,9 +14,29 @@ export type ReplayTvCollectionId =
   | 'false_breakouts'
   | 'psychology'
   | 'risk_management'
-  | 'uncertainty';
+  | 'uncertainty'
+  | 'patterns'
+  | 'volatility'
+  | 'failed_setups'
+  | 'patience';
 
-export type ReplayTvMarketFocus = 'stocks' | 'forex' | 'crypto' | 'macro';
+export type ReplayTvEpisodeKind =
+  | 'pattern'
+  | 'macro_event'
+  | 'regime_transition'
+  | 'volatility'
+  | 'failed_setup'
+  | 'false_breakout'
+  | 'patience'
+  | 'risk_management';
+
+export type ReplayTvMarketFocus =
+  | 'stocks'
+  | 'forex'
+  | 'crypto'
+  | 'macro'
+  | 'indices'
+  | 'commodities';
 
 export type ReplayTvTradingStyle = 'swing' | 'day' | 'position' | 'scalp' | 'any';
 
@@ -39,13 +59,15 @@ export type ReplayTvPhase =
   | 'coaching'
   | 'complete';
 
-/** Process decision at a freeze — never a trade instruction. */
+/** Process decision at a freeze — never a broker order or buy/sell signal. */
 export type ReplayTvDecision =
   | 'research_more'
   | 'write_thesis'
   | 'wait'
   | 'skip'
-  | 'protect_attention';
+  | 'protect_attention'
+  | 'mark_invalidation'
+  | 'review_other';
 
 export interface ReplayTvNewsItem {
   id: string;
@@ -111,6 +133,13 @@ export interface ReplayTvEpisode {
   availableNews: ReplayTvNewsItem[];
   scoringEmphasis: ReplayTvScoringEmphasis[];
   educationalLinks: ReplayTvEducationalLink[];
+  /** Optional explicit episode types; inferred from collections when omitted. */
+  kinds?: ReplayTvEpisodeKind[];
+  /**
+   * When true, waiting / skipping / protecting attention is the intended process lesson.
+   * Never grades P&L — only that inaction can be the correct research decision.
+   */
+  inactionIsValidProcess?: boolean;
   /** Premium-only when true (advanced library / expert rooms). */
   premiumOnly?: boolean;
 }
@@ -129,10 +158,30 @@ export interface ReplayTvChecklist {
   consideredAlternative: boolean;
 }
 
+export interface ReplayTvReasoning {
+  thesis: string;
+  evidence: string;
+  invalidation: string;
+  /** Process confidence 1–5 — never a forecast of price direction. */
+  confidence: number;
+  mainUncertainty: string;
+  freeText?: string;
+}
+
+export interface ReplayTvCoachNote {
+  noticed: string;
+  missed: string;
+  changed: string | null;
+  consistency: string;
+  invalidationQuestion: string;
+}
+
 export interface ReplayTvDecisionRecord {
   checkpointId: string;
   decision: ReplayTvDecision;
   reasoning: string;
+  structured?: ReplayTvReasoning;
+  coach?: ReplayTvCoachNote;
   at: number;
 }
 
@@ -145,6 +194,10 @@ export interface ReplayTvScores {
   riskAwareness: number;
   invalidationClarity: number;
   alternativeConsideration: number;
+  adaptability: number;
+  consistency: number;
+  researchEfficiency: number;
+  /** DQS-compatible composite — never a profitability score. */
   overall: number;
   coaching: string[];
   journalPrompt: string;
@@ -163,6 +216,7 @@ export interface ReplayTvSession {
   decisions: ReplayTvDecisionRecord[];
   checklist: ReplayTvChecklist;
   mentorReply?: string;
+  lastCoach?: ReplayTvCoachNote;
   scores?: ReplayTvScores;
   revealed: boolean;
 }

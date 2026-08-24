@@ -1,8 +1,13 @@
 import type { DecisionRecord } from '@/features/decision-log/services/decision-log.service';
 import type { JournalCoachInsight, TraderMemory } from '@/features/decision/types/decision.types';
 import type { HeatmapScores } from '@/features/decision-heatmap/types/heatmap.types';
+import type { JournalEntry } from '@/features/journal/types/journal.types';
 
-import type { DnaEvidenceItem, DnaEvidenceSource } from '../types/personal-intelligence.types';
+import type {
+  DnaEvidenceItem,
+  DnaEvidenceSource,
+  DnaJournalEvidence,
+} from '../types/personal-intelligence.types';
 
 export interface DnaEvidenceBundle {
   researched: number;
@@ -11,6 +16,9 @@ export interface DnaEvidenceBundle {
   ignored: number;
   invalidated: number;
   replay: number;
+  replayTvPatience: number;
+  replayTvInvalidation: number;
+  replayTvEvidence: number;
   labClosed: number;
   checklist: number;
   briefOpened: number;
@@ -20,6 +28,7 @@ export interface DnaEvidenceBundle {
   journalCoach?: JournalCoachInsight | null;
   memory: TraderMemory;
   windowMs: number;
+  journalEvidence?: DnaJournalEvidence[] | null;
 }
 
 export function countActions(
@@ -28,6 +37,21 @@ export function countActions(
   sinceMs: number,
 ): number {
   return records.filter((r) => r.action === action && r.createdAt >= sinceMs).length;
+}
+
+export function countNoteIncludes(
+  records: DecisionRecord[],
+  action: DecisionRecord['action'],
+  needle: string,
+  sinceMs: number,
+): number {
+  return records.filter(
+    (r) =>
+      r.action === action &&
+      r.createdAt >= sinceMs &&
+      typeof r.note === 'string' &&
+      r.note.includes(needle),
+  ).length;
 }
 
 export function avgField(
@@ -42,22 +66,52 @@ export function avgField(
   return scored.reduce((s, r) => s + (r[field] as number), 0) / scored.length;
 }
 
+export function toDnaJournalEvidence(entries: JournalEntry[]): DnaJournalEvidence[] {
+  return entries.map((entry) => ({
+    id: entry.id,
+    createdAtMs: Date.parse(entry.createdAt) || Date.parse(entry.tradedAt) || 0,
+    hasPsychology: Boolean(entry.emotion),
+    hasLesson: Boolean(entry.lessonsLearned?.trim()),
+    planAdhered: entry.planAdhered ?? null,
+    emotion: entry.emotion ?? null,
+    mistakeCategory: entry.mistakeCategory ?? null,
+  }));
+}
+
+function countJournalEvidence(
+  slice: DnaJournalEvidence[] | null | undefined,
+  sinceMs: number,
+): number | null {
+  if (!slice) return null;
+  return slice.filter((item) => item.createdAtMs >= sinceMs).length;
+}
+
 export function buildEvidenceBundle(input: {
   records: DecisionRecord[];
   memory: TraderMemory;
   heatmapScores?: HeatmapScores | null;
   journalCoach?: JournalCoachInsight | null;
+  journalEvidence?: DnaJournalEvidence[] | null;
   sinceMs: number;
   windowMs: number;
 }): DnaEvidenceBundle {
   const { records, sinceMs } = input;
+  const liveJournaled = countJournalEvidence(input.journalEvidence, sinceMs);
   return {
     researched: countActions(records, 'researched', sinceMs),
     skipped: countActions(records, 'skipped', sinceMs),
-    journaled: countActions(records, 'journaled', sinceMs),
+    journaled: liveJournaled ?? countActions(records, 'journaled', sinceMs),
     ignored: countActions(records, 'ignored', sinceMs),
     invalidated: countActions(records, 'invalidated', sinceMs),
     replay: countActions(records, 'replay_completed', sinceMs),
+    replayTvPatience: countNoteIncludes(records, 'replay_completed', 'rtv:patience', sinceMs),
+    replayTvInvalidation: countNoteIncludes(
+      records,
+      'replay_completed',
+      'rtv:invalidation',
+      sinceMs,
+    ),
+    replayTvEvidence: countNoteIncludes(records, 'replay_completed', 'rtv:evidence', sinceMs),
     labClosed: countActions(records, 'lab_closed', sinceMs),
     checklist: countActions(records, 'checklist_done', sinceMs),
     briefOpened: countActions(records, 'brief_opened', sinceMs),
@@ -67,7 +121,62 @@ export function buildEvidenceBundle(input: {
     journalCoach: input.journalCoach,
     memory: input.memory,
     windowMs: input.windowMs,
+    journalEvidence: input.journalEvidence,
   };
+}
+
+const PROCESS_DECISIONS: DecisionRecord['action'][] = [
+  'researched',
+  'skipped',
+  'journaled',
+  'invalidated',
+];
+
+export function lastProcessDecisions(records: DecisionRecord[], limit = 22): DecisionRecord[] {
+  return [...records]
+    .filter((r) => PROCESS_DECISIONS.includes(r.action))
+    .sort((a, b) => b.createdAt - a.createdAt)
+    .slice(0, limit);
+}
+
+export function countNamedInvalidation(records: DecisionRecord[]): number {
+  return records.filter(
+    (r) =>
+      r.action === 'invalidated' ||
+      (typeof r.invalidation === 'string' && r.invalidation.trim().length > 0),
+  ).length;
+}
+
+export function invalidationRatioSentence(
+  records: DecisionRecord[],
+  limit = 22,
+): string | undefined {
+  const last = lastProcessDecisions(records, limit);
+  if (last.length < 4) return undefined;
+  const named = countNamedInvalidation(last);
+  return `You explicitly recorded invalidation conditions in ${named} of your last ${last.length} decisions.`;
+}
+
+export function formatWhySummary(items: DnaEvidenceItem[]): string {
+  if (!items.length) return 'Not enough observable process events yet.';
+  const replay = items.filter((i) => i.source === 'replay').reduce((s, i) => s + i.count, 0);
+  const journal = items.filter((i) => i.source === 'journal').reduce((s, i) => s + i.count, 0);
+  const log = items
+    .filter((i) => i.source === 'decision_log' || i.source === 'checklist')
+    .reduce((s, i) => s + i.count, 0);
+  const academy = items
+    .filter((i) => i.source === 'academy' || i.source === 'lab')
+    .reduce((s, i) => s + i.count, 0);
+  const parts: string[] = [];
+  if (replay > 0) parts.push(`${replay} replay decision${replay === 1 ? '' : 's'}`);
+  if (journal > 0) parts.push(`${journal} journal ${journal === 1 ? 'entry' : 'entries'}`);
+  if (log > 0) parts.push(`${log} decision-log event${log === 1 ? '' : 's'}`);
+  if (academy > 0) parts.push(`${academy} practice event${academy === 1 ? '' : 's'}`);
+  if (!parts.length) {
+    return `Based on ${items.reduce((s, i) => s + i.count, 0)} observable process events.`;
+  }
+  if (parts.length === 1) return `Based on ${parts[0]}.`;
+  return `Based on ${parts.slice(0, -1).join(', ')} and ${parts[parts.length - 1]}.`;
 }
 
 export function evidenceItem(
