@@ -96,23 +96,12 @@ export default function JournalScreen() {
         ) : null}
 
         <Surface tone="accent" emphasis="outlined" testID="journal-learning-headline">
-          <Text variant="label" className="text-accent">PROCESS TREND</Text>
+          <Text variant="label" className="text-text-tertiary">Process trend</Text>
           <Text variant="h2" headingLevel={2} className="mt-2">{journey.headline}</Text>
-          <View className="mt-4 flex-row flex-wrap gap-4">
-            <Stat label="Entries" value={String(journey.processCoverage.entries)} />
-            <Stat
-              label="Emotion tags"
-              value={formatPercent(journey.processCoverage.emotionTaggedRate, { showSign: false })}
-            />
-            <Stat
-              label="Plan adherence"
-              value={formatPercent(journey.processCoverage.planAdherenceRate, { showSign: false })}
-            />
-          </View>
         </Surface>
 
         <Surface>
-          <Text variant="label" className="text-text-tertiary">ONE COACHING INSIGHT</Text>
+          <Text variant="label" className="text-text-tertiary">One coaching insight</Text>
           <Text variant="body" className="mt-2">
             {journey.coach?.recommendation ??
               'Add emotion and lesson notes to help coaching identify a repeatable process pattern.'}
@@ -189,6 +178,15 @@ export default function JournalScreen() {
           description="Outcome context, advanced statistics, and data export."
         >
           <View className="flex-row flex-wrap gap-4">
+            <Stat label="Entries" value={String(journey.processCoverage.entries)} />
+            <Stat
+              label="Emotion tags"
+              value={formatPercent(journey.processCoverage.emotionTaggedRate, { showSign: false })}
+            />
+            <Stat
+              label="Plan adherence"
+              value={formatPercent(journey.processCoverage.planAdherenceRate, { showSign: false })}
+            />
             <Stat label="Closed" value={String(stats.totalTrades)} />
             <Stat label="Win rate" value={formatPercent(stats.winRate, { showSign: false })} />
             <Stat label="Total P&L" value={formatChange(stats.totalPnL)} />

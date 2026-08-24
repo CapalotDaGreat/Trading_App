@@ -19,6 +19,10 @@ export interface DnaEvidenceBundle {
   replayTvPatience: number;
   replayTvInvalidation: number;
   replayTvEvidence: number;
+  replayTvConfirmation: number;
+  replayTvStamina: number;
+  replayTvUncertainty: number;
+  journalProcess: number;
   labClosed: number;
   checklist: number;
   briefOpened: number;
@@ -45,12 +49,21 @@ export function countNoteIncludes(
   needle: string,
   sinceMs: number,
 ): number {
+  return countNoteAny(records, action, [needle], sinceMs);
+}
+
+export function countNoteAny(
+  records: DecisionRecord[],
+  action: DecisionRecord['action'],
+  needles: string[],
+  sinceMs: number,
+): number {
   return records.filter(
     (r) =>
       r.action === action &&
       r.createdAt >= sinceMs &&
       typeof r.note === 'string' &&
-      r.note.includes(needle),
+      needles.some((needle) => r.note!.includes(needle)),
   ).length;
 }
 
@@ -86,6 +99,19 @@ function countJournalEvidence(
   return slice.filter((item) => item.createdAtMs >= sinceMs).length;
 }
 
+/** Structured process flags only — never journal bodies. */
+function countJournalProcessEntries(
+  slice: DnaJournalEvidence[] | null | undefined,
+  sinceMs: number,
+): number | null {
+  if (!slice) return null;
+  return slice.filter(
+    (item) =>
+      item.createdAtMs >= sinceMs &&
+      (item.hasLesson || item.hasPsychology || item.planAdhered != null),
+  ).length;
+}
+
 export function buildEvidenceBundle(input: {
   records: DecisionRecord[];
   memory: TraderMemory;
@@ -97,10 +123,12 @@ export function buildEvidenceBundle(input: {
 }): DnaEvidenceBundle {
   const { records, sinceMs } = input;
   const liveJournaled = countJournalEvidence(input.journalEvidence, sinceMs);
+  const liveJournalProcess = countJournalProcessEntries(input.journalEvidence, sinceMs);
+  const journaled = liveJournaled ?? countActions(records, 'journaled', sinceMs);
   return {
     researched: countActions(records, 'researched', sinceMs),
     skipped: countActions(records, 'skipped', sinceMs),
-    journaled: liveJournaled ?? countActions(records, 'journaled', sinceMs),
+    journaled,
     ignored: countActions(records, 'ignored', sinceMs),
     invalidated: countActions(records, 'invalidated', sinceMs),
     replay: countActions(records, 'replay_completed', sinceMs),
@@ -112,6 +140,25 @@ export function buildEvidenceBundle(input: {
       sinceMs,
     ),
     replayTvEvidence: countNoteIncludes(records, 'replay_completed', 'rtv:evidence', sinceMs),
+    replayTvConfirmation: countNoteAny(
+      records,
+      'replay_completed',
+      ['rtv:confirmation', 'rtv:skill:confirmation'],
+      sinceMs,
+    ),
+    replayTvStamina: countNoteAny(
+      records,
+      'replay_completed',
+      ['rtv:stamina', 'rtv:skill:stamina'],
+      sinceMs,
+    ),
+    replayTvUncertainty: countNoteAny(
+      records,
+      'replay_completed',
+      ['rtv:uncertainty', 'rtv:inaction_ok'],
+      sinceMs,
+    ),
+    journalProcess: liveJournalProcess ?? journaled,
     labClosed: countActions(records, 'lab_closed', sinceMs),
     checklist: countActions(records, 'checklist_done', sinceMs),
     briefOpened: countActions(records, 'brief_opened', sinceMs),
@@ -169,14 +216,37 @@ export function formatWhySummary(items: DnaEvidenceItem[]): string {
     .reduce((s, i) => s + i.count, 0);
   const parts: string[] = [];
   if (replay > 0) parts.push(`${replay} replay decision${replay === 1 ? '' : 's'}`);
-  if (journal > 0) parts.push(`${journal} journal ${journal === 1 ? 'entry' : 'entries'}`);
   if (log > 0) parts.push(`${log} decision-log event${log === 1 ? '' : 's'}`);
+  if (journal > 0) {
+    parts.push(`${journal} journal process ${journal === 1 ? 'entry' : 'entries'}`);
+  }
   if (academy > 0) parts.push(`${academy} practice event${academy === 1 ? '' : 's'}`);
   if (!parts.length) {
     return `Based on ${items.reduce((s, i) => s + i.count, 0)} observable process events.`;
   }
   if (parts.length === 1) return `Based on ${parts[0]}.`;
   return `Based on ${parts.slice(0, -1).join(', ')} and ${parts[parts.length - 1]}.`;
+}
+
+/** Count-only evidence lines for "Why?" — never journal bodies. */
+export function formatWhyBullets(items: DnaEvidenceItem[]): string[] {
+  if (!items.length) return [];
+  const replay = items.filter((i) => i.source === 'replay').reduce((s, i) => s + i.count, 0);
+  const journal = items.filter((i) => i.source === 'journal').reduce((s, i) => s + i.count, 0);
+  const log = items
+    .filter((i) => i.source === 'decision_log' || i.source === 'checklist')
+    .reduce((s, i) => s + i.count, 0);
+  const academy = items
+    .filter((i) => i.source === 'academy' || i.source === 'lab')
+    .reduce((s, i) => s + i.count, 0);
+  const bullets: string[] = [];
+  if (replay > 0) bullets.push(`${replay} replay decision${replay === 1 ? '' : 's'}`);
+  if (log > 0) bullets.push(`${log} decision-log event${log === 1 ? '' : 's'}`);
+  if (journal > 0) {
+    bullets.push(`${journal} journal process ${journal === 1 ? 'entry' : 'entries'}`);
+  }
+  if (academy > 0) bullets.push(`${academy} practice event${academy === 1 ? '' : 's'}`);
+  return bullets;
 }
 
 export function evidenceItem(

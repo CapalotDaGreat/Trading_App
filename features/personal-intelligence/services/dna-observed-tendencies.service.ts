@@ -83,7 +83,7 @@ export function buildObservedTendencies(input: {
   });
   const fatigueEvidence = collectEvidence(
     evidenceItem('decision_log', b.researched, 'research sessions this week'),
-    evidenceItem('journal', b.journaled, 'journal entries', '/journal'),
+    evidenceItem('journal', b.journaled, 'journal process entries', '/journal'),
   );
   let fatigueLevel: DnaObservedTendency['level'] = 'not_observed';
   if (b.researched >= 7 && b.journaled <= 1 && (dqsNow == null || dqsNow < 55)) fatigueLevel = 'clear';

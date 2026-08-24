@@ -245,7 +245,9 @@ export function buildTradingMentorBrief(input: TradingMentorInput): TradingMento
         href: '/decision/replay-tv',
         label: 'Open Decision Replay TV',
         reason: sanitizeMentorCopy(
-          'Replay one historical episode with future candles hidden — grade your process, not the outcome.',
+          input.dnaMentorSummary?.observationLine
+            ? `Practice that process on a blind Replay TV freeze — grade the decision, never the later path. ${input.dnaMentorSummary.observationLine}`
+            : 'Replay one historical episode with future candles hidden — grade your process, not the outcome.',
         ),
       },
     },

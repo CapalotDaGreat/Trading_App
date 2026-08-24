@@ -87,7 +87,20 @@ export function buildReplayTvDecisionLogNote(input: {
   if (input.namedInvalidation && input.invalidationClarity >= 75) {
     tags.push('rtv:invalidation');
   }
+  if (input.patience >= 70) tags.push('rtv:skill:patience');
+  if (input.evidenceQuality >= 70) tags.push('rtv:skill:evidence');
   if (input.episode.inactionIsValidProcess) tags.push('rtv:inaction_ok');
+  if (input.episode.collectionIds.includes('uncertainty') || input.episode.inactionIsValidProcess) {
+    tags.push('rtv:uncertainty');
+  }
+  if (input.episode.scoringEmphasis.includes('alternatives') && input.patience >= 65) {
+    tags.push('rtv:confirmation');
+    tags.push('rtv:skill:confirmation');
+  }
+  if (input.episode.scoringEmphasis.includes('process') && input.processQuality >= 70) {
+    tags.push('rtv:stamina');
+    tags.push('rtv:skill:stamina');
+  }
 
   return [
     `Replay TV · ${input.episode.title} · process ${input.processQuality}`,

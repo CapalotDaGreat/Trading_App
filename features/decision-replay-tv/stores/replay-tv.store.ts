@@ -6,8 +6,10 @@ import {
   createReplayTvSession,
   hydrateReplayTvSessionCandles,
   patchReplayTvChecklist,
+  patchReplayTvDraftReasoning,
   submitReplayTvDecision,
 } from '@/features/decision-replay-tv/services/replay-tv-session.service';
+import { getReplayTvEpisode } from '@/features/decision-replay-tv/content/replay-tv.catalog';
 import type {
   ReplayTvChecklist,
   ReplayTvCollectionId,
@@ -48,6 +50,7 @@ interface ReplayTvState {
   advancePhase: () => void;
   updateChecklist: (patch: Partial<ReplayTvChecklist>) => void;
   submitDecision: (decision: ReplayTvDecision, reasoning: string, structured?: ReplayTvReasoning) => void;
+  updateDraftReasoning: (draft: ReplayTvReasoning) => void;
   markComplete: (input: {
     episodeId: string;
     collectionIds: ReplayTvCollectionId[];
@@ -111,6 +114,11 @@ export const useReplayTvStore = create<ReplayTvState>()(
           }),
         });
       },
+      updateDraftReasoning: (draft) => {
+        const active = get().activeSession;
+        if (!active) return;
+        set({ activeSession: patchReplayTvDraftReasoning(active, draft) });
+      },
       markComplete: ({ episodeId, collectionIds, processScore }) => {
         const prev = get().progress;
         const completedEpisodeIds = prev.completedEpisodeIds.includes(episodeId)
@@ -153,10 +161,14 @@ export const useReplayTvStore = create<ReplayTvState>()(
         const p = (persisted ?? {}) as Partial<ReplayTvState>;
         let activeSession = p.activeSession ?? null;
         if (activeSession?.episodeId) {
-          try {
-            activeSession = hydrateReplayTvSessionCandles(activeSession);
-          } catch {
+          if (!getReplayTvEpisode(activeSession.episodeId)) {
             activeSession = null;
+          } else {
+            try {
+              activeSession = hydrateReplayTvSessionCandles(activeSession);
+            } catch {
+              activeSession = null;
+            }
           }
         }
         return {

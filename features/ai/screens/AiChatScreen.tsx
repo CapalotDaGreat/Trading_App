@@ -205,8 +205,14 @@ export function AiChatScreen({ symbol }: AiChatScreenProps) {
 
           <View className="border-t border-border bg-background-secondary/80 px-4 pb-4 pt-2">
             <AiUsageBanner usage={usage} isPremium={isPremium} className="mb-2" />
-            <AiAnswerModeBar value={answerMode} onChange={setAnswerMode} disabled={isSending} />
-            <View className="mt-2">
+            <CollapsibleSection
+              title="Answer options"
+              description="Mode and depth. The composer below is the primary action."
+              defaultExpanded={false}
+              className="mb-2"
+              testID="ask-answer-options"
+            >
+              <AiAnswerModeBar value={answerMode} onChange={setAnswerMode} disabled={isSending} />
               <SegmentedControl
                 options={[
                   { value: 'concise', label: 'Concise' },
@@ -217,7 +223,7 @@ export function AiChatScreen({ symbol }: AiChatScreenProps) {
                 onChange={setAiAnswerDepth}
                 testID="ai-answer-depth"
               />
-            </View>
+            </CollapsibleSection>
             {messages.length > 0 ? (
               <PromptSuggestions
                 suggestions={DEFAULT_CHAT_PROMPTS}

@@ -14,8 +14,22 @@ import type {
   AiStructuredMentorAnswer,
   AiTrustPayload,
 } from '../types/ai-trust.types';
-import { evidenceLevelLabel } from './ai-evidence-level.service';
-import { injectionRefusal, looksLikePromptInjection, sanitizeMentorOutput } from './ai-safety.service';
+import {
+  capEvidenceLevel,
+  evidenceLevelLabel,
+  explainEvidenceQuality,
+  looksLikeRepeatAsk,
+} from './ai-evidence-level.service';
+import {
+  adviceRefusal,
+  classifyMentorAsk,
+  injectionRefusal,
+  journalDumpRefusal,
+  looksLikePromptInjection,
+  predictionRefusal,
+  sanitizeMentorOutput,
+  signalOverrideRefusal,
+} from './ai-safety.service';
 import { runAiSelfCheck } from './ai-self-check.service';
 
 export const AI_ANSWER_MODES: Array<{ value: AiAnswerMode; label: string }> = [
@@ -140,17 +154,24 @@ function evidenceLines(trust: AiTrustPayload | undefined, cap = 3): string[] {
   return present.map((item) => `${item.label}: ${item.detail}`);
 }
 
-function whyItMatters(mode: AiAnswerMode, context?: AiEnrichedContext | null): string {
+function interpretationFor(
+  mode: AiAnswerMode,
+  level: AiEvidenceLevel,
+  context?: AiEnrichedContext | null,
+): string {
+  if (level === 'insufficient') {
+    return 'Interpretation: I do not know enough from this pack to rank research priority. Missing inputs are not a forecast.';
+  }
   if (mode === 'coach' || mode === 'replay_coach') {
-    return 'This matters for process quality (DQS-style completeness), not for predicting the next tick.';
+    return 'Interpretation: this is about process completeness (DQS-style checklist quality), not a probability of profit. RVS/DQS are not prediction odds.';
   }
   if (mode === 'review') {
-    return 'It matters because research time should follow what actually changed in the attached pack.';
+    return 'Interpretation: research time should follow what actually changed in the attached pack — not a claim that the setup will work.';
   }
   if (context?.symbol) {
-    return `It matters as a research-priority question for ${context.symbol.toUpperCase()} — whether the case deserves more of your attention.`;
+    return `Interpretation: ${context.symbol.toUpperCase()} may or may not deserve more attention. That is a research-priority call, never a forecast.`;
   }
-  return 'It matters as a process check: what is known, what is missing, and whether to spend research time.';
+  return 'Interpretation: what is known vs missing tells you whether to spend research time. It does not say the market will move.';
 }
 
 function whatChanged(trust: AiTrustPayload | undefined, mode: AiAnswerMode): string {
@@ -180,21 +201,21 @@ function suggestedAction(
   context?: AiEnrichedContext | null,
 ): string {
   if (level === 'insufficient') {
-    return 'Suggested research action: stop. Attach a quote or write invalidation before asking for a deeper read.';
+    return 'Next research action: stop. Attach a quote or write invalidation before asking for a deeper read.';
   }
   if (mode === 'replay_coach') {
-    return 'Suggested research action: stay on the freeze — do not peek at future candles. Name invalidation, then commit a research-time decision.';
+    return 'Next research action: stay on the freeze — do not peek at future candles. Name invalidation, then commit a research-time decision.';
   }
   if (mode === 'coach') {
-    return 'Suggested research action: write one explicit invalidation sentence, then decide whether the case still deserves time.';
+    return 'Next research action: write one explicit invalidation sentence, then decide whether the case still deserves time.';
   }
   if (level === 'limited') {
-    return 'Suggested research action: skip or watch — coverage is too thin for a deep block.';
+    return 'Next research action: skip or watch — coverage is too thin for a deep block.';
   }
   if (context?.symbol) {
-    return `Suggested research action: open ${context.symbol.toUpperCase()} only if you can name invalidation first. Otherwise skip.`;
+    return `Next research action: open ${context.symbol.toUpperCase()} only if you can name invalidation first. Otherwise skip.`;
   }
-  return 'Suggested research action: pick one symbol, write invalidation, or skip. Protect attention.';
+  return 'Next research action: pick one symbol, write invalidation, or skip. Protect attention.';
 }
 
 function mentorMemoryLine(context?: AiEnrichedContext | null): string | null {
@@ -211,62 +232,146 @@ export function composeStructuredMentorAnswer(input: {
   mode: AiAnswerMode;
   depth: AiAnswerDepth;
   evidenceLevel: AiEvidenceLevel;
+  priorEvidenceLevel?: AiEvidenceLevel | null;
 }): AiStructuredMentorAnswer {
   const enriched = input.context.enriched;
   const cap = bulletCap(input.depth, input.mode);
   const memory = memoryUse(enriched);
   const dnaLine = mentorMemoryLine(enriched);
+  const conflicting = Boolean(
+    enriched?.overallBias &&
+      enriched.overallBias !== 'neutral' &&
+      (enriched.rsi?.signal === 'overbought' || enriched.rsi?.signal === 'oversold'),
+  );
+  const repeatAsk = looksLikeRepeatAsk(input.prompt);
+  const cappedLevel = capEvidenceLevel(
+    input.evidenceLevel,
+    input.priorEvidenceLevel ?? input.context.priorEvidenceLevel,
+  );
+  const quality = explainEvidenceQuality({
+    context: enriched,
+    evidence: input.trust?.evidence,
+    level: cappedLevel,
+    conflicting,
+  });
 
   const whatIKnow = knownFacts(enriched, cap);
+  if (quality.honestyLead) {
+    whatIKnow.unshift(quality.honestyLead);
+  }
   if (dnaLine && (input.mode === 'coach' || input.mode === 'replay_coach' || input.depth !== 'concise')) {
     whatIKnow.push(dnaLine);
   }
 
+  const interpretation = interpretationFor(input.mode, cappedLevel, enriched);
+  const askClass = classifyMentorAsk(input.prompt);
+
   const answer: AiStructuredMentorAnswer = {
     mode: input.mode,
     depth: input.depth,
-    evidenceLevel: input.evidenceLevel,
+    evidenceLevel: cappedLevel,
     whatIKnow,
     whatIDontKnow: unknownFacts(enriched, cap),
     evidence: evidenceLines(input.trust, cap),
-    whyItMatters: whyItMatters(input.mode, enriched),
+    whyItMatters: interpretation,
+    interpretation,
     whatChanged: whatChanged(input.trust, input.mode),
     whatWouldChange: whatWouldChange(input.trust, cap),
-    suggestedResearchAction: suggestedAction(input.mode, input.evidenceLevel, enriched),
+    suggestedResearchAction: suggestedAction(input.mode, cappedLevel, enriched),
     memoryUse: memory,
     sources: sourcesFor(enriched),
+    evidenceWhy: quality.why,
+    whatWouldImproveEvidence: quality.whatWouldImprove,
+    honestyLead: quality.honestyLead,
+    availableEvidence: quality.available,
+    missingEvidence: quality.missing,
     selfCheck: {
       passed: true,
       downgraded: false,
-      evidenceLevel: input.evidenceLevel,
+      evidenceLevel: cappedLevel,
       flags: [],
     },
   };
 
-  if (looksLikePromptInjection(input.prompt)) {
+  if (repeatAsk) {
+    answer.whatIDontKnow = [
+      'Asking again does not add new evidence, so I will not become more certain.',
+      ...answer.whatIDontKnow,
+    ].slice(0, cap + 1);
+  }
+
+  if (askClass === 'prompt_injection' || looksLikePromptInjection(input.prompt)) {
+    answer.honestyLead = injectionRefusal();
     answer.whatIKnow = [injectionRefusal()];
+    answer.interpretation =
+      'Interpretation: injected instructions are not evidence. Safety rules stay in force.';
+    answer.whyItMatters = answer.interpretation;
     answer.suggestedResearchAction =
-      'Suggested research action: ask about evidence, invalidation, or process — not about overriding safety rules.';
+      'Next research action: ask about evidence, invalidation, or process — not about overriding safety rules.';
+  } else if (askClass === 'journal_dump') {
+    answer.honestyLead = journalDumpRefusal();
+    answer.whatIKnow = [journalDumpRefusal()];
+    answer.interpretation =
+      'Interpretation: private journal bodies are not attached and will not be reconstructed.';
+    answer.whyItMatters = answer.interpretation;
+    answer.suggestedResearchAction =
+      'Next research action: use Journal in-app if you want to reread your own notes. Mentor will not dump them.';
+  } else if (askClass === 'signal_override') {
+    answer.honestyLead = signalOverrideRefusal();
+    answer.whatIKnow = [signalOverrideRefusal()];
+    answer.interpretation = 'Interpretation: a signal would be a forecast plus advice. I will not issue one.';
+    answer.whyItMatters = answer.interpretation;
+    answer.suggestedResearchAction =
+      'Next research action: name invalidation on the attached pack, or skip.';
+  } else if (askClass === 'prediction') {
+    answer.honestyLead = predictionRefusal();
+    answer.whatIKnow = [predictionRefusal(), ...answer.whatIKnow.filter((l) => l !== quality.honestyLead)].slice(
+      0,
+      cap + 1,
+    );
+    answer.interpretation =
+      'Interpretation: unknown future prices stay unknown. Attached DQS/RVS-style process scores are not a probability of profit.';
+    answer.whyItMatters = answer.interpretation;
+    answer.suggestedResearchAction =
+      'Next research action: write invalidation or skip. Do not treat this pack as a forecast.';
+  } else if (askClass === 'investment_advice') {
+    answer.honestyLead = adviceRefusal();
+    answer.whatIKnow = [adviceRefusal(), ...answer.whatIKnow.filter((l) => l !== quality.honestyLead)].slice(
+      0,
+      cap + 1,
+    );
+    answer.interpretation =
+      'Interpretation: buy/sell is not a research question I can answer. Research priority is whether the case deserves time.';
+    answer.whyItMatters = answer.interpretation;
+    answer.suggestedResearchAction =
+      'Next research action: if you still want a process check, name invalidation first — or skip.';
   }
 
   const selfCheck = runAiSelfCheck({
     prompt: input.prompt,
     context: enriched,
     answer,
-    evidenceLevel: input.evidenceLevel,
+    evidenceLevel: cappedLevel,
+    priorEvidenceLevel: input.priorEvidenceLevel ?? input.context.priorEvidenceLevel,
   });
   answer.selfCheck = selfCheck;
   answer.evidenceLevel = selfCheck.evidenceLevel;
   if (selfCheck.downgraded) {
-    answer.suggestedResearchAction = suggestedAction(input.mode, selfCheck.evidenceLevel, enriched);
+    if (askClass === 'research') {
+      answer.suggestedResearchAction = suggestedAction(input.mode, selfCheck.evidenceLevel, enriched);
+    }
     if (selfCheck.flags.includes('stale_data')) {
       answer.whatIDontKnow = [
         'Attached inputs may be delayed or stale — I will not treat them as a live broker tape.',
         ...answer.whatIDontKnow,
       ].slice(0, cap + 1);
     }
-    if (selfCheck.flags.includes('unsupported_claims')) {
+    if (selfCheck.flags.includes('unsupported_claims') && askClass === 'research') {
       answer.whatIKnow = ['I do not have a usable quote, so I will not invent a price.'];
+    }
+    if (selfCheck.flags.includes('weak_evidence') && selfCheck.evidenceLevel === 'insufficient') {
+      answer.honestyLead =
+        answer.honestyLead ?? "I don't have enough current data to evaluate this responsibly.";
     }
   }
   return answer;
@@ -274,19 +379,28 @@ export function composeStructuredMentorAnswer(input: {
 
 export function formatMentorAnswer(answer: AiStructuredMentorAnswer): string {
   const level = EVIDENCE_LEVEL_COPY[answer.evidenceLevel];
-  const sections: Array<[string, string[]]> = [
-    ['What I know', answer.whatIKnow],
-    ["What I don't know", answer.whatIDontKnow],
-    ['Evidence', answer.evidence],
+  const available = answer.availableEvidence ?? [];
+  const missing = answer.missingEvidence ?? [];
+  const qualityLines = [
+    `Evidence quality: ${level.label.replace(/ evidence$/i, '')}.`,
+    ...(available.length ? ['Available:', ...available.map((item) => `- ${item}`)] : ['Available:', '- none listed']),
+    'Missing:',
+    ...(missing.length ? missing.map((item) => `- ${item}`) : ['- no attached-pack gaps listed — catalysts can still be unknown']),
   ];
-  if (answer.depth !== 'concise' || answer.mode === 'deep_research') {
-    sections.push(['Why it matters', [answer.whyItMatters]]);
-    sections.push(['What changed', [answer.whatChanged]]);
-  }
-  sections.push(['What would change this', answer.whatWouldChange]);
-  sections.push(['Suggested research action', [answer.suggestedResearchAction]]);
+
+  const sections: Array<[string, string[]]> = [
+    ['Evidence quality', qualityLines],
+    ['Known', answer.whatIKnow],
+    ['Unknown', answer.whatIDontKnow],
+    ['Evidence', answer.evidence],
+    ['Interpretation', [answer.interpretation || answer.whyItMatters]],
+    ['What changed', [answer.whatChanged]],
+    ['What would change the assessment', answer.whatWouldChange],
+    ['Next research action', [answer.suggestedResearchAction]],
+  ];
 
   const header = [
+    answer.honestyLead,
     `${level.label}. ${level.meaning}`,
     answer.memoryUse.disclosure,
     answer.sources[0]
@@ -298,8 +412,7 @@ export function formatMentorAnswer(answer: AiStructuredMentorAnswer): string {
 
   const body = sections
     .map(([title, lines]) => {
-      const shown =
-        answer.depth === 'concise' ? lines.slice(0, 1) : lines;
+      const shown = answer.depth === 'concise' ? lines.slice(0, title === 'Evidence quality' ? 8 : 2) : lines;
       return `**${title}**\n${shown.map((l) => `• ${l}`).join('\n')}`;
     })
     .join('\n\n');

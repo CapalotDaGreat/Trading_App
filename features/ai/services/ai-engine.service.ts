@@ -743,6 +743,7 @@ export function generateEngineChatResponse(
     mode,
     depth,
     evidenceLevel: trust?.evidenceLevel ?? 'insufficient',
+    priorEvidenceLevel: context.priorEvidenceLevel,
   });
   if (trust) {
     trust.mentorAnswer = mentor;
@@ -754,14 +755,14 @@ export function generateEngineChatResponse(
     ? {
         ...buildMetadata(enriched, 50, [], { sentiment: enriched.overallBias }),
         trust,
-        modelVersion: 'tradevision-mentor-2.0',
+        modelVersion: 'tradevision-mentor-2.1',
       }
     : {
         source: 'engine',
         confidence: 0,
         dataAsOf: Date.now(),
         citations: [{ label: 'Topic', value: 'process' }],
-        modelVersion: 'tradevision-mentor-2.0',
+        modelVersion: 'tradevision-mentor-2.1',
         trust,
       };
 

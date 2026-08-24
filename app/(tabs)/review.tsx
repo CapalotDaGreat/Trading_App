@@ -29,7 +29,7 @@ export default function ReviewScreen() {
     <ScreenScaffold
       eyebrow={IA_GLOSSARY.review}
       title="What should improve next?"
-      subtitle="Continue with process first, then choose reflection, practice, or learning."
+      subtitle="One next process step. Reflection, practice, and lessons stay available."
       contentClassName="pb-12"
       testID="review-screen"
     >
@@ -43,7 +43,7 @@ export default function ReviewScreen() {
           testID="review-continue-hero"
         >
           <Text variant="label" className="text-accent">
-            NEXT
+            Continue
           </Text>
           <Text variant="h2" headingLevel={2} className="mt-2">
             {continueItem.title}
@@ -62,17 +62,26 @@ export default function ReviewScreen() {
       >
         <HubPathList sections={CONTINUE} emphasizeFirst={false} />
       </CollapsibleSection>
-      <CollapsibleSection title="Reflect" description="Turn one decision into an authored lesson.">
+      <CollapsibleSection
+        title="Reflect"
+        description="Turn one decision into an authored lesson."
+        defaultExpanded={false}
+      >
         <HubPathList sections={REFLECT} emphasizeFirst={false} />
       </CollapsibleSection>
       <CollapsibleSection
         title="Practice"
         description="Simulator, Chart Replay, Decision Lab, and related drills."
+        defaultExpanded={false}
         testID="review-practice-disclosure"
       >
         <HubPathList sections={PRACTICE} emphasizeFirst={false} />
       </CollapsibleSection>
-      <CollapsibleSection title="Learn" description="Lessons and deeper process patterns.">
+      <CollapsibleSection
+        title="Learn"
+        description="Lessons and deeper process patterns."
+        defaultExpanded={false}
+      >
         <HubPathList sections={LEARNING} emphasizeFirst={false} />
       </CollapsibleSection>
     </ScreenScaffold>

@@ -1,5 +1,5 @@
 import { useRef } from 'react';
-import { ActivityIndicator, View } from 'react-native';
+import { View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -10,8 +10,10 @@ import { useAlerts } from '@/features/alerts/hooks/useAlerts';
 import { EVALUATION_INTERVAL_MS } from '@/features/alerts/services/alert-evaluator.service';
 import { notificationService } from '@/features/notifications/services/notification.service';
 import { EmptyState } from '@/shared/components/feedback/EmptyState';
+import { StatusState } from '@/shared/components/feedback/StatusState';
 import { Header } from '@/shared/components/layout/Header';
 import { Screen } from '@/shared/components/layout/Screen';
+import { CollapsibleSection } from '@/shared/components/patterns/CollapsibleSection';
 import { Text } from '@/shared/components/ui/Text';
 import { useTheme } from '@/shared/hooks/useTheme';
 
@@ -56,14 +58,22 @@ export default function AlertsScreen() {
   if (isLoading) {
     return (
       <Screen className="items-center justify-center">
-        <ActivityIndicator size="large" color={colors.accent.primary} />
+        <StatusState
+          status="loading"
+          title="Loading alerts"
+          description="Named levels you asked to review later."
+        />
       </Screen>
     );
   }
 
   return (
     <Screen scrollable contentClassName="pb-8">
-      <Header title="Price Alerts" onBack={() => router.back()} />
+      <Header
+        title="Alerts"
+        subtitle="Quiet reminders when a level you named is reached — not a prompt to trade."
+        onBack={() => router.back()}
+      />
 
       <View className="mt-2 gap-7">
         <View
@@ -89,34 +99,43 @@ export default function AlertsScreen() {
           {alerts.length}/{alertLimit} alerts used
         </Text>
 
-        <CreateAlertForm
-          onSubmit={async (input) => {
-            await primeNotificationPermission();
-            await createAlert(input);
-          }}
-          isSubmitting={isCreating}
-          disabled={!canCreateAlert}
-          deliveryHint={
-            capability && !capability.backgroundEvaluation
-              ? 'This build only notifies while TradeInsight is open.'
-              : capability?.backgroundEvaluation
-                ? 'Background checks are OS-scheduled (often 15+ minutes) — not instant.'
-                : undefined
-          }
-        />
+        <CollapsibleSection
+          title="New alert"
+          description="Name a level to review later. This is not a trade instruction."
+          defaultExpanded={alerts.length === 0}
+        >
+          <CreateAlertForm
+            onSubmit={async (input) => {
+              await primeNotificationPermission();
+              await createAlert(input);
+            }}
+            isSubmitting={isCreating}
+            disabled={!canCreateAlert}
+            deliveryHint={
+              capability && !capability.backgroundEvaluation
+                ? 'This build only notifies while TradeInsight is open.'
+                : capability?.backgroundEvaluation
+                  ? 'Background checks are OS-scheduled (often 15+ minutes) — not instant.'
+                  : undefined
+            }
+          />
+        </CollapsibleSection>
 
         {!canCreateAlert ? (
-          <Text variant="caption" className="text-center text-bearish">
-            Alert limit reached. Upgrade for more alerts.
+          <Text variant="caption" className="text-center text-text-secondary">
+            Free includes a small alert budget. Premium adds more without making the desk unusable.
           </Text>
         ) : null}
 
         <View>
           <Text variant="h3" className="mb-2">
-            Active Alerts
+            Named levels
           </Text>
           {alerts.length === 0 ? (
-            <EmptyState title="No alerts" description="Create a price alert above." />
+            <EmptyState
+              title="Nothing is waiting"
+              description="Waiting is a valid decision. Add a level only if you want a quiet reminder."
+            />
           ) : (
             alerts.map((alert) => (
               <AlertCard

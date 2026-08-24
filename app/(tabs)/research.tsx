@@ -35,21 +35,21 @@ export default function ResearchScreen() {
     const definitions = [
       {
         key: 'now' as const,
-        eyebrow: 'YOUR FOCUS',
+        eyebrow: 'Your focus',
         title: 'Best fit for this session',
         description: `Fits your ${timeBudgetMinutes}-minute research budget and current context.`,
         accepts: (item: ResearchQueueItem) => item.priority === 'high',
       },
       {
         key: 'watch' as const,
-        eyebrow: 'WORTH WATCHING',
+        eyebrow: 'Worth watching',
         title: 'Keep context, spend time later',
         description: 'Useful evidence is present, but the case is not the strongest use of this session.',
         accepts: (item: ResearchQueueItem) => item.priority === 'medium' || !item.priority,
       },
       {
         key: 'low' as const,
-        eyebrow: 'LOW PRIORITY',
+        eyebrow: 'Low priority',
         title: 'Safe to defer',
         description: 'Lower research value or weaker fit with your available time and context.',
         accepts: (item: ResearchQueueItem) => item.priority === 'low',
@@ -74,7 +74,7 @@ export default function ResearchScreen() {
     <ScreenScaffold
       eyebrow="Research"
       title="What deserves research time?"
-      subtitle="One ranked queue using existing RVS, DQS, evidence, regime fit, personal relevance, and your time budget."
+      subtitle="One ranked queue. Research the top of the list, or skip it."
       contentClassName="pb-12 pt-2"
       scrollViewProps={{
         refreshControl: (
@@ -99,7 +99,7 @@ export default function ResearchScreen() {
           <StatusState
             status="error"
             title="Research queue unavailable"
-            description="The evidence needed to rank research is not available yet."
+            description="The ranked list could not load. Nothing was invented in its place."
             actionLabel="Retry"
             onAction={() => void briefQuery.refetch()}
           />
@@ -115,17 +115,32 @@ export default function ResearchScreen() {
           />
         ) : null}
 
-        {groups.map((group) => (
-          <ResearchQueueCard
-            key={group.key}
-            queue={group.items}
-            regime={brief?.regimeLabel ?? 'Unknown'}
-            freeItemLimit={group.freeItemLimit}
-            eyebrow={group.eyebrow}
-            title={group.title}
-            description={group.description}
-          />
-        ))}
+        {groups.map((group, index) => {
+          const isPrimary = index === 0;
+          const card = (
+            <ResearchQueueCard
+              queue={group.items}
+              regime={brief?.regimeLabel ?? 'Unknown'}
+              freeItemLimit={group.freeItemLimit}
+              eyebrow={isPrimary ? group.eyebrow : ''}
+              title={isPrimary ? group.title : ''}
+              description={isPrimary ? group.description : ''}
+            />
+          );
+          if (isPrimary) {
+            return <View key={group.key}>{card}</View>;
+          }
+          return (
+            <CollapsibleSection
+              key={group.key}
+              title={`${group.eyebrow} · ${group.items.length}`}
+              description={group.description}
+              defaultExpanded={false}
+            >
+              {card}
+            </CollapsibleSection>
+          );
+        })}
 
         <CollapsibleSection
           title="Explore and context"

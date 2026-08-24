@@ -74,7 +74,7 @@ export function ScreenScaffold({
       >
         <View className="min-w-0 flex-1">
           {eyebrow ? (
-            <Text variant="label" className="mb-1 text-accent">
+            <Text variant="label" className="mb-1 text-text-tertiary">
               {eyebrow}
             </Text>
           ) : null}

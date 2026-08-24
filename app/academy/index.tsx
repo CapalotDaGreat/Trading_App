@@ -78,7 +78,7 @@ export default function AcademyScreen() {
         <StatusState
           status="loading"
           title="Loading Academy"
-          description="Preparing continue, recommended, and practice paths."
+          description="Preparing the next lesson."
         />
       </ScreenScaffold>
     );
@@ -112,7 +112,7 @@ export default function AcademyScreen() {
 
         {recommendation ? (
           <View testID="academy-recommended">
-            <Text variant="label" className="mb-2 text-text-tertiary">CONTINUE LEARNING</Text>
+            <Text variant="label" className="mb-2 text-text-tertiary">Continue learning</Text>
             <NextLessonCard
               recommendation={recommendation}
               showPremiumBadge={isPersonalized && isPremium}
@@ -120,13 +120,14 @@ export default function AcademyScreen() {
           </View>
         ) : null}
 
-        <Surface emphasis="outlined" testID="academy-practice-this">
-          <Text variant="label" className="text-accent">PRACTICE THIS</Text>
-          <Text variant="h2" headingLevel={2} className="mt-2">
+        <CollapsibleSection
+          title="Practice this"
+          description="Rehearse the same short process before your next research decision."
+          defaultExpanded={false}
+          testID="academy-practice-this"
+        >
+          <Text variant="h3" headingLevel={3}>
             Pre-decision checklist
-          </Text>
-          <Text variant="body-sm" className="mb-4 mt-2 text-text-secondary">
-            Rehearse the same short process before your next research decision.
           </Text>
           <TradingChecklist compact />
           <Button
@@ -137,7 +138,7 @@ export default function AcademyScreen() {
           >
             Open full checklist
           </Button>
-        </Surface>
+        </CollapsibleSection>
 
         <CollapsibleSection
           title="Paths"

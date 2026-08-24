@@ -4,6 +4,7 @@ import type {
   ReplayTvDecision,
   ReplayTvDecisionRecord,
   ReplayTvEpisode,
+  ReplayTvProcessComparison,
   ReplayTvReasoning,
 } from '@/features/decision-replay-tv/types/replay-tv.types';
 
@@ -138,23 +139,146 @@ export function composeReplayTvCoachNote(input: {
         : 'What would have invalidated your thesis at this freeze — a level, a time budget, or a regime change?',
   );
 
+  const knew = sanitizeCoachLine(
+    evidence
+      ? `At this freeze you had: ${evidence.slice(0, 160)}.`
+      : 'At this freeze you had the visible tape and any news already available — nothing from the future.',
+  );
+  const believed = sanitizeCoachLine(
+    thesis
+      ? `You believed: “${thesis.slice(0, 140)}”.`
+      : inaction
+        ? 'You believed the case was not ready — waiting or skipping is a valid research decision.'
+        : 'You did not write a thesis, so the belief is still implicit.',
+  );
+  const ignored = sanitizeCoachLine(
+    namedInvalidation
+      ? uncertainty
+        ? `You named uncertainty (“${uncertainty.slice(0, 100)}”) rather than pretending the freeze was complete.`
+        : 'Invalidation is named. Check whether you still ignored time budget or an alternative case.'
+      : 'You have not yet named invalidation — that is the main process gap at this freeze.',
+  );
+  const considered = sanitizeCoachLine(
+    input.checklist.consideredAlternative
+      ? 'You considered an alternative use of research time.'
+      : inaction
+        ? 'You considered not spending more time here. That can be the expert move.'
+        : 'Record whether you considered waiting, skipping, or reviewing another asset.',
+  );
+
+  const decided = sanitizeCoachLine(
+    `You decided to ${decisionLabel(input.decision)} — a research-time process choice, not a prediction of what the tape would do next.`,
+  );
+
+  const didWell = sanitizeCoachLine(
+    namedInvalidation && (inaction || thesis)
+      ? inaction
+        ? 'You protected attention and named invalidation. Doing nothing can be the correct process.'
+        : 'You wrote a checkable thesis and named what would kill the case.'
+      : inaction
+        ? 'Waiting or skipping is valid. The next upgrade is naming invalidation before the following freeze.'
+        : evidence
+          ? 'You cited freeze evidence instead of guessing the hidden path.'
+          : 'You committed a process choice under a blind tape. That is the skill this room trains.',
+  );
+
+  const practiceNext = sanitizeCoachLine(
+    !namedInvalidation
+      ? 'Practice naming invalidation in one sentence before the next pause.'
+      : uncertainty
+        ? 'Practice stating uncertainty without filling it with a forecast.'
+        : inaction
+          ? 'Practice the same wait/skip rule on the next incomplete freeze.'
+          : 'Practice citing only evidence that is actually on this freeze.',
+  );
+
   return {
     noticed,
     missed,
     changed,
     consistency,
     invalidationQuestion,
+    knew,
+    believed,
+    ignored,
+    considered,
+    decided,
+    didWell,
+    practiceNext,
   };
 }
 
 export function formatReplayTvCoachReply(note: ReplayTvCoachNote): string {
   return [
-    `What you noticed: ${note.noticed}`,
-    `What you missed: ${note.missed}`,
+    `What you knew: ${note.knew}`,
+    `What you decided: ${note.decided}`,
     note.changed ? `What changed: ${note.changed}` : null,
-    `Was your reasoning internally consistent? ${note.consistency}`,
-    `What would have invalidated your thesis? ${note.invalidationQuestion}`,
+    `What you missed: ${note.missed}`,
+    `What you did well: ${note.didWell}`,
+    `What to practice next: ${note.practiceNext}`,
   ]
     .filter(Boolean)
     .join('\n\n');
+}
+
+/**
+ * After the tape is revealed: compare process to what became visible.
+ * Never implies that a profitable or “correct” path proves decision quality.
+ */
+export function composeReplayTvProcessComparison(input: {
+  episode: ReplayTvEpisode;
+  decisions: ReplayTvDecisionRecord[];
+  checklist: ReplayTvChecklist;
+  weakestSkillLabel: string;
+}): ReplayTvProcessComparison {
+  const last = input.decisions[input.decisions.length - 1];
+  const choices = input.decisions.map((d) => decisionLabel(d.decision)).join(', then ');
+  const evidenceBits = input.decisions
+    .map((d) => d.structured?.evidence.trim() || d.reasoning.trim())
+    .filter(Boolean)
+    .slice(0, 2);
+  const inaction = input.decisions.some(
+    (d) =>
+      d.decision === 'wait' ||
+      d.decision === 'skip' ||
+      d.decision === 'protect_attention' ||
+      d.decision === 'review_other',
+  );
+
+  const knew = sanitizeCoachLine(
+    evidenceBits.length
+      ? `At the freezes you had: ${evidenceBits.map((bit) => bit.slice(0, 100)).join(' · ')}.`
+      : 'At the freezes you had only the visible tape and news already available — never the later path.',
+  );
+
+  const decided = sanitizeCoachLine(
+    choices
+      ? `You decided to ${choices}. Those are research-time process choices, not a grade of the historical path.`
+      : 'No process choice was logged. The room still grades presence under a blind tape, never P&L.',
+  );
+
+  const changed = sanitizeCoachLine(
+    `After you committed, the educational tape continued: ${input.episode.historicalOutcome.slice(0, 180)} That describes what became visible — it does not prove or disprove the quality of your process.`,
+  );
+
+  const missed = sanitizeCoachLine(
+    input.checklist.namedInvalidation
+      ? last?.coach?.missed ??
+        'The later tape can show information you could not have known. Missing a future fact is not a process failure.'
+      : 'Invalidation was not explicit on every pause. Name what would kill the case before the next bar — that is independent of how the path printed.',
+  );
+
+  const didWell = sanitizeCoachLine(
+    inaction
+      ? 'You treated waiting, skipping, or reviewing another case as a legitimate decision. A later move on the tape does not retroactively make that patience “wrong.”'
+      : input.checklist.namedInvalidation
+        ? 'You named invalidation under uncertainty. Process quality is that habit — not whether the historical reconstruction “paid.”'
+        : 'You stayed with a blind tape and committed a process choice. That is the skill, regardless of the later path.',
+  );
+
+  const practiceNext = sanitizeCoachLine(
+    `Practice ${input.weakestSkillLabel} on the next blind pause. Do not chase the historical outcome; repeat the process under a new freeze.`,
+  );
+
+  return { knew, decided, changed, missed, didWell, practiceNext };
 }

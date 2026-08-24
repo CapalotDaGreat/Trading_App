@@ -1,4 +1,4 @@
-import { ActivityIndicator, Pressable, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { useRouter } from 'expo-router';
 
 import { CalendarEventCard } from '@/features/calendar/components/CalendarEventCard';
@@ -6,10 +6,10 @@ import { useEconomicCalendar } from '@/features/calendar/hooks/useEconomicCalend
 import type { EventImpact } from '@/features/calendar/services/economic-calendar.service';
 import { DataSourceBadge } from '@/features/markets/components/DataSourceBadge';
 import { EmptyState } from '@/shared/components/feedback/EmptyState';
+import { StatusState } from '@/shared/components/feedback/StatusState';
 import { Header } from '@/shared/components/layout/Header';
 import { Screen } from '@/shared/components/layout/Screen';
 import { Text } from '@/shared/components/ui/Text';
-import { useTheme } from '@/shared/hooks/useTheme';
 import { cn } from '@/shared/utils/cn';
 import { formatDate } from '@/shared/utils/date';
 
@@ -17,7 +17,6 @@ const IMPACTS: EventImpact[] = ['high', 'medium', 'low'];
 
 export default function CalendarScreen() {
   const router = useRouter();
-  const { colors } = useTheme();
   const { grouped, events, impactFilter, toggleImpact, isLoading, isError, refetch } =
     useEconomicCalendar();
   const usesMock = events.some((event) => event.source === 'mock');
@@ -25,7 +24,11 @@ export default function CalendarScreen() {
   if (isLoading) {
     return (
       <Screen className="items-center justify-center">
-        <ActivityIndicator size="large" color={colors.accent.primary} />
+        <StatusState
+          status="loading"
+          title="Loading calendar"
+          description="Events that may affect research attention — not a reason to rush."
+        />
       </Screen>
     );
   }
@@ -34,8 +37,9 @@ export default function CalendarScreen() {
     return (
       <Screen>
         <EmptyState
-          title="Unable to load calendar"
-          actionLabel="Retry"
+          title="Calendar unavailable"
+          description="We will not invent events. Your last verified calendar data is not on this device. Try again when you have a connection."
+          actionLabel="Try again"
           onAction={() => void refetch()}
         />
       </Screen>
@@ -46,7 +50,11 @@ export default function CalendarScreen() {
 
   return (
     <Screen scrollable contentClassName="pb-8">
-      <Header title="Economic Calendar" onBack={() => router.back()} />
+      <Header
+        title="Economic calendar"
+        subtitle="Events that may affect research attention — not a reason to rush."
+        onBack={() => router.back()}
+      />
       {usesMock ? (
         <View className="mt-3 flex-row items-center gap-2">
           <DataSourceBadge kind="mock" />
@@ -83,7 +91,10 @@ export default function CalendarScreen() {
         </View>
 
         {dates.length === 0 ? (
-          <EmptyState title="No events" description="No events match your filters." />
+          <EmptyState
+            title="Nothing on the calendar"
+            description="No events match these filters. Waiting is a valid state."
+          />
         ) : (
           dates.map((date) => (
             <View key={date}>

@@ -14,7 +14,10 @@ export type TradingDnaTraitId =
   | 'adaptability'
   | 'researchEfficiency'
   | 'reflectionQuality'
-  | 'learningMomentum';
+  | 'learningMomentum'
+  | 'confirmationResistance'
+  | 'decisionStamina'
+  | 'uncertaintyHandling';
 
 export type TraitTrend = 'up' | 'flat' | 'down';
 export type TraitConfidenceLevel = 'low' | 'medium' | 'high';
@@ -86,6 +89,10 @@ export interface TradingDnaTraitScore {
   whySummary: string;
   /** Optional ratio sentence, e.g. invalidation recorded in 18 of last 22 decisions. */
   ratioSentence?: string;
+  /** Longitudinal observation, e.g. "You increasingly define invalidation before committing." */
+  insightSentence?: string;
+  /** Count-only evidence lines — never journal bodies. */
+  whyBullets?: string[];
   status: TraitScoreStatus;
   confidence: TraitConfidenceLevel;
   confidenceValue: number;
@@ -99,6 +106,27 @@ export interface DnaStyleFingerprint {
   riskTolerance: string;
 }
 
+export type DnaWindowId = 'now' | '30d' | '90d' | 'all';
+
+/** Explainable process observation — counts only, never a personality label. */
+export interface DnaProcessInsight {
+  id: string;
+  traitId: TradingDnaTraitId;
+  observation: string;
+  whySummary: string;
+  whyBullets: string[];
+  evidence: DnaEvidenceItem[];
+}
+
+/** Focus area wired to one practice, then measured on later Decision Log events. */
+export interface DnaFocusPractice {
+  traitId: TradingDnaTraitId;
+  observation: string;
+  practice: DnaCoachingAction;
+  change: LongitudinalTrend;
+  measurement: string;
+}
+
 export interface TradingDnaProfile {
   styleLabel: string;
   becomingLabel: string;
@@ -109,9 +137,15 @@ export interface TradingDnaProfile {
   strengths: string[];
   /** 2–3 habit lines for the strengths strip. */
   strengthHabits: string[];
+  /** Improving habits that are not yet top strengths. */
+  developingHabits: string[];
   growthEdges: string[];
   /** Max 1–2 coaching lines — never a pile of weaknesses. */
   focusAreas: string[];
+  /** Same focus areas with a Replay / Academy / Journal / Mentor practice + change measurement. */
+  focusPractices: DnaFocusPractice[];
+  /** Meaningful longitudinal observations with explainable evidence. */
+  processInsights: DnaProcessInsight[];
   observedTendencies: DnaObservedTendency[];
   updatedAt: number;
   evidenceCount: number;

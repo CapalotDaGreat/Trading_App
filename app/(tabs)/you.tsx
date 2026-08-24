@@ -35,8 +35,8 @@ export default function YouScreen() {
     >
       <View className="gap-4">
         <Surface tone="accent" emphasis="outlined" testID="you-growth-priority">
-          <Text variant="label" className="text-accent">
-            GROWTH PRIORITY
+          <Text variant="label" className="text-text-tertiary">
+            Growth priority
           </Text>
           <Text variant="h2" headingLevel={2} className="mt-2">
             {priority ?? 'Open Mentor to set one coaching priority'}
@@ -57,7 +57,7 @@ export default function YouScreen() {
             </Button>
             <Button
               size="sm"
-              variant="outline"
+              variant="ghost"
               onPress={() => router.push('/onboarding' as never)}
             >
               {mentorSetupCompleted ? 'Edit Coach Profile' : 'Set up Coach Profile'}

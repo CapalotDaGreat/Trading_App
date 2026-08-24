@@ -130,6 +130,24 @@ function pickTodayCue(input: {
     input.dna.traits.find((t) => t.id === 'researchEfficiency')?.trend === 'up';
   const invalidationImproving =
     input.invalidation?.longitudinalTrend === 'improving' || input.invalidation?.trend === 'up';
+  const patience = input.dna.traits.find((t) => t.id === 'patience');
+  const patienceImproving =
+    patience?.longitudinalTrend === 'improving' || patience?.trend === 'up';
+
+  if (patienceImproving && patience?.status === 'scored') {
+    return {
+      id: 'patience_practice_cue',
+      text: "You've been improving at waiting. Today's market conditions give you another opportunity to practice that.",
+    };
+  }
+
+  const progressInsight = input.dna.processInsights?.[0];
+  if (progressInsight?.observation) {
+    return {
+      id: `insight_${progressInsight.traitId}`,
+      text: progressInsight.observation,
+    };
+  }
 
   if (
     (input.overAnalysisLevel === 'clear' || input.overAnalysisLevel === 'mild' || (input.researchEfficiency != null && input.researchEfficiency < 50)) &&
@@ -210,7 +228,7 @@ export function buildPersonalizedToday(input: {
         detail:
           'Your edge compounds from reflection. Replay one Process Tape frame before opening new research.',
         primaryCta: { label: 'Open Decision Replay', href: '/decision/decision-replay' },
-        secondaryCta: { label: 'Decision Graph', href: '/decision/intelligence' },
+        secondaryCta: { label: 'Practice Replay TV', href: '/decision/replay-tv' },
         sectionOrder: uniqueOrder([
           'header',
           'dynamicToday',

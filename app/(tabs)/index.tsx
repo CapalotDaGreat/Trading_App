@@ -45,6 +45,7 @@ import { TradingDnaCard } from '@/features/personal-intelligence/components/Trad
 import { usePersonalIntelligence } from '@/features/personal-intelligence/hooks/usePersonalIntelligence';
 import { StatusState } from '@/shared/components/feedback/StatusState';
 import { RecoverableErrorState } from '@/shared/components/feedback/RecoverableErrorState';
+import { FocusStack } from '@/shared/components/layout/FocusStack';
 import { ScreenScaffold } from '@/shared/components/layout/ScreenScaffold';
 import { CollapsibleSection } from '@/shared/components/patterns/CollapsibleSection';
 import { SectionHeader } from '@/shared/components/patterns/SectionHeader';
@@ -370,7 +371,7 @@ export default function DecisionBriefScreen() {
       }}
       testID="today-screen"
     >
-      <View className="gap-5">
+      <FocusStack density="focus">
         <EducationalModeBadge />
 
         {showMentorSetupInvite ? (
@@ -386,6 +387,17 @@ export default function DecisionBriefScreen() {
           />
         ) : brief ? (
           <MarketConditionCard brief={brief} />
+        ) : null}
+
+        {intel?.today.todayCue ? (
+          <Text
+            variant="body-sm"
+            className="leading-6 text-text-secondary"
+            testID="today-dna-cue"
+            accessibilityRole="text"
+          >
+            {intel.today.todayCue}
+          </Text>
         ) : null}
 
         {briefQuery.isLoading && !brief ? (
@@ -485,64 +497,83 @@ export default function DecisionBriefScreen() {
             onPress={() => router.push('/decision/intelligence' as never)}
           />
 
-          {intel?.today ? (
-            <View testID="today-section-dynamic-today-optional">
-              <DynamicTodayHero focus={intel.today} becomingQuestion={intel.becomingQuestion} />
-            </View>
-          ) : null}
-
-          {brief?.tradingDayPlan?.items.length ? (
-            <CollapsibleSection
-              title="Day plan"
-              description="Current phase and remaining session steps."
-              testID="today-day-plan-disclosure"
-            >
+          <CollapsibleSection
+            title="Process extras"
+            description="Day plan, mentor, DNA snapshot, and close-the-loop."
+            defaultExpanded={false}
+            testID="today-optional-process"
+          >
+            {brief?.tradingDayPlan?.items.length ? (
               <TradingDayPlanCard plan={brief.tradingDayPlan} />
-            </CollapsibleSection>
-          ) : null}
+            ) : null}
+            {mentorQuery.data ? (
+              <View testID="today-section-mentor">
+                <MentorCard brief={mentorQuery.data} isLoading={mentorQuery.isLoading} />
+              </View>
+            ) : null}
+            {intel?.dna ? <TradingDnaCard dna={intel.dna} compact /> : null}
+            {moreSections
+              .filter((section) =>
+                ['goals', 'closeLoop', 'decisionLog', 'whyNot'].includes(section),
+              )
+              .map((section) => renderMoreSection(section))}
+          </CollapsibleSection>
 
-          {brief?.researchQueue?.length ? (
-            <View testID="today-section-research-queue">
-              <ResearchQueueCard
-                queue={brief.researchQueue}
-                regime={brief.regimeLabel}
-                freeItemLimit={3}
-                variant="compact"
-                eyebrow="FULL QUEUE"
-                title={`${brief.researchQueue.length} ranked · next up`}
-                description={`~${brief.researchQueue
-                  .slice(0, 3)
-                  .reduce((sum, item) => sum + (item.estimatedMinutes ?? 0), 0)} min for the next free items · full queue lives in Research`}
-                onOutcome={() => void markDisciplineAction('researchPlan').then(setStreak)}
-              />
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel="Open the full Research queue"
-                testID="today-see-all-setups"
-                onPress={() => router.push('/research' as never)}
-                className="mt-2 min-h-11 items-center justify-center rounded-xl bg-surface px-4"
-              >
-                <Text variant="label" className="text-accent">
-                  Open full Research queue
-                </Text>
-              </Pressable>
-            </View>
-          ) : null}
+          <CollapsibleSection
+            title="Evidence extras"
+            description="Full queue, brief detail, regime, and personalized lesson."
+            defaultExpanded={false}
+            testID="today-optional-evidence"
+          >
+            {intel?.today ? (
+              <View testID="today-section-dynamic-today-optional">
+                <DynamicTodayHero
+                  focus={intel.today}
+                  becomingQuestion={intel.becomingQuestion}
+                  showCue={false}
+                />
+              </View>
+            ) : null}
 
-          {brief ? (
-            <View testID="today-section-morning-brief">
-              <DecisionBriefHeader brief={brief} />
-            </View>
-          ) : null}
-          {mentorQuery.data ? (
-            <View testID="today-section-mentor">
-              <MentorCard brief={mentorQuery.data} isLoading={mentorQuery.isLoading} />
-            </View>
-          ) : null}
-          {intel?.dna ? <TradingDnaCard dna={intel.dna} compact /> : null}
-          {moreSections.map((section) => renderMoreSection(section))}
+            {brief?.researchQueue?.length ? (
+              <View testID="today-section-research-queue">
+                <ResearchQueueCard
+                  queue={brief.researchQueue}
+                  regime={brief.regimeLabel}
+                  freeItemLimit={3}
+                  variant="compact"
+                  eyebrow="Full queue"
+                  title={`${brief.researchQueue.length} ranked · next up`}
+                  description={`~${brief.researchQueue
+                    .slice(0, 3)
+                    .reduce((sum, item) => sum + (item.estimatedMinutes ?? 0), 0)} min for the next free items · full queue lives in Research`}
+                  onOutcome={() => void markDisciplineAction('researchPlan').then(setStreak)}
+                />
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Open the full Research queue"
+                  testID="today-see-all-setups"
+                  onPress={() => router.push('/research' as never)}
+                  className="mt-2 min-h-11 items-center justify-center rounded-xl bg-surface px-4"
+                >
+                  <Text variant="label" className="text-accent">
+                    Open full Research queue
+                  </Text>
+                </Pressable>
+              </View>
+            ) : null}
+
+            {brief ? (
+              <View testID="today-section-morning-brief">
+                <DecisionBriefHeader brief={brief} />
+              </View>
+            ) : null}
+            {moreSections
+              .filter((section) => ['morningBrief', 'regime', 'dnaPulse', 'mentor'].includes(section))
+              .map((section) => renderMoreSection(section))}
+          </CollapsibleSection>
         </CollapsibleSection>
-      </View>
+      </FocusStack>
     </ScreenScaffold>
   );
 }

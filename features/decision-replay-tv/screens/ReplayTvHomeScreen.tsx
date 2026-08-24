@@ -1,8 +1,9 @@
-import { useRouter } from 'expo-router';
+﻿import { useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { ScrollView, View } from 'react-native';
 
 import { ReplayTvEpisodeCard } from '@/features/decision-replay-tv/components/ReplayTvEpisodeCard';
+import { ReplayTvSkillProgressCard } from '@/features/decision-replay-tv/components/ReplayTvSkillProgressCard';
 import {
   REPLAY_TV_COLLECTIONS,
   REPLAY_TV_EPISODES,
@@ -23,6 +24,7 @@ import {
   episodesForDnaGrowth,
   rankReplayTvEpisodes,
 } from '@/features/decision-replay-tv/services/replay-tv-rank.service';
+import { deriveReplayTvSkillProgress } from '@/features/decision-replay-tv/services/replay-tv-skills.service';
 import type { ReplayTvEpisode } from '@/features/decision-replay-tv/types/replay-tv.types';
 import { EducationalModeBadge } from '@/features/educational/components/EducationalModeBadge';
 import { useCoachProfile } from '@/features/onboarding/hooks/useCoachProfile';
@@ -46,6 +48,8 @@ function EpisodeRow({
   isStarting,
   isPremium,
   onBegin,
+  defaultExpanded = false,
+  plain = false,
 }: {
   title: string;
   description: string;
@@ -54,28 +58,45 @@ function EpisodeRow({
   isStarting: boolean;
   isPremium: boolean;
   onBegin: (id: string) => void;
+  defaultExpanded?: boolean;
+  /** Flattened list — use inside an outer collapsible so rooms are not nested. */
+  plain?: boolean;
 }) {
   if (!episodes.length) return null;
-  return (
-    <CollapsibleSection title={title} description={description} defaultExpanded={false}>
-      <View className="gap-3">
-        {episodes.slice(0, 6).map((episode) => {
-          const premiumLocked = !isPremium && episodeRequiresPremium(episode);
-          return (
-            <ReplayTvEpisodeCard
-              key={episode.id}
-              episode={episode}
-              completed={progress.completedEpisodeIds.includes(episode.id)}
-              bestProcess={progress.bestProcessByEpisode[episode.id]}
-              lockedHint={premiumLocked ? 'Premium library' : null}
-              onPress={() => {
-                if (isStarting) return;
-                onBegin(episode.id);
-              }}
-            />
-          );
-        })}
+  const list = (
+    <View className="gap-3">
+      {episodes.slice(0, 6).map((episode) => {
+        const premiumLocked = !isPremium && episodeRequiresPremium(episode);
+        return (
+          <ReplayTvEpisodeCard
+            key={episode.id}
+            episode={episode}
+            completed={progress.completedEpisodeIds.includes(episode.id)}
+            bestProcess={progress.bestProcessByEpisode[episode.id]}
+            lockedHint={premiumLocked ? 'Premium library' : null}
+            onPress={() => {
+              if (isStarting) return;
+              onBegin(episode.id);
+            }}
+          />
+        );
+      })}
+    </View>
+  );
+  if (plain) {
+    return (
+      <View className="gap-2">
+        <Text variant="label">{title}</Text>
+        <Text variant="caption" className="text-text-tertiary">
+          {description}
+        </Text>
+        {list}
       </View>
+    );
+  }
+  return (
+    <CollapsibleSection title={title} description={description} defaultExpanded={defaultExpanded}>
+      {list}
     </CollapsibleSection>
   );
 }
@@ -166,6 +187,7 @@ export function ReplayTvHomeScreen() {
   );
   const filtersActive =
     difficultyFilter !== 'all' || marketFilter !== 'all' || themeFilter !== 'all';
+  const skillProgress = useMemo(() => deriveReplayTvSkillProgress(progress), [progress]);
 
   const onBegin = (id: string) => {
     void beginEpisode(id).catch(() => {
@@ -176,11 +198,21 @@ export function ReplayTvHomeScreen() {
   return (
     <ScreenScaffold
       title="Decision Replay TV"
-      subtitle="Practice decision process on historical reconstructions with the future hidden."
+      subtitle="Can you make a good decision without knowing what happens next?"
       contentClassName="pb-12"
     >
       <View className="gap-4">
         <EducationalModeBadge />
+
+        <Surface padding="md" tone="subtle" testID="replay-tv-intro">
+          <Text variant="h3" headingLevel={2}>
+            The future stays hidden until you commit.
+          </Text>
+          <Text variant="body-sm" className="mt-2 leading-6 text-text-secondary">
+            Practice research-time decisions on a blind tape. Waiting is a valid expert decision.
+            Scores measure process (DQS), never whether price went your way.
+          </Text>
+        </Surface>
 
         {accessBlock ? (
           <PremiumPreviewCard
@@ -201,7 +233,7 @@ export function ReplayTvHomeScreen() {
         {activeSession && activeEpisode ? (
           <Surface tone="accent" emphasis="outlined">
             <Text variant="label" className="text-accent">
-              CONTINUE WATCHING
+              Continue watching
             </Text>
             <Text variant="h2" headingLevel={2} className="mt-2">
               {activeEpisode.title}
@@ -224,7 +256,7 @@ export function ReplayTvHomeScreen() {
         ) : recommended[0] ? (
           <Surface tone="accent" emphasis="outlined">
             <Text variant="label" className="text-accent">
-              NEXT SESSION
+              Next session
             </Text>
             <Text variant="h2" headingLevel={2} className="mt-2">
               {recommended[0].title}
@@ -246,20 +278,22 @@ export function ReplayTvHomeScreen() {
           <Text variant="label">Progress</Text>
           <Text variant="body-sm" className="mt-1 text-text-secondary">
             {progress.completedEpisodeIds.length}/{REPLAY_TV_EPISODES.length} episodes · streak{' '}
-            {progress.streakDays} day{progress.streakDays === 1 ? '' : 's'} ·{' '}
-            {progress.attemptCount} attempts
-            {!isPremium && progress.monthlyKey
-              ? ` · ${progress.monthlyCompletions} this month`
-              : ''}
+            {progress.streakDays} day{progress.streakDays === 1 ? '' : 's'}
           </Text>
           <Text variant="caption" className="mt-2 text-text-tertiary">
-            Mastery and streaks celebrate process completion — never profits.
+            Streaks celebrate process completion — never profits.
           </Text>
         </Surface>
 
-        <Surface padding="sm" tone="subtle" testID="replay-tv-filters">
-          <Text variant="label">Library filters</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mt-3">
+        <ReplayTvSkillProgressCard skills={skillProgress} />
+
+        <CollapsibleSection
+          title="Find a room"
+          description="Difficulty, market, and theme — when you want to browse."
+          defaultExpanded={false}
+          testID="replay-tv-filters"
+        >
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
             <View className="flex-row gap-2 pr-4">
               {(
                 [
@@ -283,7 +317,7 @@ export function ReplayTvHomeScreen() {
               ))}
             </View>
           </ScrollView>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mt-2">
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
             <View className="flex-row gap-2 pr-4">
               {(
                 [
@@ -305,7 +339,7 @@ export function ReplayTvHomeScreen() {
               ))}
             </View>
           </ScrollView>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mt-2">
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
             <View className="flex-row gap-2 pr-4">
               {(
                 [
@@ -327,96 +361,98 @@ export function ReplayTvHomeScreen() {
               ))}
             </View>
           </ScrollView>
-        </Surface>
+        </CollapsibleSection>
 
         {filtersActive ? (
           <EpisodeRow
-            title="Filtered library"
-            description="Matching difficulty, market, and theme — spoiler-safe teasers only."
+            title="Matching rooms"
+            description="Spoiler-safe teasers only — outcomes stay hidden."
             episodes={filteredLibrary}
             progress={progress}
             isStarting={isStarting}
             isPremium={isPremium}
             onBegin={onBegin}
+            defaultExpanded
           />
-        ) : null}
-
-        <EpisodeRow
-          title="Recommended for You"
-          description="Ranked from Mentor Setup markets, styles, struggles, and experience."
-          episodes={recommended}
-          progress={progress}
-          isStarting={isStarting}
-          isPremium={isPremium}
-          onBegin={onBegin}
-        />
-
-        <EpisodeRow
-          title="Based on Your Trading DNA"
-          description="Rooms that practise your current growth edges — process skills only."
-          episodes={dnaEpisodes.length ? dnaEpisodes : beginner.slice(0, 3)}
-          progress={progress}
-          isStarting={isStarting}
-          isPremium={isPremium}
-          onBegin={onBegin}
-        />
-
-        <EpisodeRow
-          title="Beginner Friendly"
-          description="Foundation rooms with short, clear process pauses."
-          episodes={beginner}
-          progress={progress}
-          isStarting={isStarting}
-          isPremium={isPremium}
-          onBegin={onBegin}
-        />
-
-        <EpisodeRow
-          title="Masterclass"
-          description="Advanced and expert historical rooms — Premium library."
-          episodes={masterclass}
-          progress={progress}
-          isStarting={isStarting}
-          isPremium={isPremium}
-          onBegin={onBegin}
-        />
-
-        <EpisodeRow
-          title="Historical Events"
-          description="Crashes, policy shocks, and regime changes — spoiler-safe teasers only."
-          episodes={historical}
-          progress={progress}
-          isStarting={isStarting}
-          isPremium={isPremium}
-          onBegin={onBegin}
-        />
-
-        <EpisodeRow
-          title="Short Sessions"
-          description="About 10–15 minutes — one focused process loop."
-          episodes={shortSessions}
-          progress={progress}
-          isStarting={isStarting}
-          isPremium={isPremium}
-          onBegin={onBegin}
-        />
-
-        <EpisodeRow
-          title="20-Minute Sessions"
-          description="Slightly deeper rooms when you have a longer research block."
-          episodes={twentyMinute}
-          progress={progress}
-          isStarting={isStarting}
-          isPremium={isPremium}
-          onBegin={onBegin}
-        />
+        ) : (
+          <EpisodeRow
+            title="Practice this skill"
+            description="Rooms mapped to your current Trading DNA growth edges."
+            episodes={dnaEpisodes.length ? dnaEpisodes : beginner.slice(0, 3)}
+            progress={progress}
+            isStarting={isStarting}
+            isPremium={isPremium}
+            onBegin={onBegin}
+            defaultExpanded
+          />
+        )}
 
         <CollapsibleSection
-          title="Collections"
-          description="Browse the full taxonomy when you want a specific practice theme."
+          title="More rooms"
+          description="Beginner, masterclass, history, and collections — when you want to browse."
           defaultExpanded={false}
         >
           <View className="gap-3">
+            <EpisodeRow
+              title="Recommended"
+              description="From Mentor Setup markets, styles, and struggles."
+              episodes={recommended}
+              progress={progress}
+              isStarting={isStarting}
+              isPremium={isPremium}
+              onBegin={onBegin}
+              plain
+            />
+            <EpisodeRow
+              title="Foundation"
+              description="Short, clear process pauses."
+              episodes={beginner}
+              progress={progress}
+              isStarting={isStarting}
+              isPremium={isPremium}
+              onBegin={onBegin}
+              plain
+            />
+            <EpisodeRow
+              title="Masterclass"
+              description="Advanced historical rooms — Premium library."
+              episodes={masterclass}
+              progress={progress}
+              isStarting={isStarting}
+              isPremium={isPremium}
+              onBegin={onBegin}
+              plain
+            />
+            <EpisodeRow
+              title="Historical events"
+              description="Crashes, policy shocks, and regime changes — teasers only."
+              episodes={historical}
+              progress={progress}
+              isStarting={isStarting}
+              isPremium={isPremium}
+              onBegin={onBegin}
+              plain
+            />
+            <EpisodeRow
+              title="Short sessions"
+              description="About 10–15 minutes."
+              episodes={shortSessions}
+              progress={progress}
+              isStarting={isStarting}
+              isPremium={isPremium}
+              onBegin={onBegin}
+              plain
+            />
+            <EpisodeRow
+              title="Longer sessions"
+              description="About 20 minutes when you have a deeper research block."
+              episodes={twentyMinute}
+              progress={progress}
+              isStarting={isStarting}
+              isPremium={isPremium}
+              onBegin={onBegin}
+              plain
+            />
             {REPLAY_TV_COLLECTIONS.map((col) => {
               const items = rankReplayTvEpisodes(
                 listEpisodesForCollection(col.id),

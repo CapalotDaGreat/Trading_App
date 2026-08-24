@@ -265,7 +265,7 @@ export const YOU_HUB_SECTIONS: readonly NavigationHubSection[] = [
       {
         href: '/alerts',
         title: IA_GLOSSARY.alerts,
-        description: 'Levels that need your attention.',
+        description: 'Named price levels you asked to review later.',
         accessibilityLabel: 'Open your alerts',
         icon: 'notifications-outline',
         testID: 'you-alerts',

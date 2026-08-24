@@ -36,8 +36,8 @@ const ACTION_MAP: Record<TradingDnaTraitId, Array<Omit<DnaCoachingAction, 'id' |
   patience: [
     {
       kind: 'replay',
-      title: 'Patience replay',
-      detail: 'Practice waiting with future candles hidden.',
+      title: 'Try the Patience Replay',
+      detail: 'Practice waiting with future candles hidden. Doing nothing can be the right process.',
       href: '/decision/replay-tv',
     },
     {
@@ -64,8 +64,8 @@ const ACTION_MAP: Record<TradingDnaTraitId, Array<Omit<DnaCoachingAction, 'id' |
   invalidationDiscipline: [
     {
       kind: 'replay',
-      title: 'Invalidation mastery',
-      detail: 'Replay focused on what would change your mind.',
+      title: 'Try the Invalidation Replay',
+      detail: 'Practice naming what would change your mind before the next bar.',
       href: '/decision/replay-tv',
     },
     {
@@ -193,6 +193,48 @@ const ACTION_MAP: Record<TradingDnaTraitId, Array<Omit<DnaCoachingAction, 'id' |
       href: '/decision/replay-tv',
     },
   ],
+  confirmationResistance: [
+    {
+      kind: 'replay',
+      title: 'Confirmation-resistance Replay',
+      detail: 'When evidence is enough, skip extra confirmation and wait or pass.',
+      href: '/decision/replay-tv',
+    },
+    {
+      kind: 'mentor',
+      title: 'Enough-evidence check',
+      detail: 'Ask Mentor what would count as enough confirmation — then stop.',
+      href: '/decision/mentor',
+    },
+  ],
+  decisionStamina: [
+    {
+      kind: 'journal',
+      title: 'Close one loop',
+      detail: 'Journal or skip before a fourth symbol so stamina stays measurable.',
+      href: '/journal',
+    },
+    {
+      kind: 'mentor',
+      title: 'Attention-budget exercise',
+      detail: 'Cap today’s research symbols with Mentor, then log the close.',
+      href: '/decision/mentor',
+    },
+  ],
+  uncertaintyHandling: [
+    {
+      kind: 'replay',
+      title: 'Uncertainty Replay',
+      detail: 'Practice waiting or skipping when the freeze is mixed.',
+      href: '/decision/replay-tv',
+    },
+    {
+      kind: 'academy',
+      title: 'Naming uncertainty',
+      detail: 'Academy lesson on leaving mixed tapes undecided.',
+      href: '/academy',
+    },
+  ],
 };
 
 export function buildDnaCoachingActions(input: {
@@ -216,4 +258,14 @@ export function buildDnaCoachingActions(input: {
     }
   }
   return actions.slice(0, maxActions);
+}
+
+export function primaryPracticeForTrait(traitId: TradingDnaTraitId): DnaCoachingAction | null {
+  const template = ACTION_MAP[traitId]?.[0];
+  if (!template) return null;
+  return {
+    ...template,
+    id: `${traitId}-primary`,
+    traitId,
+  };
 }

@@ -105,12 +105,12 @@ export default function PortfolioScreen() {
   const overview = (
     <View className="gap-4">
       <Surface tone="accent" emphasis="outlined" testID="portfolio-risk-lead">
-        <Text variant="label" className="text-accent">
-          RISK FIRST
+        <Text variant="label" className="text-text-tertiary">
+          Risk first
         </Text>
         <Text variant="h2" headingLevel={2} className="mt-2">
           {riskQuery.data?.concentrationWarning
-            ? 'Concentration needs attention'
+            ? 'One holding is a large share of the book'
             : holdings.length === 0
               ? 'No exposure yet'
               : 'Exposure looks manageable'}
@@ -139,7 +139,12 @@ export default function PortfolioScreen() {
         />
       </Surface>
 
-      <Surface padding="sm" testID="portfolio-pnl-strip">
+      <CollapsibleSection
+        title="Value and P&L"
+        description="Context only — coaching grades process and risk, never profits."
+        defaultExpanded={false}
+        testID="portfolio-pnl-strip"
+      >
         <View className="flex-row flex-wrap gap-4">
           <View className="min-w-[40%] flex-1">
             <Text variant="caption" className="text-text-tertiary">
@@ -164,10 +169,7 @@ export default function PortfolioScreen() {
             </Text>
           </View>
         </View>
-        <Text variant="caption" className="mt-2 text-text-tertiary">
-          P&L is context only — coaching grades process and risk, never profits.
-        </Text>
-      </Surface>
+      </CollapsibleSection>
 
       <CollapsibleSection
         title="Performance"

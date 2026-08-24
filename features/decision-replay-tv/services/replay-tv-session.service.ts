@@ -29,7 +29,24 @@ export const EMPTY_CHECKLIST: ReplayTvChecklist = {
   consideredAlternative: false,
 };
 
-const REVEALED_PHASES: ReplayTvPhase[] = ['reveal', 'coaching', 'complete'];
+const REVEALED_PHASES: ReplayTvPhase[] = ['reveal', 'coaching', 'complete', 'skill'];
+
+export const REPLAY_TV_LOOP_STEPS: Array<{ phase: ReplayTvPhase; label: string }> = [
+  { phase: 'intro', label: 'Episode' },
+  { phase: 'context', label: 'Blind context' },
+  { phase: 'watching', label: 'Research' },
+  { phase: 'reasoning', label: 'Reasoning' },
+  { phase: 'decision', label: 'Commit' },
+  { phase: 'mentor', label: 'Next state' },
+  { phase: 'reveal', label: 'Outcome' },
+  { phase: 'coaching', label: 'Coaching' },
+  { phase: 'complete', label: 'Reflection' },
+  { phase: 'skill', label: 'Skill progression' },
+];
+
+export function replayTvLoopLabel(phase: ReplayTvPhase): string {
+  return REPLAY_TV_LOOP_STEPS.find((step) => step.phase === phase)?.label ?? phase;
+}
 
 function sessionId(): string {
   return `rtv_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
@@ -157,20 +174,22 @@ export function advanceReplayTvPhase(session: ReplayTvSession): ReplayTvSession 
     case 'context':
       return { ...session, phase: 'watching' };
     case 'watching':
+      return { ...session, phase: 'reasoning' };
+    case 'reasoning':
       return { ...session, phase: 'decision' };
     case 'mentor': {
       const episode = getSessionEpisode(session);
-      const nextIndex = session.checkpointIndex + 1;
-      if (nextIndex < episode.checkpoints.length) {
-        return {
-          ...session,
-          checkpointIndex: nextIndex,
-          phase: 'watching',
-          mentorReply: undefined,
-          lastCoach: undefined,
-        };
+      const committedAll = session.decisions.length >= episode.checkpoints.length;
+      if (committedAll) {
+        return { ...session, phase: 'reveal', revealed: true, mentorReply: undefined };
       }
-      return { ...session, phase: 'reveal', revealed: true, mentorReply: undefined, lastCoach: undefined };
+      return {
+        ...session,
+        phase: 'watching',
+        mentorReply: undefined,
+        lastCoach: undefined,
+        draftReasoning: undefined,
+      };
     }
     case 'reveal': {
       const episode = getSessionEpisode(session);
@@ -183,6 +202,8 @@ export function advanceReplayTvPhase(session: ReplayTvSession): ReplayTvSession 
     }
     case 'coaching':
       return { ...session, phase: 'complete' };
+    case 'complete':
+      return { ...session, phase: 'skill' };
     default:
       return session;
   }
@@ -224,6 +245,8 @@ export function submitReplayTvDecision(input: {
     previous,
   });
 
+  const isLastCheckpoint = session.checkpointIndex >= episode.checkpoints.length - 1;
+
   return {
     ...session,
     checklist: nextChecklist,
@@ -238,9 +261,11 @@ export function submitReplayTvDecision(input: {
         at: Date.now(),
       },
     ],
+    checkpointIndex: isLastCheckpoint ? session.checkpointIndex : session.checkpointIndex + 1,
     phase: 'mentor',
     mentorReply: formatReplayTvCoachReply(coach),
     lastCoach: coach,
+    draftReasoning: undefined,
   };
 }
 
@@ -254,23 +279,35 @@ export function patchReplayTvChecklist(
   };
 }
 
+export function patchReplayTvDraftReasoning(
+  session: ReplayTvSession,
+  draft: ReplayTvReasoning,
+): ReplayTvSession {
+  return { ...session, draftReasoning: draft };
+}
+
 /** Observe / Research / Stay out / Form hypothesis mapped onto process enum. */
 export const REPLAY_TV_DECISION_LABELS: Record<ReplayTvDecision, string> = {
-  wait: 'Wait for more evidence',
+  wait: 'Wait',
   research_more: 'Continue researching',
   skip: 'Skip',
   write_thesis: 'Form a research thesis',
   protect_attention: 'Protect attention',
   mark_invalidation: 'Mark invalidation',
-  review_other: 'Review another asset',
+  review_other: 'Research another asset',
 };
 
-export const REPLAY_TV_DECISION_ORDER: ReplayTvDecision[] = [
+/** Default commit choices — doing nothing (wait / skip) stays first-class. */
+export const REPLAY_TV_PRIMARY_DECISIONS: ReplayTvDecision[] = [
   'research_more',
   'wait',
   'mark_invalidation',
   'skip',
   'review_other',
+];
+
+export const REPLAY_TV_DECISION_ORDER: ReplayTvDecision[] = [
+  ...REPLAY_TV_PRIMARY_DECISIONS,
   'write_thesis',
   'protect_attention',
 ];

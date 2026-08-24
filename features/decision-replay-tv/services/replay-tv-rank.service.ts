@@ -42,6 +42,15 @@ function growthEdgeBoost(episode: ReplayTvEpisode, growthEdges: string[]): numbe
     if (/evidence|reflection|research/.test(token) && episode.scoringEmphasis.includes('evidence')) {
       value += 2;
     }
+    if (/confirmation/.test(token) && episode.scoringEmphasis.includes('alternatives')) {
+      value += 3;
+    }
+    if (/stamina|overtrad/.test(token) && episode.scoringEmphasis.includes('process')) {
+      value += 2;
+    }
+    if (/uncertain/.test(token) && episode.collectionIds.includes('uncertainty')) {
+      value += 4;
+    }
   }
   return value;
 }

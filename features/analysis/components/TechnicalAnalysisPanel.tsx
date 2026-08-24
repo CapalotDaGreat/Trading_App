@@ -56,7 +56,7 @@ export function TechnicalAnalysisPanel({ symbol, data, isLoading }: TechnicalAna
         </View>
       </View>
 
-      <Text variant="caption" className="mb-2 font-semibold uppercase tracking-wide">
+      <Text variant="caption" className="mb-2 font-medium text-text-tertiary">
         Indicators
       </Text>
       <View className="mb-3 gap-1.5">
@@ -83,8 +83,8 @@ export function TechnicalAnalysisPanel({ symbol, data, isLoading }: TechnicalAna
         ))}
       </View>
 
-      <Text variant="caption" className="mb-2 font-semibold uppercase tracking-wide">
-        Key Levels
+      <Text variant="caption" className="mb-2 font-medium text-text-tertiary">
+        Key levels
       </Text>
       <View className="gap-1.5">
         {data.supportResistance.map((level, i) => (

@@ -162,22 +162,22 @@ export const TRADE_FREQUENCY_LABELS: Record<TradeFrequency, string> = {
   several_times_week: 'Several times a week',
   weekly: 'Weekly',
   monthly: 'Monthly',
-  long_term_investing: 'Long-term investing',
+  long_term_investing: 'Long-term research',
 };
 
 export const TRADING_STYLE_INTEREST_LABELS: Record<TradingStyleInterest, string> = {
-  swing: 'Swing Trading',
-  day_trading: 'Day Trading',
-  scalping: 'Scalping',
-  position: 'Position Trading',
-  trend_following: 'Trend Following',
+  swing: 'Swing research',
+  day_trading: 'Intraday research',
+  scalping: 'Very short-horizon research',
+  position: 'Position / multi-week research',
+  trend_following: 'Trend following',
   momentum: 'Momentum',
-  value_investing: 'Value Investing',
-  growth_investing: 'Growth Investing',
+  value_investing: 'Value-oriented research',
+  growth_investing: 'Growth-oriented research',
 };
 
 export const TRADING_STRUGGLE_LABELS: Record<TradingStruggle, string> = {
-  finding_opportunities: 'Finding opportunities',
+  finding_opportunities: 'Finding what is worth researching',
   overtrading: 'Overtrading',
   emotions: 'Emotions',
   risk_management: 'Risk management',
@@ -188,7 +188,7 @@ export const TRADING_STRUGGLE_LABELS: Record<TradingStruggle, string> = {
   patience: 'Patience',
   fomo: 'FOMO',
   revenge_trading: 'Revenge trading',
-  creating_plan: 'Creating a trading plan',
+  creating_plan: 'Creating a research plan',
 };
 
 export const COACH_TONE_LABELS: Record<CoachTone, string> = {

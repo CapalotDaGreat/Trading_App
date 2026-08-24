@@ -166,22 +166,6 @@ export default function AssetDetailScreen() {
       subtitle={asset.name}
       showBack
       contentClassName="pb-10"
-      headerAction={
-        <View className="flex-row gap-2">
-          <Button
-            size="sm"
-            variant="ghost"
-            onPress={() =>
-              router.push({ pathname: '/ai', params: { symbol, source: 'asset' } } as never)
-            }
-          >
-            Ask
-          </Button>
-          <Button size="sm" variant="outline" onPress={() => setWatchlistSheetVisible(true)}>
-            Watch
-          </Button>
-        </View>
-      }
       testID="asset-detail-screen"
     >
       <View className="gap-4">
@@ -258,8 +242,8 @@ export default function AssetDetailScreen() {
             {analysis ? (
               <>
                 <Surface>
-                  <Text variant="label" className="text-accent">
-                    RESEARCH PRIORITY
+                  <Text variant="label" className="text-text-tertiary">
+                    Research priority
                   </Text>
                   <Text variant="h2" headingLevel={2} className="mt-2">
                     {researchPriority != null && researchPriority >= 65
@@ -272,17 +256,14 @@ export default function AssetDetailScreen() {
                     Decision-quality context {researchPriority}% · {analysis.summary.overallBias}{' '}
                     bias · {analysis.summary.trend}. This is not a buy or sell signal.
                   </Text>
-                  <View className="mt-3 flex-row flex-wrap gap-2">
-                    {chartSource ? <DataSourceBadge kind={chartSource.kind} /> : null}
-                    <DataFreshnessBadge fetchedAt={chartSource?.fetchedAt ?? dataUpdatedAt} />
-                  </View>
                 </Surface>
 
-                <Surface>
-                  <Text variant="h3" headingLevel={3}>
-                    Decision summary
-                  </Text>
-                  <Text variant="body-sm" className="mt-2 text-text-secondary">
+                <CollapsibleSection
+                  title="Decision summary"
+                  description="Thesis, invalidation, and timeframe context."
+                  defaultExpanded={false}
+                >
+                  <Text variant="body-sm" className="text-text-secondary">
                     Thesis: {analysis.summary.trend} with {analysis.summary.rsiSignal} RSI and{' '}
                     {analysis.summary.macdSignal} MACD context.
                   </Text>
@@ -298,20 +279,12 @@ export default function AssetDetailScreen() {
                       {formatPrice(analysis.summary.resistanceLevels[0], quote?.currency)}
                     </Text>
                   ) : null}
-                  {mtfQuery.data ? (
-                    <CollapsibleSection
-                      title="Timeframe context"
-                      description="Multi-timeframe consensus for this research case."
-                      className="mt-3"
-                    >
-                      <MtfConsensusCard data={mtfQuery.data} />
-                    </CollapsibleSection>
-                  ) : null}
-                </Surface>
+                  {mtfQuery.data ? <MtfConsensusCard data={mtfQuery.data} /> : null}
+                </CollapsibleSection>
 
                 <Surface>
                   <Text variant="caption" className="mb-1 font-semibold text-text-tertiary">
-                    ATTENTION DECISION
+                    Attention decision
                   </Text>
                   <Text variant="h3" headingLevel={3}>
                     What should happen next?
@@ -354,20 +327,38 @@ export default function AssetDetailScreen() {
                           : 'Dismiss'}
                     </Text>
                   ) : null}
-                  <Button
-                    className="mt-4"
-                    variant="outline"
-                    size="sm"
-                    onPress={() => router.push('/journal' as never)}
-                  >
-                    Journal this research
-                  </Button>
                 </Surface>
 
                 <CollapsibleSection
-                  title="Explainability"
-                  description="Evidence factors behind this research priority."
+                  title="Also on this case"
+                  description="Ask, watchlist, journal, and explainability — after the attention decision."
+                  defaultExpanded={false}
                 >
+                  <View className="flex-row flex-wrap gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onPress={() =>
+                        router.push({ pathname: '/ai', params: { symbol, source: 'asset' } } as never)
+                      }
+                    >
+                      Ask
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onPress={() => setWatchlistSheetVisible(true)}
+                    >
+                      Watch
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onPress={() => router.push('/journal' as never)}
+                    >
+                      Journal this research
+                    </Button>
+                  </View>
                   <ExplainabilityBlock
                     explainability={{
                       confidence: Math.round(analysis.summary.confidence * 100),
@@ -542,35 +533,38 @@ export default function AssetDetailScreen() {
               </Surface>
             ) : null}
 
-            <Text variant="h3" headingLevel={3}>
-              Evidence debate
-            </Text>
-            {debateQuery.isLoading && !debateQuery.debate ? (
-              <View className="gap-3">
-                <Skeleton height={120} rounded="lg" />
-                <Skeleton height={160} rounded="lg" />
-              </View>
-            ) : null}
-            {debateQuery.debate ? <AiDebateCard debate={debateQuery.debate} /> : null}
-            {!debateQuery.isLoading && !debateQuery.debate ? (
-              <Surface>
-                <Text variant="h3" headingLevel={3}>
-                  Debate unavailable
-                </Text>
-                <Text variant="body-sm" className="mt-2 text-text-secondary">
-                  We could not assemble enough evidence for a balanced debate. Check market-data
-                  connectivity and try again — we will not invent bull or bear points.
-                </Text>
-                <Button
-                  className="mt-3 self-start"
-                  size="sm"
-                  variant="outline"
-                  onPress={() => void debateQuery.refetch()}
-                >
-                  Retry debate
-                </Button>
-              </Surface>
-            ) : null}
+            <CollapsibleSection
+              title="Evidence debate"
+              description="Bull and bear evidence for this case — not a recommendation."
+              defaultExpanded={false}
+            >
+              {debateQuery.isLoading && !debateQuery.debate ? (
+                <View className="gap-3">
+                  <Skeleton height={120} rounded="lg" />
+                  <Skeleton height={160} rounded="lg" />
+                </View>
+              ) : null}
+              {debateQuery.debate ? <AiDebateCard debate={debateQuery.debate} /> : null}
+              {!debateQuery.isLoading && !debateQuery.debate ? (
+                <Surface>
+                  <Text variant="h3" headingLevel={3}>
+                    Debate unavailable
+                  </Text>
+                  <Text variant="body-sm" className="mt-2 text-text-secondary">
+                    We could not assemble enough evidence for a balanced debate. Check market-data
+                    connectivity and try again — we will not invent bull or bear points.
+                  </Text>
+                  <Button
+                    className="mt-3 self-start"
+                    size="sm"
+                    variant="outline"
+                    onPress={() => void debateQuery.refetch()}
+                  >
+                    Retry debate
+                  </Button>
+                </Surface>
+              ) : null}
+            </CollapsibleSection>
           </View>
         ) : null}
       </View>

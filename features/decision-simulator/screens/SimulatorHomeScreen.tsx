@@ -5,9 +5,11 @@ import { Pressable, View } from 'react-native';
 import { EducationalModeBadge } from '@/features/educational/components/EducationalModeBadge';
 import { EducationalPanel } from '@/features/educational/components/EducationalPanel';
 import { useDecisionSimulator } from '@/features/decision-simulator/hooks/useDecisionSimulator';
+import { useCoachProfile } from '@/features/onboarding/hooks/useCoachProfile';
 import { DEFAULT_BRIEF_SYMBOLS } from '@/features/markets/constants/freshness';
 import { Header } from '@/shared/components/layout/Header';
 import { Screen } from '@/shared/components/layout/Screen';
+import { CollapsibleSection } from '@/shared/components/patterns/CollapsibleSection';
 import { Button } from '@/shared/components/ui/Button';
 import { GlassCard } from '@/shared/components/ui/GlassCard';
 import { Input } from '@/shared/components/ui/Input';
@@ -16,7 +18,10 @@ import { Text } from '@/shared/components/ui/Text';
 export function SimulatorHomeScreen() {
   const router = useRouter();
   const { startSession, isStarting, startError, history, passport } = useDecisionSimulator();
-  const [symbol, setSymbol] = useState<string>(DEFAULT_BRIEF_SYMBOLS[0] ?? 'AAPL');
+  const { profile } = useCoachProfile();
+  const universe = profile.researchUniverse.filter(Boolean);
+  const quickSymbols = universe.length ? universe.slice(0, 6) : DEFAULT_BRIEF_SYMBOLS.slice(0, 6);
+  const [symbol, setSymbol] = useState<string>(quickSymbols[0] ?? 'AAPL');
 
   const begin = async (value: string) => {
     const next = value.trim().toUpperCase();
@@ -56,7 +61,7 @@ export function SimulatorHomeScreen() {
             />
           </View>
           <View className="mt-2 flex-row flex-wrap gap-2">
-            {DEFAULT_BRIEF_SYMBOLS.slice(0, 6).map((item) => (
+            {quickSymbols.map((item) => (
               <Pressable
                 key={item}
                 onPress={() => setSymbol(item)}
@@ -83,41 +88,47 @@ export function SimulatorHomeScreen() {
           ) : null}
         </GlassCard>
 
-        <GlassCard className="p-4">
-          <Text variant="caption" className="mb-1 font-semibold uppercase tracking-wide text-text-tertiary">
-            Decision Passport snapshot
-          </Text>
-          <Text variant="h3">{passport.processSessions} process sessions</Text>
-          <Text variant="body-sm" className="mt-1 text-text-secondary">
-            Avg process score {passport.averageProcessScore} · credentials{' '}
-            {passport.credentials.length}
-          </Text>
-          <Button
-            className="mt-3"
-            variant="secondary"
-            onPress={() => router.push('/decision/passport' as never)}
-          >
-            Open Decision Passport
-          </Button>
-        </GlassCard>
-
-        {history.length > 0 ? (
+        <CollapsibleSection
+          title="Passport and recent practice"
+          description="Optional — process sessions only, never P&L."
+          defaultExpanded={false}
+        >
           <GlassCard className="p-4">
-            <Text variant="caption" className="mb-2 font-semibold uppercase tracking-wide text-text-tertiary">
-              Recent practice
+            <Text variant="caption" className="mb-1 font-semibold uppercase tracking-wide text-text-tertiary">
+              Decision Passport snapshot
             </Text>
-            {history.slice(0, 5).map((item) => (
-              <View key={item.id} className="mb-2 border-b border-border/40 pb-2">
-                <Text variant="label" className="text-text-primary">
-                  {item.symbol} · {item.action.replace('_', ' ')}
-                </Text>
-                <Text variant="caption" className="text-text-secondary">
-                  Process {item.processScore} · {item.learningSummary}
-                </Text>
-              </View>
-            ))}
+            <Text variant="h3">{passport.processSessions} process sessions</Text>
+            <Text variant="body-sm" className="mt-1 text-text-secondary">
+              Avg process score {passport.averageProcessScore} · credentials{' '}
+              {passport.credentials.length}
+            </Text>
+            <Button
+              className="mt-3"
+              variant="secondary"
+              onPress={() => router.push('/decision/passport' as never)}
+            >
+              Open Decision Passport
+            </Button>
           </GlassCard>
-        ) : null}
+
+          {history.length > 0 ? (
+            <GlassCard className="mt-3 p-4">
+              <Text variant="caption" className="mb-2 font-semibold uppercase tracking-wide text-text-tertiary">
+                Recent practice
+              </Text>
+              {history.slice(0, 5).map((item) => (
+                <View key={item.id} className="mb-2 border-b border-border/40 pb-2">
+                  <Text variant="label" className="text-text-primary">
+                    {item.symbol} · {item.action.replace('_', ' ')}
+                  </Text>
+                  <Text variant="caption" className="text-text-secondary">
+                    Process {item.processScore} · {item.learningSummary}
+                  </Text>
+                </View>
+              ))}
+            </GlassCard>
+          ) : null}
+        </CollapsibleSection>
       </View>
     </Screen>
   );

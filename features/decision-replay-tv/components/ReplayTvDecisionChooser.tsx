@@ -3,6 +3,7 @@ import { View } from 'react-native';
 import {
   REPLAY_TV_DECISION_LABELS,
   REPLAY_TV_DECISION_ORDER,
+  REPLAY_TV_PRIMARY_DECISIONS,
 } from '@/features/decision-replay-tv/services/replay-tv-session.service';
 import type { ReplayTvDecision } from '@/features/decision-replay-tv/types/replay-tv.types';
 import { Button } from '@/shared/components/ui/Button';
@@ -21,23 +22,20 @@ export function ReplayTvDecisionChooser({
 }: ReplayTvDecisionChooserProps) {
   const order = choices?.length
     ? REPLAY_TV_DECISION_ORDER.filter((d) => choices.includes(d))
-    : REPLAY_TV_DECISION_ORDER;
+    : REPLAY_TV_PRIMARY_DECISIONS;
 
   return (
     <View className="gap-2" testID="replay-tv-decision-chooser">
       <Text variant="caption" className="text-text-tertiary">
-        What would you do with your research time? Process decisions only — never a buy/sell instruction.
+        Process decisions only — never a buy/sell instruction. Waiting or skipping is valid.
       </Text>
       {order.map((decision) => (
         <Button
           key={decision}
           variant={
-            decision === 'protect_attention' ||
-            decision === 'wait' ||
-            decision === 'skip' ||
-            decision === 'review_other'
-              ? 'secondary'
-              : 'primary'
+            decision === 'wait' || decision === 'skip' || decision === 'review_other'
+              ? 'outline'
+              : 'secondary'
           }
           disabled={disabled}
           onPress={() => onChoose(decision)}

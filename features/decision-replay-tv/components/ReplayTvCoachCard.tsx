@@ -7,11 +7,12 @@ import { Text } from '@/shared/components/ui/Text';
 export function ReplayTvCoachCard({ note }: { note: ReplayTvCoachNote }) {
   return (
     <View className="gap-3" testID="replay-tv-coach-card">
-      <CoachBlock title="What you noticed" body={note.noticed} />
-      <CoachBlock title="What you missed" body={note.missed} />
+      <CoachBlock title="What you knew" body={note.knew} />
+      <CoachBlock title="What you decided" body={note.decided} />
       {note.changed ? <CoachBlock title="What changed" body={note.changed} /> : null}
-      <CoachBlock title="Was your reasoning internally consistent?" body={note.consistency} />
-      <CoachBlock title="What would have invalidated your thesis?" body={note.invalidationQuestion} />
+      <CoachBlock title="What you missed" body={note.missed} />
+      <CoachBlock title="What you did well" body={note.didWell} />
+      <CoachBlock title="What to practice next" body={note.practiceNext} />
     </View>
   );
 }

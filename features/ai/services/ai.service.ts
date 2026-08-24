@@ -25,6 +25,7 @@ import type {
 } from '../types/ai.types';
 import { enrichRequestContext } from './ai-context.service';
 import { generateEngineAnalysis, generateEngineChatResponse } from './ai-engine.service';
+import { priorEvidenceLevelFromHistory } from './ai-evidence-level.service';
 import { attachWhyChanged } from './ai-trust.service';
 
 const AI_USAGE_KEY = 'tradevision-ai-usage-daily-v1';
@@ -233,7 +234,11 @@ export const aiService = {
     const accessError = checkAiAccess(tier, usageStats.usedToday);
     if (accessError) throw accessError;
 
-    const engineResponse = generateEngineChatResponse(prompt, enrichedContext);
+    const priorEvidenceLevel = priorEvidenceLevelFromHistory(request.history);
+    const engineResponse = generateEngineChatResponse(prompt, {
+      ...enrichedContext,
+      priorEvidenceLevel: priorEvidenceLevel ?? undefined,
+    });
     const enriched = enrichedContext.enriched;
     let trust = engineResponse.metadata.trust;
     if (trust && enriched?.symbol) {

@@ -264,6 +264,11 @@ export interface AiRequestContext {
   enriched?: AiEnrichedContext;
   answerMode?: AiAnswerMode;
   answerDepth?: AiAnswerDepth;
+  /**
+   * Last assistant evidence level in this chat. Asking again must not raise it
+   * unless new independent evidence arrived.
+   */
+  priorEvidenceLevel?: AiEvidenceLevel;
 }
 
 export interface AiUsageStats {

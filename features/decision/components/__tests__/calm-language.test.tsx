@@ -69,7 +69,7 @@ describe('calm Decision OS language', () => {
       />,
     );
 
-    expect(await screen.findByText('RESEARCH QUEUE')).toBeTruthy();
+    expect(await screen.findByText('Research queue')).toBeTruthy();
     expect(screen.getByText('Highest research value now')).toBeTruthy();
     expect(screen.queryByText(/Highest-value ideas only/i)).toBeNull();
     expect(screen.queryByText(/RESEARCH OPPORTUNITIES/i)).toBeNull();

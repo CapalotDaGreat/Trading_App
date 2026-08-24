@@ -20,6 +20,7 @@ import {
 } from '../replay-tv-path.service';
 import { filterReplayTvLibrary, inferReplayTvEpisodeKinds } from '../replay-tv-filter.service';
 import { composeReplayTvCoachNote, composeReplayTvReasoning } from '../replay-tv-coach.service';
+import { deriveReplayTvSkillProgress, selectReplayTvNextPractice } from '../replay-tv-skills.service';
 import { episodesForDnaGrowth, rankReplayTvEpisodes } from '../replay-tv-rank.service';
 import { scoreReplayTvSession } from '../replay-tv-score.service';
 import {
@@ -46,6 +47,15 @@ const { canConsumeMonthly } = jest.requireMock(
 ) as {
   canConsumeMonthly: jest.Mock;
 };
+
+function advanceToDecision(session: ReturnType<typeof createReplayTvSession>) {
+  let next = session;
+  next = advanceReplayTvPhase(next); // context
+  next = advanceReplayTvPhase(next); // watching
+  next = advanceReplayTvPhase(next); // reasoning
+  next = advanceReplayTvPhase(next); // decision
+  return next;
+}
 
 describe('Decision Replay TV', () => {
   beforeEach(() => {
@@ -152,6 +162,9 @@ describe('Decision Replay TV', () => {
     expect(visible.length).toBeLessThan(session.fullCandles.length);
 
     session = advanceReplayTvPhase(session);
+    expect(session.phase).toBe('reasoning');
+    session = advanceReplayTvPhase(session);
+    expect(session.phase).toBe('decision');
     session = submitReplayTvDecision({
       session,
       decision: 'wait',
@@ -162,6 +175,8 @@ describe('Decision Replay TV', () => {
 
     session = advanceReplayTvPhase(session);
     expect(session.phase).toBe('watching');
+    session = advanceReplayTvPhase(session);
+    expect(session.phase).toBe('reasoning');
     session = advanceReplayTvPhase(session);
     session = submitReplayTvDecision({
       session,
@@ -186,8 +201,13 @@ describe('Decision Replay TV', () => {
     expect(session.phase).toBe('coaching');
     expect(session.scores?.processQuality).toBeGreaterThan(50);
     expect(session.scores?.evidenceQuality).toBeGreaterThan(0);
+    expect(session.scores?.processComparison.knew.length).toBeGreaterThan(10);
     expect(session.scores?.journalPrompt.toLowerCase()).toContain('process');
-    expect(JSON.stringify(session.scores).toLowerCase()).not.toMatch(/p&l contest|profit target/);
+    expect(JSON.stringify(session.scores).toLowerCase()).not.toMatch(/p&l contest|profit target|profitability score/);
+    session = advanceReplayTvPhase(session);
+    expect(session.phase).toBe('complete');
+    session = advanceReplayTvPhase(session);
+    expect(session.phase).toBe('skill');
   });
 
   it('scores process quality without using path direction as a grade', () => {
@@ -284,9 +304,7 @@ describe('Decision Replay TV', () => {
   it('builds a Journal reflection payload with process-only shape', () => {
     const episode = getReplayTvEpisode('false-breakout-drill')!;
     let session = createReplayTvSession(episode.id);
-    session = advanceReplayTvPhase(session);
-    session = advanceReplayTvPhase(session);
-    session = advanceReplayTvPhase(session);
+    session = advanceToDecision(session);
     session = submitReplayTvDecision({
       session,
       decision: 'wait',
@@ -329,6 +347,7 @@ describe('Decision Replay TV', () => {
     expect(note).toContain('rtv:invalidation');
     expect(note).toContain('rtv:patience');
     expect(note).toContain('skills:');
+    expect(note).toMatch(/rtv:uncertainty|rtv:confirmation|rtv:stamina|rtv:inaction_ok/);
   });
 
   it('composes a demo session without Firebase', () => {
@@ -411,6 +430,13 @@ describe('Decision Replay TV', () => {
     expect(blob).not.toMatch(/buy|sell|bought|sold|you should have/);
     expect(blob).not.toContain(episode.historicalOutcome.slice(0, 20).toLowerCase());
     expect(note.noticed).toMatch(/skip/i);
+    expect(note.knew).toMatch(/freeze|evidence|tape/i);
+    expect(note.believed).toMatch(/no confirmation|believed/i);
+    expect(note.ignored).toMatch(/uncertainty|invalidation|time budget/i);
+    expect(note.considered).toMatch(/waiting|skipping|alternative/i);
+    expect(note.decided).toMatch(/skip/i);
+    expect(note.didWell.length).toBeGreaterThan(10);
+    expect(note.practiceNext.length).toBeGreaterThan(10);
     expect(composeReplayTvReasoning(structured)).toMatch(/Thesis:/);
   });
 
@@ -452,14 +478,16 @@ describe('Decision Replay TV', () => {
     expect(scores.adaptability).toBeGreaterThan(0);
     expect(scores.consistency).toBeGreaterThan(0);
     expect(scores.researchEfficiency).toBeGreaterThan(50);
+    expect(scores.processComparison.changed.toLowerCase()).not.toMatch(
+      /proves your process|you were right because/,
+    );
     expect(JSON.stringify(scores).toLowerCase()).not.toMatch(/profitability score|p&l contest/);
   });
 
   it('does not leak future state after a structured commit', () => {
     let session = createReplayTvSession('ecb-decision-week');
-    session = advanceReplayTvPhase(session);
-    session = advanceReplayTvPhase(session);
-    session = advanceReplayTvPhase(session);
+    session = advanceToDecision(session);
+    const freezeBefore = getFrozenCandlesForSession(session).length;
     session = submitReplayTvDecision({
       session,
       decision: 'wait',
@@ -474,7 +502,47 @@ describe('Decision Replay TV', () => {
     });
     expect(session.phase).toBe('mentor');
     expect(session.lastCoach).toBeTruthy();
+    expect(getFrozenCandlesForSession(session).length).toBeGreaterThan(freezeBefore);
     expect(replayTvHasFutureLeak(session)).toBe(false);
     expect(session.mentorReply?.toLowerCase()).not.toMatch(/buy|sell/);
+    expect(session.mentorReply).toMatch(/What you decided/);
+    expect(session.lastCoach?.didWell.length).toBeGreaterThan(10);
+    expect(session.lastCoach?.practiceNext.length).toBeGreaterThan(10);
+  });
+
+  it('tracks skill development from completed rooms without a second store', () => {
+    const skills = deriveReplayTvSkillProgress({
+      completedEpisodeIds: ['failed-setup-patience', 'ecb-decision-week'],
+      attemptCount: 2,
+      streakDays: 1,
+      lastCompletedDayKey: '2026-08-24',
+      masteryByCollection: {},
+      bestProcessByEpisode: {
+        'failed-setup-patience': 74,
+        'ecb-decision-week': 68,
+      },
+      monthlyKey: '2026-08',
+      monthlyCompletions: 2,
+    });
+    const patience = skills.find((s) => s.id === 'patience');
+    expect(patience?.reps).toBeGreaterThan(0);
+    expect(patience?.status).not.toBe('not_started');
+    expect(skills.every((s) => typeof s.label === 'string')).toBe(true);
+    expect(JSON.stringify(skills).toLowerCase()).not.toMatch(/p&l|profit/);
+    const next = selectReplayTvNextPractice({
+      completedEpisodeIds: ['failed-setup-patience', 'ecb-decision-week'],
+      attemptCount: 2,
+      streakDays: 1,
+      lastCompletedDayKey: '2026-08-24',
+      masteryByCollection: {},
+      bestProcessByEpisode: {
+        'failed-setup-patience': 74,
+        'ecb-decision-week': 68,
+      },
+      monthlyKey: '2026-08',
+      monthlyCompletions: 2,
+    });
+    expect(next.skill.id).toBeTruthy();
+    expect(next.episode?.id).not.toBe('failed-setup-patience');
   });
 });

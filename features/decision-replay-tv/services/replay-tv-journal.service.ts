@@ -19,6 +19,17 @@ export function buildReplayTvJournalReflection(input: {
   const body = [
     scores.journalPrompt,
     '',
+    scores.processComparison
+      ? [
+          `What you knew: ${scores.processComparison.knew}`,
+          `What you decided: ${scores.processComparison.decided}`,
+          `What changed: ${scores.processComparison.changed}`,
+          `What you missed: ${scores.processComparison.missed}`,
+          `What you did well: ${scores.processComparison.didWell}`,
+          `What to practice next: ${scores.processComparison.practiceNext}`,
+        ].join('\n')
+      : '',
+    '',
     `Checkpoints completed: ${session.decisions.length}/${episode.checkpoints.length}.`,
     `Skills emphasis: ${episode.skills.join(', ')}.`,
     `Scoring focus: ${episode.scoringEmphasis.join(', ')}.`,

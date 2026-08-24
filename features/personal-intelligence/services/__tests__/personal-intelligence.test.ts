@@ -44,7 +44,7 @@ function record(
   };
 }
 
-describe('Trading DNA 2.0 personal intelligence', () => {
+describe('Trading DNA 3.0 personal intelligence', () => {
   const records: DecisionRecord[] = [
     record('researched', 1),
     record('skipped', 1),
@@ -60,7 +60,7 @@ describe('Trading DNA 2.0 personal intelligence', () => {
     record('skipped', 18),
   ];
 
-  it('builds the 13 process traits with evidence and confidence', () => {
+  it('builds the 16 process traits with evidence and confidence', () => {
     const dna = buildTradingDnaTraits({
       memory,
       records,
@@ -75,7 +75,7 @@ describe('Trading DNA 2.0 personal intelligence', () => {
       nowMs: NOW,
     });
 
-    expect(dna.traits).toHaveLength(13);
+    expect(dna.traits).toHaveLength(16);
     expect(dna.traits.map((t) => t.id)).toEqual(
       expect.arrayContaining([
         'evidenceDiscipline',
@@ -91,6 +91,9 @@ describe('Trading DNA 2.0 personal intelligence', () => {
         'researchEfficiency',
         'reflectionQuality',
         'learningMomentum',
+        'confirmationResistance',
+        'decisionStamina',
+        'uncertaintyHandling',
       ]),
     );
     expect(dna.styleFingerprint.labels.length).toBeGreaterThan(0);
@@ -231,6 +234,13 @@ describe('Trading DNA 2.0 personal intelligence', () => {
     expect(snapshot.coreQuestions.howIChange).toContain('changing over time');
     expect(snapshot.dna.focusAreas.length).toBeLessThanOrEqual(2);
     expect(snapshot.dna.strengthHabits.length).toBeLessThanOrEqual(3);
+    expect(snapshot.dna.focusPractices.length).toBeLessThanOrEqual(2);
+    expect(
+      snapshot.dna.focusPractices.every((item) =>
+        ['replay', 'academy', 'journal', 'mentor', 'checklist'].includes(item.practice.kind),
+      ),
+    ).toBe(true);
+    expect(snapshot.dna.traits).toHaveLength(16);
     expect(snapshot.monthlyReview.practiceNext.some((l) => l.kind === 'replay')).toBe(true);
     expect(snapshot.patterns).toBeDefined();
     expect(snapshot.whatsChanging.length).toBeGreaterThan(0);
@@ -291,6 +301,12 @@ describe('Trading DNA 2.0 personal intelligence', () => {
       expect(invalidation.longitudinalTrend).toMatch(/improving|stable|declining/);
     }
     expect(invalidation?.ratioSentence ?? '').toMatch(/invalidation conditions/i);
+    expect(invalidation?.whySummary.toLowerCase()).toContain('journal process');
+    expect(invalidation?.whyBullets?.some((line) => /replay decision/i.test(line))).toBe(true);
+    expect(invalidation).toHaveProperty('score');
+    expect(invalidation).toHaveProperty('score30dAgo');
+    expect(invalidation).toHaveProperty('score90dAgo');
+    expect(invalidation).toHaveProperty('allTimeScore');
   });
 
   it('drops journaled DNA evidence when the live journal is deleted', () => {
@@ -462,5 +478,95 @@ describe('Trading DNA 2.0 personal intelligence', () => {
     const today = buildPersonalizedToday({ dna: improving, nowMs: NOW, uid: 'test-user' });
     expect(today.dnaAdaptations ?? []).not.toContain('invalidation_cue');
     expect(today.detail.toLowerCase()).not.toContain('growth edge');
+  });
+
+  it('surfaces at most one Today cue when patience is improving', () => {
+    const dna = composeTradingDna({
+      memory,
+      records: [
+        record('skipped', 1),
+        record('skipped', 2),
+        record('replay_completed', 1, { note: 'rtv:patience' }),
+        record('journaled', 1),
+        record('researched', 1),
+      ],
+      nowMs: NOW,
+    });
+    const patience = dna.traits.find((t) => t.id === 'patience');
+    if (patience) {
+      patience.status = 'scored';
+      patience.score = 62;
+      patience.trend = 'up';
+      patience.longitudinalTrend = 'improving';
+    }
+    const today = buildPersonalizedToday({ dna, nowMs: NOW, uid: 'cue-user' });
+    expect(today.todayCue).toMatch(/improving at waiting/i);
+    expect(today.dnaAdaptations ?? []).toContain('patience_practice_cue');
+    expect(today.dnaAdaptations?.filter((id) => id.endsWith('_cue') || id.startsWith('insight_')).length).toBeLessThanOrEqual(1);
+  });
+
+  it('explains improving invalidation with Decision Log evidence and a measurable practice', () => {
+    const historic: DecisionRecord[] = [
+      record('researched', 93),
+      record('skipped', 92),
+      record('journaled', 91),
+      record('invalidated', 2, { invalidation: 'Close below last swing' }),
+      record('invalidated', 1, { invalidation: 'Regime flip' }),
+      record('invalidated', 0),
+      record('checklist_done', 0),
+      record('replay_completed', 1, { note: 'rtv:invalidation rtv:patience' }),
+      record('replay_completed', 2, { note: 'rtv:invalidation rtv:confirmation' }),
+      record('replay_completed', 3, { note: 'rtv:uncertainty rtv:inaction_ok' }),
+      record('journaled', 0),
+      record('journaled', 1),
+      record('skipped', 0),
+      record('skipped', 1),
+      record('researched', 1),
+    ];
+    const dna = composeTradingDna({
+      memory,
+      records: historic,
+      journalEvidence: [
+        {
+          id: 'p1',
+          createdAtMs: NOW - 86_400_000,
+          hasPsychology: false,
+          hasLesson: true,
+          planAdhered: true,
+          emotion: null,
+          mistakeCategory: null,
+        },
+        {
+          id: 'p2',
+          createdAtMs: NOW - 2 * 86_400_000,
+          hasPsychology: true,
+          hasLesson: true,
+          planAdhered: true,
+          emotion: 'neutral',
+          mistakeCategory: null,
+        },
+      ],
+      nowMs: NOW,
+    });
+    const blob = JSON.stringify(dna);
+    expect(blob).not.toMatch(/dear diary|i bought|secret note/i);
+
+    const invalidation = dna.traits.find((t) => t.id === 'invalidationDiscipline');
+    expect(invalidation?.status).toBe('scored');
+    if (invalidation?.longitudinalTrend === 'improving') {
+      expect(invalidation.insightSentence ?? '').toMatch(/invalidation before committing/i);
+      expect(dna.processInsights.some((i) => i.traitId === 'invalidationDiscipline')).toBe(true);
+    }
+    expect(dna.focusPractices.length).toBeGreaterThan(0);
+    expect(dna.focusPractices[0]?.measurement.length).toBeGreaterThan(12);
+    expect(dna.traits.some((t) => t.id === 'confirmationResistance')).toBe(true);
+    expect(dna.traits.some((t) => t.id === 'decisionStamina')).toBe(true);
+    expect(dna.traits.some((t) => t.id === 'uncertaintyHandling')).toBe(true);
+
+    const today = buildPersonalizedToday({ dna, nowMs: NOW, uid: 'dna3-user' });
+    const cueIds = (today.dnaAdaptations ?? []).filter(
+      (id) => id.endsWith('_cue') || id.startsWith('insight_'),
+    );
+    expect(cueIds.length).toBeLessThanOrEqual(1);
   });
 });

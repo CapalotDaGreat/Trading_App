@@ -11,8 +11,8 @@ import {
   type ReplayTvAccessResult,
 } from '@/features/decision-replay-tv/services/replay-tv-access.service';
 import { softSaveReplayTvReflection } from '@/features/decision-replay-tv/services/replay-tv-journal.service';
+import { selectReplayTvNextPractice } from '@/features/decision-replay-tv/services/replay-tv-skills.service';
 import {
-  getSessionEpisode,
   getVisibleCandlesForSession,
   getVisibleNewsForSession,
   getBlindSafeEpisodeView,
@@ -43,17 +43,18 @@ export function useReplayTv() {
   const advancePhase = useReplayTvStore((s) => s.advancePhase);
   const updateChecklist = useReplayTvStore((s) => s.updateChecklist);
   const submitDecision = useReplayTvStore((s) => s.submitDecision);
+  const updateDraftReasoning = useReplayTvStore((s) => s.updateDraftReasoning);
   const markComplete = useReplayTvStore((s) => s.markComplete);
   const clearActive = useReplayTvStore((s) => s.clearActive);
   const recordPassport = useDecisionPassportStore((s) => s.recordSimulatorResult);
   const appendDecision = useAppendDecisionRecord();
 
-  const episode = activeSession ? getSessionEpisode(activeSession) : null;
-  const visibleCandles = activeSession
-    ? getVisibleCandlesForSession(activeSession)
-    : [];
-  const visibleNews = activeSession ? getVisibleNewsForSession(activeSession) : [];
-  const blindView = activeSession ? getBlindSafeEpisodeView(activeSession) : null;
+  const episode = activeSession ? getReplayTvEpisode(activeSession.episodeId) : null;
+  const visibleCandles =
+    activeSession && episode ? getVisibleCandlesForSession(activeSession) : [];
+  const visibleNews = activeSession && episode ? getVisibleNewsForSession(activeSession) : [];
+  const blindView = activeSession && episode ? getBlindSafeEpisodeView(activeSession) : null;
+  const nextPractice = selectReplayTvNextPractice(progress);
 
   const beginMutation = useMutation({
     mutationFn: async (episodeId: string) => {
@@ -123,9 +124,11 @@ export function useReplayTv() {
           whyItMatters:
             'Replay TV grades process under a blind historical tape — never P&L.',
           aiNoticed: session.scores.coaching,
-          whatWasMissed: session.checklist.namedInvalidation
-            ? ['Keep naming invalidation at every pause.']
-            : ['Named invalidation was missing at least once.'],
+          whatWasMissed: session.scores.processComparison
+            ? [session.scores.processComparison.missed]
+            : session.checklist.namedInvalidation
+              ? ['Keep naming invalidation at every pause.']
+              : ['Named invalidation was missing at least once.'],
           learningSummary: session.scores.coaching[0] ?? 'Process loop closed.',
           journalPrompt: session.scores.journalPrompt,
           academyHint: session.scores.academyHint
@@ -194,12 +197,16 @@ export function useReplayTv() {
       submitDecision(decision, reasoning, structured),
     finishSession: finishMutation.mutateAsync,
     isFinishing: finishMutation.isPending,
+    finishError: finishMutation.error,
     saveReflectionToJournal: saveJournalMutation.mutateAsync,
     isSavingJournal: saveJournalMutation.isPending,
     journalSaved: Boolean(saveJournalMutation.data),
+    journalError: saveJournalMutation.error,
+    nextPractice,
+    updateDraftReasoning,
     clearActive: () => {
       const session = useReplayTvStore.getState().activeSession;
-      if (session && session.phase !== 'complete') {
+      if (session && session.phase !== 'complete' && session.phase !== 'skill') {
         void trackEvent('replay_abandoned', {
           episodeId: session.episodeId.slice(0, 64),
         });

@@ -143,7 +143,7 @@ function TradeSuggestionSection({
         ) : null}
       </View>
       <Text variant="caption" className="mt-2 text-text-tertiary">
-        Evidence quality: {data.confidence}% · Research window: {data.timeframe}
+        Coverage checklist is not a probability of success. Research window: {data.timeframe}
       </Text>
     </View>
   );

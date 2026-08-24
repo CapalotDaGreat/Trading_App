@@ -66,6 +66,7 @@ export function ConfidenceBreakdownPanel({
       <Pressable
         accessibilityRole="button"
         accessibilityState={{ expanded: open }}
+        accessibilityLabel={`Evidence quality ${EVIDENCE_LEVEL_COPY[breakdown.evidenceLevel].label}. ${open ? 'Hide' : 'Show'} why and what would improve this.`}
         onPress={() => setOpen((v) => !v)}
         className="flex-row items-center justify-between gap-2"
       >
@@ -79,6 +80,14 @@ export function ConfidenceBreakdownPanel({
           <Text variant="caption" className="text-text-secondary">
             {EVIDENCE_LEVEL_COPY[breakdown.evidenceLevel].meaning}
           </Text>
+          {breakdown.availableEvidence?.length || breakdown.missingEvidence?.length ? (
+            <Text variant="caption" className="mt-1 text-text-tertiary">
+              Available: {(breakdown.availableEvidence ?? []).slice(0, 2).join(', ') || 'none listed'}
+              {breakdown.missingEvidence?.length
+                ? ` · Missing: ${breakdown.missingEvidence.slice(0, 2).join(', ')}`
+                : ''}
+            </Text>
+          ) : null}
         </View>
         <Ionicons
           name={open ? 'chevron-up' : 'chevron-down'}
@@ -89,6 +98,54 @@ export function ConfidenceBreakdownPanel({
 
       {open ? (
         <View className="mt-3 gap-2">
+          {breakdown.evidenceWhy?.length ? (
+            <View className="gap-1">
+              <Text variant="caption" className="font-medium text-text-secondary">
+                Why
+              </Text>
+              {breakdown.evidenceWhy.map((line) => (
+                <Text key={line} variant="caption" className="leading-relaxed text-text-tertiary">
+                  · {line}
+                </Text>
+              ))}
+            </View>
+          ) : null}
+          {breakdown.availableEvidence?.length ? (
+            <View className="gap-1">
+              <Text variant="caption" className="font-medium text-text-secondary">
+                Available
+              </Text>
+              {breakdown.availableEvidence.map((line) => (
+                <Text key={`avail-${line}`} variant="caption" className="leading-relaxed text-text-tertiary">
+                  · {line}
+                </Text>
+              ))}
+            </View>
+          ) : null}
+          {breakdown.missingEvidence?.length ? (
+            <View className="gap-1">
+              <Text variant="caption" className="font-medium text-text-secondary">
+                Missing
+              </Text>
+              {breakdown.missingEvidence.map((line) => (
+                <Text key={`miss-${line}`} variant="caption" className="leading-relaxed text-text-tertiary">
+                  · {line}
+                </Text>
+              ))}
+            </View>
+          ) : null}
+          {breakdown.whatWouldImproveEvidence?.length ? (
+            <View className="gap-1">
+              <Text variant="caption" className="font-medium text-text-secondary">
+                What would improve this
+              </Text>
+              {breakdown.whatWouldImproveEvidence.map((line) => (
+                <Text key={line} variant="caption" className="leading-relaxed text-text-tertiary">
+                  · {line}
+                </Text>
+              ))}
+            </View>
+          ) : null}
           {pillars.map((p) => (
             <PillarRow key={p.id} pillar={p} />
           ))}

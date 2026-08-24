@@ -14,11 +14,14 @@ import type { PersonalizedTodayFocus } from '../types/personal-intelligence.type
 interface DynamicTodayHeroProps {
   focus: PersonalizedTodayFocus;
   becomingQuestion?: string;
+  /** When false, skip the DNA cue — Today already shows at most one cue above. */
+  showCue?: boolean;
 }
 
 export function DynamicTodayHero({
   focus,
   becomingQuestion = 'How do I make decisions — and how am I changing over time?',
+  showCue = true,
 }: DynamicTodayHeroProps) {
   const router = useRouter();
   const { colors } = useTheme();
@@ -39,7 +42,7 @@ export function DynamicTodayHero({
           <Text variant="caption" className="mt-4 text-text-tertiary">
             {becomingQuestion}
           </Text>
-          {focus.todayCue ? (
+          {showCue && focus.todayCue ? (
             <Text variant="body-sm" className="mt-3 text-text-secondary">
               {focus.todayCue}
             </Text>

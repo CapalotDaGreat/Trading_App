@@ -57,15 +57,15 @@ function entriesToOptions<T extends string>(
 export const MENTOR_QUESTIONS: MentorQuestionDefinition[] = [
   {
     id: 1,
-    title: 'Why are you trading?',
-    why: 'This helps your AI Mentor prioritise what matters most.',
+    title: 'What brings you here?',
+    why: 'This helps your mentor adapt to how you want to learn.',
     mode: 'single',
     field: 'motive',
     options: entriesToOptions<TradingMotive>(TRADING_MOTIVE_LABELS),
   },
   {
     id: 2,
-    title: 'How experienced are you?',
+    title: 'How experienced are you with market research?',
     why: 'We adapt language, Academy depth, and Replay difficulty to your level.',
     mode: 'single',
     field: 'experience',
@@ -81,7 +81,7 @@ export const MENTOR_QUESTIONS: MentorQuestionDefinition[] = [
   },
   {
     id: 4,
-    title: 'How often do you trade?',
+    title: 'How often do you research or review markets?',
     why: 'This shapes how ambitious your daily research plan should feel.',
     mode: 'single',
     field: 'frequency',
@@ -89,15 +89,15 @@ export const MENTOR_QUESTIONS: MentorQuestionDefinition[] = [
   },
   {
     id: 5,
-    title: 'Which trading styles interest you?',
-    why: 'Coaching examples and practice sessions will match how you actually trade.',
+    title: 'Which research styles interest you?',
+    why: 'Coaching examples and practice sessions will match how you actually work.',
     mode: 'multi',
     field: 'styles',
     options: entriesToOptions<TradingStyleInterest>(TRADING_STYLE_INTEREST_LABELS),
   },
   {
     id: 6,
-    title: 'What do you currently struggle with?',
+    title: 'What do you currently find hardest?',
     why: 'Your mentor will gently focus on these habits — not overwhelm you with everything.',
     mode: 'multi',
     field: 'struggles',

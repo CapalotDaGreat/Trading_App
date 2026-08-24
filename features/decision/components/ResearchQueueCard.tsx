@@ -31,7 +31,7 @@ export function ResearchQueueCard({
   onOutcome,
   freeItemLimit = Number.POSITIVE_INFINITY,
   variant = 'expanded',
-  eyebrow = 'RESEARCH QUEUE',
+  eyebrow = 'Research queue',
   title = 'Highest research value now',
   description,
 }: ResearchQueueCardProps) {
@@ -67,18 +67,28 @@ export function ResearchQueueCard({
     onOutcome?.(item, action);
   };
 
+  const detail =
+    description === undefined
+      ? `${pending.length} item${pending.length === 1 ? '' : 's'} · ~${totalMinutes} min remaining · ranked for research, not trading`
+      : description;
+
   return (
     <Surface padding="md" testID="research-queue-card">
-      <Text variant="caption" className="mb-1 font-semibold text-text-tertiary">
-        {eyebrow}
-      </Text>
-      <Text variant="h3" className="mb-1">
-        {title}
-      </Text>
-      <Text variant="caption" className="mb-3 text-text-secondary">
-        {description ??
-          `${pending.length} item${pending.length === 1 ? '' : 's'} · ~${totalMinutes} min remaining · ranked for research, not trading`}
-      </Text>
+      {eyebrow ? (
+        <Text variant="caption" className="mb-1 font-semibold text-text-tertiary">
+          {eyebrow}
+        </Text>
+      ) : null}
+      {title ? (
+        <Text variant="h3" className="mb-1">
+          {title}
+        </Text>
+      ) : null}
+      {detail ? (
+        <Text variant="caption" className="mb-3 text-text-secondary">
+          {detail}
+        </Text>
+      ) : null}
 
       {visiblePending.map((item, index) => (
         <View key={item.symbol} className="mb-2 rounded-xl bg-surface px-3 py-2.5">

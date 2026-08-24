@@ -47,7 +47,7 @@ export function MentorCard({ brief, isLoading }: MentorCardProps) {
               <View className="h-8 w-8 items-center justify-center rounded-full bg-info-muted">
                 <Ionicons name="compass" size={16} color={colors.info.primary} />
               </View>
-              <Text variant="caption" className="font-semibold uppercase tracking-wide text-info">
+              <Text variant="caption" className="font-medium text-info">
                 Trading Mentor
               </Text>
             </View>

@@ -35,6 +35,12 @@ export interface ConfidenceBreakdown {
   notice: string;
   /** User-facing uncertainty. Never a substitute for a probability. */
   evidenceLevel: AiEvidenceLevel;
+  /** Calm "why this evidence quality" bullets — never P(profit). */
+  evidenceWhy?: string[];
+  /** What would raise evidence quality, not forecast confidence. */
+  whatWouldImproveEvidence?: string[];
+  availableEvidence?: string[];
+  missingEvidence?: string[];
 }
 
 export type EvidenceModuleId =
@@ -155,13 +161,24 @@ export interface AiStructuredMentorAnswer {
   whatIKnow: string[];
   whatIDontKnow: string[];
   evidence: string[];
+  /** Kept for compatibility — same honesty contract as `interpretation`. */
   whyItMatters: string;
+  /** Distinct from evidence: what the pack may mean for research time, never a forecast. */
+  interpretation: string;
   whatChanged: string;
   whatWouldChange: string[];
   suggestedResearchAction: string;
   memoryUse: AiMentorMemoryUse;
   sources: AiSourceAttribution[];
   selfCheck: AiSelfCheckResult;
+  /** Qualitative reasons for the evidence level — never a probability. */
+  evidenceWhy?: string[];
+  whatWouldImproveEvidence?: string[];
+  /** First-class uncertainty sentence when the honest answer is "I don't know". */
+  honestyLead?: string | null;
+  /** Visible freshness inventory — trust feature, not decoration. */
+  availableEvidence: string[];
+  missingEvidence: string[];
 }
 
 /** Phase B — always-on research analyst briefing (never signal language). */

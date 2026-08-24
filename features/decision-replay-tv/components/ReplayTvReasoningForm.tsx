@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { View } from 'react-native';
 
 import { emptyReplayTvReasoning } from '@/features/decision-replay-tv/services/replay-tv-coach.service';

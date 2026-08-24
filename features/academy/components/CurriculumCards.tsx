@@ -20,7 +20,7 @@ export function NextLessonCard({ recommendation, showPremiumBadge }: NextLessonC
       className="rounded-2xl bg-background-elevated p-4 active:opacity-80"
     >
       <Text variant="caption" className="mb-1 font-semibold text-text-tertiary">
-        {isPersonalized && showPremiumBadge ? 'YOUR NEXT LESSON · PERSONALIZED' : 'YOUR NEXT LESSON'}
+        {isPersonalized && showPremiumBadge ? 'Next lesson · Personalized' : 'Next lesson'}
       </Text>
       <Text variant="h3" className="mb-1">
         {lesson.title}

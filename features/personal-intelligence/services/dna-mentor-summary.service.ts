@@ -74,6 +74,8 @@ export function buildDnaMentorSummary(input: {
   for (const change of input.whatsChanging.slice(0, 2)) {
     if (change.id !== 'gathering') candidates.push(change.title);
   }
+  const insight = input.dna.processInsights?.[0]?.observation;
+  if (insight) candidates.unshift(insight);
   if (input.dna.growthEdges[0]) {
     candidates.push(`Growth edge this week: ${input.dna.growthEdges[0]} — one deliberate practice session helps.`);
   }

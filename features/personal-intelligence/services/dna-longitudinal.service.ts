@@ -1,4 +1,5 @@
 import type { LongitudinalTrend, TradingDnaProfile } from '../types/personal-intelligence.types';
+import { attachDnaImprovement } from './dna-improvement.service';
 import { buildObservedTendencies } from './dna-observed-tendencies.service';
 import {
   buildTradingDnaTraits,
@@ -73,5 +74,9 @@ export function composeTradingDna(input: DnaTraitsInput): TradingDnaProfile {
     nowMs: now,
   });
 
-  return current;
+  return attachDnaImprovement({
+    dna: current,
+    records: input.records,
+    nowMs: now,
+  });
 }

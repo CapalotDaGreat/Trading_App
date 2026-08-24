@@ -1,4 +1,5 @@
 import { mapMistakeToLesson } from '@/features/academy/services/curriculum.service';
+import { composeReplayTvProcessComparison } from '@/features/decision-replay-tv/services/replay-tv-coach.service';
 
 import type {
   ReplayTvChecklist,
@@ -217,6 +218,7 @@ export function scoreReplayTvSession(input: {
 
   const coaching: string[] = [
     'Scores measure process under a blind tape — never whether the historical path “paid.”',
+    'A later move on the educational tape does not prove the decision was high quality, and a later fade does not prove it was poor.',
     input.checklist.namedInvalidation
       ? 'You named invalidation — keep that habit in live research.'
       : 'Highest-leverage gap: name what would kill the idea before the next bar.',
@@ -234,8 +236,26 @@ export function scoreReplayTvSession(input: {
     coaching.push('Name at least one alternative process path (skip, wait, or a different research question).');
   }
 
+  const dimensions: Array<{ label: string; value: number }> = [
+    { label: 'invalidation', value: invalidationClarity },
+    { label: 'evidence gathering', value: evidenceQuality },
+    { label: 'patience', value: patience },
+    { label: 'adaptability', value: adaptability },
+    { label: 'consistency', value: consistency },
+    { label: 'research efficiency', value: researchEfficiency },
+  ];
+  const weakest = [...dimensions].sort((a, b) => a.value - b.value)[0]!;
+
+  const processComparison = composeReplayTvProcessComparison({
+    episode: input.episode,
+    decisions: input.decisions,
+    checklist: input.checklist,
+    weakestSkillLabel: weakest.label,
+  });
+  coaching.push(processComparison.practiceNext);
+
   const gapText = coaching.join(' ');
-  const academy = mapMistakeToLesson(gapText);
+  const academy = mapMistakeToLesson(`${gapText} ${weakest.label}`);
   const lessonId =
     academy?.lesson.id ?? input.episode.academyLessonIds[0] ?? 'dec-invalidation';
 
@@ -262,5 +282,6 @@ export function scoreReplayTvSession(input: {
       lessonId,
       reason: academy?.reason ?? 'Practice the lesson that matches your process gap.',
     },
+    processComparison,
   };
 }

@@ -23,7 +23,13 @@ export function buildAiCounterfactuals(
     factors,
     rsiSignal: context.rsi?.signal,
     mtfMismatch: undefined,
-  }).map((c) => ({ label: c.label, detail: c.detail }));
+  }).map((c) => ({
+    label: c.label,
+    detail: c.detail
+      .replace(/Confidence could rise ~\d+%/gi, 'Evidence coverage would look stronger')
+      .replace(/Confidence [−-]\d+%/gi, 'Evidence coverage would look thinner')
+      .replace(/\d+%\s*[—-].*reversal risk/gi, 'extreme RSI is a research caution, not a reversal forecast.'),
+  }));
 
   const extras: AiCounterfactual[] = [];
 

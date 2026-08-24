@@ -51,14 +51,30 @@ export function PersonalIntelligenceScreen() {
           <StatusState
             status="loading"
             title="Composing your process profile"
-            description="Trading DNA derives from Decision Log, Journal, Replay, and practice — never P&L, never a diagnosis."
+            description="Trading DNA describes observed decision tendencies from Decision Log, Journal, Replay, and practice — never P&L, never a personality diagnosis."
           />
         ) : data ? (
           <>
-            <DynamicTodayHero focus={data.today} becomingQuestion={data.becomingQuestion} />
             <TradingDnaCard dna={data.dna} limited={!isPremium} />
-            <DnaProcessGoalsCard isPremium={isPremium} />
-            <AdaptiveGoalsCard goals={data.goals} />
+            <CollapsibleSection
+              title="Today's cue"
+              description="The same cue already lives on Today. Open only if you want the longer snapshot."
+              defaultExpanded={false}
+            >
+              <DynamicTodayHero
+                focus={data.today}
+                becomingQuestion={data.becomingQuestion}
+                showCue={false}
+              />
+            </CollapsibleSection>
+            <CollapsibleSection
+              title="Process goals"
+              description="Adaptive goals and DNA process targets."
+              defaultExpanded={false}
+            >
+              <DnaProcessGoalsCard isPremium={isPremium} />
+              <AdaptiveGoalsCard goals={data.goals} />
+            </CollapsibleSection>
             <CollapsibleSection
               title="What's changing"
               description="Reviews, patterns, and coaching actions."

@@ -37,11 +37,6 @@ export function TradingMentorScreen() {
           />
         ),
       }}
-      headerAction={
-        <Button size="sm" variant="ghost" onPress={() => router.push('/ai?source=mentor' as never)}>
-          Ask
-        </Button>
-      }
       testID="mentor-screen"
     >
       <View className="gap-4">
@@ -69,7 +64,7 @@ export function TradingMentorScreen() {
         {data ? (
           <>
             <Surface tone="accent" emphasis="outlined" testID="mentor-priority">
-              <Text variant="caption" className="font-semibold uppercase tracking-wide text-info">
+              <Text variant="caption" className="font-medium text-info">
                 Coaching priority
               </Text>
               <Text variant="h2" headingLevel={2} className="mt-2 leading-snug">
@@ -83,21 +78,21 @@ export function TradingMentorScreen() {
               </Text>
             </Surface>
 
-            <Surface testID="mentor-pattern">
-              <Text variant="label" className="text-text-tertiary">
-                REPEATED PATTERN
-              </Text>
-              <Text variant="body" className="mt-2">
-                {data.daily.repeatingMistake}
-              </Text>
+            <CollapsibleSection
+              title="Repeated pattern"
+              description="One observed tendency — not a diagnosis."
+              defaultExpanded={false}
+              testID="mentor-pattern"
+            >
+              <Text variant="body">{data.daily.repeatingMistake}</Text>
               <Text variant="caption" className="mt-2 text-text-secondary">
                 Improve next: {data.daily.improveNext}
               </Text>
-            </Surface>
+            </CollapsibleSection>
 
             <Surface testID="mentor-exercise">
               <Text variant="label" className="text-accent">
-                PRESCRIBED EXERCISE
+                Prescribed exercise
               </Text>
               <Text variant="h3" headingLevel={3} className="mt-2">
                 {data.weekly.academyRecommendation?.title ?? data.weekly.replayRecommendation.label}
@@ -147,7 +142,7 @@ export function TradingMentorScreen() {
                   <Surface padding="sm">
                     <View className="mb-1 flex-row items-center">
                       <Ionicons name="school-outline" size={16} color={colors.info.primary} />
-                      <Text variant="caption" className="ml-2 font-semibold uppercase tracking-wide text-info">
+                      <Text variant="caption" className="ml-2 font-medium text-info">
                         Academy
                       </Text>
                     </View>
@@ -167,9 +162,9 @@ export function TradingMentorScreen() {
                 <Surface padding="sm">
                   <View className="mb-1 flex-row items-center">
                     <Ionicons name="play-back-outline" size={16} color={colors.accent.primary} />
-                    <Text variant="caption" className="ml-2 font-semibold uppercase tracking-wide text-accent">
-                      Replay
-                    </Text>
+                      <Text variant="caption" className="ml-2 font-medium text-accent">
+                        Replay
+                      </Text>
                   </View>
                   <Text variant="label">{data.weekly.replayRecommendation.label}</Text>
                   <Text variant="body-sm" className="mt-1 text-text-secondary">
@@ -179,7 +174,11 @@ export function TradingMentorScreen() {
               </Pressable>
             </CollapsibleSection>
 
-            <CollapsibleSection title="This week" description="Habits, strengths, and one challenge.">
+            <CollapsibleSection
+              title="This week"
+              description="Habits, strengths, and one challenge."
+              defaultExpanded={false}
+            >
               <Row label="Most improved habit" value={data.weekly.mostImprovedHabit} />
               <Row label="Most common mistake" value={data.weekly.mostCommonMistake} />
               <Row label="Greatest strength" value={data.weekly.greatestStrength} />
@@ -192,7 +191,11 @@ export function TradingMentorScreen() {
               </View>
             </CollapsibleSection>
 
-            <CollapsibleSection title="Identity" description="Style, risk posture, and preferred conditions.">
+            <CollapsibleSection
+              title="Identity"
+              description="Style, risk posture, and preferred conditions."
+              defaultExpanded={false}
+            >
               <Text variant="h3" headingLevel={3} className="mb-2">
                 {data.identity.styleLabel}
               </Text>
@@ -229,6 +232,7 @@ export function TradingMentorScreen() {
             <CollapsibleSection
               title="Evidence and references"
               description="Sources the mentor used and linked coaching surfaces."
+              defaultExpanded={false}
             >
               <Text variant="body-sm" className="mb-3 text-text-secondary">
                 Current goal: {data.currentGoal}

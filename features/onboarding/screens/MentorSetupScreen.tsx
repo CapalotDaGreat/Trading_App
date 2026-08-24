@@ -188,10 +188,10 @@ export default function MentorSetupScreen() {
 
       {step === INTRO ? (
         <View className="py-4">
-          <Text variant="h1">Let&apos;s personalise your trading coach.</Text>
+          <Text variant="h1">Let&apos;s personalise how your mentor teaches.</Text>
           <Text variant="body" className="mt-3 text-text-secondary">
-            The better we understand your goals, the better we can prioritise research, tailor
-            coaching and help you improve your decision-making.
+            This helps your mentor adapt to how you want to learn. It is not a financial
+            suitability test, and it is not used to predict markets.
           </Text>
           <WhyHint text="This takes under two minutes and you can refine everything later in Settings." />
           {isDemo ? (

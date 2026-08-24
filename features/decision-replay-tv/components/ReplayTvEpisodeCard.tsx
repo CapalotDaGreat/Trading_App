@@ -56,7 +56,7 @@ export function ReplayTvEpisodeCard({
         <View className="mt-3 flex-row flex-wrap gap-2">
           {completed ? <Chip label="Completed" tone="success" /> : null}
           {bestProcess != null ? (
-            <Chip label={`Best process ${bestProcess}`} />
+            <Chip label={`Best DQS ${bestProcess}`} />
           ) : null}
           <Chip label="Blind tape" />
           {lockedHint ? <Chip label={lockedHint} /> : null}

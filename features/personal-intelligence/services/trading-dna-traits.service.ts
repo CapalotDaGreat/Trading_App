@@ -16,6 +16,7 @@ import {
   collectEvidence,
   confidenceFromEvidence,
   evidenceItem,
+  formatWhyBullets,
   formatWhySummary,
   invalidationRatioSentence,
   totalEvidenceCount,
@@ -141,6 +142,30 @@ const TRAIT_META: Record<
         ? 'Observed tendency: Academy, replay, and lab practice keep compounding.'
         : 'Observed tendency: practice sessions are still infrequent versus chart time.',
   },
+  confirmationResistance: {
+    label: 'Confirmation resistance',
+    minEvidence: 3,
+    detail: (s) =>
+      s >= 65
+        ? 'Observed tendency: you close or skip once evidence is enough, rather than hunting extra confirmation.'
+        : 'Observed tendency: extra research or skips still pile up before a closed thesis.',
+  },
+  decisionStamina: {
+    label: 'Decision stamina',
+    minEvidence: 3,
+    detail: (s) =>
+      s >= 65
+        ? 'Observed tendency: loops stay complete as volume rises — research is closed, not dumped.'
+        : 'Observed tendency: research opens outpace closed loops as the session lengthens.',
+  },
+  uncertaintyHandling: {
+    label: 'Uncertainty handling',
+    minEvidence: 2,
+    detail: (s) =>
+      s >= 65
+        ? 'Observed tendency: mixed evidence leads to wait, skip, or named invalidation — not a forced call.'
+        : 'Observed tendency: mixed tapes still get a forced research open more often than a wait.',
+  },
 };
 
 const STRENGTH_HABITS: Partial<Record<TradingDnaTraitId, string>> = {
@@ -157,6 +182,9 @@ const STRENGTH_HABITS: Partial<Record<TradingDnaTraitId, string>> = {
   fomoResistance: 'Passing on urgency',
   overtradingResistance: 'Matching volume to reflection',
   emotionalAwareness: 'Naming the feeling',
+  confirmationResistance: 'Closing once evidence is enough',
+  decisionStamina: 'Finishing loops before opening another',
+  uncertaintyHandling: 'Waiting when the tape is mixed',
 };
 
 const FOCUS_COACHING: Partial<Record<TradingDnaTraitId, string>> = {
@@ -173,6 +201,9 @@ const FOCUS_COACHING: Partial<Record<TradingDnaTraitId, string>> = {
   riskAwareness: 'Name the risk case before the next deep research block.',
   emotionalAwareness: 'Name the feeling before the next research session.',
   learningMomentum: 'One Replay or Academy session moves process more than more charts.',
+  confirmationResistance: 'When evidence is enough, skip extra confirmation and close or pass.',
+  decisionStamina: 'Close one loop before opening a fourth symbol.',
+  uncertaintyHandling: 'When the case is mixed, wait or name invalidation instead of forcing a call.',
 };
 
 export interface DnaTraitsInput {
@@ -250,6 +281,7 @@ function scoreTrait(input: {
     evidence: input.evidence,
     lastUpdated: input.now,
     whySummary: insufficient ? 'Not enough observable process events yet.' : formatWhySummary(input.evidence),
+    whyBullets: insufficient ? [] : formatWhyBullets(input.evidence),
     score30dAgo: null,
     score90dAgo: null,
     allTimeScore: null,
@@ -368,6 +400,36 @@ function computeRawScores(bundle: DnaEvidenceBundle, processScoreWeek?: number) 
       Math.min(20, (bundle.heatmap?.learningScore ?? 40) * 0.35),
   );
 
+  const unclosed = Math.max(0, bundle.researched - bundle.journaled - bundle.skipped);
+  const confirmationResistance = clamp(
+    42 +
+      Math.min(20, bundle.journaled * 6) +
+      Math.min(14, bundle.skipped * 4) +
+      Math.min(12, (bundle.replayTvConfirmation || bundle.replayTvPatience) * 5) +
+      Math.min(10, bundle.checklist * 4) -
+      Math.min(22, unclosed * 5) -
+      (bundle.researched >= 5 && bundle.invalidated === 0 ? 8 : 0),
+  );
+
+  const decisionStamina = clamp(
+    44 +
+      Math.min(22, bundle.journaled * 7) +
+      Math.min(16, bundle.replay * 6) +
+      Math.min(10, bundle.replayTvStamina * 6) +
+      (bundle.avgDqs != null && bundle.avgDqs >= 55 ? 8 : bundle.avgDqs != null && bundle.avgDqs < 48 ? -8 : 0) -
+      Math.min(20, Math.max(0, bundle.researched - 5) * 4) -
+      Math.min(12, bundle.ignored * 3),
+  );
+
+  const uncertaintyHandling = clamp(
+    40 +
+      Math.min(22, bundle.skipped * 7) +
+      Math.min(16, bundle.invalidated * 6) +
+      Math.min(14, (bundle.replayTvUncertainty || bundle.replayTvPatience) * 5) +
+      Math.min(8, bundle.journalProcess * 3) -
+      Math.min(16, bundle.ignored * 5),
+  );
+
   return {
     evidenceDiscipline,
     riskAwareness,
@@ -382,6 +444,9 @@ function computeRawScores(bundle: DnaEvidenceBundle, processScoreWeek?: number) 
     researchEfficiency,
     reflectionQuality,
     learningMomentum,
+    confirmationResistance,
+    decisionStamina,
+    uncertaintyHandling,
   } as Record<TradingDnaTraitId, number>;
 }
 
@@ -414,8 +479,8 @@ function evidenceForTrait(id: TradingDnaTraitId, b: DnaEvidenceBundle) {
     case 'invalidationDiscipline':
       return collectEvidence(
         evidenceItem('decision_log', b.invalidated, 'invalidation marks', '/decision/radar'),
-        evidenceItem('replay', b.replay, 'replay practice', '/decision/replay-tv'),
-        evidenceItem('checklist', b.checklist, 'checklist completions'),
+        evidenceItem('replay', b.replay, 'replay decisions', '/decision/replay-tv'),
+        evidenceItem('journal', b.journalProcess || b.journaled, 'journal process entries', '/journal'),
       );
     case 'processConsistency':
       return collectEvidence(
@@ -459,7 +524,7 @@ function evidenceForTrait(id: TradingDnaTraitId, b: DnaEvidenceBundle) {
       );
     case 'reflectionQuality':
       return collectEvidence(
-        evidenceItem('journal', b.journaled, 'journal entries', '/journal'),
+        evidenceItem('journal', b.journalProcess || b.journaled, 'journal process entries', '/journal'),
         evidenceItem('replay', b.replay, 'replay reflections', '/(tabs)/review'),
       );
     case 'learningMomentum':
@@ -467,6 +532,29 @@ function evidenceForTrait(id: TradingDnaTraitId, b: DnaEvidenceBundle) {
         evidenceItem('replay', b.replay, 'replay completions', '/decision/replay-tv'),
         evidenceItem('lab', b.labClosed, 'lab closures', '/decision/lab'),
         evidenceItem('academy', b.heatmap?.learningScore ? 1 : 0, 'learning heatmap', '/academy'),
+      );
+    case 'confirmationResistance':
+      return collectEvidence(
+        evidenceItem('decision_log', b.skipped, 'skips after enough evidence', '/decision/radar'),
+        evidenceItem('journal', b.journalProcess, 'journal process entries', '/journal'),
+        evidenceItem('replay', b.replayTvConfirmation || b.replay, 'replay decisions', '/decision/replay-tv'),
+      );
+    case 'decisionStamina':
+      return collectEvidence(
+        evidenceItem('decision_log', b.researched, 'research sessions', '/decision/radar'),
+        evidenceItem('journal', b.journaled, 'closed loops', '/journal'),
+        evidenceItem('replay', b.replayTvStamina || b.replay, 'replay decisions', '/decision/replay-tv'),
+      );
+    case 'uncertaintyHandling':
+      return collectEvidence(
+        evidenceItem('decision_log', b.skipped, 'wait or skip events', '/decision/radar'),
+        evidenceItem('decision_log', b.invalidated, 'named invalidations'),
+        evidenceItem(
+          'replay',
+          b.replayTvUncertainty || b.replay,
+          'replay decisions',
+          '/decision/replay-tv',
+        ),
       );
     default:
       return [];
@@ -539,6 +627,9 @@ export function buildTradingDnaTraits(input: DnaTraitsInput): TradingDnaProfile 
     if (id === 'riskAwareness' && /risk|size|invalid/.test(struggleBlob)) return true;
     if (id === 'invalidationDiscipline' && /invalid/.test(struggleBlob)) return true;
     if (id === 'overtradingResistance' && /overtrad|busy|volume/.test(struggleBlob)) return true;
+    if (id === 'confirmationResistance' && /confirm|over.?analys/.test(struggleBlob)) return true;
+    if (id === 'decisionStamina' && /fatigue|stamina|overtrad/.test(struggleBlob)) return true;
+    if (id === 'uncertaintyHandling' && /uncertai|ambigu|chop/.test(struggleBlob)) return true;
     return false;
   };
 
@@ -585,6 +676,9 @@ export function buildTradingDnaTraits(input: DnaTraitsInput): TradingDnaProfile 
     strengthHabits: strengthHabits.length ? strengthHabits : ['Gathering process evidence'],
     growthEdges: growthEdges.length ? growthEdges : ['Gather more process evidence'],
     focusAreas: scored.length ? focusAreas : [],
+    developingHabits: [],
+    focusPractices: [],
+    processInsights: [],
     observedTendencies: [],
     updatedAt: now,
     evidenceCount: traits.reduce((sum, t) => sum + totalEvidenceCount(t.evidence), 0),

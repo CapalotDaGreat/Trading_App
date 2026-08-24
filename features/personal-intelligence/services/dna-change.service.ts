@@ -27,12 +27,14 @@ export function buildDnaChangeInsights(input: {
           ? `${trait.label} improved over the recent window.`
           : `${trait.label} softened versus your prior window.`,
       detail:
-        trait.evidence.length > 0
-          ? `Supported by ${trait.evidence
-              .slice(0, 3)
-              .map((e) => `${e.count} ${e.label}`)
-              .join(', ')}.`
-          : trait.detail,
+        trait.insightSentence && delta > 0
+          ? `${trait.insightSentence} Why? ${trait.whySummary}`
+          : trait.evidence.length > 0
+            ? `Supported by ${trait.evidence
+                .slice(0, 3)
+                .map((e) => `${e.count} ${e.label}`)
+                .join(', ')}.`
+            : trait.detail,
       traitId: trait.id,
       trend: trait.trend,
     });

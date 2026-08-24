@@ -13,8 +13,9 @@ import { useSubscription } from '@/features/subscription/hooks/useSubscription';
 import { DEMO_USER_UID } from '@/firebase/config';
 import { Header } from '@/shared/components/layout/Header';
 import { Screen } from '@/shared/components/layout/Screen';
+import { CollapsibleSection } from '@/shared/components/patterns/CollapsibleSection';
 import { Button } from '@/shared/components/ui/Button';
-import { GlassCard } from '@/shared/components/ui/GlassCard';
+import { Surface } from '@/shared/components/ui/Surface';
 import { Text } from '@/shared/components/ui/Text';
 import { legalPath } from '@/shared/legal';
 
@@ -56,7 +57,7 @@ export function SettingsScreen() {
       ) : null}
 
       {!mentorSetupCompleted && !showMentorSetupInvite ? (
-        <GlassCard className="mb-6 p-4">
+        <Surface className="mb-6 p-4">
           <Text variant="h3">AI Mentor profile</Text>
           <Text variant="body-sm" className="mt-1 text-text-secondary">
             Refresh how your coach prioritises research and learning.
@@ -64,16 +65,16 @@ export function SettingsScreen() {
           <Button className="mt-4" variant="outline" onPress={() => router.push('/onboarding')}>
             Personalise your coach
           </Button>
-        </GlassCard>
+        </Surface>
       ) : null}
 
       {!isPremium ? (
-        <GlassCard className="mb-6 p-4" glow>
+        <Surface className="mb-6 p-4">
           <View className="flex-row items-center justify-between">
             <View className="flex-1 pr-4">
-              <Text variant="h3">Continue your growth</Text>
+              <Text variant="h3">Deeper research, when you want it</Text>
               <Text variant="body-sm" className="mt-1 text-text-secondary">
-                Deeper DNA, Replay TV, fair-use AI coaching, and full research depth.
+                Premium adds Replay TV depth, advanced DNA, and more AI — the free desk stays usable.
               </Text>
             </View>
             <PremiumBadge size="md" />
@@ -88,9 +89,9 @@ export function SettingsScreen() {
               router.push('/subscription');
             }}
           >
-            View Plans
+            View Premium
           </Button>
-        </GlassCard>
+        </Surface>
       ) : null}
 
       <Text variant="label" className="mb-2 px-1">
@@ -98,10 +99,12 @@ export function SettingsScreen() {
       </Text>
       <ThemeToggle />
 
-      <Text variant="label" className="mb-2 mt-6 px-1">
-        Account
-      </Text>
-      <GlassCard className="overflow-hidden">
+      <CollapsibleSection
+        title="Account"
+        description="Coach profile, account, market data, notifications, and privacy."
+        defaultExpanded
+        className="mt-6"
+      >
         <SettingsRow
           icon="compass-outline"
           label="Coach Profile"
@@ -139,12 +142,13 @@ export function SettingsScreen() {
           showChevron
           onPress={() => router.push('/settings/privacy')}
         />
-      </GlassCard>
+      </CollapsibleSection>
 
-      <Text variant="label" className="mb-2 mt-6 px-1">
-        Learning & AI
-      </Text>
-      <GlassCard className="overflow-hidden">
+      <CollapsibleSection
+        title="Learning & AI"
+        description="Educational Mode and AI limitations."
+        className="mt-4"
+      >
         <SettingsRow
           icon="school-outline"
           label="Educational Mode"
@@ -157,20 +161,21 @@ export function SettingsScreen() {
           label="AI"
           description="Limitations, insights toggle, and memory links"
           showChevron
-          onPress={() => router.push('/settings/ai' as never)}
+          onPress={() => router.push('/settings/ai')}
         />
-      </GlassCard>
+      </CollapsibleSection>
 
-      <Text variant="label" className="mb-2 mt-6 px-1">
-        Accessibility & Preferences
-      </Text>
-      <GlassCard className="overflow-hidden">
+      <CollapsibleSection
+        title="Accessibility & Preferences"
+        description="Reduce Motion, Dynamic Type, VoiceOver / TalkBack, haptics, and biometrics."
+        className="mt-4"
+      >
         <SettingsRow
           icon="accessibility-outline"
           label="Accessibility"
           description="Reduce Motion, Dynamic Type, VoiceOver / TalkBack"
           showChevron
-          onPress={() => router.push('/settings/accessibility' as never)}
+          onPress={() => router.push('/settings/accessibility')}
         />
         <SettingsRow
           icon="phone-portrait-outline"
@@ -186,12 +191,13 @@ export function SettingsScreen() {
           toggleValue={settings.biometricAuthEnabled}
           onToggle={(value) => void updateSettings({ biometricAuthEnabled: value })}
         />
-      </GlassCard>
+      </CollapsibleSection>
 
-      <Text variant="label" className="mb-2 mt-6 px-1">
-        Subscription
-      </Text>
-      <GlassCard className="overflow-hidden">
+      <CollapsibleSection
+        title="Subscription"
+        description="Aithera Pro, billing, and restore."
+        className="mt-4"
+      >
         <SettingsRow
           icon="diamond-outline"
           label="Aithera Pro"
@@ -215,12 +221,13 @@ export function SettingsScreen() {
           showChevron
           onPress={() => void manage()}
         />
-      </GlassCard>
+      </CollapsibleSection>
 
-      <Text variant="label" className="mb-2 mt-6 px-1">
-        Legal & Support
-      </Text>
-      <GlassCard className="overflow-hidden">
+      <CollapsibleSection
+        title="Legal & Support"
+        description="Terms, privacy, risk, security, and support."
+        className="mt-4"
+      >
         <SettingsRow
           icon="document-text-outline"
           label="Terms of Service"
@@ -257,74 +264,73 @@ export function SettingsScreen() {
           showChevron
           onPress={() => router.push(legalPath('support'))}
         />
-      </GlassCard>
+      </CollapsibleSection>
 
       {!isGuest ? (
-        <>
-          <Text variant="label" className="mb-2 mt-6 px-1">
-            Delete Account
+        <CollapsibleSection
+          title="Delete account"
+          description="Permanent. Store billing is separate."
+          className="mt-4"
+        >
+          <Text variant="body-sm">
+            Permanently deletes your account and TradeInsight app data. Deleting your account does
+            not cancel Apple App Store or Google Play billing.
           </Text>
-          <GlassCard className="p-4">
-            <Text variant="body-sm">
-              Permanently deletes your account and TradeInsight app data. Deleting your account does
-              not cancel Apple App Store or Google Play billing.
-            </Text>
-            <Button variant="secondary" className="mt-4" onPress={() => void manage()}>
-              Manage Subscription First
+          <Button variant="secondary" className="mt-4" onPress={() => void manage()}>
+            Manage Subscription First
+          </Button>
+          {!showDeleteConfirmation ? (
+            <Button
+              variant="danger"
+              className="mt-3"
+              onPress={() => setShowDeleteConfirmation(true)}
+            >
+              Delete Account
             </Button>
-            {!showDeleteConfirmation ? (
-              <Button
-                variant="danger"
-                className="mt-3"
-                onPress={() => setShowDeleteConfirmation(true)}
-              >
-                Delete Account
-              </Button>
-            ) : (
-              <View className="mt-4">
-                <Text variant="body-sm">
-                  This cannot be undone. Type DELETE to permanently erase the account and app data.
+          ) : (
+            <View className="mt-4">
+              <Text variant="body-sm">
+                This cannot be undone. Type DELETE to permanently erase the account and app data.
+              </Text>
+              <TextInput
+                accessibilityLabel="Type DELETE to confirm account deletion"
+                autoCapitalize="characters"
+                autoCorrect={false}
+                value={deletePhrase}
+                onChangeText={setDeletePhrase}
+                placeholder="DELETE"
+                placeholderTextColor="#64748B"
+                className="mt-3 rounded-xl border border-bearish px-4 py-3 text-text-primary"
+              />
+              {deletionError ? (
+                <Text variant="caption" className="mt-2 text-bearish">
+                  {deletionError}
                 </Text>
-                <TextInput
-                  accessibilityLabel="Type DELETE to confirm account deletion"
-                  autoCapitalize="characters"
-                  autoCorrect={false}
-                  value={deletePhrase}
-                  onChangeText={setDeletePhrase}
-                  placeholder="DELETE"
-                  placeholderTextColor="#64748B"
-                  className="mt-3 rounded-xl border border-bearish px-4 py-3 text-text-primary"
-                />
-                {deletionError ? (
-                  <Text variant="caption" className="mt-2 text-bearish">
-                    {deletionError}
-                  </Text>
-                ) : null}
-                <View className="mt-3 gap-3">
-                  <Button
-                    variant="danger"
-                    disabled={deletePhrase !== 'DELETE'}
-                    loading={isDeleting}
-                    onPress={() => void handleDeleteAccount()}
-                  >
-                    Permanently Delete Account
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    disabled={isDeleting}
-                    onPress={() => {
-                      setShowDeleteConfirmation(false);
-                      setDeletePhrase('');
-                      setDeletionError(null);
-                    }}
-                  >
-                    Keep Account
-                  </Button>
-                </View>
+              ) : null}
+              <View className="mt-3 gap-3">
+                <Button
+                  variant="danger"
+                  disabled={deletePhrase !== 'DELETE'}
+                  loading={isDeleting}
+                  onPress={() => void handleDeleteAccount()}
+                >
+                  Permanently Delete Account
+                </Button>
+                <Button
+                  variant="ghost"
+                  disabled={isDeleting}
+                  onPress={() => {
+                    setShowDeleteConfirmation(false);
+                    setDeletePhrase('');
+                    setDeletionError(null);
+                  }}
+                >
+                  Keep Account
+                </Button>
               </View>
-            )}
-          </GlassCard>
-        </>
+            </View>
+          )}
+        </CollapsibleSection>
       ) : (
         <Text variant="caption" className="mt-6 px-1 text-text-secondary">
           Guest mode is local-only. Sign out to leave the demo, or create an account for cloud sync

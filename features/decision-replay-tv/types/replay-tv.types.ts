@@ -53,11 +53,13 @@ export type ReplayTvPhase =
   | 'intro'
   | 'context'
   | 'watching'
+  | 'reasoning'
   | 'decision'
   | 'mentor'
   | 'reveal'
   | 'coaching'
-  | 'complete';
+  | 'complete'
+  | 'skill';
 
 /** Process decision at a freeze — never a broker order or buy/sell signal. */
 export type ReplayTvDecision =
@@ -174,6 +176,27 @@ export interface ReplayTvCoachNote {
   changed: string | null;
   consistency: string;
   invalidationQuestion: string;
+  /** Process comparison — never outcome-as-skill. */
+  knew: string;
+  believed: string;
+  ignored: string;
+  considered: string;
+  /** What you decided at this freeze (process choice, not a prediction). */
+  decided: string;
+  /** Process strength — never “you were right because price moved.” */
+  didWell: string;
+  /** Next process skill to practise. */
+  practiceNext: string;
+}
+
+/** Post-reveal process comparison. Never treats P&L as proof of quality. */
+export interface ReplayTvProcessComparison {
+  knew: string;
+  decided: string;
+  changed: string;
+  missed: string;
+  didWell: string;
+  practiceNext: string;
 }
 
 export interface ReplayTvDecisionRecord {
@@ -202,6 +225,7 @@ export interface ReplayTvScores {
   coaching: string[];
   journalPrompt: string;
   academyHint?: { lessonId: string; reason: string };
+  processComparison: ReplayTvProcessComparison;
 }
 
 export interface ReplayTvSession {
@@ -219,6 +243,8 @@ export interface ReplayTvSession {
   lastCoach?: ReplayTvCoachNote;
   scores?: ReplayTvScores;
   revealed: boolean;
+  /** Draft reasoning for the current freeze — persisted so kill/resume does not wipe notes. */
+  draftReasoning?: ReplayTvReasoning;
 }
 
 export interface ReplayTvProgress {

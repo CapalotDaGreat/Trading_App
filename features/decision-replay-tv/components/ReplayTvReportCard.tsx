@@ -1,10 +1,17 @@
-import type { ReplayTvScores } from '@/features/decision-replay-tv/types/replay-tv.types';
+import type { ReplayTvProcessComparison, ReplayTvScores } from '@/features/decision-replay-tv/types/replay-tv.types';
 import { MetricRow } from '@/shared/components/patterns/MetricRow';
 import { Surface } from '@/shared/components/ui/Surface';
 import { Text } from '@/shared/components/ui/Text';
 import { TRUST_LANGUAGE } from '@/shared/constants/trust-language';
 
-export function ReplayTvReportCard({ scores }: { scores: ReplayTvScores }) {
+export function ReplayTvReportCard({
+  scores,
+  comparison,
+}: {
+  scores: ReplayTvScores;
+  comparison?: ReplayTvProcessComparison;
+}) {
+  const process = comparison ?? scores.processComparison;
   return (
     <Surface padding="md" testID="replay-tv-report">
       <Text variant="caption" className="mb-1 font-medium text-text-tertiary">
@@ -14,7 +21,8 @@ export function ReplayTvReportCard({ scores }: { scores: ReplayTvScores }) {
         {TRUST_LANGUAGE.dqs.short} {scores.overall}
       </Text>
       <Text variant="body-sm" className="mt-1 leading-6 text-text-secondary">
-        {TRUST_LANGUAGE.dqs.meaning} Never a profitability score.
+        {TRUST_LANGUAGE.dqs.meaning} Never a profitability score. A later path does not prove the
+        process.
       </Text>
       <MetricRow label="Process quality" value={String(scores.processQuality)} />
       <MetricRow label="Evidence quality" value={String(scores.evidenceQuality)} />
@@ -23,6 +31,12 @@ export function ReplayTvReportCard({ scores }: { scores: ReplayTvScores }) {
       <MetricRow label="Patience" value={String(scores.patience)} />
       <MetricRow label="Consistency" value={String(scores.consistency)} />
       <MetricRow label="Research efficiency" value={String(scores.researchEfficiency)} />
+      {process ? (
+        <Text variant="caption" className="mt-3 leading-5 text-text-tertiary">
+          Process comparison uses what you knew at each freeze. The historical reconstruction is
+          context, not a grade.
+        </Text>
+      ) : null}
     </Surface>
   );
 }
