@@ -1,4 +1,6 @@
 import { mapMistakeToLesson } from '@/features/academy/services/curriculum.service';
+import { resolveAcademyLessonForTrait } from '@/features/decision/services/decision-reinforcement-academy.service';
+import type { ReinforcementTraitId } from '@/features/decision/types/decision-reinforcement.types';
 import { composeReplayTvProcessComparison } from '@/features/decision-replay-tv/services/replay-tv-coach.service';
 
 import type {
@@ -255,7 +257,18 @@ export function scoreReplayTvSession(input: {
   coaching.push(processComparison.practiceNext);
 
   const gapText = coaching.join(' ');
-  const academy = mapMistakeToLesson(`${gapText} ${weakest.label}`);
+  const weakestToTrait: Record<string, ReinforcementTraitId> = {
+    invalidation: 'invalidationDiscipline',
+    'evidence gathering': 'evidenceDiscipline',
+    patience: 'patience',
+    adaptability: 'adaptability',
+    'research efficiency': 'researchEfficiency',
+  };
+  const mappedTrait = weakestToTrait[weakest.label];
+  const mappedLesson = mappedTrait ? resolveAcademyLessonForTrait(mappedTrait) : null;
+  const academy = mappedLesson
+    ? { lesson: mappedLesson, reason: `Existing Academy lesson for ${weakest.label}.` }
+    : mapMistakeToLesson(`${gapText} ${weakest.label}`);
   const lessonId =
     academy?.lesson.id ?? input.episode.academyLessonIds[0] ?? 'dec-invalidation';
 

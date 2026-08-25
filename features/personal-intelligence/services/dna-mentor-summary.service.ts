@@ -1,3 +1,4 @@
+import type { DecisionReinforcementSnapshot } from '@/features/decision/types/decision-reinforcement.types';
 import type {
   DnaChangeInsight,
   DnaEvidenceSource,
@@ -40,6 +41,7 @@ export function buildDnaMentorSummary(input: {
   selectedGoals?: ProcessGoalId[];
   uid?: string;
   nowMs?: number;
+  reinforcement?: DecisionReinforcementSnapshot | null;
 }): DnaMentorSummary {
   const now = input.nowMs ?? Date.now();
   const uid = input.uid ?? 'demo-guest';
@@ -83,7 +85,10 @@ export function buildDnaMentorSummary(input: {
     candidates.push('Keep logging research, skips, and journals so Trading DNA can coach from evidence.');
   }
 
-  const observationLine = candidates[hashPick(key, candidates.length)] ?? candidates[0];
+  const observationLine =
+    input.reinforcement?.mentorContext.observationLine ??
+    candidates[hashPick(key, candidates.length)] ??
+    candidates[0];
 
   return {
     becomingLabel: input.dna.becomingLabel,
@@ -94,6 +99,9 @@ export function buildDnaMentorSummary(input: {
     evidenceCounts,
     observationKey: key,
     observationLine,
+    known: input.reinforcement?.mentorContext.known,
+    inference: input.reinforcement?.mentorContext.inference,
+    unknown: input.reinforcement?.mentorContext.unknown,
   };
 }
 

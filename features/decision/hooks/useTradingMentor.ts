@@ -117,6 +117,13 @@ export function useTradingMentor() {
         academyRecommendation: academyRecommendation ?? null,
         coachProfile,
         dnaMentorSummary: intelligenceQuery.data?.mentorSummary ?? null,
+        reinforcementAcademy: intelligenceQuery.data?.reinforcement?.academyLesson
+          ? {
+              lessonId: intelligenceQuery.data.reinforcement.academyLesson.lessonId ?? '',
+              title: intelligenceQuery.data.reinforcement.academyLesson.destination.label,
+              reason: intelligenceQuery.data.reinforcement.academyLesson.reason,
+            }
+          : null,
       });
     },
     enabled: Boolean(briefQuery.data || logSummary || journalCoachQuery.data),

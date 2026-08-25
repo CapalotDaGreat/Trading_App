@@ -116,6 +116,11 @@ export function ReplayTvHomeScreen() {
   const { profile } = useCoachProfile();
   const intelligence = usePersonalIntelligence();
   const growthEdges = intelligence.data?.dna.growthEdges ?? EMPTY_GROWTH_EDGES;
+  const reinforcementTrait = intelligence.data?.reinforcement?.primaryPractice?.traitId;
+  const rankEdges = useMemo(() => {
+    if (!reinforcementTrait) return growthEdges;
+    return [...growthEdges, reinforcementTrait.replace(/([A-Z])/g, ' $1').toLowerCase()];
+  }, [growthEdges, reinforcementTrait]);
   const [difficultyFilter, setDifficultyFilter] = useState<ReplayTvDifficultyFilter>('all');
   const [marketFilter, setMarketFilter] = useState<ReplayTvMarketFilter>('all');
   const [themeFilter, setThemeFilter] = useState<ReplayTvThemeFilter>('all');
@@ -126,7 +131,7 @@ export function ReplayTvHomeScreen() {
       struggles: profile.struggles,
       styles: profile.styles,
       experience: profile.experience,
-      growthEdges,
+      growthEdges: rankEdges,
       completedIds: progress.completedEpisodeIds,
     }),
     [
@@ -134,7 +139,7 @@ export function ReplayTvHomeScreen() {
       profile.struggles,
       profile.styles,
       profile.experience,
-      growthEdges,
+      rankEdges,
       progress.completedEpisodeIds,
     ],
   );
@@ -145,11 +150,11 @@ export function ReplayTvHomeScreen() {
   );
   const dnaEpisodes = useMemo(
     () =>
-      episodesForDnaGrowth(REPLAY_TV_EPISODES, growthEdges, progress.completedEpisodeIds).slice(
+      episodesForDnaGrowth(REPLAY_TV_EPISODES, rankEdges, progress.completedEpisodeIds).slice(
         0,
         6,
       ),
-    [growthEdges, progress.completedEpisodeIds],
+    [rankEdges, progress.completedEpisodeIds],
   );
   const beginner = useMemo(() => listByDifficulty('foundation'), []);
   const masterclass = useMemo(

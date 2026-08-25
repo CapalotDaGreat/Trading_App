@@ -12,6 +12,7 @@ import { buildDecisionIntelligenceContext } from '@/features/decision/services/d
 import { buildTradingDna } from '@/features/decision/services/setup-enrichment.service';
 import { loadTraderMemory } from '@/features/decision/services/trader-intelligence.service';
 import { getDecisionRecords } from '@/features/decision-log/services/decision-log.service';
+import { composeDecisionReinforcement } from '@/features/decision/services/decision-reinforcement.service';
 import { buildDnaMentorSummary } from '@/features/personal-intelligence/services/dna-mentor-summary.service';
 import { buildDnaChangeInsights } from '@/features/personal-intelligence/services/dna-change.service';
 import { buildTradingDnaTraits } from '@/features/personal-intelligence/services/trading-dna-traits.service';
@@ -235,15 +236,23 @@ export async function enrichRequestContext(
           strengths: string[];
           growthEdges: string[];
           observationLine: string;
+          known?: string[];
+          inference?: string[];
+          unknown?: string[];
         }
       | undefined;
     if (!dnaLocalOnly) {
       const dnaProfile = buildTradingDnaTraits({ memory, records });
       const whatsChanging = buildDnaChangeInsights({ dna: dnaProfile, records });
+      const reinforcement = composeDecisionReinforcement({
+        dna: dnaProfile,
+        records,
+      });
       const mentorSummary = buildDnaMentorSummary({
         dna: dnaProfile,
         whatsChanging,
         uid: context.userScopeUid,
+        reinforcement,
       });
       tradingDna = {
         becomingLabel: dnaProfile.becomingLabel || legacyDna.styleLabel,
@@ -253,6 +262,9 @@ export async function enrichRequestContext(
           : legacyDna.weaknesses
         ).slice(0, 2),
         observationLine: mentorSummary.observationLine,
+        known: mentorSummary.known,
+        inference: mentorSummary.inference,
+        unknown: mentorSummary.unknown,
       };
     }
     enriched.decisionIntelligence = {

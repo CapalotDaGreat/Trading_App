@@ -29,6 +29,8 @@ export function evaluateFlag(
     const killSafe = new Set([
       'mentorEnabled',
       'academyEnabled',
+      'decisionReinforcementEnabled',
+      'personalIntelligenceEnabled',
       // core loop stays available via defaults; high-risk flags off
     ]);
     if (!killSafe.has(definition.key)) {

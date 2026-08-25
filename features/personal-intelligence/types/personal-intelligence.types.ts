@@ -1,3 +1,4 @@
+import type { DecisionReinforcementSnapshot } from '@/features/decision/types/decision-reinforcement.types';
 import type { TodaySection } from '@/features/decision/services/today-sections.service';
 
 /** Continuous Trading DNA traits — process identity, never P&L. */
@@ -266,6 +267,11 @@ export interface PersonalizedTodayFocus {
   dnaAdaptations?: string[];
   /** At most one quiet Today cue — omitted when the related trait is improving. */
   todayCue?: string | null;
+  /** Accessibility metadata for the cue — never a psych score. */
+  todayCueMeta?: {
+    traitId?: string;
+    evidenceQuality?: string;
+  };
 }
 
 export type CoachingReferenceId =
@@ -368,6 +374,9 @@ export interface DnaMentorSummary {
   evidenceCounts: Partial<Record<DnaEvidenceSource, number>>;
   observationKey: string;
   observationLine: string;
+  known?: string[];
+  inference?: string[];
+  unknown?: string[];
 }
 
 export const DNA_CORE_QUESTIONS = {
@@ -392,4 +401,5 @@ export interface PersonalIntelligenceSnapshot {
   monthlyReview: DnaMonthlyReview;
   coachingActions: DnaCoachingAction[];
   mentorSummary: DnaMentorSummary;
+  reinforcement: DecisionReinforcementSnapshot;
 }

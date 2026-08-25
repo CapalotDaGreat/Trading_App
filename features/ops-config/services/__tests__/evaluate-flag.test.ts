@@ -29,6 +29,8 @@ describe('feature flag evaluation', () => {
     expect(evaluated.aiChatEnabled).toBe(false);
     expect(evaluated.aggressiveMarketPollingEnabled).toBe(false);
     expect(evaluated.mentorEnabled).toBe(true);
+    expect(evaluated.decisionReinforcementEnabled).toBe(true);
+    expect(evaluated.academyEnabled).toBe(true);
   });
 
   it('percentage flags respect bucket', () => {

@@ -1,3 +1,8 @@
+import { composeDecisionReinforcement } from '@/features/decision/services/decision-reinforcement.service';
+import type {
+  ReinforcementAcademyProgress,
+  ReinforcementCoachPrefs,
+} from '@/features/decision/types/decision-reinforcement.types';
 import type { AiLearningMemory } from '@/features/ai/types/ai-trust.types';
 import type {
   DecisionDebtSnapshot,
@@ -115,6 +120,10 @@ export interface PersonalIntelligenceInput {
   uid?: string;
   mentorStruggles?: string[];
   journalEvidence?: DnaJournalEvidence[] | null;
+  decisionReinforcementEnabled?: boolean;
+  academyProgress?: ReinforcementAcademyProgress[];
+  coachProfile?: ReinforcementCoachPrefs | null;
+  isPremium?: boolean;
 }
 
 /**
@@ -176,12 +185,24 @@ export function buildPersonalIntelligence(
     dna,
   });
   const coachingActions = buildDnaCoachingActions({ dna });
+  const reinforcement = composeDecisionReinforcement({
+    enabled: input.decisionReinforcementEnabled !== false,
+    dna,
+    records,
+    journalEvidence: input.journalEvidence,
+    academyProgress: input.academyProgress,
+    coachProfile: input.coachProfile,
+    isPremium: input.isPremium,
+    nowMs,
+  });
+
   const mentorSummary = buildDnaMentorSummary({
     dna,
     whatsChanging,
     selectedGoals: input.selectedGoals,
     uid: input.uid,
     nowMs,
+    reinforcement,
   });
 
   const today = buildPersonalizedToday({
@@ -190,11 +211,12 @@ export function buildPersonalIntelligence(
     streak: input.streak,
     debt: input.debt,
     academyPracticed: input.academyPracticed,
-    academyNextTitle: input.academyNextTitle,
+    academyNextTitle: reinforcement.academyLesson?.destination.label ?? input.academyNextTitle,
     startHereSymbol: input.startHereSymbol,
     researchGreeting: greetingForResearchTime(input.memory.researchTimeOfDay),
     nowMs,
     uid: input.uid,
+    reinforcement,
   });
 
   const graph = buildDecisionGraph({
@@ -247,5 +269,6 @@ export function buildPersonalIntelligence(
     monthlyReview,
     coachingActions,
     mentorSummary,
+    reinforcement,
   };
 }

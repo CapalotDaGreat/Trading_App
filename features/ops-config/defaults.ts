@@ -34,6 +34,13 @@ export const DEFAULT_OPS_FLAGS: OpsFeatureFlags = {
   decisionGraphEnabled: flag('decisionGraphEnabled', 'boolean', true, 100),
   mentorEnabled: flag('mentorEnabled', 'boolean', true, 100),
   academyEnabled: flag('academyEnabled', 'boolean', true, 100),
+  decisionReinforcementEnabled: flag(
+    'decisionReinforcementEnabled',
+    'boolean',
+    true,
+    100,
+    'Derived Decision Reinforcement Layer — Replay / DNA / Mentor / Academy / Today continuity',
+  ),
   paywallExperimentsEnabled: flag('paywallExperimentsEnabled', 'percentage', false, 0),
   aggressiveMarketPollingEnabled: flag('aggressiveMarketPollingEnabled', 'boolean', false, 100),
   betaReplayStudioEnabled: flag('betaReplayStudioEnabled', 'beta', false, 100),

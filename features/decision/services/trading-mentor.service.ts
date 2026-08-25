@@ -30,6 +30,7 @@ export interface TradingMentorInput {
   academyRecommendation?: CurriculumRecommendation | null;
   coachProfile?: CoachProfile | null;
   dnaMentorSummary?: DnaMentorSummary | null;
+  reinforcementAcademy?: TradingMentorBrief['weekly']['academyRecommendation'];
   now?: number;
 }
 
@@ -146,6 +147,13 @@ function buildAcademyRec(
   input: TradingMentorInput,
   mistake: string,
 ): TradingMentorBrief['weekly']['academyRecommendation'] {
+  if (input.reinforcementAcademy?.lessonId && input.reinforcementAcademy.title) {
+    return {
+      lessonId: input.reinforcementAcademy.lessonId,
+      title: input.reinforcementAcademy.title,
+      reason: sanitizeMentorCopy(input.reinforcementAcademy.reason),
+    };
+  }
   const mapped = mapMistakeToLesson(
     `${mistake} ${input.weeklyTape?.lessonForNextWeek ?? ''} ${input.journalCoach?.recommendation ?? ''}`,
   );

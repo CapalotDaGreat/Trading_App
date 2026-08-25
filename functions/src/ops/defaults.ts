@@ -27,6 +27,12 @@ export const SERVER_DEFAULT_FLAGS = {
   },
   mentorEnabled: { key: 'mentorEnabled', kind: 'boolean', enabled: true, percentage: 100 },
   academyEnabled: { key: 'academyEnabled', kind: 'boolean', enabled: true, percentage: 100 },
+  decisionReinforcementEnabled: {
+    key: 'decisionReinforcementEnabled',
+    kind: 'boolean',
+    enabled: true,
+    percentage: 100,
+  },
   paywallExperimentsEnabled: {
     key: 'paywallExperimentsEnabled',
     kind: 'percentage',

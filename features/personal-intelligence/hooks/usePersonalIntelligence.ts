@@ -16,6 +16,9 @@ import { selectTodayTimeBudget } from '@/features/decision/services/today-sectio
 import { useDecisionLog } from '@/features/decision-log/hooks/useDecisionLog';
 import { useJournal } from '@/features/journal/hooks/useJournal';
 import { useAlerts } from '@/features/alerts/hooks/useAlerts';
+import { useCoachProfile } from '@/features/onboarding/hooks/useCoachProfile';
+import { useFeatureFlag } from '@/features/ops-config/hooks/useOpsConfig';
+import { useSubscriptionStore } from '@/shared/stores/subscription.store';
 import { DEMO_USER_UID } from '@/firebase/config';
 import { useSettingsStore } from '@/shared/stores/settings.store';
 
@@ -48,6 +51,9 @@ export function usePersonalIntelligence(initialPeriod: DecisionGraphPeriod = 'we
   const lessons = useAcademyProgressStore((s) => s.lessons);
   const selectedGoals = useDnaGoalsStore((s) => s.selectedGoals);
   const hydrateGoals = useDnaGoalsStore((s) => s.hydrate);
+  const { profile } = useCoachProfile();
+  const decisionReinforcementEnabled = useFeatureFlag('decisionReinforcementEnabled');
+  const isPremium = useSubscriptionStore((s) => s.isPremium);
 
   useEffect(() => {
     void hydrateGoals(uid);
@@ -118,6 +124,9 @@ export function usePersonalIntelligence(initialPeriod: DecisionGraphPeriod = 'we
     debt.score,
     selectedGoals.join(','),
     uid,
+    decisionReinforcementEnabled ? 'r1' : 'r0',
+    profile.markets.join(','),
+    profile.experience ?? 'none',
   ].join(':');
 
   const query = useQuery({
@@ -147,6 +156,19 @@ export function usePersonalIntelligence(initialPeriod: DecisionGraphPeriod = 'we
         selectedGoals,
         uid,
         mentorStruggles: memory.typicalMistakes,
+        decisionReinforcementEnabled,
+        isPremium,
+        coachProfile: {
+          markets: profile.markets,
+          struggles: profile.struggles,
+          experience: profile.experience,
+          coachTone: profile.coachTone,
+        },
+        academyProgress: Object.entries(lessons).map(([lessonId, progress]) => ({
+          lessonId,
+          readAtMs: progress.readAt ? Date.parse(progress.readAt) : undefined,
+          practicedAtMs: progress.practicedAt ? Date.parse(progress.practicedAt) : undefined,
+        })),
       });
     },
     enabled: Boolean(memoryQuery.data),

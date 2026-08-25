@@ -131,6 +131,10 @@ function knownFacts(context?: AiEnrichedContext | null, cap = 3): string[] {
   if (context.decisionIntelligence?.regimeLabel) {
     lines.push(`Decision regime context: ${context.decisionIntelligence.regimeLabel}.`);
   }
+  const known = context.decisionIntelligence?.tradingDna?.known ?? [];
+  for (const item of known.slice(0, 2)) {
+    lines.push(`Known process evidence: ${item}.`);
+  }
   return lines.slice(0, cap);
 }
 
@@ -141,6 +145,10 @@ function unknownFacts(context?: AiEnrichedContext | null, cap = 3): string[] {
   if (context?.atr == null) lines.push('ATR / volatility context is missing.');
   if (!context?.decisionIntelligence?.tradingDna) {
     lines.push('Trading DNA labels are not attached (and I will not invent your history).');
+  } else {
+    for (const item of context.decisionIntelligence.tradingDna.unknown?.slice(0, 2) ?? []) {
+      lines.push(item);
+    }
   }
   if (!context?.supportLevels?.length) lines.push('No invalidation level is written on this pack.');
   if (!lines.length) lines.push('Unknowns always remain: undisclosed catalysts, broker tape, and your unwritten thesis.');
@@ -163,6 +171,10 @@ function interpretationFor(
     return 'Interpretation: I do not know enough from this pack to rank research priority. Missing inputs are not a forecast.';
   }
   if (mode === 'coach' || mode === 'replay_coach') {
+    const inference = context?.decisionIntelligence?.tradingDna?.inference?.[0];
+    if (inference) {
+      return `Interpretation: ${inference} This is an observed tendency from process events, not a diagnosis or a probability of profit.`;
+    }
     return 'Interpretation: this is about process completeness (DQS-style checklist quality), not a probability of profit. RVS/DQS are not prediction odds.';
   }
   if (mode === 'review') {

@@ -1,3 +1,4 @@
+import { composeReplayPracticeConnection } from '@/features/decision/services/decision-reinforcement.service';
 import type {
   ReplayTvChecklist,
   ReplayTvCoachNote,
@@ -192,6 +193,11 @@ export function composeReplayTvCoachNote(input: {
           : 'Practice citing only evidence that is actually on this freeze.',
   );
 
+  const practiceConnection = composeReplayPracticeConnection({
+    decision: input.decision,
+    checklist: input.checklist,
+  });
+
   return {
     noticed,
     missed,
@@ -205,6 +211,7 @@ export function composeReplayTvCoachNote(input: {
     decided,
     didWell,
     practiceNext,
+    practiceConnection,
   };
 }
 
@@ -216,6 +223,9 @@ export function formatReplayTvCoachReply(note: ReplayTvCoachNote): string {
     `What you missed: ${note.missed}`,
     `What you did well: ${note.didWell}`,
     `What to practice next: ${note.practiceNext}`,
+    note.practiceConnection
+      ? `Practice connection: ${note.practiceConnection.workingOn} ${note.practiceConnection.nextPractice}`
+      : null,
   ]
     .filter(Boolean)
     .join('\n\n');
@@ -280,5 +290,13 @@ export function composeReplayTvProcessComparison(input: {
     `Practice ${input.weakestSkillLabel} on the next blind pause. Do not chase the historical outcome; repeat the process under a new freeze.`,
   );
 
-  return { knew, decided, changed, missed, didWell, practiceNext };
+  const lastDecision = last?.decision;
+  const practiceConnection = lastDecision
+    ? composeReplayPracticeConnection({
+        decision: lastDecision,
+        checklist: input.checklist,
+      })
+    : null;
+
+  return { knew, decided, changed, missed, didWell, practiceNext, practiceConnection };
 }

@@ -1,4 +1,4 @@
-import type { ReplayTvEpisode } from '@/features/decision-replay-tv/types/replay-tv.types';
+import type { ReplayTvDecision, ReplayTvEpisode } from '@/features/decision-replay-tv/types/replay-tv.types';
 import {
   canConsumeMonthly,
   incrementMonthlyUsage,
@@ -70,11 +70,20 @@ export function buildReplayTvDecisionLogNote(input: {
   invalidationClarity: number;
   patience: number;
   namedInvalidation: boolean;
+  /** Process choices from this session — never outcome tags. */
+  decisions?: ReplayTvDecision[];
 }): string {
   const tags: string[] = [
     `skills:${input.episode.skills.slice(0, 4).join(',')}`,
     `emphasis:${input.episode.scoringEmphasis.slice(0, 3).join(',')}`,
   ];
+  const decisions = input.decisions ?? [];
+  if (decisions.includes('wait')) tags.push('rtv:wait');
+  if (decisions.includes('skip') || decisions.includes('protect_attention')) tags.push('rtv:skip');
+  if (decisions.includes('research_more')) tags.push('rtv:research_more');
+  if (decisions.includes('mark_invalidation') || input.namedInvalidation) {
+    tags.push('rtv:invalidation_named');
+  }
   if (
     input.episode.collectionIds.includes('crashes') ||
     input.episode.collectionIds.includes('psychology') ||
@@ -82,9 +91,12 @@ export function buildReplayTvDecisionLogNote(input: {
   ) {
     tags.push('rtv:calm_vol');
   }
-  if (input.patience >= 70) tags.push('rtv:patience');
+  if (input.patience >= 70 || decisions.includes('wait')) tags.push('rtv:patience');
   if (input.evidenceQuality >= 70) tags.push('rtv:evidence');
-  if (input.namedInvalidation && input.invalidationClarity >= 75) {
+  if (
+    input.namedInvalidation &&
+    (input.invalidationClarity >= 75 || decisions.includes('mark_invalidation'))
+  ) {
     tags.push('rtv:invalidation');
   }
   if (input.patience >= 70) tags.push('rtv:skill:patience');

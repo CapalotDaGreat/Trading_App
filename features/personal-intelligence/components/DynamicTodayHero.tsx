@@ -43,7 +43,13 @@ export function DynamicTodayHero({
             {becomingQuestion}
           </Text>
           {showCue && focus.todayCue ? (
-            <Text variant="body-sm" className="mt-3 text-text-secondary">
+            <Text
+              variant="body-sm"
+              className="mt-3 text-text-secondary"
+              accessibilityRole="text"
+              accessibilityLabel={`Practice cue. Trait: ${focus.todayCueMeta?.traitId ?? 'process'}. Evidence quality: ${focus.todayCueMeta?.evidenceQuality ?? 'limited'}. ${focus.todayCue}`}
+              testID="today-reinforcement-cue"
+            >
               {focus.todayCue}
             </Text>
           ) : null}

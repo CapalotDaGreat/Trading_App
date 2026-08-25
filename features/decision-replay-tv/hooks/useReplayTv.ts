@@ -155,6 +155,7 @@ export function useReplayTv() {
           invalidationClarity: session.scores.invalidationClarity,
           patience: session.scores.patience,
           namedInvalidation: session.checklist.namedInvalidation,
+          decisions: session.decisions.map((d) => d.decision),
         }),
         eventKey: `replay-tv:${ep.id}:${session.id}`,
       });

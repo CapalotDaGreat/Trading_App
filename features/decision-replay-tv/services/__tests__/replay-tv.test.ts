@@ -341,11 +341,13 @@ describe('Decision Replay TV', () => {
       invalidationClarity: 80,
       patience: 80,
       namedInvalidation: true,
+      decisions: ['wait'],
     });
     expect(note).toContain('rtv:calm_vol');
     expect(note).toContain('rtv:evidence');
     expect(note).toContain('rtv:invalidation');
     expect(note).toContain('rtv:patience');
+    expect(note).toContain('rtv:wait');
     expect(note).toContain('skills:');
     expect(note).toMatch(/rtv:uncertainty|rtv:confirmation|rtv:stamina|rtv:inaction_ok/);
   });
@@ -437,6 +439,7 @@ describe('Decision Replay TV', () => {
     expect(note.decided).toMatch(/skip/i);
     expect(note.didWell.length).toBeGreaterThan(10);
     expect(note.practiceNext.length).toBeGreaterThan(10);
+    expect(note.practiceConnection).toBeNull();
     expect(composeReplayTvReasoning(structured)).toMatch(/Thesis:/);
   });
 

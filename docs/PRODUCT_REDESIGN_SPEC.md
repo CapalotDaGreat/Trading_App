@@ -363,6 +363,7 @@ Reuse Phase 5 flags (`features/ops-config`); ship redesign dark where needed:
 | Flag | Redesign use |
 |------|----------------|
 | `personalIntelligenceEnabled` | Growth / DNA surfaces |
+| `decisionReinforcementEnabled` | Derived Replay → DNA → Mentor → Academy → Today continuity (core loop; kill-safe) |
 | `academyEnabled` | Learn / Skill OS |
 | `aiChatEnabled` / `aiTrustPanelsEnabled` | Ask + trust chrome |
 | `mentorEnabled` | Mentor card |

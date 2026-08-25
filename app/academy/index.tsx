@@ -19,6 +19,8 @@ import {
 import { useAcademyProgressStore } from '@/features/academy/stores/academy-progress.store';
 import { PremiumOsGate } from '@/features/decision/components/PremiumOsGate';
 import { useTraderMemory } from '@/features/decision/hooks/useDecision';
+import { usePersonalIntelligence } from '@/features/personal-intelligence/hooks/usePersonalIntelligence';
+import type { CurriculumRecommendation } from '@/features/academy/services/curriculum.service';
 import { buildDecisionDebt } from '@/features/decision/services/decision-os.service';
 import { useDecisionLog } from '@/features/decision-log/hooks/useDecisionLog';
 import { EducationalModeBadge } from '@/features/educational/components/EducationalModeBadge';
@@ -60,6 +62,21 @@ export default function AcademyScreen() {
     memory: memoryQuery.data,
     debt,
   });
+  const intelligence = usePersonalIntelligence();
+  const reinforcementRec = useMemo((): CurriculumRecommendation | null => {
+    const mapped = intelligence.data?.reinforcement;
+    if (!mapped?.enabled || !mapped.academyLesson?.lessonId) return null;
+    const lesson = lessons.find((item) => item.id === mapped.academyLesson?.lessonId);
+    if (!lesson) return null;
+    return {
+      lesson,
+      reason: mapped.academyLesson.reason,
+      evidence: ['Decision reinforcement · existing Academy lesson'],
+      source: 'dna',
+      isPersonalized: true,
+    };
+  }, [intelligence.data?.reinforcement, lessons]);
+  const nextLesson = reinforcementRec ?? recommendation;
 
   const filteredLessons = useMemo(() => {
     if (filter === 'all') return lessons;
@@ -110,12 +127,12 @@ export default function AcademyScreen() {
           </View>
         </Surface>
 
-        {recommendation ? (
+        {nextLesson ? (
           <View testID="academy-recommended">
             <Text variant="label" className="mb-2 text-text-tertiary">Continue learning</Text>
             <NextLessonCard
-              recommendation={recommendation}
-              showPremiumBadge={isPersonalized && isPremium}
+              recommendation={nextLesson}
+              showPremiumBadge={isPersonalized && isPremium && !reinforcementRec}
             />
           </View>
         ) : null}

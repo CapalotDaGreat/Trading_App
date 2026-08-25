@@ -467,6 +467,7 @@ export function ReplayTvSessionScreen() {
                     decided: activeSession.scores.processComparison.decided,
                     didWell: activeSession.scores.processComparison.didWell,
                     practiceNext: activeSession.scores.processComparison.practiceNext,
+                    practiceConnection: activeSession.scores.processComparison.practiceConnection,
                   }}
                 />
               </View>

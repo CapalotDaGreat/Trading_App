@@ -1,4 +1,5 @@
-import type { DecisionLogSummary } from '@/features/decision-log/services/decision-log.service';
+﻿import type { DecisionLogSummary } from '@/features/decision-log/services/decision-log.service';
+import type { DecisionReinforcementSnapshot } from '@/features/decision/types/decision-reinforcement.types';
 import type { DisciplineStreak, DecisionDebtSnapshot } from '@/features/decision/types/decision.types';
 import {
   TODAY_SECTION_ORDER,
@@ -56,6 +57,7 @@ function applyDnaAdaptations(
   dna: TradingDnaProfile,
   nowMs?: number,
   uid?: string,
+  reinforcement?: DecisionReinforcementSnapshot | null,
 ): PersonalizedTodayFocus {
   const adaptations: string[] = [];
   const patience = getTraitScore(dna, 'patience');
@@ -94,6 +96,7 @@ function applyDnaAdaptations(
     researchEfficiency,
     nowMs,
     uid,
+    reinforcement,
   });
   if (cue) adaptations.push(cue.id);
 
@@ -101,6 +104,7 @@ function applyDnaAdaptations(
     ...focus,
     sectionOrder,
     todayCue: cue?.text ?? null,
+    todayCueMeta: cue?.meta,
     dnaAdaptations: adaptations,
   };
 }
@@ -123,7 +127,21 @@ function pickTodayCue(input: {
   researchEfficiency: number | null;
   nowMs?: number;
   uid?: string;
-}): { id: string; text: string } | null {
+  reinforcement?: DecisionReinforcementSnapshot | null;
+}): { id: string; text: string; meta?: PersonalizedTodayFocus['todayCueMeta'] } | null {
+  if (input.reinforcement?.enabled) {
+    const cue = input.reinforcement.todayCue;
+    if (!cue) return null;
+    return {
+      id: cue.id,
+      text: cue.text,
+      meta: {
+        traitId: cue.traitId,
+        evidenceQuality: cue.evidenceQuality,
+      },
+    };
+  }
+
   const candidates: Array<{ id: string; text: string }> = [];
   const overImproving =
     input.dna.traits.find((t) => t.id === 'researchEfficiency')?.longitudinalTrend === 'improving' ||
@@ -155,7 +173,7 @@ function pickTodayCue(input: {
   ) {
     candidates.push({
       id: 'research_budget_cue',
-      text: 'Two assets are enough for today’s research budget.',
+      text: 'Two assets are enough for todayâ€™s research budget.',
     });
   }
 
@@ -189,6 +207,7 @@ export function buildPersonalizedToday(input: {
   researchGreeting?: string | null;
   nowMs?: number;
   uid?: string;
+  reinforcement?: DecisionReinforcementSnapshot | null;
 }): PersonalizedTodayFocus {
   const archetype = resolveTodayArchetype(input);
   const becoming = input.dna.becomingLabel;
@@ -203,7 +222,7 @@ export function buildPersonalizedToday(input: {
         headline: "Today's lesson",
         detail: input.academyNextTitle
           ? `Start with ${input.academyNextTitle}. Build identity before depth of research.`
-          : 'You are early in the operating system — one Academy lesson beats three scattered charts.',
+          : 'You are early in the operating system â€” one Academy lesson beats three scattered charts.',
         primaryCta: { label: 'Open Academy', href: '/academy' },
         secondaryCta: { label: 'Meet your Mentor', href: '/decision/mentor' },
         sectionOrder: uniqueOrder([
@@ -249,7 +268,7 @@ export function buildPersonalizedToday(input: {
         archetype,
         eyebrow: 'Reset the loop',
         headline: 'Journal before researching',
-        detail: 'Process consistency is the bottleneck. Close yesterday’s loop before opening new radar depth.',
+        detail: 'Process consistency is the bottleneck. Close yesterdayâ€™s loop before opening new radar depth.',
         primaryCta: { label: 'Open Journal', href: '/journal' },
         secondaryCta: { label: 'Mentor focus', href: '/decision/mentor' },
         sectionOrder: uniqueOrder([
@@ -273,7 +292,7 @@ export function buildPersonalizedToday(input: {
         eyebrow: becoming,
         headline: 'Advanced setup today',
         detail: input.startHereSymbol
-          ? `${input.startHereSymbol} clears your process bar — research with full checklist discipline.`
+          ? `${input.startHereSymbol} clears your process bar â€” research with full checklist discipline.`
           : 'Consistency unlocked deeper research. Stay selective; protect Decision Quality.',
         primaryCta: {
           label: input.startHereSymbol ? `Research ${input.startHereSymbol}` : 'Open Radar',
@@ -304,7 +323,7 @@ export function buildPersonalizedToday(input: {
         archetype: 'balanced',
         eyebrow: becoming,
         headline: 'Your decision loop',
-        detail: 'Run brief → research or skip → journal. Identity updates from process, not P&L.',
+        detail: 'Run brief â†’ research or skip â†’ journal. Identity updates from process, not P&L.',
         primaryCta: {
           label: 'Start Here',
           href: input.startHereSymbol
@@ -330,5 +349,5 @@ export function buildPersonalizedToday(input: {
       };
   }
 
-  return applyDnaAdaptations(focus, input.dna, input.nowMs, input.uid);
+  return applyDnaAdaptations(focus, input.dna, input.nowMs, input.uid, input.reinforcement);
 }

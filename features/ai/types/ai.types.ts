@@ -235,6 +235,9 @@ export interface AiEnrichedContext {
       strengths: string[];
       growthEdges: string[];
       observationLine: string;
+      known?: string[];
+      inference?: string[];
+      unknown?: string[];
     };
   };
   assembledAt: number;

@@ -187,6 +187,13 @@ export interface ReplayTvCoachNote {
   didWell: string;
   /** Next process skill to practise. */
   practiceNext: string;
+  /** Optional one-block link into the Decision Reinforcement Layer. */
+  practiceConnection?: {
+    traitId: string;
+    evidenceQuality: string;
+    workingOn: string;
+    nextPractice: string;
+  } | null;
 }
 
 /** Post-reveal process comparison. Never treats P&L as proof of quality. */
@@ -197,6 +204,12 @@ export interface ReplayTvProcessComparison {
   missed: string;
   didWell: string;
   practiceNext: string;
+  practiceConnection?: {
+    traitId: string;
+    evidenceQuality: string;
+    workingOn: string;
+    nextPractice: string;
+  } | null;
 }
 
 export interface ReplayTvDecisionRecord {

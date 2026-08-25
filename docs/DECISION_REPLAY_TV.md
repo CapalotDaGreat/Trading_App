@@ -37,6 +37,7 @@ Educational historical decision rooms — the “Netflix of trading education”
 | Passport | Process achievements (`replay_tv_1` / `_5` / `_10`, calm vol, evidence, invalidation) |
 | Decision Log | `replay_completed` with `eventKey` `replay-tv:{episodeId}:{sessionId}` + DNA-friendly skill tags |
 | Decision Graph / DNA / Weekly | Counts `replay_completed`; tags feed process evidence |
+| Decision Reinforcement (Phase 11) | Derived layer only — Replay wait/skip/invalidation tags on the same log note feed DNA, Mentor, Academy, and one Today cue. No second event store. Flag: `decisionReinforcementEnabled`. Report: [`PHASE11_DECISION_REINFORCEMENT_REPORT.md`](./PHASE11_DECISION_REINFORCEMENT_REPORT.md) |
 | Mentor | Weekly replay recommendation → Replay TV; home ranking uses Mentor Setup |
 | Journal | Soft save reflection + deep link after completion |
 | Entitlements | Free: foundation rooms + monthly session cap; Premium: full library + no monthly cap |

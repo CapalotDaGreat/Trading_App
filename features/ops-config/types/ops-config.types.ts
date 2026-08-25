@@ -70,6 +70,7 @@ export interface OpsFeatureFlags {
   decisionGraphEnabled: FeatureFlagDefinition;
   mentorEnabled: FeatureFlagDefinition;
   academyEnabled: FeatureFlagDefinition;
+  decisionReinforcementEnabled: FeatureFlagDefinition;
   paywallExperimentsEnabled: FeatureFlagDefinition;
   aggressiveMarketPollingEnabled: FeatureFlagDefinition;
   betaReplayStudioEnabled: FeatureFlagDefinition;

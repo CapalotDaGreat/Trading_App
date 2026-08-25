@@ -132,7 +132,12 @@ export function buildEvidenceBundle(input: {
     ignored: countActions(records, 'ignored', sinceMs),
     invalidated: countActions(records, 'invalidated', sinceMs),
     replay: countActions(records, 'replay_completed', sinceMs),
-    replayTvPatience: countNoteIncludes(records, 'replay_completed', 'rtv:patience', sinceMs),
+    replayTvPatience: countNoteAny(
+      records,
+      'replay_completed',
+      ['rtv:patience', 'rtv:wait'],
+      sinceMs,
+    ),
     replayTvInvalidation: countNoteIncludes(
       records,
       'replay_completed',

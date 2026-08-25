@@ -248,6 +248,8 @@ describe('Trading DNA 3.0 personal intelligence', () => {
     expect(snapshot.monthlyReview.windows).toHaveLength(3);
     expect(snapshot.coachingActions.length).toBeGreaterThan(0);
     expect(snapshot.mentorSummary.becomingLabel).toBeTruthy();
+    expect(snapshot.reinforcement.enabled).toBe(true);
+    expect(snapshot.reinforcement.observations.length).toBeLessThanOrEqual(4);
 
     const graph = buildDecisionGraph({
       records,
