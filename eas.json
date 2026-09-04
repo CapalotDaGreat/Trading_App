@@ -10,6 +10,12 @@
       "channel": "development",
       "android": {
         "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_REVENUECAT_ENTITLEMENT_ID": "Aithera Pro",
+        "EXPO_PUBLIC_RC_PRODUCT_MONTHLY": "monthly",
+        "EXPO_PUBLIC_RC_PRODUCT_YEARLY": "yearly",
+        "EXPO_PUBLIC_RC_PRODUCT_LIFETIME": "lifetime"
       }
     },
     "internal": {
@@ -18,13 +24,23 @@
       "channel": "internal",
       "android": {
         "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_REVENUECAT_ENTITLEMENT_ID": "Aithera Pro",
+        "EXPO_PUBLIC_RC_PRODUCT_MONTHLY": "monthly",
+        "EXPO_PUBLIC_RC_PRODUCT_YEARLY": "yearly",
+        "EXPO_PUBLIC_RC_PRODUCT_LIFETIME": "lifetime"
       }
     },
     "preview": {
       "distribution": "internal",
       "channel": "preview",
       "env": {
-        "EXPO_PUBLIC_MARKET_DATA_DIRECT": "false"
+        "EXPO_PUBLIC_MARKET_DATA_DIRECT": "false",
+        "EXPO_PUBLIC_REVENUECAT_ENTITLEMENT_ID": "Aithera Pro",
+        "EXPO_PUBLIC_RC_PRODUCT_MONTHLY": "monthly",
+        "EXPO_PUBLIC_RC_PRODUCT_YEARLY": "yearly",
+        "EXPO_PUBLIC_RC_PRODUCT_LIFETIME": "lifetime"
       }
     },
     "beta": {
@@ -32,14 +48,22 @@
       "channel": "beta",
       "autoIncrement": true,
       "env": {
-        "EXPO_PUBLIC_MARKET_DATA_DIRECT": "false"
+        "EXPO_PUBLIC_MARKET_DATA_DIRECT": "false",
+        "EXPO_PUBLIC_REVENUECAT_ENTITLEMENT_ID": "Aithera Pro",
+        "EXPO_PUBLIC_RC_PRODUCT_MONTHLY": "monthly",
+        "EXPO_PUBLIC_RC_PRODUCT_YEARLY": "yearly",
+        "EXPO_PUBLIC_RC_PRODUCT_LIFETIME": "lifetime"
       }
     },
     "production": {
       "channel": "production",
       "autoIncrement": true,
       "env": {
-        "EXPO_PUBLIC_MARKET_DATA_DIRECT": "false"
+        "EXPO_PUBLIC_MARKET_DATA_DIRECT": "false",
+        "EXPO_PUBLIC_REVENUECAT_ENTITLEMENT_ID": "Aithera Pro",
+        "EXPO_PUBLIC_RC_PRODUCT_MONTHLY": "monthly",
+        "EXPO_PUBLIC_RC_PRODUCT_YEARLY": "yearly",
+        "EXPO_PUBLIC_RC_PRODUCT_LIFETIME": "lifetime"
       }
     }
   },

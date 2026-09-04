@@ -77,7 +77,7 @@ export const REVENUECAT_ENTITLEMENT_ID =
 /**
  * Store product identifiers configured in App Store Connect / Play Console
  * and attached to the current RevenueCat offering.
- * Launch offering: monthly + yearly. `lifetime` is kept for webhook/legacy recognition only.
+ * Current offering: monthly, yearly, and lifetime — all attached to Aithera Pro.
  */
 export const PREMIUM_PRODUCT_IDS = {
   monthly: process.env.EXPO_PUBLIC_RC_PRODUCT_MONTHLY ?? 'monthly',

@@ -89,6 +89,9 @@ EXPO_PUBLIC_REVENUECAT_API_KEY=
 EXPO_PUBLIC_REVENUECAT_IOS_API_KEY=
 EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY=
 EXPO_PUBLIC_REVENUECAT_ENTITLEMENT_ID=Aithera Pro
+EXPO_PUBLIC_RC_PRODUCT_MONTHLY=monthly
+EXPO_PUBLIC_RC_PRODUCT_YEARLY=yearly
+EXPO_PUBLIC_RC_PRODUCT_LIFETIME=lifetime
 
 # Cloud AI (optional — Premium; falls back to the local engine)
 EXPO_PUBLIC_AI_API_URL=
@@ -122,9 +125,9 @@ firebase deploy --only firestore:rules
 ## RevenueCat setup (EAS Dev Client / production)
 
 1. Create a project at [app.revenuecat.com](https://app.revenuecat.com)
-2. Add products: `monthly`, `yearly` (match App Store Connect / Play Console IDs). Do not create Lifetime at launch.
+2. Add products: `monthly`, `yearly`, and `lifetime` (match App Store Connect / Play Console IDs). Lifetime must be a **non-consumable** one-time purchase.
 3. Attach a **7-day free trial** introductory offer to the yearly product
-4. Create an **`Aithera Pro`** entitlement and attach monthly + yearly
+4. Create an **`Aithera Pro`** entitlement and attach monthly + yearly + lifetime
 5. Build a Paywall on the **current** offering and enable **Customer Center**
 6. Copy the **Public SDK keys** to `.env`:
    - `EXPO_PUBLIC_REVENUECAT_API_KEY` (test/shared), and/or

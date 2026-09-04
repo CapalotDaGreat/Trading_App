@@ -3,6 +3,14 @@ import { LEGAL_URLS } from '@/shared/constants/legal';
 
 export type { LegalDocumentId } from '@/shared/legal/document-text';
 export { LEGAL_DOCUMENT_META, LEGAL_DOCUMENT_TEXT } from '@/shared/legal/document-text';
+export type { LegalRouteId } from '@/shared/legal/routes';
+export { legalPath } from '@/shared/legal/routes';
+export {
+  IN_APP_LEGAL_URLS,
+  inAppLegalUrl,
+  parseInAppLegalPath,
+  rewriteIncomingLegalPath,
+} from '@/shared/legal/in-app-legal-url';
 
 export const LEGAL_DOCUMENT_URL: Record<LegalDocumentId, string> = {
   privacy: LEGAL_URLS.privacy,
@@ -19,9 +27,3 @@ export const LEGAL_DOCUMENTS: LegalDocumentId[] = [
   'accountDeletion',
   'security',
 ];
-
-export type LegalRouteId = LegalDocumentId | 'support';
-
-export function legalPath(id: LegalRouteId) {
-  return `/legal/${id}` as never;
-}

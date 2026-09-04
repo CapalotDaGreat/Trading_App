@@ -8,7 +8,7 @@
 
 | Gate | Status |
 | --- | --- |
-| **REPO COMPLETE** | Free vs Premium matrix, yearly-only 7-day trial, no Lifetime on the paywall, daily AI caps (3 / 100 fair use), no ads at launch |
+| **REPO COMPLETE** | Free vs Premium matrix, yearly 7-day trial, monthly + yearly + lifetime on the paywall, daily AI caps (3 / 100 fair use), no ads at launch |
 | **Billing consoles** | **NO-GO — MANUAL ACTION REQUIRED** |
 
 Do not treat in-app fallback prices as production. StoreKit / Play Billing strings control once products exist.
@@ -28,7 +28,7 @@ TradeInsight is not a broker and does not sell buy/sell signals.
 | Free | — | — | Default; ads **not** shipped at launch |
 | Monthly | Yes (`monthly`) | No | Auto-renewing |
 | Yearly | Yes (`yearly`) | **7 days**, only if the store intro offer is attached | Best-value plan |
-| Lifetime | **No** | — | Not offered at launch. Webhook still recognises a `lifetime` product if one is ever created later |
+| Lifetime | Yes (`lifetime`) | No | One-time purchase. Does not auto-renew. Create as a **non-consumable** in App Store Connect / Play |
 
 Entitlement identifier: **`Aithera Pro`** (do not rename to a generic `premium` string).
 
@@ -61,23 +61,23 @@ AI Ask / analysis / mentor-style uses share **one UTC daily cap**.
 ## REPO COMPLETE
 
 - Paywall comparison table matches the matrix
-- Default store plans are monthly + yearly only
+- Default store plans are monthly, yearly, and lifetime
 - Client + Functions AI quota is **daily** (3 free / 100 Premium fair use)
 - Replay TV: foundation rooms + monthly session cap on Free; advanced/expert library on Premium
 - Risk: Free sees health score; exposure/concentration stays Premium
-- Webhook still fail-closes Premium and can map a legacy/future `lifetime` product without offering it
-- Terms templates state Lifetime is not offered at launch
+- Webhook fail-closes Premium; lifetime / promotional grants may have a null expiry
+- Terms templates state Lifetime is a one-time purchase and does not auto-renew
 
 ---
 
 ## MANUAL ACTION REQUIRED
 
-1. App Store Connect + Play Console: create **`monthly`** and **`yearly`** only. Do **not** create Lifetime unless you later change strategy.
+1. App Store Connect + Play Console: create **`monthly`**, **`yearly`**, and **`lifetime`**. Lifetime must be a non-consumable (or non-renewing) IAP, not an auto-renewing subscription.
 2. Attach a **7-day introductory offer to yearly only**, identical on both stores.
-3. RevenueCat: entitlement **`Aithera Pro`**, current offering with monthly + yearly packages, Paywall + Customer Center.
+3. RevenueCat: entitlement **`Aithera Pro`**, current offering with monthly + yearly + lifetime packages, Paywall + Customer Center.
 4. Set public SDK keys in EAS; webhook secret on Functions; App User ID = Firebase UID.
-5. Sandbox matrix: purchase, trial convert, restore, cancel, paid-through, refund, resubscribe.
-6. Confirm RevenueCat Paywall UI does not list a Lifetime package.
+5. Sandbox matrix: purchase, trial convert, restore, cancel, paid-through, refund, resubscribe, lifetime.
+6. Confirm the RevenueCat Paywall UI lists the packages you intend to sell.
 7. If remote ops docs still have old monthly AI `20` / `-1` values, update them to daily **3** / **100** or they can override launch defaults.
 
 Prices are **not** set in this repository. Do not invent list prices in marketing until the consoles return real price strings.

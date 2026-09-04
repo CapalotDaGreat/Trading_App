@@ -51,7 +51,7 @@ describe('legal compliance pack', () => {
     expect(terms).toContain('create an account or purchase a subscription');
     expect(terms).toContain('guest/demo mode');
     expect(terms).toContain('store content rating is separate');
-    expect(terms).toContain('not offered at launch');
+    expect(terms).toContain('lifetime is a one-time purchase');
 
     expect(privacy).toContain('general audience');
     expect(privacy).toContain('not directed toward young children');

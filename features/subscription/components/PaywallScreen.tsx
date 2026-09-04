@@ -43,7 +43,6 @@ export function PaywallScreen() {
     subscription,
     isLoading,
     purchase,
-    presentPaywall,
     isPurchasing,
     restore,
     isRestoring,
@@ -57,7 +56,6 @@ export function PaywallScreen() {
   const defaultPlan = plans.find((p) => p.isPopular)?.id ?? 'yearly';
   const [selectedPlan, setSelectedPlan] = useState<SubscriptionPlanId>(defaultPlan);
   const [actionMessage, setActionMessage] = useState<string | null>(null);
-  const [useNativePaywall, setUseNativePaywall] = useState(true);
   const freeLimits = useMemo(
     () => ({
       aiDaily: getLimit('aiDaily', 'free'),
@@ -81,25 +79,6 @@ export function PaywallScreen() {
     () => plans.find((p) => p.id === selectedPlan) ?? plans[0],
     [plans, selectedPlan],
   );
-
-  const handlePresentPaywall = async () => {
-    setActionMessage(null);
-    try {
-      const result = await presentPaywall();
-      setActionMessage(result.message);
-      if (result.paywallResult === 'error' || result.paywallResult === 'not_presented') {
-        setUseNativePaywall(false);
-      }
-      await refresh();
-    } catch (error) {
-      setUseNativePaywall(false);
-      setActionMessage(
-        error instanceof Error
-          ? error.message
-          : 'RevenueCat Paywall unavailable. Choose a plan below.',
-      );
-    }
-  };
 
   const handlePurchase = async () => {
     setActionMessage(null);
@@ -211,7 +190,7 @@ export function PaywallScreen() {
 
       <View className="mb-5 rounded-2xl bg-accent-muted/50 p-4">
         <Text variant="label" className="mb-2 text-accent">
-          7-DAY FREE TRIAL ON YEARLY
+          7-day trial on yearly
         </Text>
         <Text variant="body-sm" className="text-text-secondary">
           Try Aithera Pro with no pressure. The trial applies only to Yearly when the store
@@ -222,7 +201,7 @@ export function PaywallScreen() {
 
       <View className="mb-5 rounded-2xl bg-background-elevated p-4">
         <Text variant="label" className="mb-3 text-text-tertiary">
-          OUTCOMES WE COACH TOWARD
+          Outcomes we coach toward
         </Text>
         {OUTCOMES.map((outcome) => (
           <Text key={outcome} variant="body-sm" className="mb-2 text-text-primary">
@@ -233,7 +212,7 @@ export function PaywallScreen() {
 
       <View className="mb-5 rounded-2xl bg-surface p-4">
         <Text variant="label" className="mb-3 text-text-tertiary">
-          FREE VS PREMIUM
+          Free vs Premium
         </Text>
         <View className="mb-2 flex-row">
           <Text variant="caption" className="w-[36%] text-text-tertiary">
@@ -289,29 +268,7 @@ export function PaywallScreen() {
         </Text>
       ) : null}
 
-      {nativeBillingAvailable && !isGuest && useNativePaywall ? (
-        <View className="mb-5">
-          <Button
-            fullWidth
-            size="lg"
-            loading={isPurchasing}
-            onPress={() => void handlePresentPaywall()}
-          >
-            View Plans
-          </Button>
-          <Button
-            variant="ghost"
-            className="mt-2"
-            fullWidth
-            onPress={() => setUseNativePaywall(false)}
-          >
-            Choose a plan manually
-          </Button>
-        </View>
-      ) : null}
-
-      {(!useNativePaywall || !nativeBillingAvailable || isGuest) && (
-        <View className={cn(layout.columns === 2 && 'flex-row items-start gap-4')}>
+      <View className={cn(layout.columns === 2 && 'flex-row items-start gap-4')}>
           <View className={cn(layout.columns === 2 && 'flex-1')}>
             <View className="mb-5 flex-row flex-wrap rounded-2xl bg-surface p-1">
               {plans.map((plan) => {
@@ -400,7 +357,7 @@ export function PaywallScreen() {
             )}
           >
             <Text variant="label" className="mb-3 text-text-tertiary">
-              WHAT PREMIUM DEEPENS
+              What Premium deepens
             </Text>
             {OUTCOMES.map((outcome) => (
               <View key={outcome} className="mb-3 flex-row items-center last:mb-0">
@@ -414,22 +371,19 @@ export function PaywallScreen() {
             ))}
           </View>
         </View>
-      )}
 
-      {(!useNativePaywall || !nativeBillingAvailable || isGuest) && (
-        <Button
-          className="mt-1"
-          fullWidth
-          size="lg"
-          loading={isPurchasing}
-          disabled={!isGuest && !nativeBillingAvailable}
-          onPress={() =>
-            isGuest ? router.push('/(auth)/register' as never) : void handlePurchase()
-          }
-        >
-          {isGuest ? 'Create account to subscribe' : ctaLabel}
-        </Button>
-      )}
+      <Button
+        className="mt-1"
+        fullWidth
+        size="lg"
+        loading={isPurchasing}
+        disabled={!isGuest && !nativeBillingAvailable}
+        onPress={() =>
+          isGuest ? router.push('/(auth)/register' as never) : void handlePurchase()
+        }
+      >
+        {isGuest ? 'Create account to subscribe' : ctaLabel}
+      </Button>
 
       <Button
         variant="ghost"
@@ -474,9 +428,9 @@ export function PaywallScreen() {
         store account settings. After a free trial, the listed plan price is charged. Cancelling
         stops renewal; Aithera Pro remains available until the paid-through date. Free remains
         available afterwards. Prices shown come from the store when available. Aithera Pro does
-        not provide brokerage execution or exchange-tick realtime data. Lifetime is not offered
-        at launch. Free includes {freeLimits.aiDaily} AI uses/day and up to {freeLimits.symbols}{' '}
-        symbols in one research universe.
+        not provide brokerage execution or exchange-tick realtime data. Lifetime is a one-time
+        purchase and does not auto-renew. Free includes {freeLimits.aiDaily} AI uses/day and up to{' '}
+        {freeLimits.symbols} symbols in one research universe.
       </Text>
 
       <View className="mt-3 flex-row flex-wrap items-center justify-center gap-x-3 gap-y-2 pb-4">

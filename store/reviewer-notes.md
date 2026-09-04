@@ -81,7 +81,7 @@ and education. FX candles are never fabricated.
 ## Subscription and 7-day trial
 
 - Entitlement: `Aithera Pro`
-- Launch products: `monthly` and `yearly` only. **Lifetime is not offered.**
+- Launch products: `monthly`, `yearly`, and `lifetime`. Lifetime is a one-time purchase and does not auto-renew.
 - Native App Store / Play billing via RevenueCat (not available in Expo Go).
 - Restore Purchases is on the subscription screen.
 - Cancel / Manage Subscription opens the platform subscription page.

@@ -9,16 +9,16 @@
  * not production prices until StoreKit / Play Billing strings load.
  */
 
-export type LaunchPlanId = 'monthly' | 'yearly';
-export type RecognizedPlanId = LaunchPlanId | 'lifetime';
+export type LaunchPlanId = 'monthly' | 'yearly' | 'lifetime';
+export type RecognizedPlanId = LaunchPlanId;
 
 /** Entitlement identifier in RevenueCat — do not rename to a generic `premium`. */
 export const LAUNCH_ENTITLEMENT_ID = 'Aithera Pro';
 
-/** Plans offered on the paywall at launch. Lifetime is not in this set. */
-export const LAUNCH_PLAN_IDS = ['monthly', 'yearly'] as const satisfies readonly LaunchPlanId[];
+/** Plans offered on the paywall. Store prices win once the current offering loads. */
+export const LAUNCH_PLAN_IDS = ['monthly', 'yearly', 'lifetime'] as const satisfies readonly LaunchPlanId[];
 
-export const LIFETIME_OFFERED_AT_LAUNCH = false;
+export const LIFETIME_OFFERED_AT_LAUNCH = true;
 
 /** 7-day intro trial applies only to yearly, and only when the store offer is attached. */
 export const YEARLY_TRIAL_DAYS = 7;

@@ -24,7 +24,7 @@ fields remain MANUAL ACTION REQUIRED.** Do not submit until those are done.
 
 1. Host legal URLs with HTTP 200 on `[OFFICIAL DOMAIN REQUIRED]`: privacy, terms, risk, security, support, account-deletion.
 2. Fill App Store screenshots (`store/screenshots/`).
-3. Configure App Store Connect products + 7-day yearly trial to match code IDs (`monthly`, `yearly`, entitlement `Aithera Pro`). Do not create Lifetime at launch.
+3. Configure App Store Connect products + 7-day yearly trial to match code IDs (`monthly`, `yearly`, `lifetime`, entitlement `Aithera Pro`). Lifetime must be a non-consumable / one-time IAP.
 4. Complete Paid Applications Agreement, tax, and banking.
 5. Privacy Nutrition Labels must match shipped behavior (optional crash diagnostics and optional analytics only after consent; no tracking).
 6. TestFlight: Sign in with Apple, purchase, restore, cancel, deletion with recent login.

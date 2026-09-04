@@ -2,18 +2,21 @@ import Constants, { ExecutionEnvironment } from 'expo-constants';
 import { doc, getDoc, type DocumentData } from 'firebase/firestore';
 import { Platform } from 'react-native';
 import type PurchasesType from 'react-native-purchases';
-import type { CustomerInfo, PurchasesPackage } from 'react-native-purchases';
+import type { CustomerInfo } from 'react-native-purchases';
 
 import { canUseFirestore, requireDb } from '@/firebase/config';
 import {
-  PREMIUM_PRODUCT_IDS,
   REVENUECAT_ENTITLEMENT_ID,
-  YEARLY_TRIAL_DAYS,
   planIdFromProductId,
   type SubscriptionTier,
 } from '@/shared/constants/subscription';
 import { openExternalUrl } from '@/shared/utils/open-url';
 
+import {
+  FALLBACK_SUBSCRIPTION_PLANS,
+  findPackageForPlan,
+  plansFromOfferingPackages,
+} from './revenuecat-packages';
 import { withEffectiveAccess } from './subscription-access';
 import type {
   PaywallPresentationResult,
@@ -28,30 +31,6 @@ import type {
 const SUBSCRIPTIONS_COLLECTION = 'subscriptions';
 /** Post-purchase webhook lag — keep UX optimistic via RC customerInfo when possible. */
 const POLL_DELAYS_MS = [400, 800, 1_500, 2_500, 4_000, 6_000];
-
-const DEFAULT_PLANS: SubscriptionPlan[] = [
-  {
-    id: 'monthly',
-    productId: PREMIUM_PRODUCT_IDS.monthly,
-    title: 'Monthly',
-    description: 'Full Aithera Pro depth, billed monthly. Cancel anytime.',
-    price: '$9.99',
-    pricePerMonth: '$9.99/mo',
-  },
-  {
-    id: 'yearly',
-    productId: PREMIUM_PRODUCT_IDS.yearly,
-    title: 'Yearly',
-    description: 'Best value — commit to the process for a year',
-    price: '$71.99',
-    pricePerMonth: '$5.99/mo',
-    badge: 'Save 40%',
-    savingsPercent: 40,
-    isPopular: true,
-    trialDays: YEARLY_TRIAL_DAYS,
-    trialLabel: `${YEARLY_TRIAL_DAYS}-day free trial`,
-  },
-];
 
 let purchasesModule: typeof PurchasesType | null | undefined;
 let purchasesUiModule: typeof import('react-native-purchases-ui') | null | undefined;
@@ -194,46 +173,23 @@ function mapPaywallResult(result: string): PaywallPresentationResult {
 
 class SubscriptionServiceImpl implements SubscriptionService {
   getPlans(): SubscriptionPlan[] {
-    return DEFAULT_PLANS;
+    return FALLBACK_SUBSCRIPTION_PLANS;
   }
 
   async getStorePlans(): Promise<SubscriptionPlan[]> {
     const Purchases = getPurchases();
-    if (!Purchases || !getPublicSdkKey()) return DEFAULT_PLANS;
+    if (!Purchases || !getPublicSdkKey()) return FALLBACK_SUBSCRIPTION_PLANS;
 
     try {
       const isConfigured = await Purchases.isConfigured();
-      if (!isConfigured) return DEFAULT_PLANS;
+      if (!isConfigured) return FALLBACK_SUBSCRIPTION_PLANS;
 
       const offerings = await Purchases.getOfferings();
       const packages = offerings.current?.availablePackages ?? [];
-      if (!packages.length) return DEFAULT_PLANS;
-
-      return DEFAULT_PLANS.map((plan) => {
-        const storePackage = packages.find(
-          (item: PurchasesPackage) =>
-            item.product.identifier === plan.productId ||
-            item.identifier === plan.productId ||
-            item.product.identifier.endsWith(`.${plan.productId}`),
-        );
-        if (!storePackage) return plan;
-
-        const priceString = storePackage.product.priceString;
-        return {
-          ...plan,
-          price: priceString,
-          pricePerMonth:
-            plan.id === 'yearly'
-              ? plan.pricePerMonth
-              : priceString
-                ? `${priceString}/mo`
-                : plan.pricePerMonth,
-          title: storePackage.product.title || plan.title,
-          description: storePackage.product.description || plan.description,
-        };
-      });
+      const fromOffering = plansFromOfferingPackages(packages);
+      return fromOffering.length ? fromOffering : FALLBACK_SUBSCRIPTION_PLANS;
     } catch {
-      return DEFAULT_PLANS;
+      return FALLBACK_SUBSCRIPTION_PLANS;
     }
   }
 
@@ -371,9 +327,6 @@ class SubscriptionServiceImpl implements SubscriptionService {
   }
 
   async purchasePlan(uid: string, planId: SubscriptionPlanId): Promise<PurchaseResult> {
-    if (planId === 'lifetime') {
-      throw new Error('Lifetime is not offered at launch.');
-    }
     const Purchases = getPurchases();
     if (!Purchases || !(await this.configureForUser(uid))) {
       throw new Error('Purchases require an EAS development or production build.');
@@ -381,15 +334,12 @@ class SubscriptionServiceImpl implements SubscriptionService {
 
     const before = await this.getSubscription(uid);
     const offerings = await Purchases.getOfferings();
-    const productId = DEFAULT_PLANS.find((plan) => plan.id === planId)?.productId;
-    const selectedPackage = offerings.current?.availablePackages.find(
-      (item: PurchasesPackage) =>
-        item.product.identifier === productId ||
-        item.identifier === productId ||
-        (productId != null && item.product.identifier.endsWith(`.${productId}`)),
+    const selectedPackage = findPackageForPlan(
+      offerings.current?.availablePackages ?? [],
+      planId,
     );
     if (!selectedPackage) {
-      throw new Error('This subscription is not available from the store right now.');
+      throw new Error('This plan is not available from the store right now.');
     }
 
     try {

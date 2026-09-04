@@ -9,12 +9,12 @@ import {
 } from '../monetization';
 
 describe('launch monetization catalog', () => {
-  it('offers monthly and yearly only, with a yearly trial and no lifetime', () => {
-    expect(LAUNCH_PLAN_IDS).toEqual(['monthly', 'yearly']);
+  it('offers monthly, yearly, and lifetime, with a yearly trial', () => {
+    expect(LAUNCH_PLAN_IDS).toEqual(['monthly', 'yearly', 'lifetime']);
     expect(isLaunchPlanId('monthly')).toBe(true);
     expect(isLaunchPlanId('yearly')).toBe(true);
-    expect(isLaunchPlanId('lifetime')).toBe(false);
-    expect(LIFETIME_OFFERED_AT_LAUNCH).toBe(false);
+    expect(isLaunchPlanId('lifetime')).toBe(true);
+    expect(LIFETIME_OFFERED_AT_LAUNCH).toBe(true);
     expect(YEARLY_TRIAL_DAYS).toBe(7);
   });
 

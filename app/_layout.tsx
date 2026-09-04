@@ -22,6 +22,7 @@ import { Button } from '@/shared/components/ui/Button';
 import { Text } from '@/shared/components/ui/Text';
 import { AppProviders } from '@/shared/providers/AppProviders';
 import { useTheme } from '@/shared/hooks/useTheme';
+import { useInAppLegalDeepLinks } from '@/shared/legal/use-in-app-legal-linking';
 import { trackScreenOpen } from '@/shared/services/analytics';
 import {
   addBreadcrumb,
@@ -99,6 +100,7 @@ function RootLayoutNav() {
 
   usePushNotificationHandler();
   useSessionTimeout();
+  useInAppLegalDeepLinks();
 
   useEffect(() => {
     const route = `/${segments.join('/')}`;

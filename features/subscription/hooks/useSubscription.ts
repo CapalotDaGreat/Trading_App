@@ -1,9 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { router } from 'expo-router';
 import { useCallback, useEffect } from 'react';
 
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { subscriptionService } from '@/features/subscription/services/subscription.service';
 import type {
+  PurchaseResult,
   SubscriptionPlanId,
   SubscriptionRecord,
 } from '@/features/subscription/types/subscription.types';
@@ -98,17 +100,6 @@ export function useSubscription() {
     },
   });
 
-  const paywallMutation = useMutation({
-    mutationFn: () => {
-      if (!uid) throw new Error('Sign in to purchase Aithera Pro.');
-      return subscriptionService.presentPaywall(uid);
-    },
-    onSuccess: (result) => {
-      if (result.subscription) applyRecord(result.subscription);
-      void queryClient.invalidateQueries({ queryKey: [SUBSCRIPTION_QUERY_KEY, uid] });
-    },
-  });
-
   const restoreMutation = useMutation({
     mutationFn: () => {
       if (!uid) throw new Error('Sign in to restore purchases.');
@@ -143,18 +134,39 @@ export function useSubscription() {
     await refresh();
   }, [uid, refresh]);
 
-  const presentPaywall = useCallback(async () => {
+  const presentPaywall = useCallback(async (): Promise<PurchaseResult> => {
     if (!uid) throw new Error('Sign in to purchase Aithera Pro.');
-    return paywallMutation.mutateAsync();
-  }, [uid, paywallMutation]);
+    router.push('/subscription');
+    return {
+      success: false,
+      requiresWebCheckout: false,
+      message: 'Choose a plan to continue.',
+      paywallResult: 'not_presented',
+    };
+  }, [uid]);
 
-  const presentPaywallIfNeeded = useCallback(async () => {
+  const presentPaywallIfNeeded = useCallback(async (): Promise<PurchaseResult> => {
     if (!uid) throw new Error('Sign in to purchase Aithera Pro.');
-    const result = await subscriptionService.presentPaywallIfNeeded(uid);
-    if (result.subscription) applyRecord(result.subscription);
-    void queryClient.invalidateQueries({ queryKey: [SUBSCRIPTION_QUERY_KEY, uid] });
-    return result;
-  }, [uid, applyRecord, queryClient]);
+    const alreadyPro = await subscriptionService.hasAitheraProEntitlement(uid);
+    if (alreadyPro) {
+      const record = await subscriptionService.getSubscription(uid);
+      if (record) applyRecord(record);
+      return {
+        success: true,
+        requiresWebCheckout: false,
+        message: 'Aithera Pro is already active.',
+        subscription: record ?? undefined,
+        paywallResult: 'not_presented',
+      };
+    }
+    router.push('/subscription');
+    return {
+      success: false,
+      requiresWebCheckout: false,
+      message: 'Choose a plan to continue.',
+      paywallResult: 'not_presented',
+    };
+  }, [uid, applyRecord]);
 
   useEffect(() => {
     const expiresAt = subscriptionQuery.data?.expiresAt;
@@ -195,8 +207,8 @@ export function useSubscription() {
     isRefreshing: subscriptionQuery.isFetching,
     error: subscriptionQuery.error,
     purchase: purchaseMutation.mutateAsync,
-    isPurchasing: purchaseMutation.isPending || paywallMutation.isPending,
-    purchaseError: purchaseMutation.error ?? paywallMutation.error,
+    isPurchasing: purchaseMutation.isPending,
+    purchaseError: purchaseMutation.error,
     presentPaywall,
     presentPaywallIfNeeded,
     restore: restoreMutation.mutateAsync,
