@@ -32,10 +32,10 @@ export function AiDisclaimer({ compact = false, className }: AiDisclaimerProps) 
           AI Analysis Disclaimer
         </Text>
         <Text variant="caption" className="leading-relaxed text-text-secondary">
-          Educational purposes only · Not financial advice · Research context only · Explanations
-          describe process and evidence, not price predictions. TradeInsight does not provide
-          buy/sell signals. You are solely responsible for any trading decisions. Always verify
-          independently and consult a licensed professional when needed.
+          Educational purposes only · Not financial advice · Not a brokerage · Explanations
+          describe process and evidence, not price predictions. TradeAcademy does not provide
+          buy/sell signals or guaranteed returns. Always verify independently and consult a
+          licensed professional when needed.
         </Text>
       </View>
     </View>

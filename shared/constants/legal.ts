@@ -2,7 +2,7 @@ import { BRAND, DEFAULT_LEGAL_SITE_ORIGIN } from '@/shared/constants/brand';
 
 /**
  * Legal / support site origin.
- * Set EXPO_PUBLIC_LEGAL_SITE_ORIGIN when the official Aithera / TradeInsight
+ * Set EXPO_PUBLIC_LEGAL_SITE_ORIGIN when the official Aithera / TradeAcademy
  * legal site is hosted. Until then, defaults to the legacy origin — do not claim
  * those pages are live Aithera content until hosting is verified.
  */

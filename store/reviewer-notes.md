@@ -1,14 +1,14 @@
-# TradeInsight by Aithera — App Review notes
+# TradeAcademy by Aithera — App Review notes
 
 Paste into App Store Connect / Play Console review notes. Do not commit reviewer
 passwords or sandbox emails here.
 
-TradeInsight is an educational **research and decision-coaching** app from Aithera.
+TradeAcademy is an educational **trading education and simulated-practice** app from Aithera.
 It is **not** a broker, **does not** execute trades, **does not** handle customer
-funds, and **does not** provide buy/sell signals.
+funds, and **does not** provide buy/sell signals or guaranteed returns.
 
 **Technical identity:** iOS/Android application id remains `ai.tradevision.app`
-(frozen). Display name and branding are TradeInsight / Aithera.
+(frozen). Display name and branding are TradeAcademy / Aithera.
 
 **Age layers (please do not collapse these):**
 
@@ -22,9 +22,9 @@ funds, and **does not** provide buy/sell signals.
 ## Guest mode / demo mode
 
 On the welcome screen, acknowledge the educational/risk checkbox, then
-**Continue as Guest**. This loads a complete local demo (sample/mock or delayed
-data as labelled). No store account is required. Guest mode does not create
-cloud journals, does not sync, and cannot purchase Premium.
+**Continue as Guest**. This loads a complete local demo (sample/synthetic data as labelled).
+No store account is required. Guest mode does not create cloud journals, does not sync,
+and cannot purchase Premium.
 
 When Firebase env is absent, the same local demo path is used (`demo-guest`).
 
@@ -33,7 +33,7 @@ When Firebase env is absent, the same local demo path is used (`demo-guest`).
 ## Educational Mode
 
 Educational Mode is always on. It is not a one-time popup. Copy throughout the
-app states that TradeInsight is research/coaching, not brokerage or advice.
+app states that TradeAcademy is education and simulated practice, not brokerage or advice.
 Settings → Educational Mode explains the framing. Risk disclaimer is available
 in-app under Settings → Legal.
 
@@ -41,10 +41,12 @@ in-app under Settings → Legal.
 
 ## Core review flow
 
-1. Today: read the Decision Brief.
-2. Research queue: mark Research or Skip.
-3. Journal: save a process note (not a brokerage ticket).
-4. Review: open the Process Tape.
+1. Onboarding: product explanation (no real money, no brokerage, no signals).
+2. Home: what to learn / practise / simulate next.
+3. Learn: Foundations path — chart, exercise, knowledge check.
+4. Practice: a short drill.
+5. Simulate: start **$100,000 USD** paper capital, write a thesis, size, fill, close.
+6. Review / Journal: grade process, not simulated P/L.
 
 ---
 
@@ -100,7 +102,7 @@ and education. FX candles are never fabricated.
 Signed-in users: Settings → Delete Account.
 
 1. The app instructs the user to **Manage Subscription first**.
-2. **Deleting the TradeInsight account does not cancel App Store / Play billing.**
+2. **Deleting the TradeAcademy account does not cancel App Store / Play billing.**
 3. User types `DELETE`.
 4. Server requires a **recent sign-in** (~5 minutes). If rejected, sign out and
    sign back in.

@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import { Pressable, View } from 'react-native';
 
 import { Text } from '@/shared/components/ui/Text';
+import { CALM_ATTENTION } from '@/shared/constants/trust-language';
 
 interface PremiumPreviewCardProps {
   title: string;
@@ -21,7 +22,7 @@ export function PremiumPreviewCard({
   title,
   teaser,
   preview,
-  ctaLabel = 'Unlock deeper insights',
+  ctaLabel = CALM_ATTENTION.seePremiumDepth,
   testID,
 }: PremiumPreviewCardProps) {
   const router = useRouter();
@@ -32,7 +33,7 @@ export function PremiumPreviewCard({
       testID={testID ?? 'premium-preview-card'}
     >
       <Text variant="caption" className="mb-1 font-semibold text-accent">
-        INCLUDED WITH PREMIUM
+        {CALM_ATTENTION.includedWithPremium}
       </Text>
       <Text variant="h3">{title}</Text>
       <Text variant="body-sm" className="mt-2 text-text-secondary">

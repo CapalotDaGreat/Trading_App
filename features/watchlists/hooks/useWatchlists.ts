@@ -30,6 +30,7 @@ export function useWatchlists() {
     queryKey: watchlistKeys.list(uid ?? ''),
     queryFn: () => getWatchlists(uid!),
     enabled: Boolean(uid),
+    staleTime: 60_000,
   });
 
   const invalidate = () => {

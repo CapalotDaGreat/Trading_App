@@ -22,7 +22,7 @@ export function MetricRow({
     <View
       accessible
       accessibilityLabel={`${label}: ${value}${detail ? `. ${detail}` : ''}`}
-      className={cn('min-h-11 flex-row items-center justify-between gap-4 py-2', className)}
+      className={cn('min-h-11 flex-row flex-wrap items-center justify-between gap-x-4 gap-y-1 py-2', className)}
       {...props}
     >
       <View className="min-w-0 flex-1">

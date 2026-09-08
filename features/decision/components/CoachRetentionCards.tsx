@@ -47,7 +47,7 @@ export function WeeklyReviewCard({ review }: { review: WeeklyReviewInsight }) {
   return (
     <GlassCard className="p-4">
       <Text variant="caption" className="mb-1 font-semibold text-text-tertiary">
-        {review.isSundayReview ? 'SUNDAY REVIEW' : 'YOUR WEEK'}
+        {review.isSundayReview ? 'Sunday review' : 'Your week'}
       </Text>
       <Text variant="h3" className="mb-2">
         {review.decisionsMade} decisions logged

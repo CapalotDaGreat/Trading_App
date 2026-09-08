@@ -3,7 +3,6 @@ import { useEffect, useMemo } from 'react';
 import { create } from 'zustand';
 
 import { useAuth } from '@/features/auth/hooks/useAuth';
-import { MARKET_DATA_POLICY } from '@/features/markets/constants/freshness';
 import { quotesToPriceMap, useLiveQuotes } from '@/features/markets/hooks/useLiveQuotes';
 import { isUsableMarketPrice } from '@/features/markets/types/instrument.types';
 import { useSubscriptionStore } from '@/shared/stores/subscription.store';
@@ -52,7 +51,7 @@ export function usePortfolio() {
     queryKey: portfolioQueryKey(uid),
     queryFn: () => getHoldings(uid!),
     enabled: userDataReady,
-    staleTime: MARKET_DATA_POLICY.quoteStaleMs,
+    staleTime: 60_000,
   });
 
   const storedHoldings = useMemo(() => holdingsQuery.data ?? [], [holdingsQuery.data]);

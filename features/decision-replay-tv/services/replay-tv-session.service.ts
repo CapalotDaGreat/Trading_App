@@ -48,6 +48,35 @@ export function replayTvLoopLabel(phase: ReplayTvPhase): string {
   return REPLAY_TV_LOOP_STEPS.find((step) => step.phase === phase)?.label ?? phase;
 }
 
+export function composeReplayPhaseAnnouncement(session: ReplayTvSession): string {
+  const label = replayTvLoopLabel(session.phase);
+  if (!isReplayTvRevealed(session)) {
+    return `${label}. Future market information stays hidden until you commit.`;
+  }
+  return `${label}. Historical path is visible for teaching review only. Scores remain process-only.`;
+}
+
+/** Persistence must never write future bars. Hydrate rebuilds them in memory. */
+export function stripReplayTvSessionForPersist(
+  session: ReplayTvSession | null,
+): ReplayTvSession | null {
+  if (!session) return null;
+  return { ...session, fullCandles: [] };
+}
+
+export function rehydrateReplayTvSession(
+  session: ReplayTvSession | null,
+): ReplayTvSession | null {
+  if (!session?.episodeId) return null;
+  if (!getReplayTvEpisode(session.episodeId)) return null;
+  try {
+    const hydrated = hydrateReplayTvSessionCandles(session);
+    return { ...hydrated, restoredFromPersist: true };
+  } catch {
+    return null;
+  }
+}
+
 function sessionId(): string {
   return `rtv_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
 }
@@ -107,9 +136,6 @@ function currentFreezeIndex(session: ReplayTvSession): number {
  * Chunked for render performance on long educational paths.
  */
 export function getVisibleCandlesForSession(session: ReplayTvSession) {
-  if (isReplayTvRevealed(session)) {
-    return session.fullCandles;
-  }
   return chunkVisibleCandles(session.fullCandles, currentFreezeIndex(session));
 }
 

@@ -176,6 +176,8 @@ export interface AiStructuredMentorAnswer {
   whatWouldImproveEvidence?: string[];
   /** First-class uncertainty sentence when the honest answer is "I don't know". */
   honestyLead?: string | null;
+  /** Explicit correction of an earlier overstated turn — never a silent rewrite. */
+  correction?: string | null;
   /** Visible freshness inventory — trust feature, not decoration. */
   availableEvidence: string[];
   missingEvidence: string[];

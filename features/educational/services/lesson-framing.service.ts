@@ -8,6 +8,7 @@ export interface LessonEducationalFraming {
   skillsPracticed: string[];
   realWorldApplication: string;
   practiceRecommendation: string;
+  simulationRecommendation: string;
   suggestedReplay: string;
   suggestedLabExercise: string;
 }
@@ -26,20 +27,26 @@ export function getLessonEducationalFraming(lesson: Lesson): LessonEducationalFr
 
   const replayLink = lesson.practiceLinks.find((link) => /replay/i.test(link.href + link.label));
   const labLink = lesson.practiceLinks.find((link) => /lab/i.test(link.href + link.label));
+  const simulationLink = lesson.simulationLinks?.[0];
 
   return {
-    learningObjective: lesson.description,
+    learningObjective: lesson.learningObjectives?.[0] ?? lesson.description,
     estimatedMinutes: lesson.durationMinutes,
     difficulty: lesson.difficulty,
     skillsPracticed,
     realWorldApplication:
-      lesson.track === 'decision'
-        ? 'Apply this on your next Today brief, research queue item, or journal entry before you size a live idea.'
-        : 'Use this concept to interpret charts and news as research context — never as a standalone trade instruction.',
+      lesson.whyItMatters ??
+      (lesson.track === 'decision'
+        ? 'Apply this on your next Home card, practice drill, or journal entry before you size a simulated idea.'
+        : 'Use this concept to interpret charts as educational context — never as a standalone trade instruction.'),
     practiceRecommendation:
       lesson.practiceLinks[0]?.description ??
       lesson.practiceLinks[0]?.label ??
       'Journal one decision using the checklist from this lesson.',
+    simulationRecommendation:
+      simulationLink?.description ??
+      simulationLink?.label ??
+      'Paper-trade the idea. Simulated P/L does not grade the decision.',
     suggestedReplay:
       replayLink?.description ??
       replayLink?.label ??

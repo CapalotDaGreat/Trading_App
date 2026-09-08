@@ -5,8 +5,10 @@ import { Pressable, RefreshControl, View } from 'react-native';
 import { EducationalModeBadge } from '@/features/educational/components/EducationalModeBadge';
 import { EducationalPanel } from '@/features/educational/components/EducationalPanel';
 import { useTradingMentor } from '@/features/decision/hooks/useTradingMentor';
+import { selectMentorPrimaryExercise } from '@/features/decision/services/trading-mentor.service';
 import { MentorSetupInviteCard } from '@/features/onboarding/components/MentorSetupInviteCard';
 import { useCoachProfile } from '@/features/onboarding/hooks/useCoachProfile';
+import { RecoverableErrorState } from '@/shared/components/feedback/RecoverableErrorState';
 import { StatusState } from '@/shared/components/feedback/StatusState';
 import { ScreenScaffold } from '@/shared/components/layout/ScreenScaffold';
 import { CollapsibleSection } from '@/shared/components/patterns/CollapsibleSection';
@@ -19,8 +21,9 @@ import { useTheme } from '@/shared/hooks/useTheme';
 export function TradingMentorScreen() {
   const router = useRouter();
   const { colors } = useTheme();
-  const { data, isLoading, isRefetching, refetch } = useTradingMentor();
+  const { data, isLoading, isRefetching, isError, error, refetch } = useTradingMentor();
   const { showMentorSetupInvite, dismissMentorInvite, mentorSetupCompleted } = useCoachProfile();
+  const primaryExercise = data ? selectMentorPrimaryExercise(data.weekly) : null;
 
   return (
     <ScreenScaffold
@@ -54,16 +57,26 @@ export function TradingMentorScreen() {
         )}
         <EducationalModeBadge size="md" />
 
+        {isError && !data ? (
+          <RecoverableErrorState error={error} onRetry={() => void refetch()} />
+        ) : null}
+
         {isLoading && !data ? (
-          <View className="gap-3">
-            <Skeleton height={140} rounded="lg" />
-            <Skeleton height={120} rounded="lg" />
+          <View className="gap-3" accessibilityLabel="Loading Trading Mentor">
+            <Skeleton height={140} rounded="lg" accessibilityLabel="Loading coaching priority" />
+            <Skeleton height={120} rounded="lg" accessibilityLabel="Loading prescribed exercise" />
           </View>
         ) : null}
 
         {data ? (
           <>
-            <Surface tone="accent" emphasis="outlined" testID="mentor-priority">
+            <Surface
+              tone="accent"
+              emphasis="outlined"
+              testID="mentor-priority"
+              accessibilityRole="summary"
+              accessibilityLabel={`Trading Mentor. Coaching priority: ${data.daily.headline}. ${data.daily.todaysFocus}`}
+            >
               <Text variant="caption" className="font-medium text-info">
                 Coaching priority
               </Text>
@@ -90,42 +103,32 @@ export function TradingMentorScreen() {
               </Text>
             </CollapsibleSection>
 
-            <Surface testID="mentor-exercise">
-              <Text variant="label" className="text-accent">
-                Prescribed exercise
-              </Text>
-              <Text variant="h3" headingLevel={3} className="mt-2">
-                {data.weekly.academyRecommendation?.title ?? data.weekly.replayRecommendation.label}
-              </Text>
-              <Text variant="body-sm" className="mt-2 text-text-secondary">
-                {data.weekly.academyRecommendation?.reason ?? data.weekly.replayRecommendation.reason}
-              </Text>
-              <View className="mt-3 flex-row flex-wrap gap-2">
-                {data.weekly.academyRecommendation ? (
+            {primaryExercise ? (
+              <Surface testID="mentor-exercise">
+                <Text variant="label" className="text-accent">
+                  Prescribed exercise
+                </Text>
+                <Text variant="h3" headingLevel={3} className="mt-2">
+                  {primaryExercise.title}
+                </Text>
+                <Text variant="body-sm" className="mt-2 text-text-secondary">
+                  {primaryExercise.reason}
+                </Text>
+                <View className="mt-3">
                   <Button
                     size="sm"
-                    onPress={() =>
-                      router.push(
-                        `/academy/lesson/${data.weekly.academyRecommendation!.lessonId}` as never,
-                      )
-                    }
+                    onPress={() => router.push(primaryExercise.href as never)}
+                    accessibilityLabel={primaryExercise.accessibilityLabel}
                   >
-                    Open Academy lesson
+                    {primaryExercise.ctaLabel}
                   </Button>
-                ) : null}
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onPress={() => router.push(data.weekly.replayRecommendation.href as never)}
-                >
-                  Open practice
-                </Button>
-              </View>
-            </Surface>
+                </View>
+              </Surface>
+            ) : null}
 
             <CollapsibleSection
               title="Practice this next"
-              description="Academy and Replay recommendations for this week."
+              description="A second practice stays available. The primary exercise is above."
               defaultExpanded={false}
             >
               {data.weekly.academyRecommendation ? (
@@ -173,6 +176,55 @@ export function TradingMentorScreen() {
                 </Surface>
               </Pressable>
             </CollapsibleSection>
+
+            {data.evidenceSplit &&
+            (data.evidenceSplit.known.length > 0 ||
+              data.evidenceSplit.inferred.length > 0 ||
+              data.evidenceSplit.unknown.length > 0) ? (
+              <CollapsibleSection
+                title="What the evidence shows"
+                description="Known counts, inferred tendencies, and what remains unknown. Never a personality diagnosis."
+                defaultExpanded={false}
+                testID="mentor-evidence-split"
+              >
+                {data.evidenceSplit.known.length > 0 ? (
+                  <View className="mb-3" accessibilityLabel="Known process evidence">
+                    <Text variant="caption" className="mb-1 font-semibold text-text-tertiary">
+                      Known
+                    </Text>
+                    {data.evidenceSplit.known.map((line) => (
+                      <Text key={line} variant="body-sm" className="mb-1 leading-relaxed text-text-primary">
+                        {line}
+                      </Text>
+                    ))}
+                  </View>
+                ) : null}
+                {data.evidenceSplit.inferred.length > 0 ? (
+                  <View className="mb-3" accessibilityLabel="Inferred tendencies">
+                    <Text variant="caption" className="mb-1 font-semibold text-text-tertiary">
+                      Inferred
+                    </Text>
+                    {data.evidenceSplit.inferred.map((line) => (
+                      <Text key={line} variant="body-sm" className="mb-1 leading-relaxed text-text-secondary">
+                        {line}
+                      </Text>
+                    ))}
+                  </View>
+                ) : null}
+                {data.evidenceSplit.unknown.length > 0 ? (
+                  <View accessibilityLabel="What remains unknown">
+                    <Text variant="caption" className="mb-1 font-semibold text-text-tertiary">
+                      Unknown
+                    </Text>
+                    {data.evidenceSplit.unknown.map((line) => (
+                      <Text key={line} variant="body-sm" className="mb-1 leading-relaxed text-text-secondary">
+                        {line}
+                      </Text>
+                    ))}
+                  </View>
+                ) : null}
+              </CollapsibleSection>
+            ) : null}
 
             <CollapsibleSection
               title="This week"

@@ -81,6 +81,7 @@ export function useDecisionBrief(timeBudgetMinutes = 20, preferredSymbols?: stri
     refetchInterval: MARKET_DATA_POLICY.briefRefetchMs,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
+    placeholderData: (previous) => previous,
   });
 
   return {
@@ -155,13 +156,7 @@ export function useRiskCenter() {
 
 export function useJournalCoach() {
   const { entries } = useJournal();
-  // Include content fingerprint so edits (notes/tags/emotion) invalidate coach cache.
-  const contentKey = entries
-    .map(
-      (e) =>
-        `${e.id}:${e.updatedAt}:${e.outcome}:${e.emotion ?? ''}:${e.tags.join(',')}:${(e.notes ?? '').length}`,
-    )
-    .join('|');
+  const contentKey = entries.map((e) => `${e.id}:${e.updatedAt}`).join('|');
   return useQuery({
     queryKey: ['decision', 'journal-coach', entries.length, contentKey] as const,
     queryFn: async (): Promise<JournalCoachInsight> => buildJournalCoach(entries),

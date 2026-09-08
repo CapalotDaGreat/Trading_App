@@ -37,11 +37,20 @@ export function TabBar({ items, activeKey, onTabPress, className }: TabBarProps)
           <Pressable
             key={item.key}
             accessibilityRole="tab"
+            accessibilityLabel={
+              item.badge && item.badge > 0
+                ? `${item.label}, ${item.badge > 99 ? '99 plus' : item.badge} notifications`
+                : item.label
+            }
             accessibilityState={{ selected: isActive }}
             onPress={() => onTabPress(item.key)}
-            className="relative flex-1 items-center py-1"
+            className="relative min-h-11 flex-1 items-center justify-center py-1"
           >
-            <View className={cn('mb-1', isActive && 'opacity-100', !isActive && 'opacity-50')}>
+            <View
+              accessibilityElementsHidden
+              importantForAccessibility="no-hide-descendants"
+              className={cn('mb-1', isActive && 'opacity-100', !isActive && 'opacity-50')}
+            >
               {isActive && item.activeIcon ? item.activeIcon : item.icon}
             </View>
             <Text
@@ -54,7 +63,11 @@ export function TabBar({ items, activeKey, onTabPress, className }: TabBarProps)
               {item.label}
             </Text>
             {item.badge && item.badge > 0 ? (
-              <View className="absolute right-3 top-0 min-w-[16px] items-center rounded-full bg-bearish px-1">
+              <View
+                accessibilityElementsHidden
+                importantForAccessibility="no-hide-descendants"
+                className="absolute right-3 top-0 min-w-[16px] items-center rounded-full bg-bearish px-1"
+              >
                 <Text variant="caption" className="text-[10px] font-bold text-white">
                   {item.badge > 99 ? '99+' : item.badge}
                 </Text>

@@ -62,6 +62,12 @@ export interface TradingMentorBrief {
   processScoreWeek: number;
   regimeLabel: string;
   evidenceNotes: string[];
+  /** Known counts vs inferred tendencies vs unknowns — never a personality diagnosis. */
+  evidenceSplit?: {
+    known: string[];
+    inferred: string[];
+    unknown: string[];
+  } | null;
   /** Deep links into Passport, Replay, Academy, Journal, Graph, DNA, Heatmap, Log. */
   coachingReferences: MentorCoachingReference[];
 }

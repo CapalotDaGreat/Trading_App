@@ -33,7 +33,9 @@ function migrateDraft(value: unknown, uid: string): MentorSetupDraft {
     uid,
     answers: { ...answers },
     currentStep:
-      typeof step === 'number' && Number.isInteger(step) ? Math.max(0, Math.min(12, step)) : 0,
+      typeof step === 'number' && Number.isInteger(step)
+        ? clampMentorSetupStep(step)
+        : 0,
     updatedAt:
       typeof candidate.updatedAt === 'number' && Number.isFinite(candidate.updatedAt)
         ? candidate.updatedAt
@@ -107,4 +109,11 @@ export function clearMentorSetupDraft(uid: string): Promise<void> {
 
 export function mergeDraftAnswers(draft: MentorSetupDraft): CoachProfileAnswers {
   return { ...EMPTY_COACH_ANSWERS, ...draft.answers };
+}
+
+/** Map drafts from the older 13-step coach questionnaire onto the short product intro. */
+export function clampMentorSetupStep(step: number): number {
+  if (step <= 0) return 0;
+  if (step > 3) return 3;
+  return step;
 }

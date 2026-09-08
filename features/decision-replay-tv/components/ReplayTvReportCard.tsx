@@ -13,7 +13,11 @@ export function ReplayTvReportCard({
 }) {
   const process = comparison ?? scores.processComparison;
   return (
-    <Surface padding="md" testID="replay-tv-report">
+    <Surface
+      padding="md"
+      testID="replay-tv-report"
+      accessibilityLabel={`Decision Replay Report. ${TRUST_LANGUAGE.dqs.short} ${scores.overall}. Process quality ${scores.processQuality}. Evidence quality ${scores.evidenceQuality}. Invalidation quality ${scores.invalidationClarity}. Adaptability ${scores.adaptability}. Patience ${scores.patience}. Consistency ${scores.consistency}. Research efficiency ${scores.researchEfficiency}. ${TRUST_LANGUAGE.dqs.meaning} Never a profitability score.`}
+    >
       <Text variant="caption" className="mb-1 font-medium text-text-tertiary">
         Decision Replay Report
       </Text>

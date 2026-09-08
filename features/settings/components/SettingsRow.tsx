@@ -37,9 +37,19 @@ export function SettingsRow({
   const { colors } = useTheme();
 
   const content = (
-    <View className={cn('flex-row items-center px-4 py-3.5', disabled && 'opacity-50', className)}>
+    <View
+      className={cn(
+        'min-h-11 flex-row flex-wrap items-center px-4 py-3.5',
+        disabled && 'opacity-50',
+        className,
+      )}
+    >
       {icon ? (
-        <View className="mr-3 h-9 w-9 items-center justify-center rounded-xl bg-surface">
+        <View
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants"
+          className="mr-3 h-9 w-9 items-center justify-center rounded-xl bg-surface"
+        >
           <Ionicons
             name={icon}
             size={18}
@@ -63,6 +73,8 @@ export function SettingsRow({
         <Switch
           accessibilityLabel={label}
           accessibilityHint={description}
+          accessibilityRole="switch"
+          accessibilityState={{ checked: toggleValue, disabled }}
           value={toggleValue}
           onValueChange={onToggle}
           disabled={disabled}
@@ -79,7 +91,13 @@ export function SettingsRow({
       ) : null}
 
       {showChevron && !toggle ? (
-        <Ionicons name="chevron-forward" size={18} color={colors.text.tertiary} />
+        <Ionicons
+          name="chevron-forward"
+          size={18}
+          color={colors.text.tertiary}
+          accessibilityElementsHidden
+          importantForAccessibility="no"
+        />
       ) : null}
     </View>
   );

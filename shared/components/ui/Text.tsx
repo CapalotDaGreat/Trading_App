@@ -43,7 +43,7 @@ export function Text({
   return (
     <RNText
       allowFontScaling={allowFontScaling}
-      maxFontSizeMultiplier={maxFontSizeMultiplier ?? (isHeadingStyle ? 1.6 : 2)}
+      maxFontSizeMultiplier={maxFontSizeMultiplier ?? (isHeadingStyle ? 2 : 2.2)}
       accessibilityRole={accessibilityRole ?? (headingLevel ? 'header' : undefined)}
       aria-level={headingLevel}
       className={cn(variantStyles[variant], className)}

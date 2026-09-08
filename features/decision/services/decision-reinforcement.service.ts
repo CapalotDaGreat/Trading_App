@@ -15,6 +15,14 @@ import type {
 } from '@/features/personal-intelligence/types/personal-intelligence.types';
 
 import { resolveAcademyLessonForTrait } from './decision-reinforcement-academy.service';
+import {
+  aggregateReplayProcessEvidence,
+  countReplayCompletedSessions,
+  inferLastReplayDecisionFromLog,
+  invalidationGapWasPracticed,
+  latestReplayClosedInvalidationGap,
+  latestReplayProcessEvidence,
+} from './decision-reinforcement-log.service';
 import type {
   DecisionReinforcementSnapshot,
   PracticeRecommendation,
@@ -41,7 +49,7 @@ const RECENT_LESSON_MS = 14 * DAY_MS;
 const FREE_WINDOW_MS = 30 * DAY_MS;
 const PREMIUM_WINDOW_MS = 90 * DAY_MS;
 
-const GUILT = /\b(you failed|falling behind|you ignored|you need to fix|poor emotional|anxious trader|you have fomo)\b/i;
+const GUILT = /\b(you failed|falling behind|you ignored|you need to fix|poor emotional|anxious trader|you have fomo|impatient trader)\b/i;
 
 export function emptyDecisionReinforcement(
   enabled = false,
@@ -115,7 +123,7 @@ function explanationFor(
   if (traitId === 'invalidationDiscipline' && direction === 'focus') {
     return beginner
       ? 'Several recent loops continued without a clearly named invalidation. Naming what would kill the case is the next process practice — not a personality label.'
-      : 'Invalidation is still missing on some recent process events.';
+      : 'Your recent decisions show more patience, but invalidation is still inconsistent.';
   }
   if (traitId === 'invalidationDiscipline') {
     return 'Recent decisions name invalidation more often before the case continues.';
@@ -189,7 +197,7 @@ export function observationsFromReplayCommit(input: {
       'patience',
       'strength',
       'replay',
-      'Waiting was a disciplined choice because the evidence at this freeze was still incomplete.',
+      'Waiting was a disciplined choice because the evidence was incomplete.',
     );
     push(
       'uncertaintyHandling',
@@ -202,7 +210,7 @@ export function observationsFromReplayCommit(input: {
         'invalidationDiscipline',
         'focus',
         'replay',
-        'Invalidation criteria were not clearly defined at this freeze.',
+        'One thing was missing: a clear invalidation.',
       );
     }
   } else if (input.decision === 'research_more') {
@@ -269,7 +277,7 @@ export function composeReplayPracticeConnection(input: {
       evidenceQuality: 'limited',
       workingOn: 'You are currently working on patience under uncertainty.',
       nextPractice:
-        'Waiting was disciplined because the evidence was incomplete. Next practice: define invalidation before the next freeze — or open the Academy invalidation lesson after this room.',
+        'Waiting was a disciplined choice because the evidence was incomplete. One thing was missing: a clear invalidation.',
     };
   }
   if (input.decision === 'wait' && named) {
@@ -449,14 +457,30 @@ function practicedTraitRecently(
   const since = nowMs - RECENT_PRACTICE_MS;
   const tagNeedles: Record<ReinforcementTraitId, string[]> = {
     patience: ['rtv:wait', 'rtv:patience'],
-    invalidationDiscipline: ['rtv:invalidation'],
+    invalidationDiscipline: ['rtv:invalidation_named'],
     uncertaintyHandling: ['rtv:uncertainty', 'rtv:inaction_ok', 'rtv:wait'],
     evidenceDiscipline: ['rtv:evidence'],
     researchEfficiency: ['rtv:wait', 'rtv:patience'],
     confirmationResistance: ['rtv:confirmation'],
     decisionStamina: ['rtv:stamina'],
-    adaptability: ['rtv:invalidation'],
+    adaptability: ['rtv:invalidation_named'],
   };
+  const latest = latestReplayProcessEvidence(records);
+  if (traitId === 'invalidationDiscipline') {
+    const closedRecently =
+      Boolean(latest) &&
+      latest!.createdAt >= since &&
+      latest!.counts.namedInvalidation > 0 &&
+      latest!.counts.missingInvalidation === 0;
+    const lessonHit = mappedLessonId
+      ? academyProgress.some((p) => {
+          if (p.lessonId !== mappedLessonId) return false;
+          const at = p.practicedAtMs ?? p.readAtMs ?? 0;
+          return at >= nowMs - RECENT_LESSON_MS;
+        })
+      : false;
+    return closedRecently || lessonHit;
+  }
   const replayHit = countNoteAny(records, 'replay_completed', tagNeedles[traitId], since) > 0;
   const journalHit = records.some((r) => r.action === 'journaled' && r.createdAt >= since);
   const lessonHit = mappedLessonId
@@ -534,15 +558,31 @@ function selectTodayCue(input: {
   primary: PracticeRecommendation | null;
   dna: TradingDnaProfile;
   recentlyPracticed: boolean;
+  records: DecisionRecord[];
+  sinceMs: number;
   nowMs: number;
 }): ReinforcementTodayCue | null {
+  const practicedGap = invalidationGapWasPracticed(input.records, input.sinceMs);
+  const latestClosed = latestReplayClosedInvalidationGap(input.records);
   const focus = input.observations.find((o) => o.direction === 'focus');
-  const patience = input.dna.traits.find((t) => t.id === 'patience');
-  if (focus && !isStronglyImproving(input.dna.traits.find((t) => t.id === focus.traitId))) {
+  const unresolved = input.observations.find(
+    (o) =>
+      o.direction === 'focus' ||
+      (o.direction === 'developing' && o.evidenceQuality !== 'insufficient'),
+  );
+
+  const skipInvalidationCue =
+    focus?.traitId === 'invalidationDiscipline' && (practicedGap || latestClosed);
+
+  if (
+    focus &&
+    !skipInvalidationCue &&
+    !isStronglyImproving(input.dna.traits.find((t) => t.id === focus.traitId))
+  ) {
     if (input.recentlyPracticed && input.primary?.traitId === focus.traitId) return null;
     const text =
       focus.traitId === 'invalidationDiscipline'
-        ? 'Practice cue. You could practice defining invalidation before your next research session.'
+        ? 'One thing worth practicing today: define what would invalidate your thesis before continuing.'
         : `One area worth revisiting is ${REINFORCEMENT_TRAIT_LABELS[focus.traitId].toLowerCase()}. If useful, you can practice it on Replay or in Academy.`;
     return {
       id: `reinforcement_${focus.traitId}`,
@@ -551,11 +591,35 @@ function selectTodayCue(input: {
       evidenceQuality: focus.evidenceQuality,
     };
   }
+
+  const weakness = skipInvalidationCue
+    ? input.observations.find(
+        (o) => o.direction === 'focus' && o.traitId !== 'invalidationDiscipline',
+      )
+    : unresolved && unresolved !== focus
+      ? unresolved
+      : null;
+  if (
+    weakness &&
+    weakness.direction === 'focus' &&
+    !isStronglyImproving(input.dna.traits.find((t) => t.id === weakness.traitId))
+  ) {
+    return {
+      id: `reinforcement_${weakness.traitId}`,
+      text: sanitizeLine(
+        `One area worth revisiting is ${REINFORCEMENT_TRAIT_LABELS[weakness.traitId].toLowerCase()}. If useful, you can practice it on Replay or in Academy.`,
+      ),
+      traitId: weakness.traitId,
+      evidenceQuality: weakness.evidenceQuality,
+    };
+  }
+
+  const patience = input.dna.traits.find((t) => t.id === 'patience');
   if (isStronglyImproving(patience)) return null;
   if (isImproving(patience) && patience?.status === 'scored' && !input.recentlyPracticed) {
     return {
       id: 'patience_practice_cue',
-      text: "You've been improving at waiting. A replay session is available if you'd like to practice it again.",
+      text: 'A replay session is available if you want to practice waiting when evidence is incomplete.',
       traitId: 'patience',
       evidenceQuality: evidenceQualityFromCount(
         input.observations.find((o) => o.traitId === 'patience')
@@ -564,17 +628,7 @@ function selectTodayCue(input: {
       ),
     };
   }
-  const strength = input.observations.find((o) => o.direction === 'strength');
-  if (strength && !focus) {
-    const dnaTrait = input.dna.traits.find((t) => t.id === strength.traitId);
-    if (isStronglyImproving(dnaTrait) || isImproving(dnaTrait)) return null;
-    return {
-      id: `strength_${strength.traitId}`,
-      text: `Your recent decisions show stronger ${REINFORCEMENT_TRAIT_LABELS[strength.traitId].toLowerCase()}. Nothing needs your attention here.`,
-      traitId: strength.traitId,
-      evidenceQuality: strength.evidenceQuality,
-    };
-  }
+
   return null;
 }
 
@@ -583,33 +637,85 @@ function mentorContextFrom(
   primary: PracticeRecommendation | null,
   academy: PracticeRecommendation | null,
   beginner: boolean,
+  records: DecisionRecord[],
+  sinceMs: number,
+  dna: TradingDnaProfile,
 ): ReinforcementMentorContext {
   const known: string[] = [];
   const inference: string[] = [];
   const unknown: string[] = [];
+  const counts = aggregateReplayProcessEvidence(records, sinceMs);
+  const replaySessions = countReplayCompletedSessions(records, sinceMs);
+  const patienceTrait = dna.traits.find((t) => t.id === 'patience');
+
+  if (counts.checkpoints >= 3) {
+    known.push(
+      `You selected WAIT in ${counts.waits} of the last ${counts.checkpoints} replay checkpoints.`,
+    );
+  } else if (counts.waits > 0) {
+    known.push(
+      `You selected WAIT in ${counts.waits} recent replay freeze${counts.waits === 1 ? '' : 's'}.`,
+    );
+  }
+  if (counts.missingInvalidation > 0) {
+    known.push(
+      `Invalidation was not named on ${counts.missingInvalidation} of those freezes.`,
+    );
+  }
+  if (counts.namedInvalidation > 0) {
+    known.push(
+      `Invalidation was named on ${counts.namedInvalidation} replay freeze${counts.namedInvalidation === 1 ? '' : 's'}.`,
+    );
+  }
+
   for (const obs of observations) {
     for (const ref of obs.evidenceRefs) {
       known.push(ref.label);
     }
+  }
+
+  const patienceObs = observations.find((o) => o.traitId === 'patience' && o.direction !== 'focus');
+  const invalidationFocus = observations.find(
+    (o) => o.traitId === 'invalidationDiscipline' && o.direction === 'focus',
+  );
+  const enoughForTendency =
+    counts.checkpoints >= 5 && replaySessions >= 2 && counts.waits >= 3 && isImproving(patienceTrait);
+
+  if (patienceObs && enoughForTendency) {
+    inference.push('This may indicate improving patience when evidence is incomplete.');
+  } else if (patienceObs) {
+    inference.push(
+      counts.checkpoints < 3
+        ? 'Waiting at a freeze is a process choice. One event is not enough to infer a tendency.'
+        : 'This may indicate willingness to wait when evidence is incomplete — still a small sample.',
+    );
+  }
+  if (invalidationFocus) {
+    inference.push(
+      beginner
+        ? 'Invalidation still looks inconsistent on recent process events — a practice gap, not a personality label.'
+        : 'Invalidation is still inconsistent relative to recent waits.',
+    );
+  }
+  for (const obs of observations) {
+    if (obs.traitId === 'patience' || obs.traitId === 'invalidationDiscipline') continue;
     inference.push(obs.explanation);
   }
-  if (!observations.length) {
+
+  if (!observations.length && counts.checkpoints === 0) {
     unknown.push('No recent Replay, Decision Log, or Journal process evidence is attached for these traits.');
   } else {
     unknown.push('Private journal text is not available. Motives and feelings are not inferred beyond process counts.');
     unknown.push('This is not a complete psychological profile, and it is not a forecast of results.');
   }
-  const patience = observations.find((o) => o.traitId === 'patience' && o.direction !== 'focus');
-  const invalidationFocus = observations.find(
-    (o) => o.traitId === 'invalidationDiscipline' && o.direction === 'focus',
-  );
+
   let observationLine: string | null = null;
-  if (patience && invalidationFocus) {
+  if (patienceObs && invalidationFocus) {
     observationLine = beginner
       ? 'Your recent replay and decision-log activity suggests that waiting has become more deliberate. One area still worth practicing is defining invalidation before you commit.'
-      : 'Recent waits look more deliberate. Invalidation is still the process gap.';
-  } else if (patience) {
-    observationLine = patience.explanation;
+      : 'Your recent decisions show more patience, but invalidation is still inconsistent.';
+  } else if (patienceObs) {
+    observationLine = patienceObs.explanation;
   } else if (observations[0]) {
     observationLine = observations[0].explanation;
   }
@@ -619,8 +725,8 @@ function mentorContextFrom(
     observationLine = `${observationLine} Academy lesson: ${academy.destination.label}.`;
   }
   return {
-    known: [...new Set(known)].slice(0, 6),
-    inference: [...new Set(inference)].slice(0, 3),
+    known: [...new Set(known.filter(Boolean))].slice(0, 6),
+    inference: [...new Set(inference.filter(Boolean).map(sanitizeLine))].slice(0, 3),
     unknown: unknown.slice(0, 3),
     observationLine: observationLine ? sanitizeLine(observationLine) : null,
   };
@@ -657,24 +763,25 @@ export function composeDecisionReinforcement(
   const sinceMs = nowMs - windowMs;
   const beginner = isBeginner(input.coachProfile?.experience);
   const academyProgress = input.academyProgress ?? [];
+  const lastReplay = input.lastReplayDecision ?? inferLastReplayDecisionFromLog(input.records);
 
-  const replayConnection = input.lastReplayDecision
+  const replayConnection = lastReplay
     ? composeReplayPracticeConnection({
-        decision: input.lastReplayDecision.decision,
+        decision: lastReplay.decision,
         checklist: {
-          namedInvalidation: input.lastReplayDecision.namedInvalidation,
-          wroteReasoning: Boolean(input.lastReplayDecision.wroteReasoning),
+          namedInvalidation: lastReplay.namedInvalidation,
+          wroteReasoning: Boolean(lastReplay.wroteReasoning),
         },
         enabled: true,
         nowMs,
       })
     : null;
 
-  const freezeObs = input.lastReplayDecision
+  const freezeObs = lastReplay
     ? observationsFromReplayCommit({
-        decision: input.lastReplayDecision.decision,
-        namedInvalidation: input.lastReplayDecision.namedInvalidation,
-        wroteReasoning: input.lastReplayDecision.wroteReasoning,
+        decision: lastReplay.decision,
+        namedInvalidation: lastReplay.namedInvalidation,
+        wroteReasoning: lastReplay.wroteReasoning,
         nowMs,
       })
     : [];
@@ -802,6 +909,8 @@ export function composeDecisionReinforcement(
     primary: primaryPractice,
     dna: input.dna,
     recentlyPracticed: recent,
+    records: input.records,
+    sinceMs,
     nowMs,
   });
 
@@ -811,7 +920,15 @@ export function composeDecisionReinforcement(
     primaryPractice,
     academyLesson,
     todayCue,
-    mentorContext: mentorContextFrom(capped, primaryPractice, academyLesson, beginner),
+    mentorContext: mentorContextFrom(
+      capped,
+      primaryPractice,
+      academyLesson,
+      beginner,
+      input.records,
+      sinceMs,
+      input.dna,
+    ),
     replayPracticeConnection: replayConnection,
     preferredMarkets: markets,
   };

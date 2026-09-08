@@ -103,7 +103,7 @@ export function HoldingInstrumentPicker({
         Search investments
       </Text>
       <Text variant="caption" className="text-text-secondary">
-        Search by name or symbol. Holdings are only created after TradeInsight resolves a real
+        Search by name or symbol. Holdings are only created after TradeAcademy resolves a real
         market asset.
       </Text>
       <Input

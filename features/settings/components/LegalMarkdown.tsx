@@ -194,7 +194,7 @@ export function LegalSupportBody({ onEmail }: LegalSupportBodyProps) {
   return (
     <View className="gap-5 pb-8">
       <Text variant="body" className="leading-7 text-text-primary">
-        TradeInsight is an educational research and decision-coaching app. It is not a broker and
+        TradeAcademy is an educational research and decision-coaching app. It is not a broker and
         does not provide buy/sell signals or execute trades.
       </Text>
 

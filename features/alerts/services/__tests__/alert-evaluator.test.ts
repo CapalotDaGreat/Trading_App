@@ -60,6 +60,12 @@ describe('evaluateAlertsForUser', () => {
 
     await expect(evaluateAlertsForUser('u1', { allowInactive: true })).resolves.toBe(1);
     expect(mockMarkAlertTriggered).toHaveBeenCalledWith('u1', 'a1');
-    expect(mockPresentLocalNotification).toHaveBeenCalled();
+    expect(mockPresentLocalNotification).toHaveBeenCalledWith(
+      'Your research reminder is ready.',
+      expect.stringMatching(/AAPL reached a level you named/i),
+      expect.objectContaining({ symbol: 'AAPL', type: 'price_alert' }),
+    );
+    const [, body] = mockPresentLocalNotification.mock.calls[0];
+    expect(String(body).toLowerCase()).not.toMatch(/is moving|act now|buy|sell/);
   });
 });

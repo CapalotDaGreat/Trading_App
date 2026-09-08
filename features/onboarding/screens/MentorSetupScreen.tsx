@@ -6,7 +6,6 @@ import { useAuth } from '@/features/auth/hooks/useAuth';
 import { MentorQuestionStep } from '@/features/onboarding/components/MentorQuestionStep';
 import { MentorReadyStep } from '@/features/onboarding/components/MentorReadyStep';
 import { MentorSetupProgress } from '@/features/onboarding/components/MentorSetupProgress';
-import { ResearchUniverseStep } from '@/features/onboarding/components/ResearchUniverseStep';
 import { WhyHint } from '@/features/onboarding/components/WhyHint';
 import { MENTOR_QUESTIONS } from '@/features/onboarding/content/mentor-setup.questions';
 import {
@@ -14,6 +13,7 @@ import {
   loadCoachProfile,
 } from '@/features/onboarding/services/coach-profile.service';
 import {
+  clampMentorSetupStep,
   loadMentorSetupDraft,
   mergeDraftAnswers,
   saveMentorSetupDraft,
@@ -26,13 +26,13 @@ import { DEMO_USER_UID } from '@/firebase/config';
 import { Screen } from '@/shared/components/layout/Screen';
 import { Button } from '@/shared/components/ui/Button';
 import { Text } from '@/shared/components/ui/Text';
+import { BRAND } from '@/shared/constants/brand';
 import { useTheme } from '@/shared/hooks/useTheme';
 
 const INTRO = 0;
 const FIRST_QUESTION = 1;
-const LAST_QUESTION = 10;
-const UNIVERSE = 11;
-const READY = 12;
+const LAST_QUESTION = 3;
+const READY = 4;
 
 function selectedForField(
   answers: CoachProfileAnswers,
@@ -51,7 +51,6 @@ function canContinue(step: number, answers: CoachProfileAnswers): boolean {
     const selected = selectedForField(answers, question.field);
     return selected.length > 0;
   }
-  if (step === UNIVERSE) return answers.researchUniverse.length >= 1;
   if (step === READY) return true;
   return false;
 }
@@ -84,7 +83,7 @@ export default function MentorSetupScreen() {
         answers: profile.mentorSetupCompleted ? { ...profile, ...draft.answers } : draft.answers,
       });
       setAnswers(merged);
-      setStep(draft.currentStep || INTRO);
+      setStep(clampMentorSetupStep(draft.currentStep || INTRO));
       setIsReady(true);
     })();
     return () => {
@@ -130,7 +129,7 @@ export default function MentorSetupScreen() {
 
     if (step === LAST_QUESTION) {
       const recommended = recommendResearchUniverse({
-        markets: answers.markets,
+        markets: answers.markets.length ? answers.markets : ['stocks'],
         experience: answers.experience,
         styles: answers.styles,
       });
@@ -140,8 +139,8 @@ export default function MentorSetupScreen() {
           answers.researchUniverse.length > 0 ? answers.researchUniverse : recommended,
       };
       setAnswers(nextAnswers);
-      setStep(UNIVERSE);
-      await persist(UNIVERSE, nextAnswers);
+      setStep(READY);
+      await persist(READY, nextAnswers);
       return;
     }
 
@@ -152,7 +151,7 @@ export default function MentorSetupScreen() {
         setProfile(await loadCoachProfile(uid));
         router.replace('/(tabs)' as never);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Could not save your mentor setup.');
+        setError(err instanceof Error ? err.message : 'Could not save your setup.');
       } finally {
         setIsSaving(false);
       }
@@ -187,13 +186,16 @@ export default function MentorSetupScreen() {
       <MentorSetupProgress step={step} />
 
       {step === INTRO ? (
-        <View className="py-4">
-          <Text variant="h1">Let&apos;s personalise how your mentor teaches.</Text>
+        <View className="py-4" testID="onboarding-product-intro">
+          <Text variant="h1">{BRAND.product} helps you learn trading through education and simulated practice.</Text>
           <Text variant="body" className="mt-3 text-text-secondary">
-            This helps your mentor adapt to how you want to learn. It is not a financial
-            suitability test, and it is not used to predict markets.
+            No real money. No brokerage. No guaranteed signals. You learn concepts, practise decisions,
+            simulate with paper capital, then review your reasoning.
           </Text>
-          <WhyHint text="This takes under two minutes and you can refine everything later in Settings." />
+          <Text variant="body-sm" className="mt-3 text-text-secondary">
+            {BRAND.loop}
+          </Text>
+          <WhyHint text="Next: experience, learning goals, and preferred topics. Nothing that looks like a brokerage application." />
           {isDemo ? (
             <Text variant="caption" className="mt-4 text-text-tertiary">
               Demo mode — answers stay on this device.
@@ -207,17 +209,6 @@ export default function MentorSetupScreen() {
           question={question}
           selected={selectedForField(answers, question.field)}
           onToggle={toggleValue}
-        />
-      ) : null}
-
-      {step === UNIVERSE ? (
-        <ResearchUniverseStep
-          symbols={answers.researchUniverse}
-          onChange={(researchUniverse) => {
-            const next = { ...answers, researchUniverse };
-            setAnswers(next);
-            void persist(step, next);
-          }}
         />
       ) : null}
 
@@ -237,7 +228,7 @@ export default function MentorSetupScreen() {
           disabled={!canContinue(step, answers) || isSaving}
           onPress={() => void goNext()}
         >
-          {step === READY ? 'Continue' : step === INTRO ? 'Start' : 'Continue'}
+          {step === READY ? 'Enter TradeAcademy' : step === INTRO ? 'Continue' : 'Continue'}
         </Button>
         {step > INTRO ? (
           <Button variant="ghost" fullWidth disabled={isSaving} onPress={() => void goBack()}>

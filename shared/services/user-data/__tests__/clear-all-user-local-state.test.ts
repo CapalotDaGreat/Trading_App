@@ -80,6 +80,8 @@ describe('clearAllUserLocalState', () => {
     expect(result.removedAsyncStorageKeys).toEqual([
       ...USER_LOCAL_STORAGE_KEYS,
       'tradevision:onboarding-draft:v1:user-1',
+      'tradevision:coach-profile:v1:user-1',
+      'tradevision:mentor-setup-draft:v2:user-1',
     ]);
     expect(result.removedAsyncStorageKeys).toContain('tradevision-decision-passport-v1');
     expect(result.removedAsyncStorageKeys).not.toContain('tradevision-theme-v2');

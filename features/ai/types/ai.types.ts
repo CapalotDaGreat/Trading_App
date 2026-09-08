@@ -272,6 +272,8 @@ export interface AiRequestContext {
    * unless new independent evidence arrived.
    */
   priorEvidenceLevel?: AiEvidenceLevel;
+  /** Chat history for corrections — never used to raise evidence quality. */
+  history?: Array<{ role: string; content: string }>;
 }
 
 export interface AiUsageStats {

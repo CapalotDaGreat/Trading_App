@@ -43,8 +43,10 @@ export function ReplayTvCoachCard({ note }: { note: ReplayTvCoachNote }) {
 
 function CoachBlock({ title, body }: { title: string; body: string }) {
   return (
-    <Surface padding="sm" tone="subtle">
-      <Text variant="label">{title}</Text>
+    <Surface padding="sm" tone="subtle" accessibilityLabel={`${title}. ${body}`}>
+      <Text variant="label" headingLevel={3}>
+        {title}
+      </Text>
       <Text variant="body-sm" className="mt-1 leading-6 text-text-secondary">
         {body}
       </Text>

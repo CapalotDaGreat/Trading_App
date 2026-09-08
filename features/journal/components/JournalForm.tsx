@@ -1,5 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Controller, useForm } from 'react-hook-form';
+import { useEffect } from 'react';
+import { Controller, useForm, useWatch } from 'react-hook-form';
 import { Pressable, View } from 'react-native';
 import { z } from 'zod';
 
@@ -15,6 +16,7 @@ import type {
   TradeDirection,
   TradeEmotion,
 } from '../types/journal.types';
+import { useJournalDraftStore } from '../stores/journal-draft.store';
 
 const journalSchema = z.object({
   symbol: z.string().min(1).max(10),
@@ -59,6 +61,10 @@ const MISTAKES: Array<JournalMistakeCategory | 'none'> = [
 ];
 
 export function JournalForm({ onSubmit, isSubmitting, initialSymbol = '' }: JournalFormProps) {
+  const draft = useJournalDraftStore((state) => state.draft);
+  const savedAt = useJournalDraftStore((state) => state.savedAt);
+  const saveDraft = useJournalDraftStore((state) => state.saveDraft);
+  const clearDraft = useJournalDraftStore((state) => state.clearDraft);
   const {
     control,
     handleSubmit,
@@ -67,24 +73,52 @@ export function JournalForm({ onSubmit, isSubmitting, initialSymbol = '' }: Jour
   } = useForm<JournalFormValues>({
     resolver: zodResolver(journalSchema),
     defaultValues: {
-      symbol: initialSymbol.toUpperCase(),
-      direction: 'long',
-      entryPrice: 0,
-      exitPrice: '',
-      quantity: 0,
-      stopLoss: '',
-      takeProfit: '',
-      strategy: '',
-      tags: '',
-      emotion: 'neutral',
-      planAdhered: 'unset',
-      mistakeCategory: 'none',
-      notes: '',
-      lessonsLearned: '',
-      improvementCommitment: '',
-      linkedReplayHref: '',
+      symbol: (draft?.symbol || initialSymbol).toUpperCase(),
+      direction: draft?.direction ?? 'long',
+      entryPrice: draft?.entryPrice ?? 0,
+      exitPrice: draft?.exitPrice ?? '',
+      quantity: draft?.quantity ?? 0,
+      stopLoss: draft?.stopLoss ?? '',
+      takeProfit: draft?.takeProfit ?? '',
+      strategy: draft?.strategy ?? '',
+      tags: draft?.tags ?? '',
+      emotion: draft?.emotion ?? 'neutral',
+      planAdhered: draft?.planAdhered ?? 'unset',
+      mistakeCategory: (draft?.mistakeCategory as JournalFormValues['mistakeCategory']) ?? 'none',
+      notes: draft?.notes ?? '',
+      lessonsLearned: draft?.lessonsLearned ?? '',
+      improvementCommitment: draft?.improvementCommitment ?? '',
+      linkedReplayHref: draft?.linkedReplayHref ?? '',
     },
   });
+  const watched = useWatch({ control });
+
+  useEffect(() => {
+    const notes = typeof watched.notes === 'string' ? watched.notes.trim() : '';
+    const symbol = typeof watched.symbol === 'string' ? watched.symbol.trim() : '';
+    if (!notes && !symbol) return;
+    const timer = setTimeout(() => {
+      saveDraft({
+        symbol: watched.symbol ?? '',
+        direction: watched.direction ?? 'long',
+        entryPrice: Number(watched.entryPrice) || 0,
+        exitPrice: watched.exitPrice ?? '',
+        quantity: Number(watched.quantity) || 0,
+        stopLoss: watched.stopLoss ?? '',
+        takeProfit: watched.takeProfit ?? '',
+        strategy: watched.strategy ?? '',
+        tags: watched.tags ?? '',
+        emotion: watched.emotion ?? 'neutral',
+        planAdhered: watched.planAdhered ?? 'unset',
+        mistakeCategory: watched.mistakeCategory ?? 'none',
+        notes: watched.notes ?? '',
+        lessonsLearned: watched.lessonsLearned ?? '',
+        improvementCommitment: watched.improvementCommitment ?? '',
+        linkedReplayHref: watched.linkedReplayHref ?? '',
+      });
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [saveDraft, watched]);
 
   const submit = handleSubmit(async (values) => {
     const tags = (values.tags ?? '')
@@ -114,6 +148,7 @@ export function JournalForm({ onSubmit, isSubmitting, initialSymbol = '' }: Jour
       linkedReplayHref: values.linkedReplayHref?.trim() || undefined,
     });
     reset();
+    clearDraft();
   });
 
   return (
@@ -123,6 +158,7 @@ export function JournalForm({ onSubmit, isSubmitting, initialSymbol = '' }: Jour
       </Text>
       <Text variant="caption" className="mb-4 text-text-tertiary">
         Process notes welcome — quantity can be 0 for research/skip journals.
+        {savedAt ? ' Draft saved on this device until you submit.' : ''}
       </Text>
 
       <View className="gap-3">

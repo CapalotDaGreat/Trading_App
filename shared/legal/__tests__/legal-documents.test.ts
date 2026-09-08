@@ -22,7 +22,7 @@ describe('legal compliance pack', () => {
       'security',
     ]);
     expect(LEGAL_COUNSEL_NOTICE.toLowerCase()).toContain('counsel');
-    expect(LEGAL_COUNSEL_NOTICE).toContain('TradeInsight');
+    expect(LEGAL_COUNSEL_NOTICE).toContain('TradeAcademy');
     expect(LEGAL_COUNSEL_NOTICE).toContain('Aithera');
     expect(LEGAL_COUNSEL_NOTICE.toLowerCase()).toContain('not production');
   });
@@ -30,7 +30,7 @@ describe('legal compliance pack', () => {
   it('keeps in-app text aligned with required policy topics', () => {
     const privacy = LEGAL_DOCUMENT_TEXT.privacy.toLowerCase();
     expect(privacy).toContain('aithera');
-    expect(privacy).toContain('tradeinsight');
+    expect(privacy).toContain('tradeacademy');
     expect(privacy).toContain('nfadp');
     expect(privacy).toContain('gdpr');
     expect(privacy).toContain('ccpa');

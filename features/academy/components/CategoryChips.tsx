@@ -20,6 +20,7 @@ const FILTERS: { id: CategoryFilter; label: string }[] = [
   { id: 'technical_analysis', label: CATEGORY_LABELS.technical_analysis },
   { id: 'psychology', label: CATEGORY_LABELS.psychology },
   { id: 'fundamental_analysis', label: CATEGORY_LABELS.fundamental_analysis },
+  { id: 'portfolio', label: CATEGORY_LABELS.portfolio },
   { id: 'basics', label: CATEGORY_LABELS.basics },
   { id: 'options', label: CATEGORY_LABELS.options },
   { id: 'crypto', label: CATEGORY_LABELS.crypto },
@@ -36,8 +37,11 @@ export function CategoryChips({ value, onChange }: CategoryChipsProps) {
             <Pressable
               key={filter.id}
               onPress={() => onChange(filter.id)}
+              accessibilityRole="tab"
+              accessibilityState={{ selected: active }}
+              accessibilityLabel={`${filter.label} lessons`}
               className={cn(
-                'rounded-full px-3 py-1.5',
+                'min-h-11 items-center justify-center rounded-full px-3 py-1.5',
                 active ? 'bg-accent-muted' : 'bg-surface',
               )}
             >

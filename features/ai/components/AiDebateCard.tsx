@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { View } from 'react-native';
-import Animated, { FadeInDown } from 'react-native-reanimated';
+import Animated from 'react-native-reanimated';
 
 import { DebateCaseCard } from '@/features/ai/components/DebateCaseCard';
 import { EducationalInsightFooter } from '@/features/educational/components/EducationalInsightFooter';
@@ -9,7 +9,9 @@ import type { AiDebateResult } from '@/features/ai/types/ai-debate.types';
 import { TRUST_LANGUAGE } from '@/shared/constants/trust-language';
 import { GlassCard } from '@/shared/components/ui/GlassCard';
 import { Text } from '@/shared/components/ui/Text';
+import { useReducedMotion } from '@/shared/hooks/useReducedMotion';
 import { useTheme } from '@/shared/hooks/useTheme';
+import { fadeInDown } from '@/shared/utils/motion';
 
 interface AiDebateCardProps {
   debate: AiDebateResult;
@@ -17,6 +19,7 @@ interface AiDebateCardProps {
 
 export function AiDebateCard({ debate }: AiDebateCardProps) {
   const { colors } = useTheme();
+  const reduceMotion = useReducedMotion();
 
   return (
     <View className="gap-4" testID="ai-debate-card">
@@ -47,7 +50,7 @@ export function AiDebateCard({ debate }: AiDebateCardProps) {
       <DebateCaseCard debateCase={debate.bearCase} defaultExpanded index={1} />
       <DebateCaseCard debateCase={debate.neutralCase} defaultExpanded index={2} />
 
-      <Animated.View entering={FadeInDown.delay(180).springify()}>
+      <Animated.View entering={fadeInDown(reduceMotion, { delay: 180 })}>
         <GlassCard className="p-4">
           <Text variant="caption" className="mb-3 font-semibold uppercase tracking-wide text-text-tertiary">
             Research scores
@@ -70,7 +73,7 @@ export function AiDebateCard({ debate }: AiDebateCardProps) {
         </GlassCard>
       </Animated.View>
 
-      <Animated.View entering={FadeInDown.delay(240).springify()}>
+      <Animated.View entering={fadeInDown(reduceMotion, { delay: 240 })}>
         <GlassCard className="p-4" bordered>
           <Text variant="caption" className="mb-2 font-semibold uppercase tracking-wide text-info">
             Questions to answer before researching

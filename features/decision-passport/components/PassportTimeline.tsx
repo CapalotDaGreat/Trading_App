@@ -1,8 +1,10 @@
 import { View } from 'react-native';
-import Animated, { FadeInDown } from 'react-native-reanimated';
+import Animated from 'react-native-reanimated';
 
 import { GlassCard } from '@/shared/components/ui/GlassCard';
 import { Text } from '@/shared/components/ui/Text';
+import { useReducedMotion } from '@/shared/hooks/useReducedMotion';
+import { fadeInDown } from '@/shared/utils/motion';
 
 import type { PassportTimelineEvent } from '../types/passport.types';
 
@@ -19,6 +21,7 @@ interface PassportTimelineProps {
 }
 
 export function PassportTimeline({ events }: PassportTimelineProps) {
+  const reduceMotion = useReducedMotion();
   if (events.length === 0) {
     return (
       <GlassCard className="p-4">
@@ -32,7 +35,7 @@ export function PassportTimeline({ events }: PassportTimelineProps) {
   return (
     <View className="gap-3" testID="passport-timeline">
       {events.map((event, index) => (
-        <Animated.View key={event.id} entering={FadeInDown.springify().delay(index * 35)}>
+        <Animated.View key={event.id} entering={fadeInDown(reduceMotion, { delay: index * 35 })}>
           <View className="flex-row gap-3">
             <View className="items-center">
               <View className="mt-1.5 h-2.5 w-2.5 rounded-full bg-accent" />

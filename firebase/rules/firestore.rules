@@ -219,6 +219,61 @@ service cloud.firestore {
         && data.updatedAt is timestamp;
     }
 
+    function isIsoCurrency(value) {
+      return value is string && value.matches('^[A-Z]{3}$');
+    }
+
+    function isValidSimulationAccount(ownerId) {
+      let data = request.resource.data;
+      return data.keys().hasAll([
+          'id', 'accountId', 'userId', 'mode', 'currency', 'startingBalance',
+          'cashBalance', 'equity', 'status', 'createdAt', 'updatedAt'
+        ])
+        && data.id is string
+        && data.accountId is string
+        && data.id == data.accountId
+        && data.userId == ownerId
+        && data.userId == request.auth.uid
+        && isIsoCurrency(data.currency)
+        && data.mode in ['beginner', 'standard', 'challenge']
+        && data.status in ['active', 'archived', 'challenge_failed']
+        && data.startingBalance is number
+        && data.startingBalance > 0
+        && data.cashBalance is number
+        && data.cashBalance >= 0
+        && data.equity is number;
+    }
+
+    function isValidSimulationTransaction() {
+      let data = request.resource.data;
+      return data.keys().hasAll([
+          'id', 'accountId', 'timestamp', 'symbol', 'assetType', 'side',
+          'quantity', 'executionPrice', 'grossValue', 'fees', 'netValue',
+          'resultingCashBalance', 'resultingPositionQuantity'
+        ])
+        && data.id is string
+        && data.accountId is string
+        && data.symbol is string
+        && data.symbol.size() >= 1
+        && data.symbol.size() <= 24
+        && data.assetType is string
+        && data.assetType.size() >= 2
+        && data.assetType.size() <= 32
+        && data.side in ['buy', 'sell']
+        && data.quantity is number
+        && data.quantity > 0
+        && data.executionPrice is number
+        && data.executionPrice > 0
+        && data.grossValue is number
+        && data.fees is number
+        && data.fees >= 0
+        && data.netValue is number
+        && data.resultingCashBalance is number
+        && data.resultingCashBalance >= 0
+        && data.resultingPositionQuantity is number
+        && data.resultingPositionQuantity >= 0;
+    }
+
     match /users/{userId} {
       allow read: if isOwner(userId);
       allow create: if isOwner(userId) && isVerifiedUser() && isValidUserProfile() && hasValidTimestamps();
@@ -268,6 +323,47 @@ service cloud.firestore {
         allow read: if isOwner(userId);
         allow create: if isOwner(userId) && isVerifiedUser() && isValidDecisionRecord();
         allow update, delete: if false;
+      }
+
+      match /simulationAccounts/{accountId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) && isVerifiedUser() && isValidSimulationAccount(userId) && hasValidTimestamps();
+        allow update: if isOwner(userId) && isVerifiedUser() && isValidSimulationAccount(userId)
+          && request.resource.data.userId == resource.data.userId
+          && request.resource.data.userId == request.auth.uid;
+        allow delete: if isOwner(userId) && isVerifiedUser();
+
+        match /transactions/{txnId} {
+          allow read: if isOwner(userId);
+          allow create: if isOwner(userId) && isVerifiedUser() && isValidSimulationTransaction()
+            && request.resource.data.accountId == accountId;
+          allow update, delete: if false;
+        }
+
+        match /positions/{positionId} {
+          allow read: if isOwner(userId);
+          allow create, update, delete: if isOwner(userId) && isVerifiedUser();
+        }
+
+        match /orders/{orderId} {
+          allow read: if isOwner(userId);
+          allow create, update: if isOwner(userId) && isVerifiedUser();
+          allow delete: if false;
+        }
+
+        match /challenges/{challengeRunId} {
+          allow read: if isOwner(userId);
+          allow create, update: if isOwner(userId) && isVerifiedUser();
+          allow delete: if false;
+        }
+
+        match /history/{archiveId} {
+          allow read: if isOwner(userId);
+          allow create: if isOwner(userId) && isVerifiedUser() && isValidSimulationAccount(userId)
+            && request.resource.data.status == 'archived'
+            && hasValidTimestamps();
+          allow update, delete: if false;
+        }
       }
     }
 

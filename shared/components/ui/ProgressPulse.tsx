@@ -57,7 +57,7 @@ export function ProgressPulse({
       className={cn('gap-1.5', className)}
       accessibilityRole="progressbar"
       accessibilityValue={{ min: 0, max: target, now: progress }}
-      accessibilityLabel={label ?? 'Progress'}
+      accessibilityLabel={`${label ?? 'Progress'}, ${pct} percent`}
       testID={testID}
     >
       {label ? (

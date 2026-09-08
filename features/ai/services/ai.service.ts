@@ -238,6 +238,7 @@ export const aiService = {
     const engineResponse = generateEngineChatResponse(prompt, {
       ...enrichedContext,
       priorEvidenceLevel: priorEvidenceLevel ?? undefined,
+      history: request.history,
     });
     const enriched = enrichedContext.enriched;
     let trust = engineResponse.metadata.trust;

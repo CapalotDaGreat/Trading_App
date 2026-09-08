@@ -1,10 +1,12 @@
 import { useRouter } from 'expo-router';
 import { Pressable, View } from 'react-native';
-import Animated, { FadeInDown } from 'react-native-reanimated';
+import Animated from 'react-native-reanimated';
 
 import { GlassCard } from '@/shared/components/ui/GlassCard';
 import { Text } from '@/shared/components/ui/Text';
+import { useReducedMotion } from '@/shared/hooks/useReducedMotion';
 import { useTheme } from '@/shared/hooks/useTheme';
+import { fadeInDown } from '@/shared/utils/motion';
 import { cn } from '@/shared/utils/cn';
 
 import type {
@@ -23,9 +25,10 @@ const PERIODS: DecisionGraphPeriod[] = ['weekly', 'monthly', 'yearly'];
 export function DecisionGraphCard({ graph, period, onPeriodChange }: DecisionGraphCardProps) {
   const router = useRouter();
   const { colors } = useTheme();
+  const reduceMotion = useReducedMotion();
 
   return (
-    <Animated.View entering={FadeInDown.springify()} testID="decision-graph-card">
+    <Animated.View entering={fadeInDown(reduceMotion)} testID="decision-graph-card">
       <GlassCard className="p-4">
         <View className="mb-3 flex-row items-end justify-between">
           <View className="flex-1 pr-3">
@@ -86,7 +89,7 @@ export function DecisionGraphCard({ graph, period, onPeriodChange }: DecisionGra
                   return (
                     <View key={point.key} className="min-w-0 flex-1 items-center justify-end">
                       <Animated.View
-                        entering={FadeInDown.delay(index * 12)}
+                        entering={fadeInDown(reduceMotion, { delay: index * 12 })}
                         className="w-full rounded-t-sm"
                         style={{
                           height,

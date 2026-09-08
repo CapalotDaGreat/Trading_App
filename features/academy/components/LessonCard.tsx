@@ -12,6 +12,7 @@ import { CATEGORY_LABELS, type Lesson } from '../types/academy.types';
 
 interface LessonCardProps {
   lesson: Lesson;
+  matchWhy?: string;
 }
 
 const difficultyVariant: Record<Lesson['difficulty'], 'success' | 'warning' | 'danger'> = {
@@ -20,7 +21,7 @@ const difficultyVariant: Record<Lesson['difficulty'], 'success' | 'warning' | 'd
   advanced: 'danger',
 };
 
-export function LessonCard({ lesson }: LessonCardProps) {
+export function LessonCard({ lesson, matchWhy }: LessonCardProps) {
   const router = useRouter();
   const { colors } = useTheme();
   const isPremium = useSubscriptionStore((s) => s.isPremium);
@@ -85,6 +86,11 @@ export function LessonCard({ lesson }: LessonCardProps) {
         <Text variant="body-sm" numberOfLines={2} className="mt-1">
           {lesson.description}
         </Text>
+        {matchWhy ? (
+          <Text variant="caption" className="mt-1 text-text-tertiary">
+            {matchWhy}
+          </Text>
+        ) : null}
       </View>
       <Text variant="caption" className="text-text-tertiary">
         {lesson.durationMinutes}m

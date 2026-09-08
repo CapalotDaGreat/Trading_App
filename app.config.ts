@@ -50,7 +50,7 @@ assertStoreLikeClientEnv();
 
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
-  name: 'TradeInsight',
+  name: 'TradeAcademy',
   slug: 'traders',
   version: '1.0.0',
   orientation: 'default',
@@ -136,7 +136,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       'expo-local-authentication',
       {
         faceIDPermission:
-          'TradeInsight uses Face ID to unlock the app after idle timeout. Biometrics never authorize trades.',
+          'TradeAcademy uses Face ID to unlock the app after idle timeout. Biometrics never authorize trades.',
       },
     ],
     [

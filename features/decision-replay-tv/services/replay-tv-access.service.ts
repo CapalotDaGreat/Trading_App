@@ -1,4 +1,12 @@
-import type { ReplayTvDecision, ReplayTvEpisode } from '@/features/decision-replay-tv/types/replay-tv.types';
+import {
+  countReplayProcessEvidence,
+  encodeReplayProcessEvidenceTags,
+} from '@/features/decision/services/decision-reinforcement-log.service';
+import type {
+  ReplayTvDecision,
+  ReplayTvDecisionRecord,
+  ReplayTvEpisode,
+} from '@/features/decision-replay-tv/types/replay-tv.types';
 import {
   canConsumeMonthly,
   incrementMonthlyUsage,
@@ -62,7 +70,7 @@ export async function recordReplayTvMonthlyConsumption(uid: string): Promise<num
   return incrementMonthlyUsage(uid, 'replaySessionsMonthly');
 }
 
-/** DNA / Decision Log skill tags — process evidence only. */
+/** DNA / Decision Log skill tags — process counts only, never reasoning bodies. */
 export function buildReplayTvDecisionLogNote(input: {
   episode: ReplayTvEpisode;
   processQuality: number;
@@ -70,18 +78,22 @@ export function buildReplayTvDecisionLogNote(input: {
   invalidationClarity: number;
   patience: number;
   namedInvalidation: boolean;
-  /** Process choices from this session — never outcome tags. */
-  decisions?: ReplayTvDecision[];
+  /** Process choices from this session — never outcome tags or private reasoning. */
+  decisions?: Array<ReplayTvDecision | ReplayTvDecisionRecord>;
 }): string {
   const tags: string[] = [
     `skills:${input.episode.skills.slice(0, 4).join(',')}`,
     `emphasis:${input.episode.scoringEmphasis.slice(0, 3).join(',')}`,
   ];
-  const decisions = input.decisions ?? [];
-  if (decisions.includes('wait')) tags.push('rtv:wait');
-  if (decisions.includes('skip') || decisions.includes('protect_attention')) tags.push('rtv:skip');
-  if (decisions.includes('research_more')) tags.push('rtv:research_more');
-  if (decisions.includes('mark_invalidation') || input.namedInvalidation) {
+  const counts = countReplayProcessEvidence({
+    decisions: input.decisions,
+    namedInvalidation: input.namedInvalidation,
+  });
+  tags.push(...encodeReplayProcessEvidenceTags(counts));
+  if (counts.waits > 0) tags.push('rtv:wait');
+  if (counts.skips > 0) tags.push('rtv:skip');
+  if (counts.researchMore > 0) tags.push('rtv:research_more');
+  if (counts.namedInvalidation > 0 || input.namedInvalidation) {
     tags.push('rtv:invalidation_named');
   }
   if (
@@ -91,11 +103,11 @@ export function buildReplayTvDecisionLogNote(input: {
   ) {
     tags.push('rtv:calm_vol');
   }
-  if (input.patience >= 70 || decisions.includes('wait')) tags.push('rtv:patience');
+  if (input.patience >= 70 || counts.waits > 0) tags.push('rtv:patience');
   if (input.evidenceQuality >= 70) tags.push('rtv:evidence');
   if (
-    input.namedInvalidation &&
-    (input.invalidationClarity >= 75 || decisions.includes('mark_invalidation'))
+    (input.namedInvalidation || counts.namedInvalidation > 0) &&
+    (input.invalidationClarity >= 75 || counts.adaptability > 0)
   ) {
     tags.push('rtv:invalidation');
   }

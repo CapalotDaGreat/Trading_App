@@ -6,6 +6,8 @@ import { Badge } from '@/shared/components/ui/Badge';
 import { Text } from '@/shared/components/ui/Text';
 import { useTheme } from '@/shared/hooks/useTheme';
 
+import type { MasteryLabel } from '../services/academy-mastery.service';
+
 interface PathCardProps {
   id: string;
   title: string;
@@ -20,6 +22,7 @@ interface PathCardProps {
   masteryUnlocked?: boolean;
   unlockHint?: string;
   iaHint?: string;
+  masteryLabel?: MasteryLabel;
 }
 
 export function PathCard({
@@ -33,9 +36,10 @@ export function PathCard({
   practicedCount = 0,
   isDefault,
   isSupporting,
-  masteryUnlocked,
+  masteryUnlocked: _masteryUnlocked,
   unlockHint,
   iaHint,
+  masteryLabel,
 }: PathCardProps) {
   const router = useRouter();
   const { colors } = useTheme();
@@ -66,7 +70,9 @@ export function PathCard({
             </Text>
             {isDefault ? <Badge label="Start here" variant="accent" size="sm" /> : null}
             {isSupporting ? <Badge label="Supporting" variant="outline" size="sm" /> : null}
-            {masteryUnlocked ? <Badge label="Mastery" variant="success" size="sm" /> : null}
+            {masteryLabel && masteryLabel !== 'Not started' ? (
+              <Badge label={masteryLabel} variant="success" size="sm" />
+            ) : null}
           </View>
           <Text variant="h3">{title}</Text>
           <Text variant="body-sm" className="mt-1" numberOfLines={2}>
@@ -84,7 +90,8 @@ export function PathCard({
             />
           </View>
           <Text variant="caption" className="mt-1.5">
-            {completedCount}/{totalCount} read · {practicedCount}/{totalCount} practiced
+            {title}: {masteryLabel ?? 'Not started'} · {completedCount}/{totalCount} read ·{' '}
+            {practicedCount}/{totalCount} practiced
           </Text>
           {unlockHint ? (
             <Text variant="caption" className="mt-1 text-text-tertiary">

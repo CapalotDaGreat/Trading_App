@@ -1,15 +1,17 @@
 import { useEffect } from 'react';
-import { ActivityIndicator, Pressable, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 
+import { LessonLearningLoop } from '@/features/academy/components/LessonLearningLoop';
+import { getLocalLessonById } from '@/features/academy/content';
+import { useLesson } from '@/features/academy/hooks/useAcademy';
+import { useAcademyProgressStore } from '@/features/academy/stores/academy-progress.store';
+import { CATEGORY_LABELS } from '@/features/academy/types/academy.types';
 import { EducationalModeBadge } from '@/features/educational/components/EducationalModeBadge';
 import { EducationalPanel } from '@/features/educational/components/EducationalPanel';
 import { getLessonEducationalFraming } from '@/features/educational/services/lesson-framing.service';
-import { getLocalLessonById } from '@/features/academy/content';
-import { LessonQuiz } from '@/features/academy/components/LessonQuiz';
-import { LessonSections } from '@/features/academy/components/LessonSections';
-import { useLesson } from '@/features/academy/hooks/useAcademy';
-import { CATEGORY_LABELS } from '@/features/academy/types/academy.types';
+import { StatusState } from '@/shared/components/feedback/StatusState';
 import { Header } from '@/shared/components/layout/Header';
 import { Screen } from '@/shared/components/layout/Screen';
 import { Badge } from '@/shared/components/ui/Badge';
@@ -17,12 +19,6 @@ import { Button } from '@/shared/components/ui/Button';
 import { Text } from '@/shared/components/ui/Text';
 import { useSubscriptionStore } from '@/shared/stores/subscription.store';
 import { useTheme } from '@/shared/hooks/useTheme';
-import { Ionicons } from '@expo/vector-icons';
-
-function withLessonQuery(href: string, lessonId: string): string {
-  const join = href.includes('?') ? '&' : '?';
-  return `${href}${join}fromLesson=${encodeURIComponent(lessonId)}`;
-}
 
 export default function AcademyLessonScreen() {
   const router = useRouter();
@@ -39,7 +35,12 @@ export default function AcademyLessonScreen() {
     markCompleted,
     markPracticed,
     recordQuizScore,
+    recordConceptResult,
+    recordExerciseAttempt,
   } = useLesson(lessonId ?? '');
+
+  const isSaved = useAcademyProgressStore((s) => s.isSaved(lessonId ?? ''));
+  const toggleSaved = useAcademyProgressStore((s) => s.toggleSaved);
 
   useEffect(() => {
     if (lesson?.id) markOpened(lesson.id);
@@ -48,7 +49,11 @@ export default function AcademyLessonScreen() {
   if (isLoading) {
     return (
       <Screen className="items-center justify-center">
-        <ActivityIndicator size="large" color={colors.accent.primary} />
+        <StatusState
+          status="loading"
+          title="Loading lesson"
+          description="Preparing the explanation, chart, and practice steps."
+        />
       </Screen>
     );
   }
@@ -57,9 +62,13 @@ export default function AcademyLessonScreen() {
     return (
       <Screen>
         <Header title="Lesson" onBack={() => router.back()} />
-        <Text variant="body" className="mt-6">
-          Lesson not found.
-        </Text>
+        <StatusState
+          status="empty"
+          title="This lesson is not on this device"
+          description="It may have been renamed, or Academy content has not finished loading. Search for the concept instead of the old title."
+          actionLabel="Browse Academy"
+          onAction={() => router.replace('/academy' as never)}
+        />
       </Screen>
     );
   }
@@ -76,11 +85,12 @@ export default function AcademyLessonScreen() {
           <Text variant="h3" className="mt-4 text-center">
             Premium lesson
           </Text>
-          <Text variant="body-sm" className="mt-2 text-center">
-            Foundations stay free. Advanced modules unlock with Premium.
+          <Text variant="body-sm" className="mt-2 text-center text-text-secondary">
+            Foundations stay free. This module is included with Premium — no need to interrupt a
+            free lesson to see it.
           </Text>
           <Button className="mt-6" onPress={() => router.push('/subscription' as never)}>
-            Go Premium
+            See Premium
           </Button>
         </View>
       </Screen>
@@ -93,22 +103,25 @@ export default function AcademyLessonScreen() {
         title={lesson.title}
         subtitle={`${lesson.durationMinutes} min · ${CATEGORY_LABELS[lesson.category]}`}
         onBack={() => router.back()}
+        rightAction={
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={isSaved ? 'Remove bookmark' : 'Save lesson for later'}
+            onPress={() => toggleSaved(lesson.id)}
+            className="h-11 w-11 items-center justify-center"
+          >
+            <Ionicons
+              name={isSaved ? 'bookmark' : 'bookmark-outline'}
+              size={22}
+              color={colors.accent.primary}
+            />
+          </Pressable>
+        }
       />
 
       <EducationalModeBadge className="mt-3" />
 
       <View className="mt-3 flex-row flex-wrap gap-2">
-        <Badge
-          label={lesson.difficulty}
-          variant={
-            lesson.difficulty === 'beginner'
-              ? 'success'
-              : lesson.difficulty === 'intermediate'
-                ? 'warning'
-                : 'danger'
-          }
-          size="sm"
-        />
         <Badge
           label={lesson.track === 'decision' ? 'Decision coach' : 'Trading school'}
           variant="accent"
@@ -121,9 +134,33 @@ export default function AcademyLessonScreen() {
         ) : null}
       </View>
 
+      {lesson.prerequisiteIds?.length ? (
+        <View className="mt-4 rounded-2xl bg-surface p-3">
+          <Text variant="caption" className="mb-2 text-text-tertiary">
+            Helpful first
+          </Text>
+          {lesson.prerequisiteIds.map((id) => {
+            const prior = getLocalLessonById(id);
+            return (
+              <Pressable
+                key={id}
+                accessibilityRole="button"
+                accessibilityLabel={`Open prerequisite ${prior?.title ?? id}`}
+                onPress={() => router.push(`/academy/lesson/${id}` as never)}
+                className="min-h-11 justify-center py-1"
+              >
+                <Text variant="body-sm" className="text-accent">
+                  {prior?.title ?? id}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
+      ) : null}
+
       <View className="mt-4 rounded-2xl border border-info/20 bg-info-muted p-4">
-        <Text variant="caption" className="font-semibold uppercase tracking-wide text-info">
-          Learning objective
+        <Text variant="caption" className="font-semibold text-info">
+          Course card
         </Text>
         <Text variant="body-sm" className="mt-1.5 leading-relaxed text-text-primary">
           {framing.learningObjective}
@@ -142,107 +179,52 @@ export default function AcademyLessonScreen() {
         <Text variant="body-sm" className="mt-0.5 capitalize text-text-secondary">
           {framing.skillsPracticed.join(' · ')}
         </Text>
-        <Text variant="caption" className="mt-2 font-semibold text-text-tertiary">
-          Real-world application
-        </Text>
-        <Text variant="body-sm" className="mt-0.5 leading-relaxed text-text-secondary">
-          {framing.realWorldApplication}
-        </Text>
       </View>
 
-      <View className="mt-6">
-        <LessonSections sections={lesson.sections} />
-      </View>
-
-      {lesson.keyTakeaways.length > 0 ? (
-        <View className="mt-6 rounded-2xl bg-background-elevated p-4">
-          <Text variant="h3" className="mb-2">
-            Key takeaways
-          </Text>
-          {lesson.keyTakeaways.map((item) => (
-            <View key={item} className="mb-2 flex-row gap-2">
-              <Text variant="body" className="text-accent">
-                •
-              </Text>
-              <Text variant="body-sm" className="flex-1 text-text-primary">
-                {item}
-              </Text>
-            </View>
-          ))}
-        </View>
-      ) : null}
+      <LessonLearningLoop
+        lesson={lesson}
+        quizBestScore={progress?.quizBestScore}
+        onPracticeLink={(href) => {
+          markPracticed(lesson.id, href);
+          router.push(href as never);
+        }}
+        onQuizComplete={(score) => recordQuizScore(lesson.id, score)}
+        onQuizAnswer={({ correct, conceptId }) => {
+          if (conceptId) recordConceptResult(conceptId, correct);
+        }}
+        onExerciseComplete={({ correct, conceptId }) => {
+          recordExerciseAttempt(lesson.id, correct);
+          if (conceptId && typeof correct === 'boolean') {
+            recordConceptResult(conceptId, correct);
+          }
+        }}
+      />
 
       <View className="mt-4 gap-3">
-        <EducationalPanel variant="practice" title="Practice recommendation" body={framing.practiceRecommendation} />
-        <EducationalPanel variant="tip" title="Suggested Replay" body={framing.suggestedReplay} learnMoreHref="/decision/decision-replay" />
-        <EducationalPanel variant="why" title="Suggested Decision Lab exercise" body={framing.suggestedLabExercise} learnMoreHref="/decision/lab" />
+        <EducationalPanel
+          variant="practice"
+          title="Practice recommendation"
+          body={framing.practiceRecommendation}
+        />
+        <EducationalPanel
+          variant="tip"
+          title="Apply in simulation"
+          body={framing.simulationRecommendation}
+          learnMoreHref="/simulate"
+        />
+        <EducationalPanel
+          variant="tip"
+          title="Suggested Replay"
+          body={framing.suggestedReplay}
+          learnMoreHref="/decision/decision-replay"
+        />
+        <EducationalPanel
+          variant="why"
+          title="Suggested Decision Lab exercise"
+          body={framing.suggestedLabExercise}
+          learnMoreHref="/decision/lab"
+        />
       </View>
-
-      {lesson.practiceLinks.length > 0 ? (
-        <View className="mt-6">
-          <Text variant="h3" className="mb-1">
-            Practice gate
-          </Text>
-          <Text variant="caption" className="mb-2 text-text-secondary">
-            Soft-mandatory: you can mark read without this — practiced status unlocks mastery
-            surfacing.
-          </Text>
-          {lesson.practiceLinks.map((link) => (
-            <Pressable
-              key={link.href + link.label}
-              onPress={() => {
-                markPracticed(lesson.id, link.href);
-                router.push(withLessonQuery(link.href, lesson.id) as never);
-              }}
-              className="mb-2 flex-row items-center rounded-2xl bg-surface px-4 py-3 active:opacity-80"
-            >
-              <View className="flex-1">
-                <Text variant="body" className="font-semibold">
-                  {link.label}
-                </Text>
-                {link.description ? (
-                  <Text variant="caption" className="mt-0.5">
-                    {link.description}
-                  </Text>
-                ) : null}
-              </View>
-              <Ionicons name="arrow-forward" size={16} color={colors.accent.primary} />
-            </Pressable>
-          ))}
-        </View>
-      ) : null}
-
-      {lesson.quiz.length > 0 ? (
-        <View className="mt-6">
-          <LessonQuiz
-            questions={lesson.quiz}
-            bestScore={progress?.quizBestScore}
-            onComplete={(score) => recordQuizScore(lesson.id, score)}
-          />
-        </View>
-      ) : null}
-
-      {lesson.relatedLessonIds.length > 0 ? (
-        <View className="mt-6">
-          <Text variant="h3" className="mb-2">
-            Related lessons
-          </Text>
-          {lesson.relatedLessonIds.map((id) => {
-            const related = getLocalLessonById(id);
-            return (
-              <Pressable
-                key={id}
-                onPress={() => router.push(`/academy/lesson/${id}` as never)}
-                className="mb-2 rounded-xl bg-surface px-3 py-2.5 active:opacity-80"
-              >
-                <Text variant="body-sm" className="text-accent">
-                  {related?.title ?? id}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </View>
-      ) : null}
 
       <Button
         className="mt-8"
@@ -253,7 +235,7 @@ export default function AcademyLessonScreen() {
       </Button>
       {!isPracticed && lesson.practiceLinks.length > 0 ? (
         <Text variant="caption" className="mt-2 text-center text-text-tertiary">
-          Tip: open a practice gate above to earn Practiced — never blocked from reading.
+          Open Practice or Simulation in Apply to earn Practiced — reading is never blocked.
         </Text>
       ) : null}
     </Screen>

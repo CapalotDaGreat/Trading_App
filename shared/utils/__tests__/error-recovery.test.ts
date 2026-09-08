@@ -1,4 +1,4 @@
-import { mapRecoverableError } from '../error-recovery';
+import { mapRecoverableError, isSensitiveErrorMessage } from '../error-recovery';
 
 describe('mapRecoverableError', () => {
   it('maps offline context', () => {
@@ -22,5 +22,20 @@ describe('mapRecoverableError', () => {
     expect(mapped.why.length).toBeGreaterThan(3);
     expect(mapped.recovery.length).toBeGreaterThan(3);
     expect(mapped.actionLabel.length).toBeGreaterThan(2);
+  });
+
+  it('does not leak Firebase internals, keys, or stack traces', () => {
+    const unknown = mapRecoverableError(
+      new Error('INTERNAL: stack at Object.foo apiKey=AIzaSySecret'),
+    );
+    expect(unknown.kind).toBe('unknown');
+    expect(unknown.why).toBe('An unexpected error interrupted this screen.');
+    expect(unknown.why).not.toContain('AIza');
+    expect(unknown.why.toLowerCase()).not.toContain('stack');
+
+    const authMapped = mapRecoverableError(new Error('FirebaseError: permission-denied'));
+    expect(authMapped.kind).toBe('auth');
+    expect(authMapped.why.toLowerCase()).not.toContain('firebase');
+    expect(isSensitiveErrorMessage('FirebaseError: permission-denied')).toBe(true);
   });
 });

@@ -1,15 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
 
 import { useAcademy } from '@/features/academy/hooks/useAcademy';
-import { useAuth } from '@/features/auth/hooks/useAuth';
 import {
   useDecisionBrief,
   useRiskCenter,
   useTraderMemory,
 } from '@/features/decision/hooks/useDecision';
 import { useTradingMentor } from '@/features/decision/hooks/useTradingMentor';
-import { getDecisionRecords } from '@/features/decision-log/services/decision-log.service';
 import { useDecisionLog } from '@/features/decision-log/hooks/useDecisionLog';
 import {
   buildDecisionHeatmap,
@@ -39,8 +36,6 @@ import type { PassportTab } from '../types/passport.types';
  * No duplicated RVS/DQS scoring.
  */
 export function useDecisionPassport() {
-  const { user } = useAuth();
-  const uid = user?.uid;
   const [tab, setTab] = useState<PassportTab>('overview');
 
   const credentials = useDecisionPassportStore((s) => s.credentials);
@@ -52,7 +47,8 @@ export function useDecisionPassport() {
 
   const mentorQuery = useTradingMentor();
   const memoryQuery = useTraderMemory();
-  const { summary: logSummary } = useDecisionLog();
+  const { summary: logSummary, records, isLoading: logLoading, isRefetching: logRefetching, refetch: refetchLog } =
+    useDecisionLog();
   const { entries: journalEntries } = useJournal();
   const { completedCount, practicedCount, totalCount } = useAcademy();
   const labPositions = useDecisionLabStore((s) => s.positions);
@@ -63,17 +59,10 @@ export function useDecisionPassport() {
   const lessons = useAcademyProgressStore((s) => s.lessons);
   const simulatorHistory = useSimulatorStore((s) => s.history);
 
-  const recordsQuery = useQuery({
-    queryKey: ['decision-passport', 'records', uid ?? 'guest'],
-    queryFn: () => getDecisionRecords(uid, 200),
-    enabled: Boolean(uid),
-    staleTime: 30_000,
-  });
-
   const heatmapScores = useMemo(() => {
-    if (!recordsQuery.data) return null;
+    if (!records) return null;
     return buildDecisionHeatmap({
-      records: recordsQuery.data,
+      records,
       period: 'weekly',
       learningEvents: learningEventsFromAcademyLessons(lessons),
       simulatorHistory: simulatorHistory.map((h) => ({
@@ -81,10 +70,10 @@ export function useDecisionPassport() {
         processScore: h.processScore,
       })),
     }).scores;
-  }, [recordsQuery.data, lessons, simulatorHistory]);
+  }, [records, lessons, simulatorHistory]);
 
   const profile = useMemo(() => {
-    if (!recordsQuery.data) return undefined;
+    if (!records) return undefined;
     return buildDecisionPassportProfile({
       credentials,
       processScores,
@@ -93,7 +82,7 @@ export function useDecisionPassport() {
       mentor: mentorQuery.data,
       memory: memoryQuery.data,
       heatmapScores,
-      logRecords: recordsQuery.data,
+      logRecords: records,
       logSummary,
       journalCount: journalEntries.length,
       academyCompleted: completedCount,
@@ -104,7 +93,7 @@ export function useDecisionPassport() {
       brief: briefQuery.data,
     });
   }, [
-    recordsQuery.data,
+    records,
     credentials,
     processScores,
     lastAction,
@@ -124,7 +113,7 @@ export function useDecisionPassport() {
 
   useEffect(() => {
     const replayCount =
-      recordsQuery.data?.filter((r) => r.action === 'replay_completed').length ?? 0;
+      records?.filter((r) => r.action === 'replay_completed').length ?? 0;
     const derived = deriveSystemCredentials({
       journalCount: journalEntries.length,
       academyCompleted: completedCount,
@@ -136,7 +125,7 @@ export function useDecisionPassport() {
   }, [
     journalEntries.length,
     completedCount,
-    recordsQuery.data,
+    records,
     labStats.tradesClosed,
     labStats.avgProcessScore,
     syncDerivedCredentials,
@@ -172,11 +161,11 @@ export function useDecisionPassport() {
     exportStub: exportPackage,
     shareExport,
     isLoading:
-      recordsQuery.isLoading ||
-      (mentorQuery.isLoading && !mentorQuery.data && !recordsQuery.data),
-    isRefetching: recordsQuery.isRefetching || mentorQuery.isRefetching,
+      logLoading ||
+      (mentorQuery.isLoading && !mentorQuery.data && !records),
+    isRefetching: logRefetching || mentorQuery.isRefetching,
     refetch: async () => {
-      await Promise.all([recordsQuery.refetch(), mentorQuery.refetch(), memoryQuery.refetch()]);
+      await Promise.all([refetchLog(), mentorQuery.refetch(), memoryQuery.refetch()]);
     },
   };
 }

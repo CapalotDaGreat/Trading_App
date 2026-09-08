@@ -91,7 +91,7 @@ export function AiChatScreen({ symbol }: AiChatScreenProps) {
     return (
       <StatusState
         status="empty"
-        title="Ask AI temporarily unavailable"
+        title="Ask temporarily unavailable"
         description="This surface is disabled by a remote kill switch or feature flag. Today, research, and journal still work."
         iconName="cloud-offline-outline"
         testID="ai-chat-flag-disabled"
@@ -105,8 +105,8 @@ export function AiChatScreen({ symbol }: AiChatScreenProps) {
         title="Ask"
         subtitle={
           symbol
-            ? `Evidence coach for ${symbol} — not signals.`
-            : 'Evidence coach for research decisions — not signals.'
+            ? `Educational mentor for ${symbol} — concepts and process, never advice.`
+            : 'Educational mentor. Concepts, process, and what to study next — never financial advice.'
         }
         rightAction={
           mode === 'chat' ? (
@@ -145,18 +145,21 @@ export function AiChatScreen({ symbol }: AiChatScreenProps) {
         >
           <FlatList
             ref={listRef}
-            data={messages}
+            data={messages.length > 80 ? messages.slice(-80) : messages}
             keyExtractor={(item) => item.id}
             renderItem={({ item }) => <AiChatBubble message={item} />}
             contentContainerStyle={{ padding: 16, paddingBottom: 8 }}
+            initialNumToRender={12}
+            maxToRenderPerBatch={8}
+            windowSize={7}
+            removeClippedSubviews
             onContentSizeChange={() => listRef.current?.scrollToEnd({ animated: false })}
             ListEmptyComponent={
               <View className="gap-4">
                 <Surface padding="sm" tone="subtle" testID="ask-trust-sentence">
                   <Text variant="body-sm" className="text-text-secondary">
-                    Answers stay local and evidence-first. Every reply separates what is known,
-                    what is not, evidence, what would change the assessment, and the next research
-                    step — never a certainty score.
+                    Answers stay local and educational. Every reply separates what is known, what is
+                    not, and what to study next — never a buy/sell call or a fake certainty score.
                   </Text>
                 </Surface>
                 <PromptSuggestions
@@ -237,10 +240,10 @@ export function AiChatScreen({ symbol }: AiChatScreenProps) {
             <View className="flex-row items-end gap-2">
               <View className="flex-1">
                 <Input
-                  accessibilityLabel="Ask TradeInsight"
+                  accessibilityLabel="Ask TradeAcademy"
                   value={input}
                   onChangeText={setInput}
-                  placeholder="Ask about evidence, risk, or your process"
+                  placeholder="Ask a concept, a size mistake, or what to learn next"
                   multiline
                   maxLength={1000}
                   editable={!isSending}

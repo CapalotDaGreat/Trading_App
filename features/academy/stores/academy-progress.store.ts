@@ -23,6 +23,7 @@ export interface LessonProgress {
   quizBestScore?: number;
   quizAttempts: number;
   lastOpenedAt?: string;
+  exerciseAttempts: number;
 }
 
 interface AcademyDisciplineDay {
@@ -32,8 +33,16 @@ interface AcademyDisciplineDay {
   journal: boolean;
 }
 
+export interface ConceptResult {
+  attempts: number;
+  misses: number;
+  lastAt?: string;
+}
+
 interface AcademyProgressState {
   lessons: Record<string, LessonProgress>;
+  conceptResults: Record<string, ConceptResult>;
+  savedLessonIds: string[];
   discipline: AcademyDisciplineDay | null;
   disciplineStreakDays: number;
   markOpened: (lessonId: string) => void;
@@ -41,11 +50,16 @@ interface AcademyProgressState {
   markCompleted: (lessonId: string) => void;
   markPracticed: (lessonId: string, href?: string) => void;
   recordQuizScore: (lessonId: string, scorePercent: number) => void;
+  recordConceptResult: (conceptId: string, correct: boolean) => void;
+  recordExerciseAttempt: (lessonId: string, correct?: boolean) => void;
+  toggleSaved: (lessonId: string) => void;
+  isSaved: (lessonId: string) => boolean;
   markDisciplineAction: (action: 'brief' | 'lesson' | 'journal') => void;
   isCompleted: (lessonId: string) => boolean;
   isRead: (lessonId: string) => boolean;
   isPracticed: (lessonId: string) => boolean;
   getProgress: (lessonId: string) => LessonProgress | undefined;
+  getConceptResults: () => Record<string, ConceptResult>;
   completedCount: (lessonIds: string[]) => number;
   practicedCount: (lessonIds: string[]) => number;
   getDisciplineStreak: () => {
@@ -60,6 +74,7 @@ const emptyProgress = (): LessonProgress => ({
   read: false,
   practiced: false,
   quizAttempts: 0,
+  exerciseAttempts: 0,
 });
 
 function todayKey(): string {
@@ -79,6 +94,7 @@ function normalizeProgress(raw: LessonProgress | undefined): LessonProgress {
     read,
     completed: read,
     practiced: Boolean(raw.practiced),
+    exerciseAttempts: raw.exerciseAttempts ?? 0,
   };
 }
 
@@ -86,6 +102,8 @@ export const useAcademyProgressStore = create<AcademyProgressState>()(
   persist(
     (set, get) => ({
       lessons: {},
+      conceptResults: {},
+      savedLessonIds: [],
       discipline: null,
       disciplineStreakDays: 0,
 
@@ -162,6 +180,48 @@ export const useAcademyProgressStore = create<AcademyProgressState>()(
         if (read) get().markDisciplineAction('lesson');
       },
 
+      recordConceptResult: (conceptId, correct) => {
+        if (!conceptId.trim()) return;
+        const current = get().conceptResults[conceptId] ?? { attempts: 0, misses: 0 };
+        set({
+          conceptResults: {
+            ...get().conceptResults,
+            [conceptId]: {
+              attempts: current.attempts + 1,
+              misses: current.misses + (correct ? 0 : 1),
+              lastAt: new Date().toISOString(),
+            },
+          },
+        });
+      },
+
+      recordExerciseAttempt: (lessonId, correct) => {
+        const current = normalizeProgress(get().lessons[lessonId]);
+        set({
+          lessons: {
+            ...get().lessons,
+            [lessonId]: {
+              ...current,
+              exerciseAttempts: current.exerciseAttempts + 1,
+              lastOpenedAt: new Date().toISOString(),
+            },
+          },
+        });
+        if (correct) {
+          get().markPracticed(lessonId, 'exercise');
+        }
+      },
+
+      toggleSaved: (lessonId) => {
+        const current = get().savedLessonIds;
+        set({
+          savedLessonIds: current.includes(lessonId)
+            ? current.filter((id) => id !== lessonId)
+            : [...current, lessonId],
+        });
+      },
+      isSaved: (lessonId) => get().savedLessonIds.includes(lessonId),
+
       markDisciplineAction: (action) => {
         const day = todayKey();
         const prev = get().discipline;
@@ -206,6 +266,7 @@ export const useAcademyProgressStore = create<AcademyProgressState>()(
         const raw = get().lessons[lessonId];
         return raw ? normalizeProgress(raw) : undefined;
       },
+      getConceptResults: () => get().conceptResults,
       completedCount: (lessonIds) =>
         lessonIds.filter((id) => normalizeProgress(get().lessons[id]).read).length,
       practicedCount: (lessonIds) =>
@@ -219,15 +280,31 @@ export const useAcademyProgressStore = create<AcademyProgressState>()(
             : { brief: false, lesson: false, journal: false };
         return { days: get().disciplineStreakDays, today };
       },
-      resetProgress: () => set({ lessons: {}, discipline: null, disciplineStreakDays: 0 }),
+      resetProgress: () =>
+        set({
+          lessons: {},
+          conceptResults: {},
+          savedLessonIds: [],
+          discipline: null,
+          disciplineStreakDays: 0,
+        }),
     }),
     {
       name: 'tradevision-academy-progress',
       storage: createPersistedStorage(),
-      version: 2,
+      version: 4,
+      partialize: (state) => ({
+        lessons: state.lessons,
+        conceptResults: state.conceptResults,
+        savedLessonIds: state.savedLessonIds,
+        discipline: state.discipline,
+        disciplineStreakDays: state.disciplineStreakDays,
+      }),
       migrate: (persisted: unknown) => {
         const state = persisted as {
           lessons?: Record<string, LessonProgress>;
+          conceptResults?: Record<string, ConceptResult>;
+          savedLessonIds?: string[];
           discipline?: AcademyDisciplineDay | null;
           disciplineStreakDays?: number;
         };
@@ -237,6 +314,8 @@ export const useAcademyProgressStore = create<AcademyProgressState>()(
         }
         return {
           lessons,
+          conceptResults: state?.conceptResults ?? {},
+          savedLessonIds: state?.savedLessonIds ?? [],
           discipline: state?.discipline ?? null,
           disciplineStreakDays: state?.disciplineStreakDays ?? 0,
         };

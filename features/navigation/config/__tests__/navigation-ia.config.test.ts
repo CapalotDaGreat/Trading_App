@@ -1,5 +1,7 @@
 import {
   IA_GLOSSARY,
+  PRACTICE_HUB_SECTIONS,
+  PRIMARY_TAB_LABELS,
   RESEARCH_HUB_SECTIONS,
   REVIEW_HUB_SECTIONS,
   YOU_HUB_SECTIONS,
@@ -7,52 +9,85 @@ import {
 import { COLD_DEEP_LINK_FALLBACKS, buildLegacyRouteRedirect } from '../review-navigation.config';
 
 describe('navigation information architecture', () => {
-  it('uses the calm five-tab glossary labels', () => {
+  it('uses the product-loop primary tab glossary labels', () => {
+    expect(PRIMARY_TAB_LABELS).toEqual([
+      'Home',
+      'Learn',
+      'Practice',
+      'Simulate',
+      'Review',
+      'Ask',
+      'You',
+    ]);
     expect([
-      IA_GLOSSARY.today,
-      IA_GLOSSARY.research,
-      IA_GLOSSARY.portfolio,
+      IA_GLOSSARY.home,
+      IA_GLOSSARY.learn,
+      IA_GLOSSARY.practice,
+      IA_GLOSSARY.simulate,
       IA_GLOSSARY.review,
+      IA_GLOSSARY.ask,
       IA_GLOSSARY.you,
-    ]).toEqual(['Today', 'Research', 'Portfolio', 'Review', 'You']);
-    expect(IA_GLOSSARY.ask).toBe('Ask');
+    ]).toEqual([...PRIMARY_TAB_LABELS]);
   });
 
   it('keeps hub destinations unique within each hub', () => {
-    for (const sections of [RESEARCH_HUB_SECTIONS, REVIEW_HUB_SECTIONS, YOU_HUB_SECTIONS]) {
+    for (const sections of [
+      RESEARCH_HUB_SECTIONS,
+      REVIEW_HUB_SECTIONS,
+      YOU_HUB_SECTIONS,
+      PRACTICE_HUB_SECTIONS,
+    ]) {
       const hrefs = sections.flatMap((section) => section.items.map((item) => item.href));
       expect(new Set(hrefs).size).toBe(hrefs.length);
     }
   });
 
-  it('surfaces Mentor under You/Growth and Simulator under Review/Practice', () => {
+  it('keeps You as profile/progress/account and Lab under Practice', () => {
     const youHrefs = YOU_HUB_SECTIONS.flatMap((section) => section.items.map((item) => item.href));
-    const reviewPractice = REVIEW_HUB_SECTIONS.find((section) => section.title === 'Practice');
+    const practiceHrefs = PRACTICE_HUB_SECTIONS.flatMap((section) =>
+      section.items.map((item) => item.href),
+    );
     const reviewHrefs = REVIEW_HUB_SECTIONS.flatMap((section) =>
       section.items.map((item) => item.href),
     );
 
-    expect(YOU_HUB_SECTIONS[0]?.title).toBe('Growth');
-    expect(youHrefs[0]).toBe('/decision/mentor');
-    expect(reviewPractice?.items.some((item) => item.href === '/decision/simulator')).toBe(true);
-    expect(reviewHrefs).toContain('/decision/replay-tv');
+    expect(YOU_HUB_SECTIONS.map((section) => section.title)).toEqual([
+      'Profile',
+      'Progress',
+      'Account',
+    ]);
+    expect(youHrefs).toContain('/settings/profile');
+    expect(youHrefs).toContain('/settings');
+    expect(youHrefs).toContain('/subscription');
+    expect(youHrefs).toContain('/settings/privacy');
+    expect(youHrefs).toContain('/settings/privacy?focus=export');
+    expect(youHrefs).not.toContain('/decision/mentor');
+    expect(practiceHrefs).toContain('/decision/lab');
+    expect(practiceHrefs).toContain('/decision/simulator');
     expect(reviewHrefs).toContain('/journal');
+    expect(reviewHrefs).toContain('/simulate');
+    expect(reviewHrefs).toContain('/decision/replay-tv');
+    expect(reviewHrefs).toContain('/decision/intelligence');
   });
 
-  it('keeps Research Ask contextual and Markets secondary', () => {
+  it('keeps Research educational and Markets secondary', () => {
     const researchHrefs = RESEARCH_HUB_SECTIONS.flatMap((section) =>
       section.items.map((item) => item.href),
     );
-    expect(researchHrefs).toContain('/decision/radar');
+    expect(researchHrefs).toContain('/academy');
     expect(researchHrefs).toContain('/markets');
+    expect(researchHrefs).toContain('/search');
     expect(researchHrefs).toContain('/ai?source=research');
   });
 
-  it('provides cold deep-link fallbacks for primary tabs', () => {
+  it('provides cold deep-link fallbacks for primary surfaces', () => {
     expect(COLD_DEEP_LINK_FALLBACKS).toEqual({
       research: '/research',
       review: '/review',
-      portfolio: '/portfolio',
+      portfolio: '/simulate',
+      simulate: '/simulate',
+      learn: '/learn',
+      practice: '/practice',
       you: '/you',
       ask: '/ai',
     });

@@ -1,5 +1,6 @@
 import { fireEvent, render } from '@testing-library/react-native';
 import { View } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { AccessibleChartFrame } from '@/shared/components/charts/AccessibleChartFrame';
 import { StatusState } from '@/shared/components/feedback/StatusState';
@@ -9,6 +10,8 @@ import { SegmentedControl } from '@/shared/components/ui/SegmentedControl';
 import { Surface } from '@/shared/components/ui/Surface';
 import { Tag } from '@/shared/components/ui/Tag';
 import { Text } from '@/shared/components/ui/Text';
+import { TabBar } from '@/shared/components/layout/TabBar';
+import { Button } from '@/shared/components/ui/Button';
 import { getMinTouchTargetSize } from '@/shared/utils/accessibility';
 
 describe('design-system accessibility foundations', () => {
@@ -128,5 +131,38 @@ describe('design-system accessibility foundations', () => {
     expect(trigger.props['aria-controls']).toBeTruthy();
     expect(screen.getByText('Expanded body')).toBeTruthy();
     expect(getMinTouchTargetSize()).toBeGreaterThanOrEqual(44);
+  });
+
+  it('exposes selected tab labels and loading button state', async () => {
+    const screen = await render(
+      <SafeAreaProvider
+        initialMetrics={{
+          frame: { x: 0, y: 0, width: 390, height: 844 },
+          insets: { top: 0, left: 0, right: 0, bottom: 0 },
+        }}
+      >
+        <TabBar
+          items={[
+            { key: 'today', label: 'Today', icon: null, badge: 2 },
+            { key: 'research', label: 'Research', icon: null },
+          ]}
+          activeKey="today"
+          onTabPress={jest.fn()}
+        />
+        <Button loading accessibilityLabel="Save process">
+          Save process
+        </Button>
+      </SafeAreaProvider>,
+    );
+
+    expect(screen.getByRole('tab', { name: /Today, 2 notifications/ }).props.accessibilityState).toEqual(
+      expect.objectContaining({ selected: true }),
+    );
+    expect(screen.getByRole('tab', { name: 'Research' }).props.accessibilityState).toEqual(
+      expect.objectContaining({ selected: false }),
+    );
+    expect(screen.getByRole('button', { name: 'Save process. Loading' }).props.accessibilityState).toEqual(
+      expect.objectContaining({ busy: true, disabled: true }),
+    );
   });
 });

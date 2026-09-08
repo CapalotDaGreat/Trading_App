@@ -1,9 +1,11 @@
 import { type ReactNode } from 'react';
 import { View } from 'react-native';
-import Animated, { FadeInDown } from 'react-native-reanimated';
+import Animated from 'react-native-reanimated';
 
 import { GlassCard } from '@/shared/components/ui/GlassCard';
 import { Text } from '@/shared/components/ui/Text';
+import { useReducedMotion } from '@/shared/hooks/useReducedMotion';
+import { fadeInDown } from '@/shared/utils/motion';
 
 interface PassportSectionCardProps {
   title: string;
@@ -20,8 +22,9 @@ export function PassportSectionCard({
   children,
   bordered,
 }: PassportSectionCardProps) {
+  const reduceMotion = useReducedMotion();
   return (
-    <Animated.View entering={FadeInDown.springify().delay(delay)}>
+    <Animated.View entering={fadeInDown(reduceMotion, { delay })}>
       <GlassCard className="p-4" bordered={bordered}>
         <Text variant="caption" className="font-semibold uppercase tracking-wide text-text-tertiary">
           {title}

@@ -5,7 +5,7 @@
 **Operator:** [LEGAL ENTITY NAME REQUIRED], trading as Aithera  
 **Registered address:** Höglerstrasse 55, 8600 Dübendorf, Switzerland  
 
-This notice explains how to delete your TradeInsight account and what happens to your data. It supports Apple App Store and Google Play account-deletion requirements and privacy rights under Swiss nFADP, EU/UK GDPR, and U.S. state privacy laws (including CCPA/CPRA deletion rights).
+This notice explains how to delete your TradeAcademy account and what happens to your data. It supports Apple App Store and Google Play account-deletion requirements and privacy rights under Swiss nFADP, EU/UK GDPR, and U.S. state privacy laws (including CCPA/CPRA deletion rights).
 
 ---
 
@@ -25,7 +25,7 @@ Guest/demo data can usually be cleared by resetting local demo state or reinstal
 When deletion succeeds, we aim to remove:
 
 - your Firebase Authentication user;
-- your Firestore user profile and subcollections (e.g. watchlists, holdings, journal, alerts, decisions, devices);
+- your Firestore user profile and subcollections (e.g. watchlists, holdings, journal, alerts, decisions, devices, simulation accounts);
 - your `userSettings` document;
 - the server-side subscription access record for your UID;
 - RevenueCat webhook event documents we store that reference your UID (where implemented);
@@ -41,7 +41,7 @@ We **do not** delete shared educational content (Academy lessons, public catalog
 
 ## 3. What we may retain briefly or cannot delete
 
-- **Apple / Google purchase and billing records** remain with the stores under their policies. **Deleting the TradeInsight account does not cancel an App Store or Play subscription.**
+- **Apple / Google purchase and billing records** remain with the stores under their policies. **Deleting the TradeAcademy account does not cancel an App Store or Play subscription.**
 - **Security, fraud, or legal logs** may be retained for a limited period where required by law or legitimate security interests (including a short-lived deletion-audit record).
 - **Backups** may persist for a short technical window before rotating out.
 - **Aggregated, de-identified** metrics that cannot reasonably identify you may remain.
@@ -56,7 +56,7 @@ Email **[PRIVACY EMAIL REQUIRED]** or **[SUPPORT EMAIL REQUIRED]** from your acc
 
 ## 5. Effect on Premium
 
-Deleting the account removes TradeInsight access to Premium features tied to that account. It does **not** stop auto-renewal in the store. Manage subscription separately:
+Deleting the account removes TradeAcademy access to Premium features tied to that account. It does **not** stop auto-renewal in the store. Manage subscription separately:
 
 - **In-app:** Settings → Manage Subscription
 - **iOS:** Settings → Apple ID → Subscriptions

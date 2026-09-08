@@ -1,4 +1,4 @@
-/** AI Mentor Setup answers — Phase X personalisation profile. */
+import type { LearningTopic } from '@/shared/constants/learning-topics';
 
 export type TradingMotive =
   | 'long_term_wealth'
@@ -87,6 +87,7 @@ export interface CoachProfileAnswers {
   successDefinitions: SuccessDefinition[];
   researchTimeOfDay: ResearchTimeOfDay | null;
   researchUniverse: string[];
+  preferredTopics: LearningTopic[];
 }
 
 export interface CoachProfileDerived {
@@ -110,7 +111,7 @@ export interface MentorSetupDraft {
   version: typeof MENTOR_SETUP_DRAFT_VERSION;
   uid: string;
   answers: Partial<CoachProfileAnswers>;
-  /** 0 = intro, 1–10 = questions, 11 = universe, 12 = ready */
+  /** 0 = intro, 1–3 = questions, 4 = ready */
   currentStep: number;
   updatedAt: number;
 }
@@ -127,6 +128,7 @@ export const EMPTY_COACH_ANSWERS: CoachProfileAnswers = {
   successDefinitions: [],
   researchTimeOfDay: null,
   researchUniverse: [],
+  preferredTopics: [],
 };
 
 export const TRADING_MOTIVE_LABELS: Record<TradingMotive, string> = {

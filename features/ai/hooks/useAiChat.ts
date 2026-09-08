@@ -16,7 +16,7 @@ const WELCOME_MESSAGE: AiMessage = {
   id: 'welcome',
   role: 'assistant',
   content:
-    'TradeInsight research mentor. Answers separate what is known, what is not, evidence, and what would change the assessment — never a buy/sell call or a fake certainty score.',
+    'TradeAcademy educational mentor. I explain concepts, review process, and suggest what to learn next — never a buy/sell call, never guaranteed signals, never financial advice.',
   timestamp: Date.now(),
 };
 

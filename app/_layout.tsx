@@ -14,7 +14,11 @@ import {
   usePushNotificationHandler,
 } from '@/features/notifications/services/push-handler';
 import { reconcileOnboarding } from '@/features/onboarding/services/onboarding-reconciliation.service';
-import { resolveRootRedirect } from '@/features/onboarding/services/onboarding-routing.service';
+import {
+  localOnboardingResolution,
+  resolveRootRedirect,
+  shouldBlockOnOnboardingReconcile,
+} from '@/features/onboarding/services/onboarding-routing.service';
 import type { OnboardingResolution } from '@/features/onboarding/types/onboarding.types';
 import { useSessionTimeout } from '@/features/settings/hooks/useSessionTimeout';
 import { DEMO_USER_UID, isFirebaseConfigured } from '@/firebase/config';
@@ -67,19 +71,27 @@ export default function RootLayout() {
   const [loaded, error] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
   });
+  const [fontWaitExpired, setFontWaitExpired] = useState(false);
 
   useEffect(() => {
     if (error) throw error;
   }, [error]);
 
   useEffect(() => {
-    if (loaded) {
-      performanceDiagnostics.mark('startup.ready');
-      SplashScreen.hideAsync();
-    }
-  }, [loaded]);
+    const timer = setTimeout(() => setFontWaitExpired(true), 800);
+    return () => clearTimeout(timer);
+  }, []);
 
-  if (!loaded) {
+  const fontsReady = loaded || fontWaitExpired;
+
+  useEffect(() => {
+    if (fontsReady) {
+      performanceDiagnostics.mark('startup.ready');
+      void SplashScreen.hideAsync();
+    }
+  }, [fontsReady]);
+
+  if (!fontsReady) {
     return null;
   }
 
@@ -96,7 +108,22 @@ function RootLayoutNav() {
   const segments = useSegments();
   const router = useRouter();
   const localOnboardingCompleted = useSettingsStore((state) => state.hasCompletedOnboarding);
-  const [onboarding, setOnboarding] = useState<OnboardingResolution | null>(null);
+  const [onboarding, setOnboarding] = useState<OnboardingResolution | null>(() => {
+    if (!isFirebaseConfigured()) {
+      return localOnboardingResolution({
+        uid: DEMO_USER_UID,
+        completed: useSettingsStore.getState().hasCompletedOnboarding,
+      });
+    }
+    const completed = useSettingsStore.getState().hasCompletedOnboarding;
+    if (completed) {
+      return localOnboardingResolution({
+        uid: 'cloud',
+        completed: true,
+      });
+    }
+    return null;
+  });
 
   usePushNotificationHandler();
   useSessionTimeout();
@@ -112,12 +139,17 @@ function RootLayoutNav() {
   useEffect(() => {
     let cancelled = false;
     if (status !== 'authenticated' || !user?.uid) {
-      setOnboarding(null);
+      if (isFirebaseConfigured()) setOnboarding(null);
       return () => {
         cancelled = true;
       };
     }
-    setOnboarding(null);
+    setOnboarding(
+      localOnboardingResolution({
+        uid: user.uid,
+        completed: useSettingsStore.getState().hasCompletedOnboarding,
+      }),
+    );
     void Promise.resolve(useSettingsStore.persist.rehydrate())
       .then(async () => {
         const resolution = await reconcileOnboarding(user.uid);
@@ -127,16 +159,7 @@ function RootLayoutNav() {
         if (cancelled) return;
         logger.warn('onboarding.reconciliation_fallback', { error });
         const completed = useSettingsStore.getState().hasCompletedOnboarding;
-        setOnboarding({
-          completed,
-          experience: user.uid === DEMO_USER_UID ? 'demo_guide' : 'full',
-          reason: completed
-            ? 'explicit_completion'
-            : user.uid === DEMO_USER_UID
-              ? 'demo_guide'
-              : 'new_user',
-          shouldPersistCompletion: false,
-        });
+        setOnboarding(localOnboardingResolution({ uid: user.uid, completed }));
       });
     return () => {
       cancelled = true;
@@ -165,7 +188,14 @@ function RootLayoutNav() {
     }
   }, [status, user?.uid]);
 
-  if (status === 'authenticated' && !onboarding) {
+  if (
+    shouldBlockOnOnboardingReconcile({
+      firebaseConfigured: isFirebaseConfigured(),
+      authenticated: status === 'authenticated',
+      localCompleted: Boolean(onboarding?.completed || localOnboardingCompleted),
+    }) &&
+    !onboarding
+  ) {
     return (
       <View
         className="flex-1 items-center justify-center bg-background px-6"
@@ -191,6 +221,7 @@ function RootLayoutNav() {
         <Stack.Screen name="academy" />
         <Stack.Screen name="calendar" />
         <Stack.Screen name="asset/[symbol]" />
+        <Stack.Screen name="search" />
         <Stack.Screen name="settings" />
         <Stack.Screen name="legal" />
         <Stack.Screen name="subscription" />
@@ -225,6 +256,7 @@ function RootLayoutNav() {
       <Stack.Screen name="academy" />
       <Stack.Screen name="calendar" />
       <Stack.Screen name="asset/[symbol]" />
+      <Stack.Screen name="search" />
       <Stack.Screen name="settings" />
       <Stack.Screen name="legal" />
       <Stack.Screen name="subscription" />

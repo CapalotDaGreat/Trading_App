@@ -36,4 +36,20 @@ describe('getLessonEducationalFraming', () => {
     expect(framing.skillsPracticed).toEqual(expect.arrayContaining(['patience', 'checklist']));
     expect(framing.suggestedLabExercise.toLowerCase()).toContain('thesis');
   });
+
+  it('prefers explicit learning objectives and simulation links', () => {
+    const framing = getLessonEducationalFraming({
+      ...sampleLesson,
+      learningObjectives: ['State a testable invalidation before you size.'],
+      simulationLinks: [
+        {
+          label: 'Paper the skip',
+          href: '/simulate',
+          description: 'Simulate a skip when evidence is thin.',
+        },
+      ],
+    });
+    expect(framing.learningObjective).toContain('invalidation');
+    expect(framing.simulationRecommendation).toContain('skip');
+  });
 });

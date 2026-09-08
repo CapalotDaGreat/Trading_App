@@ -33,7 +33,7 @@ export function AccessibilitySettingsScreen() {
 
       <GlassCard className="mb-4 p-4">
         <Text variant="body-sm" className="leading-relaxed text-text-secondary">
-          TradeInsight follows system accessibility settings. Text scales with Dynamic Type (capped
+          TradeAcademy follows system accessibility settings. Text scales with Dynamic Type (capped
           for layout safety). Interactive controls meet minimum touch targets. Charts expose spoken
           summaries.
         </Text>

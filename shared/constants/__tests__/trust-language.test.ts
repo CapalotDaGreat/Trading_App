@@ -1,4 +1,11 @@
-import { CALM_ATTENTION, EVIDENCE_LEVEL_COPY, NON_PREDICTION_COPY, TRUST_LANGUAGE, waitingReviewCopy } from '../trust-language';
+import {
+  CALM_ATTENTION,
+  composeNamedLevelReminder,
+  EVIDENCE_LEVEL_COPY,
+  NON_PREDICTION_COPY,
+  TRUST_LANGUAGE,
+  waitingReviewCopy,
+} from '../trust-language';
 
 describe('product trust language', () => {
   it('defines distinct score meanings without predictive confidence', () => {
@@ -16,7 +23,24 @@ describe('product trust language', () => {
       'Nothing requires your attention right now.',
     );
     expect(waitingReviewCopy(0)).toBe(CALM_ATTENTION.waitingReviewEmpty);
-    expect(waitingReviewCopy(7)).toBe('You have 7 items waiting for review.');
-    expect(waitingReviewCopy(1)).toBe('You have 1 item waiting for review.');
+    expect(waitingReviewCopy(7)).toBe('7 items are available to review when you want.');
+    expect(waitingReviewCopy(1)).toBe('1 item is available to review when you want.');
+  });
+
+  it('uses research-reminder language instead of price-move urgency', () => {
+    const reminder = composeNamedLevelReminder({
+      symbol: 'EURUSD',
+    });
+    expect(reminder.title).toBe(CALM_ATTENTION.researchReminderReady);
+    expect(reminder.body).toMatch(/EURUSD/);
+    expect(reminder.body.toLowerCase()).toMatch(/consider reviewing/);
+    expect(`${reminder.title} ${reminder.body}`.toLowerCase()).not.toMatch(
+      /\b(urgent|act now|don't miss|hot|winner|guaranteed|is moving|buy|sell)\b/,
+    );
+  });
+
+  it('keeps premium chrome quiet', () => {
+    expect(CALM_ATTENTION.seePremiumDepth.toLowerCase()).not.toMatch(/unlock|go premium|act now/);
+    expect(CALM_ATTENTION.includedWithPremium).toBe('Included with Premium');
   });
 });

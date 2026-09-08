@@ -8,6 +8,7 @@ import { logger } from '@/shared/services/observability/logger';
 import type { Asset, Candle, CandleInterval, MarketType, Quote } from '@/shared/types/market';
 
 import type { DataSourceKind, MarketDataProvider } from '../constants/data-source';
+import { getMarketDataRuntimeMode } from '../constants/market-data-mode';
 import { MARKET_DATA_POLICY } from '../constants/freshness';
 import {
   instrumentToAsset,
@@ -423,6 +424,15 @@ export async function fetchQuoteWithMetadataDirect(
   symbol: string,
   marketType?: MarketType,
 ): Promise<QuoteResult> {
+  if (getMarketDataRuntimeMode() === 'synthetic') {
+    return {
+      quote: buildSampleQuote(symbol),
+      provider: 'synthetic',
+      fetchedAt: Date.now(),
+      kind: 'sample',
+    };
+  }
+
   const type = marketType ?? detectMarketType(symbol);
 
   switch (type) {
@@ -853,6 +863,14 @@ export async function fetchCandlesWithMetadataDirect(
   request: CandlesRequest,
 ): Promise<CandleResult> {
   const { symbol, marketType, interval, limit = 100 } = request;
+  if (getMarketDataRuntimeMode() === 'synthetic') {
+    return {
+      candles: buildSampleEquityCandles(symbol, interval, limit),
+      provider: 'synthetic',
+      fetchedAt: Date.now(),
+      kind: 'sample',
+    };
+  }
   const type = marketType ?? detectMarketType(symbol);
 
   switch (type) {

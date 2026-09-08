@@ -32,7 +32,12 @@ export function JournalEntryCard({ entry, onPress, onDelete }: JournalEntryCardP
   const isProcessNote = entry.quantity === 0 && entry.outcome === 'open';
 
   return (
-    <Pressable accessibilityRole="button" onPress={() => onPress?.(entry)}>
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={`${entry.symbol}, ${isProcessNote ? 'process note' : entry.outcome}${entry.strategy ? `, ${entry.strategy}` : ''}`}
+      accessibilityHint="Opens the journal entry. Notes stay on this device."
+      onPress={() => onPress?.(entry)}
+    >
       <GlassCard className="mb-2 p-3" testID={`journal-entry-${entry.id}`}>
         <View className="flex-row items-start justify-between">
           <View className="flex-1">

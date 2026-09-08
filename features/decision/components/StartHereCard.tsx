@@ -54,7 +54,11 @@ export function StartHereCard({ symbol, setup, queueItem, regime, onOutcome }: S
 
   return (
     <Surface padding="md" emphasis="outlined" testID="today-start-here">
-      <Text variant="caption" className="mb-1 font-medium text-text-tertiary">
+      <Text
+        variant="caption"
+        className="mb-1 font-medium text-text-tertiary"
+        accessibilityLabel={`Primary research opportunity. ${CALM_ATTENTION.worthResearching}`}
+      >
         {CALM_ATTENTION.worthResearching}
       </Text>
       <Text variant="h2" headingLevel={2} className="mb-1">

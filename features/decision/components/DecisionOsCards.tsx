@@ -18,7 +18,7 @@ export function DecisionFatigueCard({ fatigue }: { fatigue: DecisionFatigueInsig
       }
     >
       <Text variant="caption" className="mb-1 font-semibold text-text-tertiary">
-        RESEARCH LOAD
+        Research load
       </Text>
       <Text variant="h3" className="mb-1">
         {fatigue.shouldStop ? 'Enough for today' : 'Research load'}
@@ -40,7 +40,7 @@ export function DecisionDebtCard({ debt }: { debt: DecisionDebtSnapshot }) {
     return (
       <View className="rounded-2xl bg-background-elevated p-4">
         <Text variant="caption" className="mb-1 font-semibold text-text-tertiary">
-          WAITING FOR REVIEW
+          Waiting for review
         </Text>
         <Text variant="h3" className="mb-1 text-bullish">
           Desk clear
@@ -55,7 +55,7 @@ export function DecisionDebtCard({ debt }: { debt: DecisionDebtSnapshot }) {
   return (
     <View className="rounded-2xl bg-background-elevated p-4">
       <Text variant="caption" className="mb-1 font-semibold text-text-tertiary">
-        WAITING FOR REVIEW
+        Waiting for review
       </Text>
       <Text variant="h3" className="mb-2">
         {waitingReviewCopy(waiting)}

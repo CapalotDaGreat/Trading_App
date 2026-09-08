@@ -10,6 +10,7 @@ import type {
   TraderMemory,
 } from '@/features/decision/types/decision.types';
 import type { AiEnrichedContext } from '@/features/ai/types/ai.types';
+import { detectAttachedEvidenceConflicts } from './ai-evidence-level.service';
 import type {
   AiDebateResult,
   DebateCase,
@@ -483,9 +484,11 @@ export function buildAiDebate(input: BuildAiDebateInput): AiDebateResult {
     { label: 'Timeframe', value: timeframe },
   ];
 
+  const conflict = detectAttachedEvidenceConflicts(input.enriched)[0];
   const evidenceNotes = [
     `Sources used: indicators${input.enriched.newsHeadlines?.length ? ', news' : ''}${input.regime ? ', regime' : ''}${input.mtf ? ', MTF' : ''}${input.memory ? ', memory' : ''}, timeframe`,
     'Debate never predicts price direction or issues buy/sell instructions.',
+    ...(conflict ? [conflict.summary] : []),
   ];
 
   return {

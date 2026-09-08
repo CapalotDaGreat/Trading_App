@@ -1,5 +1,9 @@
 import type { OnboardingResolution } from '../../types/onboarding.types';
-import { resolveRootRedirect } from '../onboarding-routing.service';
+import {
+  localOnboardingResolution,
+  resolveRootRedirect,
+  shouldBlockOnOnboardingReconcile,
+} from '../onboarding-routing.service';
 
 const incomplete: OnboardingResolution = {
   completed: false,
@@ -104,5 +108,35 @@ describe('root onboarding route gate', () => {
         mentorSetupCompleted: false,
       }),
     ).toBeNull();
+  });
+
+  it('does not block first paint for guest/demo or locally completed users', () => {
+    expect(
+      shouldBlockOnOnboardingReconcile({
+        firebaseConfigured: false,
+        authenticated: true,
+        localCompleted: false,
+      }),
+    ).toBe(false);
+    expect(
+      shouldBlockOnOnboardingReconcile({
+        firebaseConfigured: true,
+        authenticated: true,
+        localCompleted: true,
+      }),
+    ).toBe(false);
+    expect(
+      shouldBlockOnOnboardingReconcile({
+        firebaseConfigured: true,
+        authenticated: true,
+        localCompleted: false,
+      }),
+    ).toBe(true);
+    expect(
+      localOnboardingResolution({ uid: 'demo-guest', completed: false }).experience,
+    ).toBe('demo_guide');
+    expect(localOnboardingResolution({ uid: 'cloud-user', completed: true }).reason).toBe(
+      'explicit_completion',
+    );
   });
 });

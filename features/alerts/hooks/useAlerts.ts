@@ -28,6 +28,7 @@ export function useAlerts() {
     queryKey: alertsQueryKey(uid),
     queryFn: () => getAlerts(uid!),
     enabled: Boolean(uid),
+    staleTime: 30_000,
   });
 
   const alerts = alertsQuery.data ?? [];

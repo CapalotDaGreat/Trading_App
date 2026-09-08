@@ -21,7 +21,6 @@ interface ProcessSnapshotCardProps {
   insight?: string | null;
   debtHidden?: boolean;
   onReview?: () => void;
-  onDismiss?: () => void;
   onDefer?: () => void;
 }
 
@@ -35,17 +34,20 @@ export function ProcessSnapshotCard({
   insight,
   debtHidden = false,
   onReview,
-  onDismiss,
   onDefer,
 }: ProcessSnapshotCardProps) {
   const consistency = researchConsistencyLabel({ researched, journaled, skipped, total });
   const waiting = debt ? waitingReviewCount(debt) : 0;
   const dqsValue = processScore != null ? String(processScore) : '—';
-  const showDebtActions = Boolean(debt && waiting > 0 && !debtHidden && (onReview || onDismiss || onDefer));
+  const showDebtActions = Boolean(debt && waiting > 0 && !debtHidden && (onReview || onDefer));
 
   return (
     <Surface padding="md" testID="today-process-insight">
-      <Text variant="caption" className="mb-1 font-medium text-text-tertiary">
+      <Text
+        variant="caption"
+        className="mb-1 font-medium text-text-tertiary"
+        accessibilityLabel={`Process snapshot. Decision quality score ${dqsValue}. Research consistency ${consistency.value}. Waiting for review ${debtHidden ? 'hidden' : waiting}.`}
+      >
         Your process
       </Text>
       <Text variant="h3" headingLevel={2} className="mb-2">
@@ -78,8 +80,8 @@ export function ProcessSnapshotCard({
           ))}
           <View className="mt-1 flex-row flex-wrap gap-2">
             {onReview ? (
-              <Button size="sm" onPress={onReview} accessibilityLabel="Review waiting items">
-                Review
+              <Button size="sm" onPress={onReview} accessibilityLabel="Review when ready">
+                {CALM_ATTENTION.reviewWhenReady}
               </Button>
             ) : null}
             {onDefer ? (
@@ -89,17 +91,7 @@ export function ProcessSnapshotCard({
                 onPress={onDefer}
                 accessibilityLabel="Defer waiting reviews until later"
               >
-                Defer
-              </Button>
-            ) : null}
-            {onDismiss ? (
-              <Button
-                size="sm"
-                variant="ghost"
-                onPress={onDismiss}
-                accessibilityLabel="Dismiss waiting reviews for this session"
-              >
-                Dismiss
+                Later
               </Button>
             ) : null}
           </View>

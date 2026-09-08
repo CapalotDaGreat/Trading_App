@@ -26,7 +26,13 @@ export function MarketConditionCard({ brief }: MarketConditionCardProps) {
   const upcoming = eventCaption(brief.highImpactEvents[0]);
 
   return (
-    <Surface padding="md" tone="subtle" testID="today-regime-freshness">
+    <Surface
+      padding="md"
+      tone="subtle"
+      testID="today-regime-freshness"
+      accessibilityRole="summary"
+      accessibilityLabel={`Market condition ${brief.regimeLabel}. Why it matters: ${why}${upcoming ? `. Calendar: ${upcoming}` : ''}${brief.provenance ? `. Data is ${brief.provenance.kind}` : ''}`}
+    >
       <Text variant="caption" className="mb-1 font-medium text-text-tertiary">
         Market condition
       </Text>

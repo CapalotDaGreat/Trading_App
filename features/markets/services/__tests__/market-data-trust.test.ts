@@ -40,10 +40,12 @@ describe('market data provenance', () => {
   const originalFinnhub = process.env.EXPO_PUBLIC_FINNHUB_API_KEY;
   const originalAlpha = process.env.EXPO_PUBLIC_ALPHA_VANTAGE_API_KEY;
   const originalDirect = process.env.EXPO_PUBLIC_MARKET_DATA_DIRECT;
+  const originalMode = process.env.EXPO_PUBLIC_MARKET_DATA_MODE;
 
   beforeEach(() => {
     mockedApiRequest.mockReset();
     process.env.EXPO_PUBLIC_MARKET_DATA_DIRECT = 'true';
+    process.env.EXPO_PUBLIC_MARKET_DATA_MODE = 'vendor';
     process.env.EXPO_PUBLIC_FINNHUB_API_KEY = 'test-finnhub';
     process.env.EXPO_PUBLIC_ALPHA_VANTAGE_API_KEY = '';
   });
@@ -52,6 +54,7 @@ describe('market data provenance', () => {
     process.env.EXPO_PUBLIC_FINNHUB_API_KEY = originalFinnhub;
     process.env.EXPO_PUBLIC_ALPHA_VANTAGE_API_KEY = originalAlpha;
     process.env.EXPO_PUBLIC_MARKET_DATA_DIRECT = originalDirect;
+    process.env.EXPO_PUBLIC_MARKET_DATA_MODE = originalMode;
   });
 
   it('labels CoinGecko chart points as approximate and records fetch time', async () => {
@@ -108,5 +111,19 @@ describe('market data provenance', () => {
         limit: 40,
       }),
     ).rejects.toBeInstanceOf(MarketDataUnavailableError);
+  });
+
+  it('uses labelled synthetic candles when vendor mode is off', async () => {
+    process.env.EXPO_PUBLIC_MARKET_DATA_MODE = 'synthetic';
+    const result = await fetchCandlesWithMetadata({
+      symbol: 'EUR/USD',
+      marketType: 'forex',
+      interval: '1d',
+      limit: 8,
+    });
+    expect(result.provider).toBe('synthetic');
+    expect(result.kind).toBe('sample');
+    expect(result.candles.length).toBe(8);
+    expect(mockedApiRequest).not.toHaveBeenCalled();
   });
 });

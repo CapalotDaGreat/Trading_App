@@ -8,6 +8,7 @@ import { Screen } from '@/shared/components/layout/Screen';
 import { Button } from '@/shared/components/ui/Button';
 import { GlassCard } from '@/shared/components/ui/GlassCard';
 import { Text } from '@/shared/components/ui/Text';
+import { BRAND } from '@/shared/constants/brand';
 import { useReducedMotion } from '@/shared/hooks/useReducedMotion';
 import { useTheme } from '@/shared/hooks/useTheme';
 import { fadeInDown } from '@/shared/utils/motion';
@@ -16,24 +17,24 @@ import { useAuth } from '../hooks/useAuth';
 
 const PRINCIPLES = [
   {
-    icon: 'compass-outline' as const,
-    title: 'Decision-first',
-    body: 'Ask “should I research this?” — never chase buy/sell signals.',
-  },
-  {
     icon: 'school-outline' as const,
-    title: 'Educational Mode',
-    body: 'Scores measure process quality (DQS / RVS), not price prediction.',
+    title: 'Learn the concepts',
+    body: 'Academy paths teach usable skills — charts, risk, psychology — not get-rich slogans.',
   },
   {
-    icon: 'shield-checkmark-outline' as const,
-    title: 'Privacy by default',
-    body: 'Guest mode stays local. Crash reporting is opt-in. No brokerage access.',
+    icon: 'fitness-outline' as const,
+    title: 'Practice the decision',
+    body: 'Short drills and replay rooms train judgment. A simulated profit is not automatically a good decision.',
   },
   {
-    icon: 'sparkles-outline' as const,
-    title: 'Honest AI limits',
-    body: 'AI coaches your process and cites evidence. It does not guarantee outcomes.',
+    icon: 'briefcase-outline' as const,
+    title: 'Simulated money only',
+    body: 'Paper trading with labelled synthetic prices. No brokerage. No live execution.',
+  },
+  {
+    icon: 'film-outline' as const,
+    title: 'Review and improve',
+    body: 'Journal reasoning. Simulated profit is not automatically a good decision.',
   },
 ];
 
@@ -52,7 +53,7 @@ export function WelcomeScreen() {
   return (
     <Screen
       scrollable
-      accessibilityTitle="Welcome to TradeInsight"
+      accessibilityTitle={`Welcome to ${BRAND.product}`}
       className="bg-background"
       scrollViewProps={{ contentContainerStyle: { flexGrow: 1 } }}
     >
@@ -63,22 +64,23 @@ export function WelcomeScreen() {
           </View>
           <View>
             <Text variant="h3" accessibilityRole="header">
-              TradeInsight
+              {BRAND.product}
             </Text>
             <Text variant="caption" className="text-text-secondary">
-              TradeInsight by Aithera · Research smarter. Decide with clarity.
+              {BRAND.attribution} · {BRAND.loop}
             </Text>
           </View>
         </View>
 
         <Animated.View entering={fadeInDown(reduceMotion)} className="flex-1 justify-center py-10">
           <Text variant="h1" className="text-4xl leading-tight" accessibilityRole="header">
-            Spend your attention{'\n'}
-            <Text className="text-accent">where it matters</Text>
+            Learn trading.{'\n'}
+            <Text className="text-accent">Practice the decision.</Text>
           </Text>
           <Text variant="body" className="mt-4 max-w-xl text-text-secondary">
-            A decision-first research and coaching app. Learn the workflow: brief → research or skip
-            → journal. Anyone can try Guest mode. Accounts and purchases require age of majority.
+            TradeAcademy helps you learn trading through education and simulated practice. No real
+            money. No brokerage. No guaranteed signals. Anyone can try Guest mode. Accounts and
+            purchases require age of majority.
           </Text>
 
           <GlassCard className="mt-8" bordered>
@@ -137,8 +139,9 @@ export function WelcomeScreen() {
               style={{ marginTop: 2, marginRight: 10 }}
             />
             <Text variant="caption" className="flex-1 text-text-secondary">
-              I understand Guest mode is a local educational demo. Scores do not predict prices.
-              TradeInsight does not provide investment advice or buy/sell signals.
+              I understand Guest mode is a local educational demo. Scores do not predict prices.{' '}
+              {BRAND.product} does not provide investment advice or buy/sell signals. Paper trading is
+              simulated only.
             </Text>
           </Pressable>
 

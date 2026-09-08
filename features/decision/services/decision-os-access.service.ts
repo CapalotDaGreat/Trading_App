@@ -44,7 +44,7 @@ export function decisionOsUpsellCopy(feature: DecisionOsFeature): string {
     tradingDnaInsights: 'Explore your full Trading DNA insights from memory and journals.',
     weeklyReviews: 'Continue your growth with weekly process reviews from recorded decisions.',
     portfolioIntelligence:
-      'Unlock deeper insights into portfolio health, stress tests, and concentration.',
+      'See portfolio concentration, stress tests, and holding context in more depth.',
     advancedReplay: 'View your personalised coaching with advanced Process Tape insights.',
     convictionDrift:
       'See Research Value, Decision Quality, and process score evolution during replay.',

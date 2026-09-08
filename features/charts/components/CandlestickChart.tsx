@@ -7,7 +7,7 @@ import { Text } from '@/shared/components/ui/Text';
 import { useTheme } from '@/shared/hooks/useTheme';
 import { performanceDiagnostics } from '@/shared/services/performance';
 import type { Candle } from '@/shared/types/market';
-import { getChartAccessibilityLabel } from '@/shared/utils/accessibility';
+import { composeChartSpokenSummary } from '@/shared/utils/accessibility';
 import { cn } from '@/shared/utils/cn';
 import { formatPrice } from '@/shared/utils/format';
 
@@ -18,6 +18,11 @@ interface CandlestickChartProps {
   currency?: string;
   className?: string;
   symbol?: string;
+  intervalLabel?: string;
+  dataKind?: string;
+  extraNote?: string;
+  /** Set false when nested inside AccessibleChartFrame to avoid duplicate image roles. */
+  accessible?: boolean;
 }
 
 interface ChartDimensions {
@@ -102,6 +107,10 @@ export function CandlestickChart({
   currency = 'USD',
   className,
   symbol,
+  intervalLabel,
+  dataKind,
+  extraNote,
+  accessible = true,
 }: CandlestickChartProps) {
   const { colors } = useTheme();
   const [dimensions, setDimensions] = useState<ChartDimensions>({ width: 0, height });
@@ -135,8 +144,15 @@ export function CandlestickChart({
   }, [scaled.length, minPrice, maxPrice]);
 
   const accessibilityLabel = useMemo(
-    () => getChartAccessibilityLabel(symbol ?? 'Chart', visibleCandles),
-    [symbol, visibleCandles],
+    () =>
+      composeChartSpokenSummary({
+        symbol: symbol ?? 'Chart',
+        candles: visibleCandles,
+        intervalLabel,
+        dataKind,
+        extraNote,
+      }),
+    [symbol, visibleCandles, intervalLabel, dataKind, extraNote],
   );
 
   if (isLoading) {
@@ -161,9 +177,10 @@ export function CandlestickChart({
 
   return (
     <View
-      accessible
-      accessibilityRole="image"
-      accessibilityLabel={accessibilityLabel}
+      accessible={accessible}
+      accessibilityRole={accessible ? 'image' : undefined}
+      accessibilityLabel={accessible ? accessibilityLabel : undefined}
+      importantForAccessibility={accessible ? 'yes' : 'no-hide-descendants'}
       className={cn('w-full', className)}
       onLayout={onLayout}
       style={{ height }}

@@ -43,7 +43,7 @@ export function LegalDocumentScreen() {
   const title = docId === 'support' ? 'Support' : LEGAL_DOCUMENT_META[docId].title;
   const subtitle =
     docId === 'support'
-      ? 'TradeInsight by Aithera'
+      ? 'TradeAcademy by Aithera'
       : `Updated ${LEGAL_DOCUMENT_META[docId].lastUpdated}`;
 
   return (

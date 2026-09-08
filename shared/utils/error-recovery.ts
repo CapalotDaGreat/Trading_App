@@ -29,6 +29,20 @@ function messageOf(error: unknown): string {
   return '';
 }
 
+/** True when a thrown message must not be shown to the user (keys, stacks, vendor internals). */
+export function isSensitiveErrorMessage(message: string): boolean {
+  const value = message.toLowerCase();
+  return (
+    /api[_-]?key|secret|token|password|authorization/i.test(message) ||
+    value.includes('firebase') ||
+    value.includes('firestore') ||
+    value.includes('stack') ||
+    value.includes('at object') ||
+    /\b[a-z]+\/[a-z0-9_-]{8,}\b/.test(value) ||
+    /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i.test(message)
+  );
+}
+
 function codeOf(error: unknown): string | number | undefined {
   if (!error || typeof error !== 'object') return undefined;
   const e = error as { code?: string | number; status?: number; name?: string };
@@ -80,7 +94,7 @@ export function mapRecoverableError(
     return {
       kind: 'network',
       title: 'Network error',
-      why: 'We couldn’t reach TradeInsight services or a market-data vendor.',
+      why: 'We couldn’t reach TradeAcademy services or a market-data vendor.',
       recovery: 'Check Wi‑Fi or cellular, then retry. Guest/demo mode can continue with sample data.',
       actionLabel: 'Retry',
     };
@@ -144,7 +158,7 @@ export function mapRecoverableError(
       kind: 'permission',
       title: 'Permission needed',
       why: 'A system permission (notifications, biometrics, or screen capture) is blocked.',
-      recovery: 'Open system Settings for TradeInsight and enable the required permission.',
+      recovery: 'Open system Settings for TradeAcademy and enable the required permission.',
       actionLabel: 'Open settings',
     };
   }
@@ -152,9 +166,7 @@ export function mapRecoverableError(
   return {
     kind: 'unknown',
     title: 'Something went wrong',
-    why: message
-      ? `Details: ${messageOf(error)}`
-      : 'An unexpected error interrupted this screen.',
+    why: 'An unexpected error interrupted this screen.',
     recovery: 'Retry the action. If it keeps happening, enable crash reporting in Privacy to help us fix it.',
     actionLabel: 'Try again',
   };

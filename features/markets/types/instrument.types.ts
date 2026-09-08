@@ -89,7 +89,7 @@ export const INSTRUMENT_CLASS_DISPLAY: Record<AssetClass, string> = {
 export const INSTRUMENT_RESOLUTION_COPY = {
   couldNotVerify: "We couldn't verify this instrument.",
   reliableDataOnly:
-    'TradeInsight can only manage assets for which reliable market data is available.',
+    'TradeAcademy can only manage assets for which reliable market data is available.',
   whichAsset: 'Which asset did you mean?',
   priceUnavailable: 'Price unavailable',
   neverGuess: 'Never guess silently — pick the asset you mean.',

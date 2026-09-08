@@ -1,11 +1,13 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useState } from 'react';
 import { LayoutAnimation, Platform, Pressable, UIManager, View } from 'react-native';
-import Animated, { FadeInDown, FadeOutUp, LinearTransition } from 'react-native-reanimated';
+import Animated from 'react-native-reanimated';
 
 import type { DebateCase, DebateSide } from '@/features/ai/types/ai-debate.types';
 import { Text } from '@/shared/components/ui/Text';
+import { useReducedMotion } from '@/shared/hooks/useReducedMotion';
 import { useTheme } from '@/shared/hooks/useTheme';
+import { fadeInDown, fadeOut, layoutTransition } from '@/shared/utils/motion';
 import { cn } from '@/shared/utils/cn';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -53,6 +55,7 @@ export function DebateCaseCard({
   index = 0,
 }: DebateCaseCardProps) {
   const { colors } = useTheme();
+  const reduceMotion = useReducedMotion();
   const [expanded, setExpanded] = useState(defaultExpanded);
   const meta = SIDE_META[debateCase.side];
   const iconColor =
@@ -67,14 +70,16 @@ export function DebateCaseCard({
   }, [defaultExpanded, debateCase.side]);
 
   const toggle = () => {
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    if (!reduceMotion) {
+      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    }
     setExpanded((value) => !value);
   };
 
   return (
     <Animated.View
-      entering={FadeInDown.delay(index * 70).springify()}
-      layout={LinearTransition.springify()}
+      entering={fadeInDown(reduceMotion, { delay: index * 70 })}
+      layout={layoutTransition(reduceMotion)}
       className={cn('overflow-hidden rounded-2xl border', meta.container)}
     >
       <Pressable
@@ -110,8 +115,8 @@ export function DebateCaseCard({
 
       {expanded ? (
         <Animated.View
-          entering={FadeInDown.duration(220)}
-          exiting={FadeOutUp.duration(160)}
+          entering={fadeInDown(reduceMotion)}
+          exiting={fadeOut(reduceMotion)}
           className="border-t border-border/60 px-4 pb-4 pt-3"
         >
           <View className="gap-2.5">

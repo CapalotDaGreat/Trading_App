@@ -1,4 +1,4 @@
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Alert, View } from 'react-native';
 
@@ -29,6 +29,7 @@ const TIMEOUT_OPTIONS: { minutes: SessionTimeoutMinutes; label: string }[] = [
 
 export function PrivacyScreen() {
   const router = useRouter();
+  const { focus } = useLocalSearchParams<{ focus?: string }>();
   const { user, signOut, deleteAccount } = useAuth();
   const { privacy, updatePrivacy, settings, updateSettings } = useSettings();
   const [exporting, setExporting] = useState(false);
@@ -53,7 +54,7 @@ export function PrivacyScreen() {
   const confirmDelete = () => {
     Alert.alert(
       'Delete my data & account',
-      'This permanently deletes your TradeInsight account and cloud data, then clears local caches on this device. This cannot be undone.',
+      'This permanently deletes your TradeAcademy account and cloud data, then clears local caches on this device. This cannot be undone.',
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -84,14 +85,14 @@ export function PrivacyScreen() {
       <Header title="Privacy Dashboard" onBack={() => router.back()} />
 
       <Text variant="body-sm" className="mb-4 text-text-secondary">
-        Control how TradeInsight uses diagnostics, session security, and your data rights under
+        Control how TradeAcademy uses diagnostics, session security, and your data rights under
         Swiss nFADP, EU/UK GDPR, and applicable U.S. state laws.
       </Text>
 
       <Text variant="label" className="mb-2 px-1">
-        Your data
+        {focus === 'export' ? 'Data management' : 'Your data'}
       </Text>
-      <GlassCard className="mb-4 overflow-hidden">
+      <GlassCard className="mb-4 overflow-hidden" testID="privacy-data-management">
         <SettingsRow
           icon="download-outline"
           label="Download my data"

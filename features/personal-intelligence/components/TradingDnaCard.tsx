@@ -59,7 +59,7 @@ function scoreForWindow(trait: TradingDnaTraitScore, window: DnaWindowId): numbe
 
 function trendLabel(trait: TradingDnaTraitScore): string {
   if (trait.status === 'insufficient') return 'Not enough evidence';
-  if (trait.longitudinalTrend === 'improving') return 'Improving';
+  if (trait.longitudinalTrend === 'improving') return 'Showing signs of improvement';
   if (trait.longitudinalTrend === 'declining') return 'Softer vs baseline';
   if (trait.longitudinalTrend === 'stable') return 'Stable';
   return 'Building baseline';
@@ -97,8 +97,9 @@ function TraitRow({
         <Pressable
           onPress={onToggle}
           accessibilityRole="button"
-          accessibilityLabel={`${trait.label}. ${trendLabel(trait)}. Why do you think this?`}
-          accessibilityHint="Shows evidence and NOW / 30 / 90 / all-time comparison"
+          accessibilityState={{ expanded }}
+          accessibilityLabel={`${trait.label}. Observed tendency: ${trendLabel(trait)}. ${WINDOWS.find((item) => item.id === window)?.label ?? 'NOW'} score ${windowScore ?? 'not scored'}. ${trait.evidence.length} evidence items.${practice ? ` Practice: ${practice.title}` : ''}`}
+          accessibilityHint={expanded ? 'Hides evidence and window comparison' : 'Shows evidence, window comparison, and practice'}
           className="min-h-11 flex-1 justify-center pr-3"
         >
           <Text variant="caption" className="text-text-primary">
@@ -117,7 +118,11 @@ function TraitRow({
           {windowScore ?? '—'}
         </Text>
       </View>
-      <View className="h-1.5 overflow-hidden rounded-full bg-border">
+      <View
+        accessibilityElementsHidden
+        importantForAccessibility="no-hide-descendants"
+        className="h-1.5 overflow-hidden rounded-full bg-border"
+      >
         <Animated.View
           entering={fadeInDown(reduceMotion, { delay: index * 25 })}
           className="h-full rounded-full"
@@ -378,7 +383,7 @@ export function TradingDnaCard({ dna, compact = false, limited = false }: Tradin
         {limited && !compact ? (
           <CollapsibleSection
             title="Full DNA"
-            description="Premium unlocks all traits, history, and monthly review."
+            description="Premium includes all traits, history, and monthly review."
           >
             <Text variant="body-sm" className="text-text-secondary">
               Your snapshot above is available on Free. Full evolution, patterns, and goal tracking

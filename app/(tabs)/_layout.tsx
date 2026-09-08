@@ -9,7 +9,7 @@ import { useTheme } from '@/shared/hooks/useTheme';
 type TabIconName = keyof typeof Ionicons.glyphMap;
 
 function TabIcon({ name, color }: { name: TabIconName; color: string }) {
-  return <Ionicons name={name} size={24} color={color} />;
+  return <Ionicons name={name} size={20} color={color} />;
 }
 
 export default function TabLayout() {
@@ -33,9 +33,9 @@ export default function TabLayout() {
             shadowOpacity: 0,
           },
           tabBarLabelStyle: {
-            fontSize: 10,
+            fontSize: 9,
             fontWeight: '500',
-            letterSpacing: 0.2,
+            letterSpacing: 0,
           },
           tabBarItemStyle: {
             minHeight: 44,
@@ -45,24 +45,32 @@ export default function TabLayout() {
         <Tabs.Screen
           name="index"
           options={{
-            title: IA_GLOSSARY.today,
-            tabBarAccessibilityLabel: 'Today tab',
-            tabBarIcon: ({ color }) => <TabIcon name="today-outline" color={color} />,
+            title: IA_GLOSSARY.home,
+            tabBarAccessibilityLabel: 'Home tab',
+            tabBarIcon: ({ color }) => <TabIcon name="home-outline" color={color} />,
           }}
         />
         <Tabs.Screen
-          name="research"
+          name="learn"
           options={{
-            title: IA_GLOSSARY.research,
-            tabBarAccessibilityLabel: 'Research tab',
-            tabBarIcon: ({ color }) => <TabIcon name="search-outline" color={color} />,
+            title: IA_GLOSSARY.learn,
+            tabBarAccessibilityLabel: 'Learn tab',
+            tabBarIcon: ({ color }) => <TabIcon name="school-outline" color={color} />,
           }}
         />
         <Tabs.Screen
-          name="portfolio"
+          name="practice"
           options={{
-            title: IA_GLOSSARY.portfolio,
-            tabBarAccessibilityLabel: 'Portfolio tab',
+            title: IA_GLOSSARY.practice,
+            tabBarAccessibilityLabel: 'Practice tab',
+            tabBarIcon: ({ color }) => <TabIcon name="fitness-outline" color={color} />,
+          }}
+        />
+        <Tabs.Screen
+          name="simulate"
+          options={{
+            title: IA_GLOSSARY.simulate,
+            tabBarAccessibilityLabel: 'Simulate tab',
             tabBarIcon: ({ color }) => <TabIcon name="briefcase-outline" color={color} />,
           }}
         />
@@ -75,6 +83,14 @@ export default function TabLayout() {
           }}
         />
         <Tabs.Screen
+          name="ai"
+          options={{
+            title: IA_GLOSSARY.ask,
+            tabBarAccessibilityLabel: 'Ask tab',
+            tabBarIcon: ({ color }) => <TabIcon name="chatbubble-ellipses-outline" color={color} />,
+          }}
+        />
+        <Tabs.Screen
           name="you"
           options={{
             title: IA_GLOSSARY.you,
@@ -82,14 +98,10 @@ export default function TabLayout() {
             tabBarIcon: ({ color }) => <TabIcon name="person-outline" color={color} />,
           }}
         />
-        <Tabs.Screen name="ai" options={{ href: null }} />
+        <Tabs.Screen name="research" options={{ href: null }} />
+        <Tabs.Screen name="portfolio" options={{ href: null }} />
         <Tabs.Screen name="markets" options={{ href: null }} />
-        <Tabs.Screen
-          name="more"
-          options={{
-            href: null,
-          }}
-        />
+        <Tabs.Screen name="more" options={{ href: null }} />
       </Tabs>
     </ErrorBoundary>
   );

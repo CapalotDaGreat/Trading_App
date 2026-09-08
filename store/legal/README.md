@@ -1,7 +1,7 @@
 # Legal documents (canonical)
 
 Markdown in this folder is the **source of truth** for hosted legal pages and
-in-app copies. Brand: **Aithera**. Product: **TradeInsight**.
+in-app copies. Brand: **Aithera**. Product: **TradeAcademy**.
 
 Bracketed fields (`[LEGAL ENTITY NAME REQUIRED]`, `[VAT/UID REQUIRED]`,
 `[SUPPORT EMAIL REQUIRED]`, `[OFFICIAL DOMAIN REQUIRED]`, and related contact

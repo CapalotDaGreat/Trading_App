@@ -55,7 +55,7 @@ export function DnaReviewsPanel({
     <View className="gap-4" testID="dna-reviews-panel">
       <Surface>
         <Text variant="label" className="text-accent">
-          WHAT&apos;S CHANGING
+          What's changing
         </Text>
         <View className="mt-3 gap-3">
           {whatsChanging.map((insight) => (
@@ -73,7 +73,7 @@ export function DnaReviewsPanel({
 
       <Surface>
         <Text variant="label" className="text-accent">
-          WEEKLY REVIEW
+          Weekly review
         </Text>
         <Text variant="body-sm" className="mt-2 text-text-secondary">
           {weeklyReview.summary}
@@ -181,7 +181,7 @@ export function DnaReviewsPanel({
       ) : (
         <PremiumOsGate feature="tradingDnaInsights">
           <Text variant="body-sm" className="text-text-secondary">
-            Premium unlocks monthly and 90-day self-comparison, advanced patterns, and personalised
+            Premium includes monthly and 90-day self-comparison, advanced patterns, and personalised
             practice prescriptions.
           </Text>
         </PremiumOsGate>

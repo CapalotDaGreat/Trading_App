@@ -165,7 +165,7 @@ export function explainEvidenceQuality(input: {
       'I can explain the historical context, but I cannot verify the current market condition.';
   } else if (input.conflicting) {
     honestyLead =
-      'The evidence conflicts, so I would treat this as a research question rather than a conclusion.';
+      'Two available sources disagree, so confidence is limited.';
   }
 
   return {
@@ -204,6 +204,10 @@ export function resolveAiEvidenceLevel(input: {
     return 'limited';
   }
   if (conflicts >= 4 || coverage < 0.4) return 'limited';
+  const sourceConflicts = detectAttachedEvidenceConflicts(context);
+  if (sourceConflicts.length > 0) {
+    return coverage < 0.5 ? 'insufficient' : 'limited';
+  }
   if (coverage >= 0.7 && (freshness === 'live' || freshness === 'recent') && conflicts <= 1 && hasQuote) {
     return 'high';
   }
@@ -218,4 +222,54 @@ export function downgradeEvidenceLevel(
   const order: AiEvidenceLevel[] = ['high', 'moderate', 'limited', 'insufficient'];
   const idx = Math.min(order.length - 1, order.indexOf(level) + Math.max(1, steps));
   return order[idx] ?? 'insufficient';
+}
+
+export interface AttachedEvidenceConflict {
+  summary: string;
+  sources: [string, string];
+}
+
+/**
+ * Independent attached inputs that disagree. Never silently pick the side that
+ * supports a conclusion.
+ */
+export function detectAttachedEvidenceConflicts(
+  context?: AiEnrichedContext | null,
+): AttachedEvidenceConflict[] {
+  if (!context) return [];
+  const out: AttachedEvidenceConflict[] = [];
+  const bias = context.overallBias;
+  const rsi = context.rsi?.signal;
+  const macd = context.macd?.signal;
+  const trend = context.trend?.toLowerCase();
+
+  if (bias && bias !== 'neutral' && (rsi === 'overbought' || rsi === 'oversold')) {
+    const stretch = rsi === 'overbought' ? 'overbought' : 'oversold';
+    const vs = bias === 'bullish' ? 'a bullish pack bias' : 'a bearish pack bias';
+    out.push({
+      summary: `Two available sources disagree, so confidence is limited. RSI is ${stretch} while the pack still shows ${vs}.`,
+      sources: ['RSI', 'pack bias'],
+    });
+  }
+  if (
+    macd &&
+    rsi &&
+    ((macd === 'bullish' && rsi === 'overbought') || (macd === 'bearish' && rsi === 'oversold'))
+  ) {
+    out.push({
+      summary: `Two available sources disagree, so confidence is limited. MACD is ${macd} while RSI is ${rsi}.`,
+      sources: ['MACD', 'RSI'],
+    });
+  }
+  if (trend && bias && bias !== 'neutral') {
+    const trendDown = /down|bear|lower/.test(trend);
+    const trendUp = /up|bull|higher/.test(trend);
+    if ((bias === 'bullish' && trendDown) || (bias === 'bearish' && trendUp)) {
+      out.push({
+        summary: `Two available sources disagree, so confidence is limited. Structure is labeled ${context.trend} while pack bias is ${bias}.`,
+        sources: ['structure', 'pack bias'],
+      });
+    }
+  }
+  return out.slice(0, 3);
 }

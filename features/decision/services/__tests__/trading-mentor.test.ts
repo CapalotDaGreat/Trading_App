@@ -4,6 +4,7 @@ import type { JournalCoachInsight, TraderMemory } from '@/features/decision/type
 import {
   buildTradingMentorBrief,
   sanitizeMentorCopy,
+  selectMentorPrimaryExercise,
 } from '../trading-mentor.service';
 
 const logSummary: DecisionLogSummary = {
@@ -136,5 +137,67 @@ describe('trading mentor composer', () => {
     });
     expect(brief.weekly.academyRecommendation?.lessonId).toBeTruthy();
     expect(brief.weekly.academyRecommendation?.title.length).toBeGreaterThan(3);
+  });
+
+  it('surfaces known vs inferred evidence without diagnosing personality', () => {
+    const brief = buildTradingMentorBrief({
+      logSummary,
+      journalCoach,
+      dnaMentorSummary: {
+        becomingLabel: 'Patient swing',
+        strengths: ['Patience'],
+        growthEdges: ['Invalidation Discipline'],
+        selectedGoals: [],
+        whatsChanging: [],
+        evidenceCounts: {},
+        observationKey: 'demo:1',
+        observationLine: 'Your recent decisions show more patience, but invalidation is still inconsistent.',
+        known: ['You selected WAIT in 6 of the last 10 replay checkpoints.'],
+        inference: ['This may indicate improving patience when evidence is incomplete.'],
+        unknown: ['Private journal text is not available.'],
+      },
+    });
+    expect(brief.evidenceSplit?.known.join(' ')).toMatch(/WAIT in 6 of the last 10/);
+    expect(brief.evidenceSplit?.inferred.join(' ').toLowerCase()).toMatch(/may indicate/);
+    expect(JSON.stringify(brief.evidenceSplit).toLowerCase()).not.toMatch(
+      /you are an impatient trader/,
+    );
+  });
+
+  it('selects one primary Mentor exercise', () => {
+    const withAcademy = selectMentorPrimaryExercise({
+      mostImprovedHabit: 'Patience',
+      mostCommonMistake: 'Late invalidation',
+      greatestStrength: 'Skipping weak cases',
+      challenge: 'Write invalidation first',
+      academyRecommendation: {
+        lessonId: 'decision-invalidation',
+        title: 'Invalidation first',
+        reason: 'Practice writing the fail condition.',
+      },
+      replayRecommendation: {
+        href: '/decision/replay-tv',
+        label: 'Patience room',
+        reason: 'Practice waiting without the outcome.',
+      },
+    });
+    expect(withAcademy.kind).toBe('academy');
+    expect(withAcademy.ctaLabel).toBe('Open Academy lesson');
+    expect(withAcademy.href).toContain('decision-invalidation');
+
+    const replayOnly = selectMentorPrimaryExercise({
+      mostImprovedHabit: 'Patience',
+      mostCommonMistake: 'Late invalidation',
+      greatestStrength: 'Skipping weak cases',
+      challenge: 'Write invalidation first',
+      academyRecommendation: null,
+      replayRecommendation: {
+        href: '/decision/replay-tv',
+        label: 'Patience room',
+        reason: 'Practice waiting without the outcome.',
+      },
+    });
+    expect(replayOnly.kind).toBe('replay');
+    expect(replayOnly.ctaLabel).toBe('Open practice');
   });
 });

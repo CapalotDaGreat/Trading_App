@@ -2,13 +2,13 @@
 
 **Last updated:** 24 August 2026  
 **Version:** 2026.08.24  
-**Product:** TradeInsight by Aithera  
+**Product:** TradeAcademy by Aithera  
 **Operator:** [LEGAL ENTITY NAME REQUIRED], trading as Aithera  
 **Registered address:** Höglerstrasse 55, 8600 Dübendorf, Switzerland  
 **Support email:** [SUPPORT EMAIL REQUIRED]  
 **Website:** [OFFICIAL DOMAIN REQUIRED]  
 
-TradeInsight is an educational research and decision-coaching app. It is **not** a broker and does **not** provide buy/sell signals or execute trades.
+TradeAcademy is a trading-education and simulated-practice app. It is **not** a broker and does **not** provide buy/sell signals or execute trades.
 
 ## How to get help
 

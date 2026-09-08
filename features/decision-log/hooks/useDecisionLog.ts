@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMemo } from 'react';
 
 import { useAuth } from '@/features/auth/hooks/useAuth';
 
@@ -14,7 +15,6 @@ import {
 export const decisionLogKeys = {
   all: ['decision-log'] as const,
   list: (uid?: string) => ['decision-log', uid ?? 'guest'] as const,
-  summary: (uid?: string) => ['decision-log', 'summary', uid ?? 'guest'] as const,
 };
 
 export function useDecisionLog() {
@@ -28,18 +28,16 @@ export function useDecisionLog() {
     staleTime: 30_000,
   });
 
-  const summaryQuery = useQuery({
-    queryKey: decisionLogKeys.summary(uid),
-    queryFn: async (): Promise<DecisionLogSummary> =>
-      summarizeDecisionLog(await getDecisionRecords(uid, 300)),
-    enabled: Boolean(uid),
-    staleTime: 30_000,
-  });
+  const summary = useMemo<DecisionLogSummary | undefined>(
+    () => (query.data ? summarizeDecisionLog(query.data) : undefined),
+    [query.data],
+  );
 
   return {
     records: query.data as DecisionRecord[] | undefined,
-    summary: summaryQuery.data as DecisionLogSummary | undefined,
+    summary,
     isLoading: query.isLoading,
+    isRefetching: query.isRefetching,
     refetch: query.refetch,
   };
 }
@@ -65,7 +63,6 @@ export function useAppendDecisionRecord() {
     }) => appendDecisionRecord(uid, input),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: decisionLogKeys.list(uid) });
-      void qc.invalidateQueries({ queryKey: decisionLogKeys.summary(uid) });
       void qc.invalidateQueries({ queryKey: ['decision-replay'] });
       void qc.invalidateQueries({ queryKey: ['decision-heatmap'] });
       void qc.invalidateQueries({ queryKey: ['decision-passport'] });

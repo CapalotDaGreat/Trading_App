@@ -1,7 +1,6 @@
 import { View } from 'react-native';
 
 import { PremiumOsGate } from '@/features/decision/components/PremiumOsGate';
-import { Button } from '@/shared/components/ui/Button';
 import { Chip } from '@/shared/components/ui/Chip';
 import { Surface } from '@/shared/components/ui/Surface';
 import { Text } from '@/shared/components/ui/Text';
@@ -42,7 +41,7 @@ export function DnaProcessGoalsCard({ isPremium }: DnaProcessGoalsCardProps) {
   return (
     <Surface testID="dna-process-goals-card">
       <Text variant="label" className="text-accent">
-        PROCESS GOALS
+        Process goals
       </Text>
       <Text variant="h3" headingLevel={2} className="mt-1">
         Choose one or two process goals
@@ -58,9 +57,6 @@ export function DnaProcessGoalsCard({ isPremium }: DnaProcessGoalsCardProps) {
             Free includes suggested goals from your DNA. Premium saves and tracks up to two process
             goals.
           </Text>
-          <Button className="mt-3" size="sm" variant="outline" onPress={() => undefined}>
-            Suggested from DNA
-          </Button>
         </PremiumOsGate>
       )}
       {isPremium && selectedGoals.length ? (

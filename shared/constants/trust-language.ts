@@ -50,17 +50,36 @@ export const CALM_ATTENTION = {
   nothingRequiresAttentionDetail:
     'This is a successful state. You do not need to invent a research opportunity.',
   worthResearching: 'Worth researching',
+  worthReviewing: 'Worth reviewing',
+  considerReviewing: 'Consider reviewing',
   needsReview: 'Needs review',
   lowPriority: 'Low priority',
   interestingLowerPriority: 'Interesting, but lower priority.',
   evidenceMixed: 'Evidence is mixed',
+  evidenceLimited: 'Evidence is limited',
   conditionsChanged: 'Conditions changed',
   researchBeforeDeciding: 'Research before deciding',
   waitingReviewEmpty: 'Nothing waiting for review.',
   researchOptional: 'Protect your attention. Research is optional.',
+  researchReminderReady: 'Your research reminder is ready.',
+  processPractice: 'Process practice',
+  continueSession: 'Continue session',
+  reviewWhenReady: 'Review when ready',
+  includedWithPremium: 'Included with Premium',
+  seePremiumDepth: 'See Premium depth',
+  seePremium: 'See Premium',
 } as const;
 
 export function waitingReviewCopy(count: number): string {
   if (count <= 0) return CALM_ATTENTION.waitingReviewEmpty;
-  return `You have ${count} item${count === 1 ? '' : 's'} waiting for review.`;
+  if (count === 1) return '1 item is available to review when you want.';
+  return `${count} items are available to review when you want.`;
+}
+
+export function composeNamedLevelReminder(input: { symbol: string }): { title: string; body: string } {
+  const symbol = input.symbol.trim().toUpperCase();
+  return {
+    title: CALM_ATTENTION.researchReminderReady,
+    body: `${symbol} reached a level you named. ${CALM_ATTENTION.considerReviewing} the case — this is not a prompt to trade.`,
+  };
 }

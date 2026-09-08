@@ -110,24 +110,44 @@ export function usePersonalIntelligence(initialPeriod: DecisionGraphPeriod = 'we
     [lessons],
   );
 
-  const signature = [
-    memoryQuery.dataUpdatedAt,
-    journalCoachQuery.dataUpdatedAt,
-    briefQuery.dataUpdatedAt,
-    logSummary?.total ?? 0,
-    logSummary?.processScore ?? 0,
-    records?.length ?? 0,
-    journalEntries.length,
-    journalEntries.map((e) => e.id + e.updatedAt).join(','),
-    practicedCount,
-    academyRecommendation?.lesson.id ?? 'none',
-    debt.score,
-    selectedGoals.join(','),
-    uid,
-    decisionReinforcementEnabled ? 'r1' : 'r0',
-    profile.markets.join(','),
-    profile.experience ?? 'none',
-  ].join(':');
+  const signature = useMemo(
+    () =>
+      [
+        memoryQuery.dataUpdatedAt,
+        journalCoachQuery.dataUpdatedAt,
+        briefQuery.dataUpdatedAt,
+        logSummary?.total ?? 0,
+        logSummary?.processScore ?? 0,
+        records?.length ?? 0,
+        journalEntries.length,
+        journalEntries.map((e) => e.id + e.updatedAt).join(','),
+        practicedCount,
+        academyRecommendation?.lesson.id ?? 'none',
+        debt.score,
+        selectedGoals.join(','),
+        uid,
+        decisionReinforcementEnabled ? 'r1' : 'r0',
+        profile.markets.join(','),
+        profile.experience ?? 'none',
+      ].join(':'),
+    [
+      memoryQuery.dataUpdatedAt,
+      journalCoachQuery.dataUpdatedAt,
+      briefQuery.dataUpdatedAt,
+      logSummary?.total,
+      logSummary?.processScore,
+      records?.length,
+      journalEntries,
+      practicedCount,
+      academyRecommendation?.lesson.id,
+      debt.score,
+      selectedGoals,
+      uid,
+      decisionReinforcementEnabled,
+      profile.markets,
+      profile.experience,
+    ],
+  );
 
   const query = useQuery({
     queryKey: personalIntelligenceKeys.snapshot(signature, graphPeriod),

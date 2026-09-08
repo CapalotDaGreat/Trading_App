@@ -33,9 +33,11 @@ import { PremiumPreviewCard } from '@/features/subscription/components/PremiumPr
 import { ScreenScaffold } from '@/shared/components/layout/ScreenScaffold';
 import { CollapsibleSection } from '@/shared/components/patterns/CollapsibleSection';
 import { Button } from '@/shared/components/ui/Button';
-import { Chip } from '@/shared/components/ui/Chip';
+import { FilterChip } from '@/shared/components/ui/FilterChip';
 import { Surface } from '@/shared/components/ui/Surface';
 import { Text } from '@/shared/components/ui/Text';
+import { CALM_ATTENTION } from '@/shared/constants/trust-language';
+import { useOnlineStatus } from '@/shared/hooks/useOnlineStatus';
 import { trackEvent } from '@/shared/services/analytics';
 
 const EMPTY_GROWTH_EDGES: string[] = [];
@@ -73,7 +75,7 @@ function EpisodeRow({
             episode={episode}
             completed={progress.completedEpisodeIds.includes(episode.id)}
             bestProcess={progress.bestProcessByEpisode[episode.id]}
-            lockedHint={premiumLocked ? 'Premium library' : null}
+            lockedHint={premiumLocked ? CALM_ATTENTION.includedWithPremium : null}
             onPress={() => {
               if (isStarting) return;
               onBegin(episode.id);
@@ -114,6 +116,7 @@ export function ReplayTvHomeScreen() {
     isPremium,
   } = useReplayTv();
   const { profile } = useCoachProfile();
+  const { isOnline } = useOnlineStatus();
   const intelligence = usePersonalIntelligence();
   const growthEdges = intelligence.data?.dna.growthEdges ?? EMPTY_GROWTH_EDGES;
   const reinforcementTrait = intelligence.data?.reinforcement?.primaryPractice?.traitId;
@@ -133,6 +136,7 @@ export function ReplayTvHomeScreen() {
       experience: profile.experience,
       growthEdges: rankEdges,
       completedIds: progress.completedEpisodeIds,
+      practiceTraitId: reinforcementTrait ?? null,
     }),
     [
       profile.markets,
@@ -141,6 +145,7 @@ export function ReplayTvHomeScreen() {
       profile.experience,
       rankEdges,
       progress.completedEpisodeIds,
+      reinforcementTrait,
     ],
   );
 
@@ -209,6 +214,12 @@ export function ReplayTvHomeScreen() {
       <View className="gap-4">
         <EducationalModeBadge />
 
+        {!isOnline ? (
+          <Text variant="caption" className="text-text-tertiary">
+            Replay rooms are stored on this device. Educational sample tapes still work offline.
+          </Text>
+        ) : null}
+
         <Surface padding="md" tone="subtle" testID="replay-tv-intro">
           <Text variant="h3" headingLevel={2}>
             The future stays hidden until you commit.
@@ -228,9 +239,9 @@ export function ReplayTvHomeScreen() {
             }
             teaser={
               accessBlock.message ??
-              'Premium unlocks unlimited Replay TV sessions and the full historical library.'
+              'Premium includes unlimited Replay TV sessions and the full historical library.'
             }
-            ctaLabel="See Premium"
+            ctaLabel={CALM_ATTENTION.seePremium}
             testID="replay-tv-access-preview"
           />
         ) : null}
@@ -238,7 +249,7 @@ export function ReplayTvHomeScreen() {
         {activeSession && activeEpisode ? (
           <Surface tone="accent" emphasis="outlined">
             <Text variant="label" className="text-accent">
-              Continue watching
+              {CALM_ATTENTION.continueSession}
             </Text>
             <Text variant="h2" headingLevel={2} className="mt-2">
               {activeEpisode.title}
@@ -250,7 +261,7 @@ export function ReplayTvHomeScreen() {
               className="mt-4"
               onPress={() => router.push('/decision/replay-tv/session' as never)}
             >
-              Continue watching
+              {CALM_ATTENTION.continueSession}
             </Button>
             {accessBlock ? (
               <Button className="mt-2" variant="ghost" onPress={clearAccessBlock}>
@@ -274,23 +285,31 @@ export function ReplayTvHomeScreen() {
               disabled={isStarting}
               onPress={() => onBegin(recommended[0]!.id)}
             >
-              Start blind replay
+              Start process practice
             </Button>
           </Surface>
         ) : null}
 
-        <Surface padding="sm" tone="subtle">
-          <Text variant="label">Progress</Text>
-          <Text variant="body-sm" className="mt-1 text-text-secondary">
-            {progress.completedEpisodeIds.length}/{REPLAY_TV_EPISODES.length} episodes · streak{' '}
-            {progress.streakDays} day{progress.streakDays === 1 ? '' : 's'}
-          </Text>
-          <Text variant="caption" className="mt-2 text-text-tertiary">
-            Streaks celebrate process completion — never profits.
-          </Text>
-        </Surface>
-
-        <ReplayTvSkillProgressCard skills={skillProgress} />
+        <CollapsibleSection
+          title="Progress"
+          description="Completed rooms and process skills — never whether the tape paid."
+          defaultExpanded={false}
+          testID="replay-tv-progress"
+        >
+          <Surface padding="sm" tone="subtle">
+            <Text variant="label">Sessions completed</Text>
+            <Text variant="body-sm" className="mt-1 text-text-secondary">
+              {progress.completedEpisodeIds.length}/{REPLAY_TV_EPISODES.length} episodes · streak{' '}
+              {progress.streakDays} day{progress.streakDays === 1 ? '' : 's'}
+            </Text>
+            <Text variant="caption" className="mt-2 text-text-tertiary">
+              Streaks celebrate process completion — never profits.
+            </Text>
+          </Surface>
+          <View className="mt-3">
+            <ReplayTvSkillProgressCard skills={skillProgress} />
+          </View>
+        </CollapsibleSection>
 
         <CollapsibleSection
           title="Find a room"
@@ -308,10 +327,12 @@ export function ReplayTvHomeScreen() {
                   ['advanced', 'Advanced'],
                 ] as const
               ).map(([id, label]) => (
-                <Chip
+                <FilterChip
                   key={id}
                   label={label}
                   selected={difficultyFilter === id}
+                  accessibilityRole="tab"
+                  accessibilityLabel={`${label} difficulty`}
                   onPress={() => {
                     setDifficultyFilter(id);
                     if (id !== 'all') {
@@ -335,10 +356,12 @@ export function ReplayTvHomeScreen() {
                   ['macro', 'Macro'],
                 ] as const
               ).map(([id, label]) => (
-                <Chip
+                <FilterChip
                   key={id}
                   label={label}
                   selected={marketFilter === id}
+                  accessibilityRole="tab"
+                  accessibilityLabel={`${label} market`}
                   onPress={() => setMarketFilter(id)}
                 />
               ))}
@@ -357,10 +380,12 @@ export function ReplayTvHomeScreen() {
                   ['patience', 'Patience'],
                 ] as const
               ).map(([id, label]) => (
-                <Chip
+                <FilterChip
                   key={id}
                   label={label}
                   selected={themeFilter === id}
+                  accessibilityRole="tab"
+                  accessibilityLabel={`${label} theme`}
                   onPress={() => setThemeFilter(id)}
                 />
               ))}
@@ -420,7 +445,7 @@ export function ReplayTvHomeScreen() {
             />
             <EpisodeRow
               title="Masterclass"
-              description="Advanced historical rooms — Premium library."
+              description="Advanced historical rooms — included with Premium."
               episodes={masterclass}
               progress={progress}
               isStarting={isStarting}
@@ -478,7 +503,7 @@ export function ReplayTvHomeScreen() {
                       bestProcess={progress.bestProcessByEpisode[episode.id]}
                       lockedHint={
                         !isPremium && episodeRequiresPremium(episode)
-                          ? 'Premium library'
+                          ? CALM_ATTENTION.includedWithPremium
                           : null
                       }
                       onPress={() => onBegin(episode.id)}

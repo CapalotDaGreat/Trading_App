@@ -12,16 +12,16 @@ import { primaryPracticeForTrait } from './dna-coaching-actions.service';
 import { formatWhyBullets, formatWhySummary } from './dna-evidence.service';
 
 const IMPROVING_OBSERVATION: Partial<Record<TradingDnaTraitId, string>> = {
-  invalidationDiscipline: 'You increasingly define invalidation before committing.',
-  patience: 'You are waiting more often when the case is mixed.',
-  evidenceDiscipline: 'You collect more structure evidence before deepening research.',
-  confirmationResistance: 'You are committing less often just to gather extra confirmation.',
-  decisionStamina: 'You are closing more loops instead of opening extra symbols.',
-  uncertaintyHandling: 'You name uncertainty more often instead of forcing a call.',
-  researchEfficiency: 'Your research blocks are staying more purposeful.',
-  adaptability: 'You revise the case more often when evidence changes.',
-  reflectionQuality: 'You close more research loops with a written process note.',
-  processConsistency: 'Your brief → research or skip → journal cadence is steadier.',
+  invalidationDiscipline: 'Showing signs of improvement: defining invalidation before committing.',
+  patience: 'Showing signs of improvement: waiting more often when evidence is incomplete.',
+  evidenceDiscipline: 'Showing signs of improvement: collecting structure evidence before deepening research.',
+  confirmationResistance: 'Showing signs of improvement: committing less often just to gather extra confirmation.',
+  decisionStamina: 'Showing signs of improvement: closing more loops instead of opening extra symbols.',
+  uncertaintyHandling: 'Showing signs of improvement: naming uncertainty instead of forcing a call.',
+  researchEfficiency: 'Showing signs of improvement: research blocks staying more purposeful.',
+  adaptability: 'Showing signs of improvement: revising the case when evidence changes.',
+  reflectionQuality: 'Showing signs of improvement: closing more research loops with a written process note.',
+  processConsistency: 'Showing signs of improvement: brief → research or skip → journal cadence is steadier.',
 };
 
 const DEVELOPING_HABIT: Partial<Record<TradingDnaTraitId, string>> = {

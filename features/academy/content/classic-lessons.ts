@@ -19,6 +19,95 @@ function lesson(
 /** Classic trading school — mechanics, TA, fundamentals, options, crypto. */
 export const CLASSIC_LESSONS: Lesson[] = [
   lesson({
+    id: 'foundations-market',
+    title: 'What a market actually is',
+    description: 'A usable model of buyers, sellers, and why a quote is not a promise.',
+    category: 'basics',
+    difficulty: 'beginner',
+    durationMinutes: 10,
+    track: 'classic',
+    sortOrder: 5,
+    isPremium: false,
+    tags: ['foundations', 'market', 'bid', 'ask', 'liquidity'],
+    searchKeywords: ['what is a market', 'bid ask', 'liquidity', 'spread', 'exchange'],
+    relatedLessonIds: ['basics-orders', 'ta-candles'],
+    practiceLinks: [
+      {
+        label: 'Practice · Identify the trend',
+        href: '/practice?drill=identify-trend',
+        description: 'Read structure on an educational chart',
+      },
+      {
+        label: 'Apply in simulation',
+        href: '/simulate',
+        description: 'Place a tiny simulated order only after naming the bid/ask idea',
+      },
+    ],
+    commonMistakes: [
+      'Treating the last print as a guaranteed next price.',
+      'Ignoring that a wide spread is a cost, not a rounding error.',
+    ],
+    whenItWorks: ['You need a mental model before indicators or news.'],
+    whenItFails: ['The model does not tell you what happens next — only how matching works.'],
+    sections: [
+      {
+        heading: 'Learning objectives',
+        body: 'By the end you can explain, in one sentence, how a trade happens, why bid and ask differ, and why liquidity changes how “the price” feels.',
+      },
+      {
+        heading: 'Why this matters',
+        body: 'Charts are a recording of matched orders. If you skip the matching story, every later tool becomes a fortune-telling gadget.\n\nTradeAcademy is not a broker. This lesson is so you can practice reading a market, not so you can send live orders.',
+      },
+      {
+        heading: 'Core explanation',
+        body: 'A market is a matching engine: someone willing to buy at a price meets someone willing to sell. The bid is the best advertised buy; the ask is the best advertised sell. The last trade is history, not a contract that the next trade must occur there.\n\nLiquidity is how much size you can transact without walking the book. In a thin name, your own simulated size would move the picture; in a deep name, it would not.',
+      },
+      {
+        heading: 'Visual / chart link',
+        body: 'A candle is four prints (open, high, low, close) over a chosen window. It compresses many bids and asks into a rectangle. That is useful — and it hides the order book. Do not confuse a clean candle with a liquid market.',
+      },
+      {
+        heading: 'Practical example',
+        body: 'You want to “buy at 100.” If the ask is 100.40 with little size, a marketable buy pays 100.40+ and may slip. A limit at 100 may never fill. Neither outcome is a moral failure; it is the matching rule you chose.',
+        callout: {
+          type: 'practice',
+          text: 'Say out loud: “I am paying the ask / I am waiting on the bid” before any simulated order.',
+        },
+      },
+      {
+        heading: 'Common mistakes',
+        body: 'Calling the last price “the market.” Ignoring spread as a cost. Assuming an indicator can override an empty book.',
+      },
+      {
+        heading: 'When the idea fails',
+        body: 'Halts, gaps, and auctions change matching. Overnight and weekend crypto sessions are not the same as a primary equity auction. The model still helps; the details change.',
+      },
+      {
+        heading: 'Key takeaways',
+        body: 'Price is a meeting, not a prophecy. Spread and depth are part of the decision. Simulated fills in this app still teach the language — they do not prove a live fill.',
+      },
+    ],
+    keyTakeaways: [
+      'A market matches willing buyers and sellers; the last print is history.',
+      'Bid/ask and liquidity are costs and constraints, not decoration.',
+      'Charts summarise matching. They do not guarantee the next trade.',
+    ],
+    quiz: [
+      {
+        id: 'q1',
+        prompt: 'You need to buy immediately. Which description is most accurate?',
+        choices: [
+          'You transact at last price by definition',
+          'You are lifting the ask and may pay more than the last print',
+          'The bid will fill you because you are a buyer',
+          'An oscillator decides the fill price',
+        ],
+        correctIndex: 1,
+        explanation: 'Immediate buys typically lift the ask. Last price is not a fill guarantee.',
+      },
+    ],
+  }),
+  lesson({
     id: 'basics-orders',
     title: 'Order types that actually matter',
     description: 'Market, limit, stop, and stop-limit — with failure modes.',
@@ -183,7 +272,9 @@ export const CLASSIC_LESSONS: Lesson[] = [
     track: 'classic',
     sortOrder: 23,
     isPremium: false,
-    tags: ['structure', 'levels', 'swings'],
+    tags: ['structure', 'levels', 'swings', 'support', 'resistance'],
+    searchKeywords: ['support', 'resistance', 'higher high', 'retest', 'rejection'],
+    prerequisiteIds: ['ta-candles'],
     relatedLessonIds: ['ta-trend-range', 'dec-invalidation', 'ta-mtf'],
     practiceLinks: [
       { label: 'Chart Replay', href: '/decision/replay' },
@@ -197,6 +288,25 @@ export const CLASSIC_LESSONS: Lesson[] = [
       {
         heading: 'Structure first',
         body: 'Markets advertise willingness to buy or sell at prior auction areas. Support/resistance are zones of interest, not laser lines. Higher highs / higher lows describe uptrends; the opposite describes downtrends; overlapping swings describe balance.',
+        chart: {
+          id: 'sr-zones',
+          kind: 'support_resistance',
+          title: 'Support, resistance, hold, and break',
+          caption:
+            'Educational example. Zones, a hold at support, then a later break. This is not a live chart.',
+          exercise: {
+            prompt: 'The labelled support zone is most useful as…',
+            choices: [
+              'An exact price that cannot break',
+              'An area of prior demand to watch for hold, failure, or retest',
+              'A buy signal',
+              'Proof the next breakout will work',
+            ],
+            correctIndex: 1,
+            explanation:
+              'Zones describe where auction previously changed. What happens next still needs acceptance and invalidation.',
+          },
+        },
       },
       {
         heading: 'Invalidation lives on structure',
@@ -233,13 +343,34 @@ export const CLASSIC_LESSONS: Lesson[] = [
     track: 'classic',
     sortOrder: 24,
     isPremium: false,
-    tags: ['candles', 'patterns', 'context'],
+    tags: ['candles', 'patterns', 'context', 'ohlc'],
+    searchKeywords: ['candlestick', 'wick', 'body', 'bullish', 'bearish', 'doji'],
+    prerequisiteIds: ['ta-structure'],
     relatedLessonIds: ['ta-structure', 'ta-volume', 'dec-regime'],
     practiceLinks: [{ label: 'Chart Replay', href: '/decision/replay' }],
     sections: [
       {
         heading: 'Candles are compression of auction',
         body: 'Open, high, low, close summarize who won the period. Long wicks show rejection; wide ranges show expansion; dojis show balance. Memorizing 30 named patterns without location is trivia.',
+        chart: {
+          id: 'candle-anatomy',
+          kind: 'candles',
+          title: 'Bodies, wicks, and range',
+          caption:
+            'Educational example. Bullish and bearish closes, wicks, and a wide-range bar. Not live data.',
+          exercise: {
+            prompt: 'A long lower wick at a relevant support zone most usefully suggests…',
+            choices: [
+              'A guaranteed reversal',
+              'Buyers defended that area during the period — still check location and follow-through',
+              'You should buy',
+              'The timeframe does not matter',
+            ],
+            correctIndex: 1,
+            explanation:
+              'Wicks describe rejection inside that bar. Meaning still depends on location, volume, and what happens next.',
+          },
+        },
       },
       {
         heading: 'Context stack',
@@ -281,7 +412,8 @@ export const CLASSIC_LESSONS: Lesson[] = [
     track: 'classic',
     sortOrder: 25,
     isPremium: false,
-    tags: ['trend', 'range', 'playbook'],
+    tags: ['trend', 'range', 'playbook', 'breakout'],
+    searchKeywords: ['higher high', 'breakout', 'failed breakout', 'pullback'],
     relatedLessonIds: ['dec-regime', 'ta-structure', 'ta-mtf'],
     practiceLinks: [
       { label: 'Market condition', href: '/decision/regime' },
@@ -296,10 +428,35 @@ export const CLASSIC_LESSONS: Lesson[] = [
       {
         heading: 'Trend playbook',
         body: 'Prefer pullbacks to structure in the direction of the trend. Be patient; fading strength is usually expensive. Trail or scale using structure rather than hope.',
+        chart: {
+          id: 'trend-hhhl',
+          kind: 'trend',
+          title: 'Higher highs and higher lows',
+          caption: 'Educational example of an uptrend structure. Use it to practise naming swings — not to copy a trade.',
+        },
       },
       {
         heading: 'Range playbook',
         body: 'Fade extremes toward mean with tight invalidation beyond the range boundary. Treat breakouts as guilty until proven — wait for acceptance (holds, retests) if you trade continuation.',
+        chart: {
+          id: 'breakout-retest',
+          kind: 'breakout',
+          title: 'Range, break, failure, then acceptance',
+          caption:
+            'Educational example. First break fails; a later break holds. Confirmation is behaviour, not a single tick.',
+          exercise: {
+            prompt: 'The first labelled break is most honestly described as…',
+            choices: [
+              'A confirmed trend that must be traded',
+              'A break that still needed acceptance — here it failed to hold',
+              'Proof breakouts never work',
+              'Live market data',
+            ],
+            correctIndex: 1,
+            explanation:
+              'Breaks fail often until price holds beyond the range and, ideally, retests. Process over prediction.',
+          },
+        },
         callout: {
           type: 'tip',
           text: 'If you cannot tell trend from range in 10 seconds, reduce size or stand aside.',
@@ -339,6 +496,24 @@ export const CLASSIC_LESSONS: Lesson[] = [
       {
         heading: 'Participation matters',
         body: 'Price moves on thin volume are easier to reverse. Breakouts with expanding volume suggest broader agreement; breakouts on dying volume deserve skepticism.\n\nVolume is not magic — it is one confirmation layer behind structure and regime.',
+        chart: {
+          id: 'volume-expansion',
+          kind: 'volume',
+          title: 'Expansion versus contraction',
+          caption:
+            'Educational example. Quiet range, then volume expansion on the advance, then contraction. Not a live tape.',
+          exercise: {
+            prompt: 'A breakout printed on unusually light volume is best treated as…',
+            choices: [
+              'Maximum confidence',
+              'Weaker evidence — ask for acceptance or more participation',
+              'A guaranteed trend',
+              'A reason to ignore structure',
+            ],
+            correctIndex: 1,
+            explanation: 'Light participation often means weak agreement. Volume still sits behind structure and risk.',
+          },
+        },
       },
       {
         heading: 'Climaxes and dry-ups',

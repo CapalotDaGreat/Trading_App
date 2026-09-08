@@ -31,7 +31,20 @@ export function ReplayTvEpisodeCard({
     <Pressable
       onPress={onPress}
       accessibilityRole="button"
-      accessibilityLabel={`Open Replay TV episode ${episode.title}`}
+      accessibilityLabel={[
+        `Open Replay TV episode ${episode.title}`,
+        episode.eraLabel,
+        episode.symbolLabel,
+        `${episode.durationMinutes} minutes`,
+        DIFFICULTY_LABEL[episode.difficulty],
+        completed ? 'Completed' : null,
+        bestProcess != null ? `Best decision quality score ${bestProcess}` : null,
+        lockedHint,
+        'Blind tape. Outcome hidden.',
+      ]
+        .filter(Boolean)
+        .join('. ')}
+      accessibilityHint="Starts or resumes a blind educational replay. Future prices stay hidden."
       testID={`replay-tv-episode-${episode.id}`}
     >
       <GlassCard className="p-4" bordered>

@@ -2,34 +2,17 @@ import { AppState, type AppStateStatus, Platform } from 'react-native';
 import { focusManager, onlineManager, QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { type ReactNode, useEffect, useState } from 'react';
 
-import { MARKET_DATA_POLICY } from '@/features/markets/constants/freshness';
+import { subscribeReachability } from '@/shared/services/network/reachability';
 
-const GC_TIME = 5 * 60 * 1000;
-
-async function probeOnline(): Promise<boolean> {
-  if (Platform.OS === 'web' && typeof navigator !== 'undefined' && 'onLine' in navigator) {
-    return navigator.onLine;
-  }
-  try {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 3500);
-    await fetch('https://clients3.google.com/generate_204', {
-      method: 'HEAD',
-      cache: 'no-store',
-      signal: controller.signal,
-    });
-    clearTimeout(timer);
-    return true;
-  } catch {
-    return false;
-  }
-}
+const GC_TIME = 15 * 60 * 1000;
+/** Coaching / journal / settings default. Market hooks keep quoteStaleMs. */
+const DEFAULT_STALE_MS = 30_000;
 
 function createQueryClient(): QueryClient {
   return new QueryClient({
     defaultOptions: {
       queries: {
-        staleTime: MARKET_DATA_POLICY.quoteStaleMs,
+        staleTime: DEFAULT_STALE_MS,
         gcTime: GC_TIME,
         retry: (failureCount, error) => {
           const message = String((error as { message?: string })?.message ?? '').toLowerCase();
@@ -39,8 +22,8 @@ function createQueryClient(): QueryClient {
           return failureCount < 2;
         },
         refetchOnWindowFocus: false,
-        // Reconnect refetch is gated by onlineManager; market hooks keep their own staleTime.
         refetchOnReconnect: true,
+        placeholderData: (previousData: unknown) => previousData,
       },
       mutations: {
         retry: 1,
@@ -68,35 +51,7 @@ export function QueryProvider({ children }: QueryProviderProps) {
   }, []);
 
   useEffect(() => {
-    onlineManager.setEventListener((setOnline) => {
-      let cancelled = false;
-      const push = async () => {
-        const online = await probeOnline();
-        if (!cancelled) setOnline(online);
-      };
-      void push();
-      const interval = setInterval(() => void push(), 30_000);
-      const appSub = AppState.addEventListener('change', (status) => {
-        if (status === 'active') void push();
-      });
-
-      const onWebOnline = () => setOnline(true);
-      const onWebOffline = () => setOnline(false);
-      if (Platform.OS === 'web' && typeof window !== 'undefined') {
-        window.addEventListener('online', onWebOnline);
-        window.addEventListener('offline', onWebOffline);
-      }
-
-      return () => {
-        cancelled = true;
-        clearInterval(interval);
-        appSub.remove();
-        if (Platform.OS === 'web' && typeof window !== 'undefined') {
-          window.removeEventListener('online', onWebOnline);
-          window.removeEventListener('offline', onWebOffline);
-        }
-      };
-    });
+    onlineManager.setEventListener((setOnline) => subscribeReachability(setOnline));
   }, []);
 
   return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;

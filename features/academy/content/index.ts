@@ -1,12 +1,52 @@
-import type { Lesson, LearningPath, TradingChecklist } from '../types/academy.types';
+import type { Lesson, LearningPath, PracticeLink, TradingChecklist } from '../types/academy.types';
 
+import { CHART_LESSONS } from './chart-lessons';
 import { CLASSIC_LESSONS } from './classic-lessons';
 import { DECISION_LESSONS } from './decision-lessons';
+import { FLAGSHIP_LESSONS } from './flagship-lessons';
+import { FLAGSHIP_PROCESS_LESSONS } from './flagship-process-lessons';
 import { DEFAULT_CHECKLISTS, LEARNING_PATHS } from './paths-and-checklists';
 
-export const ALL_LESSONS: Lesson[] = [...DECISION_LESSONS, ...CLASSIC_LESSONS].sort(
-  (a, b) => a.sortOrder - b.sortOrder,
-);
+const DEFAULT_PRACTICE: PracticeLink = {
+  label: 'Practice this skill',
+  href: '/practice',
+  description: 'A short judgment drill. Reasoning first, not a predicted tick.',
+};
+
+const DEFAULT_SIMULATION: PracticeLink = {
+  label: 'Apply in simulated trading',
+  href: '/simulate',
+  description: 'Paper capital only. Simulated P/L does not grade the decision.',
+};
+
+function ensureAcademyLoop(lesson: Lesson): Lesson {
+  const practiceLinks = lesson.practiceLinks.length ? lesson.practiceLinks : [DEFAULT_PRACTICE];
+  const hasSimulate =
+    Boolean(lesson.simulationLinks?.length) ||
+    practiceLinks.some((link) => /simulate/i.test(`${link.href} ${link.label}`));
+  return {
+    ...lesson,
+    practiceLinks,
+    simulationLinks: hasSimulate
+      ? lesson.simulationLinks?.length
+        ? lesson.simulationLinks
+        : [DEFAULT_SIMULATION]
+      : [DEFAULT_SIMULATION],
+    journalHref: lesson.journalHref ?? '/journal?from=academy',
+    learningObjectives: lesson.learningObjectives?.length ? lesson.learningObjectives : [lesson.description],
+    whyItMatters: lesson.whyItMatters ?? lesson.description,
+  };
+}
+
+export const ALL_LESSONS: Lesson[] = [
+  ...DECISION_LESSONS,
+  ...CLASSIC_LESSONS,
+  ...CHART_LESSONS,
+  ...FLAGSHIP_LESSONS,
+  ...FLAGSHIP_PROCESS_LESSONS,
+]
+  .map(ensureAcademyLoop)
+  .sort((a, b) => a.sortOrder - b.sortOrder || a.title.localeCompare(b.title));
 
 export { DEFAULT_CHECKLISTS, LEARNING_PATHS };
 

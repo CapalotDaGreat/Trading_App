@@ -75,6 +75,8 @@ export function Button({
   const { colors } = useTheme();
   const isDisabled = disabled || loading;
   const minTouch = getMinTouchTargetSize();
+  const defaultLabel = typeof children === 'string' ? children : undefined;
+  const spokenLabel = accessibilityLabel ?? defaultLabel;
   const interaction = useInteractivePress({
     disabled: isDisabled,
     haptic: haptic ? 'impact' : 'none',
@@ -86,9 +88,7 @@ export function Button({
   return (
     <AnimatedPressable
       accessibilityRole="button"
-      accessibilityLabel={
-        accessibilityLabel ?? (typeof children === 'string' ? children : undefined)
-      }
+      accessibilityLabel={loading && spokenLabel ? `${spokenLabel}. Loading` : spokenLabel}
       accessibilityState={{
         ...accessibilityState,
         disabled: isDisabled,
@@ -100,7 +100,7 @@ export function Button({
       onPressOut={interaction.handlePressOut}
       style={[interaction.animatedStyle, { minHeight: minTouch }]}
       className={cn(
-        'flex-row items-center justify-center',
+        'flex-row flex-wrap items-center justify-center py-2',
         variantStyles[variant],
         sizeStyles[size],
         fullWidth && 'w-full',

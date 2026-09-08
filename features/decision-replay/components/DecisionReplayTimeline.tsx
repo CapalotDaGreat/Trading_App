@@ -35,7 +35,7 @@ export function DecisionReplayTimeline({
   return (
     <View className="rounded-2xl bg-background-elevated p-4">
       <Text variant="caption" className="mb-3 font-semibold text-text-tertiary">
-        DECISION TIMELINE
+        Decision timeline
       </Text>
       {frames.map((frame, index) => {
         const active = index === activeIndex;

@@ -1,4 +1,4 @@
-import { Pressable, ScrollView } from 'react-native';
+import { Pressable, View } from 'react-native';
 
 import { Text } from '@/shared/components/ui/Text';
 import { cn } from '@/shared/utils/cn';
@@ -14,11 +14,10 @@ interface AiAnswerModeBarProps {
 
 export function AiAnswerModeBar({ value, onChange, disabled = false }: AiAnswerModeBarProps) {
   return (
-    <ScrollView
-      horizontal
-      showsHorizontalScrollIndicator={false}
+    <View
+      accessibilityRole="tablist"
       testID="ai-answer-mode-bar"
-      contentContainerStyle={{ gap: 8, paddingVertical: 2 }}
+      className="flex-row flex-wrap gap-2 py-0.5"
     >
       {AI_ANSWER_MODES.map((mode) => {
         const selected = mode.value === value;
@@ -27,11 +26,11 @@ export function AiAnswerModeBar({ value, onChange, disabled = false }: AiAnswerM
             key={mode.value}
             disabled={disabled}
             onPress={() => onChange(mode.value)}
-            accessibilityRole="button"
+            accessibilityRole="tab"
             accessibilityState={{ selected, disabled }}
             accessibilityLabel={`${mode.label} answer mode`}
             className={cn(
-              'min-h-11 justify-center rounded-full border px-3',
+              'min-h-11 justify-center rounded-full border px-3 py-2',
               selected ? 'border-accent bg-accent-muted' : 'border-border bg-surface-glass',
               disabled && 'opacity-50',
             )}
@@ -42,6 +41,6 @@ export function AiAnswerModeBar({ value, onChange, disabled = false }: AiAnswerM
           </Pressable>
         );
       })}
-    </ScrollView>
+    </View>
   );
 }

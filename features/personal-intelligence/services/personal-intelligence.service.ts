@@ -17,6 +17,7 @@ import type {
 import { buildDecisionHeatmap } from '@/features/decision-heatmap/services/heatmap.service';
 import type { HeatmapLearningEvent } from '@/features/decision-heatmap/types/heatmap.types';
 import { greetingForResearchTime } from '@/features/onboarding/services/coach-personalisation.service';
+import { performanceDiagnostics } from '@/shared/services/performance';
 
 import type {
   CoachingReference,
@@ -133,6 +134,7 @@ export interface PersonalIntelligenceInput {
 export function buildPersonalIntelligence(
   input: PersonalIntelligenceInput,
 ): PersonalIntelligenceSnapshot {
+  return performanceDiagnostics.measure('dna.build', () => {
   const nowMs = input.nowMs ?? Date.now();
   const records = input.records ?? [];
   const heatmap = buildDecisionHeatmap({
@@ -271,4 +273,5 @@ export function buildPersonalIntelligence(
     mentorSummary,
     reinforcement,
   };
+  });
 }

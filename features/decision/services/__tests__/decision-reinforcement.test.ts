@@ -187,7 +187,7 @@ describe('Phase 11 decision reinforcement layer', () => {
       uid: 'cue-user',
       reinforcement: snap,
     });
-    expect(today.todayCue?.toLowerCase()).toMatch(/invalidation/);
+    expect(today.todayCue?.toLowerCase()).toMatch(/invalidat/);
     expect(today.todayCue?.toLowerCase()).not.toMatch(/failed|falling behind|ignored/);
     const cueIds = (today.dnaAdaptations ?? []).filter(
       (id) => id.endsWith('_cue') || id.startsWith('insight_') || id.startsWith('reinforcement_'),
@@ -414,6 +414,222 @@ describe('Phase 11 decision reinforcement layer', () => {
       nowMs: NOW,
     });
     expect(snap.observations).toEqual([]);
+  });
+
+  it('S. Replay wait + missing invalidation → Mentor known vs inferred, never a diagnosis', () => {
+    const waitNote =
+      'Replay TV · Demo · process 70 · rtv:ckpt:10 rtv:ckpt_wait:6 rtv:ckpt_miss_inv:6 rtv:wait rtv:patience';
+    const records = [
+      record('skipped', 1),
+      record('skipped', 2),
+      record('replay_completed', 1, { note: waitNote }),
+      record('replay_completed', 3, { note: waitNote }),
+      record('journaled', 1),
+    ];
+    const dna = dnaWith(records);
+    const patience = dna.traits.find((t) => t.id === 'patience');
+    if (patience) {
+      patience.status = 'scored';
+      patience.score = 64;
+      patience.trend = 'up';
+      patience.longitudinalTrend = 'improving';
+    }
+    const snap = composeDecisionReinforcement({
+      dna,
+      records,
+      nowMs: NOW,
+    });
+    expect(snap.mentorContext.known.join(' ')).toMatch(/WAIT in 12 of the last 20 replay checkpoints/i);
+    expect(snap.mentorContext.inference.join(' ').toLowerCase()).toMatch(
+      /may indicate improving patience|invalidation is still inconsistent/,
+    );
+    expect(JSON.stringify(snap.mentorContext).toLowerCase()).not.toMatch(
+      /you are an impatient trader|anxious trader|you have fomo/,
+    );
+    const mentor = buildDnaMentorSummary({
+      dna,
+      whatsChanging: [],
+      uid: 'demo-guest',
+      nowMs: NOW,
+      reinforcement: snap,
+    });
+    expect(mentor.known?.join(' ')).toMatch(/WAIT in 12 of the last 20/i);
+    expect(mentor.inference?.join(' ').toLowerCase()).not.toMatch(/you are an impatient/);
+  });
+
+  it('T. Replay decision feeds DNA as one session, not checkpoint identity rewrite', () => {
+    const episode = getReplayTvEpisode('covid-crash')!;
+    const note = buildReplayTvDecisionLogNote({
+      episode,
+      processQuality: 72,
+      evidenceQuality: 60,
+      invalidationClarity: 40,
+      patience: 55,
+      namedInvalidation: false,
+      decisions: Array.from({ length: 8 }, (_, i) => ({
+        checkpointId: `c${i}`,
+        decision: 'wait' as const,
+        reasoning: 'PRIVATE_REASONING_SHOULD_NOT_LEAK',
+        at: NOW,
+      })),
+    });
+    expect(note).toContain('rtv:ckpt_wait:8');
+    const dna = dnaWith([
+      record('skipped', 1),
+      record('skipped', 2),
+      record('replay_completed', 1, { note }),
+      record('journaled', 1),
+    ]);
+    const patience = dna.traits.find((t) => t.id === 'patience');
+    const replayEvidence = patience?.evidence.find((e) => e.source === 'replay');
+    expect(replayEvidence?.count).toBe(1);
+  });
+
+  it('U. process gap maps to the existing Academy invalidation lesson', () => {
+    const records = [
+      record('skipped', 1),
+      record('replay_completed', 1, {
+        note: 'Replay TV · Demo · process 70 · rtv:ckpt:4 rtv:ckpt_wait:4 rtv:ckpt_miss_inv:4 rtv:wait',
+      }),
+    ];
+    const snap = composeDecisionReinforcement({
+      dna: dnaWith(records),
+      records,
+      nowMs: NOW,
+    });
+    expect(snap.academyLesson?.lessonId).toBe('dec-invalidation');
+    expect(snap.primaryPractice?.traitId).toBe('invalidationDiscipline');
+  });
+
+  it('V. practicing the gap removes or changes the Today cue', () => {
+    const gapNote =
+      'Replay TV · Demo · process 68 · rtv:ckpt:3 rtv:ckpt_wait:3 rtv:ckpt_miss_inv:3 rtv:wait';
+    const practicedNote =
+      'Replay TV · Demo · process 74 · rtv:ckpt:3 rtv:ckpt_wait:3 rtv:ckpt_named:3 rtv:wait rtv:invalidation_named';
+    const before = composeDecisionReinforcement({
+      dna: dnaWith([
+        record('skipped', 1),
+        record('replay_completed', 2, { note: gapNote }),
+        record('journaled', 2),
+      ]),
+      records: [
+        record('skipped', 1),
+        record('replay_completed', 2, { note: gapNote }),
+        record('journaled', 2),
+      ],
+      nowMs: NOW,
+    });
+    expect(before.todayCue?.text.toLowerCase()).toMatch(/invalidate/);
+
+    const afterRecords = [
+      record('skipped', 1),
+      record('replay_completed', 5, { note: gapNote }),
+      record('replay_completed', 1, { note: practicedNote }),
+      record('journaled', 1),
+    ];
+    const after = composeDecisionReinforcement({
+      dna: dnaWith(afterRecords),
+      records: afterRecords,
+      nowMs: NOW,
+    });
+    expect(after.todayCue?.text.toLowerCase() ?? '').not.toMatch(/invalidate your thesis/);
+  });
+
+  it('W. insufficient evidence does not claim improvement', () => {
+    const records = [record('replay_completed', 1, { note: 'rtv:wait' })];
+    const snap = composeDecisionReinforcement({
+      dna: composeTradingDna({ memory, records, nowMs: NOW }),
+      records,
+      nowMs: NOW,
+    });
+    const inference = snap.mentorContext.inference.join(' ').toLowerCase();
+    expect(inference).not.toMatch(/improving patience/);
+    expect(inference).toMatch(/not enough|one event|small sample/);
+    expect(JSON.stringify(snap)).not.toMatch(/patience increased \d+%/i);
+  });
+
+  it('X. Today still emits at most one cue and never manufactures one', () => {
+    const records = [
+      record('skipped', 1),
+      record('replay_completed', 1, {
+        note: 'Replay TV · Demo · process 70 · rtv:ckpt:4 rtv:ckpt_wait:4 rtv:ckpt_miss_inv:4 rtv:wait',
+      }),
+    ];
+    const snap = composeDecisionReinforcement({
+      dna: dnaWith(records),
+      records,
+      nowMs: NOW,
+    });
+    expect(snap.todayCue).toBeTruthy();
+    const today = buildPersonalizedToday({
+      dna: dnaWith(records),
+      nowMs: NOW,
+      uid: 'one-cue',
+      reinforcement: snap,
+    });
+    expect(today.todayCue).toBe(snap.todayCue?.text);
+    const cueIds = (today.dnaAdaptations ?? []).filter(
+      (id) => id.endsWith('_cue') || id.startsWith('insight_') || id.startsWith('reinforcement_'),
+    );
+    expect(cueIds.length).toBeLessThanOrEqual(1);
+
+    const empty = composeDecisionReinforcement({
+      dna: composeTradingDna({ memory, records: [], nowMs: NOW }),
+      records: [],
+      nowMs: NOW,
+    });
+    expect(empty.todayCue).toBeNull();
+  });
+
+  it('Y. journal bodies and private reasoning never leak into the snapshot', () => {
+    const episode = getReplayTvEpisode('covid-crash')!;
+    const note = buildReplayTvDecisionLogNote({
+      episode,
+      processQuality: 70,
+      evidenceQuality: 50,
+      invalidationClarity: 40,
+      patience: 55,
+      namedInvalidation: false,
+      decisions: [
+        {
+          checkpointId: 'c1',
+          decision: 'wait',
+          reasoning: 'PRIVATE_REASONING_SHOULD_NOT_LEAK',
+          structured: {
+            thesis: 'SECRET_THESIS',
+            evidence: 'SECRET_EVIDENCE',
+            invalidation: '',
+            confidence: 2,
+            mainUncertainty: 'SECRET_UNCERTAINTY',
+          },
+          at: NOW,
+        },
+      ],
+    });
+    const records = [
+      record('journaled', 1, { note: 'SECRET_JOURNAL_BODY dear diary I bought calls' }),
+      record('replay_completed', 1, { note }),
+    ];
+    const snap = composeDecisionReinforcement({ dna: dnaWith(records), records, nowMs: NOW });
+    const blob = JSON.stringify(snap);
+    expect(blob).not.toContain('SECRET_JOURNAL_BODY');
+    expect(blob).not.toContain('SECRET_THESIS');
+    expect(blob).not.toContain('PRIVATE_REASONING');
+    expect(note).not.toContain('SECRET_THESIS');
+  });
+
+  it('Z. reinforcement composer does not import analytics', () => {
+    const fs = require('fs') as typeof import('fs');
+    const path = require('path') as typeof import('path');
+    const files = [
+      path.join(__dirname, '../decision-reinforcement.service.ts'),
+      path.join(__dirname, '../decision-reinforcement-log.service.ts'),
+      path.join(__dirname, '../decision-reinforcement-academy.service.ts'),
+    ];
+    for (const file of files) {
+      const src = fs.readFileSync(file, 'utf8');
+      expect(src).not.toMatch(/trackEvent|analytics\/events|ANALYTICS_EVENTS/);
+    }
   });
 
   it('Trusted AI keeps Known vs Interpretation when DNA context is attached', () => {

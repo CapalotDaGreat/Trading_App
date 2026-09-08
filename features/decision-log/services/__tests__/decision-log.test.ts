@@ -91,4 +91,17 @@ describe('decision log outcomes', () => {
 
     expect(countExplicitDecisionOutcomes(records, NOW - 86_400_000)).toBe(3);
   });
+
+  it('summarizes a large local log without a second record walk for callers', () => {
+    const records = Array.from({ length: 300 }, (_, i) =>
+      record(`r${i}`, i % 2 === 0 ? 'researched' : 'skipped', {
+        createdAt: NOW - (i % 3) * 1000,
+      }),
+    );
+    const started = performance.now();
+    const summary = summarizeDecisionLog(records);
+    const elapsed = performance.now() - started;
+    expect(summary.total).toBeGreaterThan(0);
+    expect(elapsed).toBeLessThan(50);
+  });
 });

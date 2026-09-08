@@ -31,6 +31,7 @@ import {
 
 import { completeOnboarding } from './onboarding-completion.service';
 import { clearMentorSetupDraft } from './mentor-setup-draft.service';
+import { recommendResearchUniverse } from './research-universe.catalog';
 
 const PROFILE_KEY_PREFIX = 'tradevision:coach-profile:v1';
 const RESEARCH_UNIVERSE_LIST = 'My research universe';
@@ -128,27 +129,50 @@ function normalizeUniverse(symbols: string[]): string[] {
   );
 }
 
+export function applyCoachAnswerDefaults(answers: CoachProfileAnswers): CoachProfileAnswers {
+  const markets = answers.markets.length ? answers.markets : (['stocks'] as CoachProfileAnswers['markets']);
+  const styles = answers.styles.length ? answers.styles : (['swing'] as CoachProfileAnswers['styles']);
+  const researchUniverse =
+    answers.researchUniverse.length > 0
+      ? answers.researchUniverse
+      : recommendResearchUniverse({
+          markets,
+          experience: answers.experience,
+          styles,
+        });
+  return {
+    ...answers,
+    motive: answers.motive ?? 'learn_skill',
+    markets,
+    frequency: answers.frequency ?? 'weekly',
+    styles,
+    struggles: answers.struggles.length ? answers.struggles : ['creating_plan'],
+    timeBudgetMinutes: answers.timeBudgetMinutes ?? 20,
+    coachTone: answers.coachTone ?? 'educational',
+    successDefinitions: answers.successDefinitions.length
+      ? answers.successDefinitions
+      : ['repeatable_process'],
+    researchTimeOfDay: answers.researchTimeOfDay ?? 'evening',
+    preferredTopics: answers.preferredTopics ?? [],
+    researchUniverse,
+  };
+}
+
 export function validateCoachAnswersForCompletion(
   answers: CoachProfileAnswers,
 ): CoachProfileAnswers {
-  if (!answers.motive) throw new Error('Choose why you are trading.');
   if (!answers.experience) throw new Error('Choose your experience level.');
-  if (!answers.markets.length) throw new Error('Select at least one market.');
-  if (!answers.frequency) throw new Error('Choose how often you trade.');
-  if (!answers.styles.length) throw new Error('Select at least one trading style.');
-  if (!answers.struggles.length) throw new Error('Select at least one challenge.');
-  if (answers.timeBudgetMinutes == null) throw new Error('Choose a daily research budget.');
-  if (!answers.coachTone) throw new Error('Choose how your AI Mentor should coach you.');
-  if (!answers.successDefinitions.length) throw new Error('Choose what success looks like.');
-  if (!answers.researchTimeOfDay) throw new Error('Choose when you usually research.');
-  const researchUniverse = normalizeUniverse(answers.researchUniverse);
+  if (!answers.successDefinitions.length) throw new Error('Choose at least one learning goal.');
+  if (!answers.preferredTopics.length) throw new Error('Choose at least one topic to practise.');
+  const filled = applyCoachAnswerDefaults(answers);
+  const researchUniverse = normalizeUniverse(filled.researchUniverse);
   if (
     researchUniverse.length < RESEARCH_UNIVERSE_MIN ||
     researchUniverse.length > RESEARCH_UNIVERSE_MAX
   ) {
     throw new Error(`Select between ${RESEARCH_UNIVERSE_MIN} and ${RESEARCH_UNIVERSE_MAX} assets.`);
   }
-  return { ...answers, researchUniverse };
+  return { ...filled, researchUniverse };
 }
 
 function normalizeCoachProfile(uid: string, data: Partial<CoachProfile>): CoachProfile {
@@ -159,6 +183,7 @@ function normalizeCoachProfile(uid: string, data: Partial<CoachProfile>): CoachP
     styles: data.styles ?? [],
     struggles: data.struggles ?? [],
     successDefinitions: data.successDefinitions ?? [],
+    preferredTopics: data.preferredTopics ?? [],
     researchUniverse: data.researchUniverse ?? [],
   };
   return {

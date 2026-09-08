@@ -20,14 +20,14 @@ beforeAll(async () => {
       ),
     },
   });
-});
+}, 30_000);
 
 afterEach(async () => {
-  await testEnv.clearFirestore();
+  await testEnv?.clearFirestore();
 });
 
 afterAll(async () => {
-  await testEnv.cleanup();
+  await testEnv?.cleanup();
 });
 
 function ownerDb(uid = 'owner') {
@@ -262,4 +262,93 @@ test('keeps usage ledgers, security events, and ops data client-immutable', asyn
   await assertFails(setDoc(doc(db, 'ops/config/docs/remote'), { aiDailyLimitPremium: 1_000_000 }));
   await assertFails(setDoc(doc(db, 'revenuecatWebhookEvents/evt'), { uid: 'owner' }));
   await assertFails(setDoc(doc(db, 'accountDeletionRequests/owner'), { status: 'completed' }));
+});
+
+test('isolates simulation ledgers by authenticated uid and keeps transactions append-only', async () => {
+  const db = ownerDb();
+  const other = ownerDb('other');
+  const payload = {
+    id: 'sim_owner_1',
+    accountId: 'sim_owner_1',
+    userId: 'owner',
+    mode: 'standard',
+    currency: 'CHF',
+    startingBalance: 100000,
+    cashBalance: 100000,
+    equity: 100000,
+    status: 'active',
+    ...timestamps(),
+  };
+
+  await assertSucceeds(setDoc(doc(db, 'users/owner/simulationAccounts/sim_owner_1'), payload));
+  await assertFails(getDoc(doc(other, 'users/owner/simulationAccounts/sim_owner_1')));
+  await assertFails(
+    setDoc(doc(db, 'users/owner/simulationAccounts/forged'), { ...payload, id: 'forged', accountId: 'forged', userId: 'other' }),
+  );
+  await assertSucceeds(
+    setDoc(doc(db, 'users/owner/simulationAccounts/sim_eur'), {
+      ...payload,
+      id: 'sim_eur',
+      accountId: 'sim_eur',
+      currency: 'EUR',
+    }),
+  );
+  await assertFails(
+    setDoc(doc(db, 'users/owner/simulationAccounts/sim_bad_ccy'), {
+      ...payload,
+      id: 'sim_bad_ccy',
+      accountId: 'sim_bad_ccy',
+      currency: 'CH',
+    }),
+  );
+
+  const txn = {
+    id: 't1',
+    accountId: 'sim_owner_1',
+    timestamp: '2026-09-08T00:00:00.000Z',
+    symbol: 'NESN',
+    assetType: 'equity',
+    side: 'buy',
+    quantity: 1,
+    executionPrice: 90,
+    grossValue: 90,
+    fees: 0,
+    netValue: 90,
+    resultingCashBalance: 99910,
+    resultingPositionQuantity: 1,
+  };
+  await assertSucceeds(
+    setDoc(doc(db, 'users/owner/simulationAccounts/sim_owner_1/transactions/t1'), txn),
+  );
+  await assertFails(
+    setDoc(doc(db, 'users/owner/simulationAccounts/sim_owner_1/transactions/t1'), {
+      ...txn,
+      quantity: 2,
+    }),
+  );
+  await assertFails(
+    setDoc(doc(other, 'users/owner/simulationAccounts/sim_owner_1/positions/NESN'), { symbol: 'NESN' }),
+  );
+  await assertSucceeds(
+    setDoc(doc(db, 'users/owner/simulationAccounts/sim_owner_1/positions/NESN'), { symbol: 'NESN' }),
+  );
+  await assertSucceeds(
+    setDoc(doc(db, 'users/owner/simulationAccounts/sim_owner_1/orders/o1'), { type: 'market', side: 'buy' }),
+  );
+  await assertSucceeds(
+    setDoc(doc(db, 'users/owner/simulationAccounts/sim_owner_1/challenges/c1'), { challengeId: 'one-percent-risk' }),
+  );
+  await assertSucceeds(
+    setDoc(doc(db, 'users/owner/simulationAccounts/sim_owner_1/history/arch1'), {
+      ...payload,
+      status: 'archived',
+    }),
+  );
+  await assertFails(
+    setDoc(doc(db, 'users/owner/simulationAccounts/sim_owner_1/history/arch1'), {
+      ...payload,
+      status: 'archived',
+      cashBalance: 1,
+    }),
+  );
 });

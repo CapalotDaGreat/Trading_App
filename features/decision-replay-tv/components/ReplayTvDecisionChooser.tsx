@@ -40,6 +40,7 @@ export function ReplayTvDecisionChooser({
           disabled={disabled}
           onPress={() => onChoose(decision)}
           accessibilityLabel={REPLAY_TV_DECISION_LABELS[decision]}
+          accessibilityHint="Process decision only. Waiting or skipping is valid. This is not a buy or sell instruction."
         >
           {REPLAY_TV_DECISION_LABELS[decision]}
         </Button>

@@ -16,6 +16,9 @@ describe('release trust configuration', () => {
       overallBias: 'bullish' as const,
       biasConfidence: 70,
       assembledAt: Date.now(),
+      quote: { price: 500, change: 1, changePercent: 0.2 },
+      supportLevels: [490],
+      resistanceLevels: [510],
     };
 
     const result = await fetchCloudAiBrief(context);

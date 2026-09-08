@@ -24,11 +24,11 @@ describe('launch monetization catalog', () => {
     const byFeature = Object.fromEntries(
       LAUNCH_FEATURE_COMPARISON.map((row) => [row.feature, row]),
     );
-    expect(byFeature.Today).toEqual({ feature: 'Today', free: 'Included', premium: 'Included' });
+    expect(byFeature.Home).toEqual({ feature: 'Home', free: 'Included', premium: 'Included' });
     expect(byFeature['Basic journal']?.free).toBe('Included');
     expect(byFeature.AI?.free).toBe('3/day');
     expect(byFeature.AI?.premium).toContain('fair use');
-    expect(byFeature['Portfolio intelligence']?.free).toBe('—');
+    expect(byFeature.Simulation?.free).toBe('Limited');
     expect(byFeature.Export?.premium).toBe('Included');
     expect(byFeature.Ads?.free).toBe('None at launch');
     expect(byFeature['7-day trial']?.premium).toBe('Yearly only');

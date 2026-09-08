@@ -11,8 +11,7 @@ import { EVALUATION_INTERVAL_MS } from '@/features/alerts/services/alert-evaluat
 import { notificationService } from '@/features/notifications/services/notification.service';
 import { EmptyState } from '@/shared/components/feedback/EmptyState';
 import { StatusState } from '@/shared/components/feedback/StatusState';
-import { Header } from '@/shared/components/layout/Header';
-import { Screen } from '@/shared/components/layout/Screen';
+import { ScreenScaffold } from '@/shared/components/layout/ScreenScaffold';
 import { CollapsibleSection } from '@/shared/components/patterns/CollapsibleSection';
 import { Text } from '@/shared/components/ui/Text';
 import { useTheme } from '@/shared/hooks/useTheme';
@@ -57,23 +56,24 @@ export default function AlertsScreen() {
 
   if (isLoading) {
     return (
-      <Screen className="items-center justify-center">
+      <ScreenScaffold scrollable={false} title="Alerts" contentClassName="justify-center">
         <StatusState
           status="loading"
           title="Loading alerts"
           description="Named levels you asked to review later."
         />
-      </Screen>
+      </ScreenScaffold>
     );
   }
 
   return (
-    <Screen scrollable contentClassName="pb-8">
-      <Header
-        title="Alerts"
-        subtitle="Quiet reminders when a level you named is reached — not a prompt to trade."
-        onBack={() => router.back()}
-      />
+    <ScreenScaffold
+      title="Alerts"
+      subtitle="Quiet reminders when a level you named is reached — not a prompt to trade."
+      showBack
+      onBack={() => router.back()}
+      contentClassName="pb-8"
+    >
 
       <View className="mt-2 gap-7">
         <View
@@ -113,7 +113,7 @@ export default function AlertsScreen() {
             disabled={!canCreateAlert}
             deliveryHint={
               capability && !capability.backgroundEvaluation
-                ? 'This build only notifies while TradeInsight is open.'
+                ? 'This build only notifies while TradeAcademy is open.'
                 : capability?.backgroundEvaluation
                   ? 'Background checks are OS-scheduled (often 15+ minutes) — not instant.'
                   : undefined
@@ -148,6 +148,6 @@ export default function AlertsScreen() {
           )}
         </View>
       </View>
-    </Screen>
+    </ScreenScaffold>
   );
 }

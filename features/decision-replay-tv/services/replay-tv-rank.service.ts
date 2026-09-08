@@ -55,6 +55,38 @@ function growthEdgeBoost(episode: ReplayTvEpisode, growthEdges: string[]): numbe
   return value;
 }
 
+function practiceTraitBoost(episode: ReplayTvEpisode, practiceTraitId?: string | null): number {
+  if (!practiceTraitId) return 0;
+  const hay = `${episode.skills.join(' ')} ${episode.scoringEmphasis.join(' ')} ${episode.collectionIds.join(' ')}`.toLowerCase();
+  if (practiceTraitId === 'invalidationDiscipline') {
+    if (
+      episode.scoringEmphasis.includes('invalidation') ||
+      episode.skills.includes('invalidation') ||
+      episode.collectionIds.includes('risk_management')
+    ) {
+      return 8;
+    }
+  }
+  if (practiceTraitId === 'patience' || practiceTraitId === 'uncertaintyHandling') {
+    if (
+      episode.inactionIsValidProcess ||
+      episode.collectionIds.includes('uncertainty') ||
+      episode.collectionIds.includes('patience') ||
+      episode.scoringEmphasis.includes('patience')
+    ) {
+      return 8;
+    }
+  }
+  if (practiceTraitId === 'confirmationResistance' && episode.scoringEmphasis.includes('alternatives')) {
+    return 6;
+  }
+  if (practiceTraitId === 'evidenceDiscipline' && episode.scoringEmphasis.includes('evidence')) {
+    return 6;
+  }
+  if (hay.includes(practiceTraitId.toLowerCase())) return 4;
+  return 0;
+}
+
 /**
  * Soft-rank Replay TV episodes by Mentor Setup + DNA growth edges.
  * Never changes catalog content — demotes completed episodes.
@@ -68,6 +100,8 @@ export function rankReplayTvEpisodes(
     experience?: MentorExperienceLevel | null;
     growthEdges?: string[] | null;
     completedIds?: string[];
+    /** Current reinforcement practice trait — ranks a matching room first, never hides others. */
+    practiceTraitId?: string | null;
   },
 ): ReplayTvEpisode[] {
   const markets = input?.markets ?? [];
@@ -78,6 +112,7 @@ export function rankReplayTvEpisodes(
   const preferredDifficulties = input?.experience
     ? new Set(EXPERIENCE_DIFFICULTY[input.experience])
     : null;
+  const practiceTraitId = input?.practiceTraitId ?? null;
 
   return [...episodes].sort((a, b) => {
     const score = (ep: ReplayTvEpisode) => {
@@ -105,6 +140,7 @@ export function rankReplayTvEpisodes(
       }
 
       value += growthEdgeBoost(ep, growthEdges);
+      value += practiceTraitBoost(ep, practiceTraitId);
 
       if (preferredDifficulties?.has(ep.difficulty)) value += 2;
       if (completed.has(ep.id)) value -= 8;

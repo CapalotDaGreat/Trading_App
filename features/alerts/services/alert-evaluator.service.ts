@@ -2,6 +2,7 @@ import { AppState } from 'react-native';
 
 import { fetchQuotes } from '@/features/markets/services/market-data.service';
 import { notificationService } from '@/features/notifications/services/notification.service';
+import { composeNamedLevelReminder } from '@/shared/constants/trust-language';
 import { logger } from '@/shared/services/observability/logger';
 
 import { shouldTriggerAlert } from './alert-rules';
@@ -52,12 +53,13 @@ export async function evaluateAlertsForUser(
     if (!shouldTriggerAlert(alert, price)) continue;
 
     await markAlertTriggered(uid, alert.id);
-    const title = `${alert.symbol} alert`;
-    const body = `Price ${alert.condition === 'above' ? 'reached' : 'fell to'} ${price.toFixed(2)} (target ${alert.targetPrice})`;
+    const reminder = composeNamedLevelReminder({
+      symbol: alert.symbol,
+    });
     const data = { screen: 'markets', symbol: alert.symbol, type: 'price_alert' };
 
     // Immediate present works from background wakes; scheduled delay was foreground-oriented.
-    await notificationService.presentLocalNotification(title, body, data);
+    await notificationService.presentLocalNotification(reminder.title, reminder.body, data);
     triggered += 1;
   }
 

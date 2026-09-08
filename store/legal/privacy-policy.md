@@ -2,15 +2,15 @@
 
 **Last updated:** 24 August 2026  
 **Version:** 2026.08.24  
-**Brand / product:** Aithera / TradeInsight  
-**Controller / Operator:** [LEGAL ENTITY NAME REQUIRED], trading as Aithera (“Aithera”, “we”, “us”, “our”), operator of the TradeInsight mobile application  
+**Brand / product:** Aithera / TradeAcademy  
+**Controller / Operator:** [LEGAL ENTITY NAME REQUIRED], trading as Aithera (“Aithera”, “we”, “us”, “our”), operator of the TradeAcademy mobile application  
 **Registered address:** Höglerstrasse 55, 8600 Dübendorf, Switzerland  
 **VAT/UID:** [VAT/UID REQUIRED]  
 **Privacy contact:** [PRIVACY EMAIL REQUIRED]  
 **Support contact:** [SUPPORT EMAIL REQUIRED]  
 **Website:** [OFFICIAL DOMAIN REQUIRED]  
 
-This Privacy Policy explains how we collect, use, store, share, and protect personal data when you use TradeInsight. It is designed to meet transparency and rights requirements under:
+This Privacy Policy explains how we collect, use, store, share, and protect personal data when you use TradeAcademy. It is designed to meet transparency and rights requirements under:
 
 - the Swiss Federal Act on Data Protection (**nFADP** / revDSG);
 - the EU/EEA **GDPR** and UK **UK GDPR** where applicable;
@@ -23,7 +23,7 @@ This Privacy Policy explains how we collect, use, store, share, and protect pers
 
 ## 1. Who we are and scope
 
-TradeInsight is a **decision-first trading research and coaching application**. It is **not** a broker-dealer, bank, investment adviser, portfolio manager, or execution venue. Scores such as Research Value Score (RVS) and Decision Quality Score (DQS) describe research priority and process quality; they **do not** predict price direction.
+TradeAcademy is a **decision-first trading research and coaching application**. It is **not** a broker-dealer, bank, investment adviser, portfolio manager, or execution venue. Scores such as Research Value Score (RVS) and Decision Quality Score (DQS) describe research priority and process quality; they **do not** predict price direction.
 
 This Policy applies to:
 
@@ -37,7 +37,7 @@ It does **not** govern third-party stores (Apple, Google), payment processors, o
 
 ## 1A. Store rating, contractual eligibility, and privacy eligibility
 
-These are **different** rules. TradeInsight does **not** tell anyone that a 12+ store rating authorises trading, brokerage, or investment advice.
+These are **different** rules. TradeAcademy does **not** tell anyone that a 12+ store rating authorises trading, brokerage, or investment advice.
 
 | Layer | What it means |
 | --- | --- |
@@ -115,7 +115,7 @@ We apply **data minimisation** and **purpose limitation**: we process what is ne
 
 ## 4A. AI processing
 
-TradeInsight’s in-app “Ask” / analysis features are **decision-coaching aids**. They describe process and evidence. They are **not** buy/sell signals and **not** price predictions.
+TradeAcademy’s in-app “Ask” / analysis features are **decision-coaching aids**. They describe process and evidence. They are **not** buy/sell signals and **not** price predictions.
 
 For this release:
 
@@ -198,11 +198,11 @@ Depending on your state, you may have rights to **know/access**, **delete**, **c
 
 ## 9. Children’s privacy and audience
 
-TradeInsight is intended for a **general audience**. Anyone may download the app and explore educational Guest/demo features that remain local on the device.
+TradeAcademy is intended for a **general audience**. Anyone may download the app and explore educational Guest/demo features that remain local on the device.
 
 **Cloud account features** — including registration, cloud sync, online journals, online portfolios, and paid subscriptions — are available only to users who meet the minimum eligibility requirements: at least **18** years old, or the age of majority in their jurisdiction. We do not knowingly collect personal data from young children through cloud accounts. The application is **not directed toward young children**. If you believe a minor has created an account or provided personal data, contact [PRIVACY EMAIL REQUIRED] and we will delete it.
 
-A **12+ / Teen store rating does not change this.** It does not mean a minor may legally trade, receive investment advice, or open a TradeInsight cloud account.
+A **12+ / Teen store rating does not change this.** It does not mean a minor may legally trade, receive investment advice, or open a TradeAcademy cloud account.
 
 ---
 
@@ -242,7 +242,7 @@ You may delete your account in **Settings**. Deletion is intended to remove:
 
 Shared educational content (Academy lessons, public catalogs) is **not** deleted; it is not your personal account data.
 
-**Deleting the TradeInsight account does not cancel Apple App Store or Google Play billing.** Manage or cancel the store subscription first via **Settings → Manage Subscription**. Store purchase records remain with Apple/Google under their policies.
+**Deleting the TradeAcademy account does not cancel Apple App Store or Google Play billing.** Manage or cancel the store subscription first via **Settings → Manage Subscription**. Store purchase records remain with Apple/Google under their policies.
 
 More detail: in-app **Settings → Account deletion information**, and the hosted Account Deletion notice once [OFFICIAL DOMAIN REQUIRED] is live.
 

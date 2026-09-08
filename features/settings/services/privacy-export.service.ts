@@ -76,7 +76,7 @@ export async function buildPrivacyDataExport(input: {
 
 export async function sharePrivacyDataExport(pkg: PrivacyDataExportPackage): Promise<void> {
   const content = JSON.stringify(pkg, null, 2);
-  const filename = `tradeinsight-privacy-export-${pkg.exportedAt.slice(0, 10)}.json`;
+  const filename = `tradeacademy-privacy-export-${pkg.exportedAt.slice(0, 10)}.json`;
 
   if (Platform.OS === 'web' && typeof document !== 'undefined') {
     const blob = new Blob([content], { type: 'application/json' });

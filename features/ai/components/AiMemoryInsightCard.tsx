@@ -17,7 +17,7 @@ export function AiMemoryInsightCard({ memory }: AiMemoryInsightCardProps) {
         AI memory timeline (process traits)
       </Text>
       <Text variant="body-sm" className="mt-1.5 leading-6 text-text-secondary">
-        How your research habits shape coaching — never identity data, journal text, or portfolio
+        How your learning habits shape coaching — never identity data, journal text, or portfolio
         values.
       </Text>
 

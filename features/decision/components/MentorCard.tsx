@@ -2,10 +2,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { Pressable, View } from 'react-native';
 
-import { EducationalModeBadge } from '@/features/educational/components/EducationalModeBadge';
 import type { TradingMentorBrief } from '@/features/decision/types/mentor.types';
 import { useFeatureFlag } from '@/features/ops-config/hooks/useOpsConfig';
-import { GlassCard } from '@/shared/components/ui/GlassCard';
+import { Surface } from '@/shared/components/ui/Surface';
 import { Text } from '@/shared/components/ui/Text';
 import { useTheme } from '@/shared/hooks/useTheme';
 import { Skeleton } from '@/shared/components/ui/Skeleton';
@@ -40,7 +39,7 @@ export function MentorCard({ brief, isLoading }: MentorCardProps) {
       }}
       className="active:opacity-90"
     >
-      <GlassCard className="p-4" bordered>
+      <Surface className="p-4" emphasis="outlined" testID="mentor-card-surface">
         <View className="mb-3 flex-row items-start justify-between gap-3">
           <View className="flex-1">
             <View className="mb-2 flex-row items-center gap-2">
@@ -51,7 +50,6 @@ export function MentorCard({ brief, isLoading }: MentorCardProps) {
                 Trading Mentor
               </Text>
             </View>
-            <EducationalModeBadge className="mb-2" />
             <Text variant="h3" className="leading-snug text-text-primary">
               {brief.daily.headline}
             </Text>
@@ -62,25 +60,10 @@ export function MentorCard({ brief, isLoading }: MentorCardProps) {
           <Ionicons name="chevron-forward" size={18} color={colors.text.tertiary} />
         </View>
 
-        <View className="mt-1 flex-row flex-wrap gap-2">
-          <MetaChip label={`Process ${brief.processScoreWeek}`} />
-          <MetaChip label={brief.identity.styleLabel} />
-        </View>
-
-        <Text variant="caption" className="mt-3 text-info">
-          Open mentor · DNA, graph, passport, replay, academy
+        <Text variant="caption" className="text-info">
+          Open Trading Mentor
         </Text>
-      </GlassCard>
+      </Surface>
     </Pressable>
-  );
-}
-
-function MetaChip({ label }: { label: string }) {
-  return (
-    <View className="rounded-pill bg-surface px-2.5 py-1">
-      <Text variant="caption" className="text-text-secondary">
-        {label}
-      </Text>
-    </View>
   );
 }

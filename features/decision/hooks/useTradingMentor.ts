@@ -19,6 +19,7 @@ import { buildLabStats } from '@/features/decision-lab/services/lab-stats.servic
 import { useDecisionLabStore } from '@/features/decision-lab/stores/lab.store';
 import { useAlerts } from '@/features/alerts/hooks/useAlerts';
 import { usePersonalIntelligence } from '@/features/personal-intelligence/hooks/usePersonalIntelligence';
+import type { PersonalIntelligenceSnapshot } from '@/features/personal-intelligence/types/personal-intelligence.types';
 import { useSettingsStore } from '@/shared/stores/settings.store';
 import { loadDisciplineStreak } from '@/features/decision/services/coaching-loop.service';
 import { selectTodayTimeBudget } from '@/features/decision/services/today-sections.service';
@@ -36,7 +37,7 @@ export function useTradingMentor() {
   const timeBudgetMinutes = useSettingsStore(selectTodayTimeBudget);
   const coachProfile = useCoachProfileStore((state) => state.profile);
   const briefQuery = useDecisionBrief(timeBudgetMinutes);
-  const { summary: logSummary } = useDecisionLog();
+  const { summary: logSummary, records } = useDecisionLog();
   const journalCoachQuery = useJournalCoach();
   const memoryQuery = useTraderMemory();
   const tapeQuery = useWeeklyGameTape();
@@ -45,7 +46,6 @@ export function useTradingMentor() {
   const labPositions = useDecisionLabStore((s) => s.positions);
   const labStats = useMemo(() => buildLabStats(labPositions), [labPositions]);
   const { practicedCount, totalCount } = useAcademy();
-  const { records } = useDecisionLog();
   const { alerts } = useAlerts();
   const intelligenceQuery = usePersonalIntelligence('weekly');
   const debt = useMemo(() => {
@@ -83,22 +83,41 @@ export function useTradingMentor() {
   // Primitive selector — getDisciplineStreak() allocates a new object every call and loops React 19.
   const academyStreakDays = useAcademyProgressStore((s) => s.disciplineStreakDays);
 
-  const signature = [
-    briefQuery.dataUpdatedAt,
-    journalCoachQuery.dataUpdatedAt,
-    memoryQuery.dataUpdatedAt,
-    tapeQuery.dataUpdatedAt,
-    riskQuery.dataUpdatedAt,
-    logSummary?.total ?? 0,
-    logSummary?.processScore ?? 0,
-    streakQuery.dataUpdatedAt,
-    academyRecommendation?.lesson.id ?? 'none',
-    labStats.tradesClosed,
-    academyStreakDays,
-    coachProfile?.uid ?? 'none',
-    coachProfile?.updatedAt ?? 0,
-    intelligenceQuery.data?.mentorSummary.observationKey ?? 'none',
-  ].join(':');
+  const signature = useMemo(
+    () =>
+      [
+        briefQuery.dataUpdatedAt,
+        journalCoachQuery.dataUpdatedAt,
+        memoryQuery.dataUpdatedAt,
+        tapeQuery.dataUpdatedAt,
+        riskQuery.dataUpdatedAt,
+        logSummary?.total ?? 0,
+        logSummary?.processScore ?? 0,
+        streakQuery.dataUpdatedAt,
+        academyRecommendation?.lesson.id ?? 'none',
+        labStats.tradesClosed,
+        academyStreakDays,
+        coachProfile?.uid ?? 'none',
+        coachProfile?.updatedAt ?? 0,
+        intelligenceQuery.data?.mentorSummary.observationKey ?? 'none',
+      ].join(':'),
+    [
+      briefQuery.dataUpdatedAt,
+      journalCoachQuery.dataUpdatedAt,
+      memoryQuery.dataUpdatedAt,
+      tapeQuery.dataUpdatedAt,
+      riskQuery.dataUpdatedAt,
+      logSummary?.total,
+      logSummary?.processScore,
+      streakQuery.dataUpdatedAt,
+      academyRecommendation?.lesson.id,
+      labStats.tradesClosed,
+      academyStreakDays,
+      coachProfile?.uid,
+      coachProfile?.updatedAt,
+      intelligenceQuery.data?.mentorSummary.observationKey,
+    ],
+  );
 
   const query = useQuery({
     queryKey: tradingMentorKeys.brief(signature),
@@ -133,6 +152,9 @@ export function useTradingMentor() {
   return {
     ...query,
     data: query.data,
+    /** Shared PI snapshot — Today should reuse this instead of mounting a second PI hook. */
+    intelligence: intelligenceQuery.data as PersonalIntelligenceSnapshot | undefined,
+    isIntelligenceRefetching: intelligenceQuery.isRefetching,
     isLoading:
       query.isLoading ||
       (briefQuery.isLoading && !briefQuery.data && !logSummary && !journalCoachQuery.data),
@@ -144,6 +166,7 @@ export function useTradingMentor() {
         tapeQuery.refetch(),
         riskQuery.refetch(),
         streakQuery.refetch(),
+        intelligenceQuery.refetch(),
       ]);
       return query.refetch();
     },

@@ -22,12 +22,12 @@ import { cn } from '@/shared/utils/cn';
 import { PremiumBadge } from './PremiumBadge';
 
 const OUTCOMES = [
-  'Deeper radar and research context',
+  'Full Academy catalog and coaching context',
   'Full replay and Replay TV library',
   'Trading DNA and Personal Intelligence',
   'Process progression you can review',
   'Fair-use AI coaching — not buy/sell signals',
-  'Export and portfolio intelligence',
+  'Export and deeper simulation review',
 ] as const;
 
 export function PaywallScreen() {
@@ -125,8 +125,8 @@ export function PaywallScreen() {
             You&apos;re on Aithera Pro
           </Text>
           <Text variant="body-sm" className="mt-2 text-center">
-            Enjoy deeper radar, DNA, Replay TV, portfolio intelligence, and export.
-          Free remains a complete daily research habit.
+            Enjoy deeper Academy, Replay, Trading DNA, and review tools.
+          Free remains a complete way to learn, practise, simulate, and journal.
           </Text>
           <Text variant="body-sm" className="mt-3 text-center text-text-secondary">
             {statusText}

@@ -1,13 +1,15 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { Pressable, View } from 'react-native';
-import Animated, { FadeInDown } from 'react-native-reanimated';
+import Animated from 'react-native-reanimated';
 
 import type { SimulatorSession } from '@/features/decision-simulator/types/simulator.types';
 import { EducationalPanel } from '@/features/educational/components/EducationalPanel';
 import { GlassCard } from '@/shared/components/ui/GlassCard';
 import { Text } from '@/shared/components/ui/Text';
+import { useReducedMotion } from '@/shared/hooks/useReducedMotion';
 import { useTheme } from '@/shared/hooks/useTheme';
+import { fadeInDown } from '@/shared/utils/motion';
 
 interface SimulatorRevealCardProps {
   session: SimulatorSession;
@@ -16,12 +18,13 @@ interface SimulatorRevealCardProps {
 export function SimulatorRevealCard({ session }: SimulatorRevealCardProps) {
   const router = useRouter();
   const { colors } = useTheme();
+  const reduceMotion = useReducedMotion();
   const scores = session.scores;
   if (!scores) return null;
 
   return (
     <View className="gap-4" testID="simulator-reveal-card">
-      <Animated.View entering={FadeInDown.springify()}>
+      <Animated.View entering={fadeInDown(reduceMotion)}>
         <GlassCard className="p-4" bordered>
           <Text variant="caption" className="font-semibold uppercase tracking-wide text-info">
             Reveal · process scoring only

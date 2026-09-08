@@ -37,4 +37,12 @@ describe('performance diagnostics', () => {
     expect(JSON.stringify(diagnostics.snapshot())).not.toContain('person@example.com');
     expect(JSON.stringify(diagnostics.snapshot())).not.toContain('private thesis');
   });
+
+  it('records dna.build duration without leaking symbols', () => {
+    const diagnostics = new PerformanceDiagnostics(true);
+    const value = diagnostics.measure('dna.build', () => 7);
+    expect(value).toBe(7);
+    expect(diagnostics.snapshot().events.some((event) => event.name === 'dna.build.end')).toBe(true);
+    expect(JSON.stringify(diagnostics.snapshot())).not.toContain('EURUSD');
+  });
 });

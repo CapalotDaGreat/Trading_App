@@ -8,6 +8,7 @@ import {
   updateUserProfile,
 } from '@/features/profile/services/profile.service';
 import { useSettings } from '@/features/settings/hooks/useSettings';
+import { CurrencyPicker } from '@/features/settings/components/CurrencyPicker';
 import { Header } from '@/shared/components/layout/Header';
 import { Screen } from '@/shared/components/layout/Screen';
 import { Button } from '@/shared/components/ui/Button';
@@ -21,7 +22,7 @@ export function ProfileScreen() {
   const router = useRouter();
   const { user } = useAuth();
   const toast = useToast();
-  const { sync } = useSettings();
+  const { sync, updateSettings } = useSettings();
 
   const [displayName, setDisplayName] = useState(user?.displayName ?? '');
   const [bio, setBio] = useState('');
@@ -62,6 +63,7 @@ export function ProfileScreen() {
         currency: currency.toUpperCase(),
         experienceLevel,
       });
+      await updateSettings({ preferences: { currency: currency.toUpperCase() } });
       await sync();
       toast.success('Profile saved', 'Your changes have been updated.');
     } catch {
@@ -109,14 +111,13 @@ export function ProfileScreen() {
           onChangeText={setTimezone}
           placeholder="America/New_York"
         />
-        <Input
-          label="Currency"
-          value={currency}
-          onChangeText={setCurrency}
-          placeholder="USD"
-          autoCapitalize="characters"
-          maxLength={3}
-        />
+        <Text variant="caption" className="text-text-tertiary">
+          Display currency
+        </Text>
+        <CurrencyPicker value={currency} onChange={setCurrency} />
+        <Text variant="caption" className="text-text-secondary">
+          Default is USD. Paper trading uses this unless you switch the simulated book separately.
+        </Text>
         <Input
           label="Experience Level"
           value={EXPERIENCE_LEVEL_LABELS[experienceLevel]}

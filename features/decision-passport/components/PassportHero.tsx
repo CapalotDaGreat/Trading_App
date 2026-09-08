@@ -1,8 +1,10 @@
 import { View } from 'react-native';
-import Animated, { FadeInDown } from 'react-native-reanimated';
+import Animated from 'react-native-reanimated';
 
 import { GlassCard } from '@/shared/components/ui/GlassCard';
 import { Text } from '@/shared/components/ui/Text';
+import { useReducedMotion } from '@/shared/hooks/useReducedMotion';
+import { fadeInDown } from '@/shared/utils/motion';
 
 import type { DecisionPassportProfile } from '../types/passport.types';
 
@@ -11,8 +13,9 @@ interface PassportHeroProps {
 }
 
 export function PassportHero({ profile }: PassportHeroProps) {
+  const reduceMotion = useReducedMotion();
   return (
-    <Animated.View entering={FadeInDown.springify()}>
+    <Animated.View entering={fadeInDown(reduceMotion)}>
       <GlassCard className="overflow-hidden p-5" bordered glow>
         <Text variant="caption" className="font-semibold uppercase tracking-widest text-accent">
           Decision Passport
@@ -24,7 +27,7 @@ export function PassportHero({ profile }: PassportHeroProps) {
           {profile.identity.summary}
         </Text>
 
-        <View className="mt-5 flex-row gap-3">
+        <View className="mt-5 flex-row flex-wrap gap-3">
           <Stat label="Process sessions" value={String(profile.processSessions)} />
           <Stat label="Avg process" value={String(profile.averageProcessScore)} />
           <Stat label="Streak" value={`${profile.consistency.streakDays}d`} />

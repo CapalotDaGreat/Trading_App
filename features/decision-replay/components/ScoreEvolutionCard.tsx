@@ -74,7 +74,7 @@ export function ScoreEvolutionCard({ points, highlightIndex }: ScoreEvolutionCar
   return (
     <View className="rounded-2xl bg-background-elevated p-4">
       <Text variant="caption" className="mb-1 font-semibold text-text-tertiary">
-        SCORE EVOLUTION
+        Score evolution
       </Text>
       <Text variant="h3" className="mb-1">
         At this moment

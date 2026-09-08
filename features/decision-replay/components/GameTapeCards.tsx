@@ -15,7 +15,7 @@ export function LearningInsightsCard({ insights }: { insights: LearningInsight[]
   return (
     <View className="rounded-2xl bg-background-elevated p-4">
       <Text variant="caption" className="mb-1 font-semibold text-text-tertiary">
-        LEARNING INSIGHTS
+        Learning insights
       </Text>
       <Text variant="h3" className="mb-3">
         Evidence-backed patterns
@@ -77,7 +77,7 @@ export function WeeklyGameTapeCard({ tape }: { tape: WeeklyGameTape }) {
   return (
     <View className="rounded-2xl bg-background-elevated p-4">
       <Text variant="caption" className="mb-1 font-semibold text-text-tertiary">
-        WEEKLY REVIEW
+        Weekly review
       </Text>
       <Text variant="h3" className="mb-1">
         What did you learn?

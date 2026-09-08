@@ -1,6 +1,6 @@
 import { Pressable, Switch, View } from 'react-native';
 
-import { GlassCard } from '@/shared/components/ui/GlassCard';
+import { Surface } from '@/shared/components/ui/Surface';
 import { Text } from '@/shared/components/ui/Text';
 import { useTheme } from '@/shared/hooks/useTheme';
 import type { PriceAlert } from '@/shared/types/market';
@@ -21,19 +21,19 @@ export function AlertCard({ alert, onToggle, onDelete, onPress }: AlertCardProps
 
   return (
     <Pressable accessibilityRole="button" onPress={() => onPress?.(alert)}>
-      <GlassCard className="mb-2 p-3">
+      <Surface className="mb-2 p-3">
         <View className="flex-row items-center justify-between">
           <View className="flex-1">
             <View className="flex-row items-center gap-2">
               <Text variant="h3">{alert.symbol}</Text>
               {isTriggered ? (
-                <Text variant="caption" className="text-bullish">
-                  Triggered
+                <Text variant="caption" className="text-text-tertiary">
+                  Reached
                 </Text>
               ) : null}
             </View>
             <Text variant="body-sm">
-              Alert when price {conditionLabel} {formatPrice(alert.targetPrice)}
+              Review when price {conditionLabel} {formatPrice(alert.targetPrice)}
             </Text>
             {alert.note ? (
               <Text variant="caption" className="mt-1" numberOfLines={2}>
@@ -47,7 +47,7 @@ export function AlertCard({ alert, onToggle, onDelete, onPress }: AlertCardProps
 
           <View className="items-end gap-2">
             <Switch
-              accessibilityLabel={`${alert.symbol} price alert`}
+              accessibilityLabel={`${alert.symbol} named-level reminder`}
               value={alert.isActive}
               onValueChange={(value) => onToggle?.(alert.id, value)}
               trackColor={{ false: colors.background.tertiary, true: colors.accent.primary }}
@@ -62,7 +62,7 @@ export function AlertCard({ alert, onToggle, onDelete, onPress }: AlertCardProps
             ) : null}
           </View>
         </View>
-      </GlassCard>
+      </Surface>
     </Pressable>
   );
 }

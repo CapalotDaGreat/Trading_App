@@ -50,6 +50,16 @@ describe('ai-engine', () => {
     expect(result.metadata?.modelVersion).toBe('tradevision-engine-2.0');
   });
 
+  it('does not invent a last price or support when the quote is missing', async () => {
+    const result = await generateEngineAnalysis('trade_suggestion', {
+      symbol: 'EUR/USD',
+      enriched: { assembledAt: Date.now(), symbol: 'EUR/USD' },
+    });
+    expect(result.content.toLowerCase()).toMatch(/don't know|will not invent/);
+    expect(result.tradeSuggestion?.observationZone).toBeUndefined();
+    expect(result.tradeSuggestion?.invalidationLevel).toBeUndefined();
+  });
+
   it('generates risk analysis with ATR-based factors', async () => {
     const result = await generateEngineAnalysis('risk_analysis', {
       symbol: 'TEST',

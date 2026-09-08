@@ -4,6 +4,7 @@ import { TextInput, View } from 'react-native';
 
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { SettingsRow } from '@/features/settings/components/SettingsRow';
+import { CurrencyPicker } from '@/features/settings/components/CurrencyPicker';
 import { ThemeToggle } from '@/features/settings/components/ThemeToggle';
 import { useSettings } from '@/features/settings/hooks/useSettings';
 import { MentorSetupInviteCard } from '@/features/onboarding/components/MentorSetupInviteCard';
@@ -11,8 +12,7 @@ import { useCoachProfile } from '@/features/onboarding/hooks/useCoachProfile';
 import { PremiumBadge } from '@/features/subscription/components/PremiumBadge';
 import { useSubscription } from '@/features/subscription/hooks/useSubscription';
 import { DEMO_USER_UID } from '@/firebase/config';
-import { Header } from '@/shared/components/layout/Header';
-import { Screen } from '@/shared/components/layout/Screen';
+import { ScreenScaffold } from '@/shared/components/layout/ScreenScaffold';
 import { CollapsibleSection } from '@/shared/components/patterns/CollapsibleSection';
 import { Button } from '@/shared/components/ui/Button';
 import { Surface } from '@/shared/components/ui/Surface';
@@ -22,8 +22,7 @@ import { legalPath } from '@/shared/legal';
 export function SettingsScreen() {
   const router = useRouter();
   const { user, signOut, deleteAccount } = useAuth();
-  const { isPremium, manage, openCustomerCenter, presentPaywall, nativeBillingAvailable } =
-    useSubscription();
+  const { isPremium, manage, openCustomerCenter } = useSubscription();
   const { showMentorSetupInvite, dismissMentorInvite, mentorSetupCompleted } = useCoachProfile();
   const { settings, updateSettings, sync } = useSettings();
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
@@ -49,8 +48,11 @@ export function SettingsScreen() {
   };
 
   return (
-    <Screen scrollable>
-      <Header title="Settings" />
+    <ScreenScaffold
+      title="Settings"
+      subtitle="What do you want to change?"
+      contentClassName="pb-12"
+    >
 
       {showMentorSetupInvite ? (
         <MentorSetupInviteCard onLater={() => void dismissMentorInvite()} />
@@ -79,16 +81,7 @@ export function SettingsScreen() {
             </View>
             <PremiumBadge size="md" />
           </View>
-          <Button
-            className="mt-4"
-            onPress={() => {
-              if (nativeBillingAvailable) {
-                void presentPaywall().catch(() => router.push('/subscription'));
-                return;
-              }
-              router.push('/subscription');
-            }}
-          >
+          <Button className="mt-4" onPress={() => router.push('/subscription')}>
             View Premium
           </Button>
         </Surface>
@@ -98,6 +91,23 @@ export function SettingsScreen() {
         Appearance
       </Text>
       <ThemeToggle />
+
+      <CollapsibleSection
+        title="Currency"
+        description="Amounts default to US dollars. Change it if you think in another currency."
+        defaultExpanded
+        className="mt-6"
+      >
+        <Text variant="body-sm" className="mb-3 text-text-secondary">
+          This is how paper cash, portfolio totals, and sizing examples are labelled. It is not a live
+          FX account. Simulated P/L still does not grade a decision.
+        </Text>
+        <CurrencyPicker
+          value={settings.preferences.currency}
+          onChange={(currency) => void updateSettings({ preferences: { currency } })}
+          testID="settings-currency-picker"
+        />
+      </CollapsibleSection>
 
       <CollapsibleSection
         title="Account"
@@ -149,6 +159,13 @@ export function SettingsScreen() {
         description="Educational Mode and AI limitations."
         className="mt-4"
       >
+        <SettingsRow
+          icon="search-outline"
+          label="Search"
+          description="Symbols, Academy concepts, and journal notes"
+          showChevron
+          onPress={() => router.push('/search' as never)}
+        />
         <SettingsRow
           icon="school-outline"
           label="Educational Mode"
@@ -273,7 +290,7 @@ export function SettingsScreen() {
           className="mt-4"
         >
           <Text variant="body-sm">
-            Permanently deletes your account and TradeInsight app data. Deleting your account does
+            Permanently deletes your account and TradeAcademy app data. Deleting your account does
             not cancel Apple App Store or Google Play billing.
           </Text>
           <Button variant="secondary" className="mt-4" onPress={() => void manage()}>
@@ -348,8 +365,8 @@ export function SettingsScreen() {
       </View>
 
       <Text variant="caption" className="mt-6 text-center">
-        TradeInsight by Aithera · v1.0.0
+        TradeAcademy by Aithera · v1.0.0
       </Text>
-    </Screen>
+    </ScreenScaffold>
   );
 }

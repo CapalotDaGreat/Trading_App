@@ -1,20 +1,20 @@
 export const EDUCATIONAL_MODE_MISSION =
-  'Helping traders make better decisions through education, research, and disciplined practice.';
+  'Helping people learn trading through education, deliberate practice, simulated money, and honest review.';
 
 export const EDUCATIONAL_MODE_SHEET = {
   title: 'Educational Mode',
-  body: 'This feature is designed to help you learn trading concepts and improve your decision-making process.\n\nTradeInsight does not execute trades, provide financial advice, or guarantee future performance.',
+  body: 'This feature is designed to help you learn trading concepts and improve your decision-making process.\n\nTradeAcademy does not execute trades, provide financial advice, or guarantee future performance. Paper trading is simulated only.',
   bullets: [
-    'Research and coaching — not brokerage',
+    'Education and practice — not brokerage',
     'Scores measure process quality, not price direction',
-    'Practice in Lab and Replay without real money',
+    'Practice in Lab, Replay, and Simulation without real money',
   ],
 } as const;
 
 export const EDUCATIONAL_INSIGHT_FOOTER = {
   title: 'Educational Insight',
   lines: [
-    'Use this analysis as part of your own research process.',
+    'Use this as part of learning — not as a prediction.',
     'Markets are uncertain.',
     'Good decisions are based on discipline, not predictions.',
   ],

@@ -47,7 +47,7 @@ export function JournalTimelinePanel({ journey }: { journey: JournalLearningJour
       <GlassCard className="p-4" bordered>
         <Text variant="h3">Decision Timeline</Text>
         <Text variant="body-sm" className="mt-2 text-text-secondary">
-          Decisions you research, skip, journal, and replay will appear here automatically.
+          Decisions you study, skip, journal, and replay will appear here automatically.
         </Text>
       </GlassCard>
     );
@@ -57,7 +57,7 @@ export function JournalTimelinePanel({ journey }: { journey: JournalLearningJour
     <GlassCard className="p-4" bordered testID="journal-decision-timeline">
       <Text variant="h3">Process Tape</Text>
       <Text variant="caption" className="mt-1 text-text-tertiary">
-        Automatic research, skip, replay, and journal events — separate from authored reflections.
+        Automatic study, skip, replay, and journal events — separate from authored reflections.
       </Text>
       <View className="mt-3 gap-3">
         {journey.timeline.slice(0, 8).map((event) => (
@@ -295,6 +295,9 @@ export function JournalInsightsPanel({ journey }: { journey: JournalLearningJour
             {journey.academyRecommendations.map((rec) => (
               <Pressable
                 key={rec.lessonId + rec.title}
+                accessibilityRole="button"
+                accessibilityLabel={`Open Academy lesson ${rec.title}`}
+                className="min-h-11 justify-center"
                 onPress={() => router.push(`/academy/lesson/${rec.lessonId}` as never)}
               >
                 <Text variant="label" className="text-accent">

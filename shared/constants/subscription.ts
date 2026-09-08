@@ -37,7 +37,7 @@ export const SUBSCRIPTION_TIERS: Record<SubscriptionTier, TierLimits> = {
   free: {
     tier: 'free',
     label: 'Free',
-    description: 'Build a daily research habit — Brief, top-three queue, journal, and limited replay',
+    description: 'Learn, practise, simulate, and journal — limited replay and on-device coaching',
     watchlistMax: FREE_ENTITLEMENTS.watchlistCount as number,
     symbolsPerWatchlist: FREE_ENTITLEMENTS.symbolsPerWatchlist as number,
     alertsMax: FREE_ENTITLEMENTS.alertsMax as number,

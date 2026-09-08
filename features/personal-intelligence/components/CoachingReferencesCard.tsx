@@ -1,9 +1,11 @@
 import { useRouter } from 'expo-router';
 import { Pressable, View } from 'react-native';
-import Animated, { FadeInDown } from 'react-native-reanimated';
+import Animated from 'react-native-reanimated';
 
 import { GlassCard } from '@/shared/components/ui/GlassCard';
 import { Text } from '@/shared/components/ui/Text';
+import { useReducedMotion } from '@/shared/hooks/useReducedMotion';
+import { fadeInDown } from '@/shared/utils/motion';
 
 import type { CoachingReference } from '../types/personal-intelligence.types';
 
@@ -13,9 +15,10 @@ interface CoachingReferencesCardProps {
 
 export function CoachingReferencesCard({ references }: CoachingReferencesCardProps) {
   const router = useRouter();
+  const reduceMotion = useReducedMotion();
 
   return (
-    <Animated.View entering={FadeInDown.springify()} testID="coaching-references-card">
+    <Animated.View entering={fadeInDown(reduceMotion)} testID="coaching-references-card">
       <GlassCard className="p-4">
         <Text variant="caption" className="mb-1 font-semibold uppercase tracking-wide text-text-tertiary">
           Mentor references

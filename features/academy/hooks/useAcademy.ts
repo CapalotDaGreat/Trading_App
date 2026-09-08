@@ -5,6 +5,7 @@ import { useAppendDecisionRecord } from '@/features/decision-log/hooks/useDecisi
 import { useRegime } from '@/features/decision/hooks/useDecision';
 import type { DecisionDebtSnapshot, TraderMemory } from '@/features/decision/types/decision.types';
 import { useDecisionLabStore } from '@/features/decision-lab/stores/lab.store';
+import { usePracticeProgressStore } from '@/features/practice/stores/practice-progress.store';
 import { useSubscriptionStore } from '@/shared/stores/subscription.store';
 
 import { LEARNING_PATHS, type AcademyPathMeta } from '../content/paths-and-checklists';
@@ -19,6 +20,7 @@ import {
   getTradingChecklist,
   type LessonCategory,
 } from '../services/academy.service';
+import { collectWeakConcepts, scorePathMastery, type MasteryLabel } from '../services/academy-mastery.service';
 import {
   buildDefaultNextLesson,
   buildPersonalizedCurriculum,
@@ -64,6 +66,9 @@ export function useAcademy(category?: LessonCategory) {
 export function useLearningPaths() {
   const completedCount = useAcademyProgressStore((s) => s.completedCount);
   const practicedCount = useAcademyProgressStore((s) => s.practicedCount);
+  const isRead = useAcademyProgressStore((s) => s.isRead);
+  const isPracticed = useAcademyProgressStore((s) => s.isPracticed);
+  const getProgress = useAcademyProgressStore((s) => s.getProgress);
   const positions = useDecisionLabStore((s) => s.positions);
   const getChallenges = useDecisionLabStore((s) => s.getChallenges);
 
@@ -81,6 +86,12 @@ export function useLearningPaths() {
   const paths = (query.data ?? LEARNING_PATHS).map((path) => {
     const meta = path as AcademyPathMeta;
     const unlock = unlockById.get(path.id);
+    const mastery = scorePathMastery({
+      lessonIds: path.lessonIds,
+      isRead,
+      isPracticed,
+      quizBest: (id) => getProgress(id)?.quizBestScore,
+    });
     return {
       ...meta,
       completedCount: completedCount(path.lessonIds),
@@ -88,6 +99,8 @@ export function useLearningPaths() {
       totalCount: path.lessonIds.length,
       masteryUnlocked: unlock?.masteryUnlocked ?? true,
       unlockHint: unlock?.unlockHint,
+      masteryLabel: mastery.label as MasteryLabel,
+      masteryEvidence: mastery.evidence,
     };
   });
 
@@ -113,6 +126,17 @@ export function useNextAcademyLesson(input?: {
   const isPremium = useSubscriptionStore((s) => s.isPremium);
   const isRead = useAcademyProgressStore((s) => s.isRead);
   const isPracticed = useAcademyProgressStore((s) => s.isPracticed);
+  const conceptResults = useAcademyProgressStore((s) => s.conceptResults);
+  const practiceAttempts = usePracticeProgressStore((s) => s.attempts);
+
+  const weakConcepts = useMemo(
+    () =>
+      collectWeakConcepts({
+        conceptResults,
+        repeatedDrillIds: usePracticeProgressStore.getState().repeatedMistakes(),
+      }),
+    [conceptResults, practiceAttempts],
+  );
 
   if (isPremium) {
     const personalized = buildPersonalizedCurriculum({
@@ -120,16 +144,21 @@ export function useNextAcademyLesson(input?: {
       debt: input?.debt,
       isRead,
       isPracticed,
+      weakConcepts,
       limit: 1,
     });
     if (personalized[0]) {
-      return { recommendation: personalized[0], isPersonalized: true };
+      return {
+        recommendation: personalized[0],
+        isPersonalized: personalized[0].source !== 'weakness',
+      };
     }
   }
 
+  const recommendation = buildDefaultNextLesson({ isRead, isPracticed, weakConcepts });
   return {
-    recommendation: buildDefaultNextLesson({ isRead, isPracticed }),
-    isPersonalized: false,
+    recommendation,
+    isPersonalized: Boolean(recommendation?.isPersonalized && recommendation.source !== 'weakness'),
   };
 }
 
@@ -168,6 +197,8 @@ export function useLesson(lessonId: string) {
   const markCompleted = useAcademyProgressStore((s) => s.markCompleted);
   const markPracticed = useAcademyProgressStore((s) => s.markPracticed);
   const recordQuizScore = useAcademyProgressStore((s) => s.recordQuizScore);
+  const recordConceptResult = useAcademyProgressStore((s) => s.recordConceptResult);
+  const recordExerciseAttempt = useAcademyProgressStore((s) => s.recordExerciseAttempt);
   const progress = useAcademyProgressStore((s) => s.getProgress(lessonId));
   const isCompleted = useAcademyProgressStore((s) => s.isCompleted(lessonId));
   const isRead = useAcademyProgressStore((s) => s.isRead(lessonId));
@@ -183,6 +214,8 @@ export function useLesson(lessonId: string) {
     markCompleted,
     markPracticed,
     recordQuizScore,
+    recordConceptResult,
+    recordExerciseAttempt,
     isLoading: query.isLoading,
     isError: query.isError,
     refetch: query.refetch,

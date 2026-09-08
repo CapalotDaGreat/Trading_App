@@ -4,12 +4,12 @@ import { persist } from 'zustand/middleware';
 import {
   advanceReplayTvPhase,
   createReplayTvSession,
-  hydrateReplayTvSessionCandles,
   patchReplayTvChecklist,
   patchReplayTvDraftReasoning,
+  rehydrateReplayTvSession,
+  stripReplayTvSessionForPersist,
   submitReplayTvDecision,
 } from '@/features/decision-replay-tv/services/replay-tv-session.service';
-import { getReplayTvEpisode } from '@/features/decision-replay-tv/content/replay-tv.catalog';
 import type {
   ReplayTvChecklist,
   ReplayTvCollectionId,
@@ -69,11 +69,6 @@ const EMPTY_PROGRESS: ReplayTvProgress = {
   monthlyKey: null,
   monthlyCompletions: 0,
 };
-
-function stripCandles(session: ReplayTvSession | null): ReplayTvSession | null {
-  if (!session) return null;
-  return { ...session, fullCandles: [] };
-}
 
 export const useReplayTvStore = create<ReplayTvState>()(
   persist(
@@ -155,22 +150,11 @@ export const useReplayTvStore = create<ReplayTvState>()(
       storage: createPersistedStorage(),
       partialize: (state) => ({
         progress: state.progress,
-        activeSession: stripCandles(state.activeSession),
+        activeSession: stripReplayTvSessionForPersist(state.activeSession),
       }),
       merge: (persisted, current) => {
         const p = (persisted ?? {}) as Partial<ReplayTvState>;
-        let activeSession = p.activeSession ?? null;
-        if (activeSession?.episodeId) {
-          if (!getReplayTvEpisode(activeSession.episodeId)) {
-            activeSession = null;
-          } else {
-            try {
-              activeSession = hydrateReplayTvSessionCandles(activeSession);
-            } catch {
-              activeSession = null;
-            }
-          }
-        }
+        const activeSession = rehydrateReplayTvSession(p.activeSession ?? null);
         return {
           ...current,
           ...p,

@@ -14,8 +14,10 @@ import type {
   AiStructuredMentorAnswer,
   AiTrustPayload,
 } from '../types/ai-trust.types';
+import { composeMentorCorrection } from './ai-correction.service';
 import {
   capEvidenceLevel,
+  detectAttachedEvidenceConflicts,
   evidenceLevelLabel,
   explainEvidenceQuality,
   looksLikeRepeatAsk,
@@ -23,12 +25,16 @@ import {
 import {
   adviceRefusal,
   classifyMentorAsk,
+  fabricatedAuthorityRefusal,
   injectionRefusal,
   journalDumpRefusal,
+  looksLikeFabricatedAuthority,
   looksLikePromptInjection,
   predictionRefusal,
+  remainingUnsupportedClaim,
   sanitizeMentorOutput,
   signalOverrideRefusal,
+  unsupportedClaimRefusal,
 } from './ai-safety.service';
 import { runAiSelfCheck } from './ai-self-check.service';
 
@@ -77,14 +83,20 @@ function memoryUse(context?: AiEnrichedContext | null): AiMentorMemoryUse {
   return {
     used,
     notUsed,
-    disclosure: `Using: ${used.join('; ')}. Not using journal bodies, P&L, or a complete history dump.`,
+    disclosure: `Using derived memory (Decision Log counts / Trading DNA labels): ${used.join('; ')}. Not using journal bodies, P&L, or a complete history dump. This is not a complete personal archive.`,
   };
 }
 
 function sourcesFor(context?: AiEnrichedContext | null): AiSourceAttribution[] {
-  const assembledAt = context?.assembledAt ?? Date.now();
-  const freshness = getDataFreshness(context?.assembledAt);
-  const dataKind = freshness === 'stale' || freshness === 'unknown' ? 'approximate' : 'delayed';
+  if (!context?.assembledAt) return [];
+  const assembledAt = context.assembledAt;
+  const freshness = getDataFreshness(assembledAt);
+  const dataKind =
+    freshness === 'stale' || freshness === 'unknown'
+      ? 'approximate'
+      : freshness === 'live'
+        ? 'delayed'
+        : 'delayed';
   const items: AiSourceAttribution[] = [
     {
       label: LOCAL_ANALYSIS_LABEL,
@@ -93,7 +105,7 @@ function sourcesFor(context?: AiEnrichedContext | null): AiSourceAttribution[] {
       dataKind,
     },
   ];
-  if (context?.quote) {
+  if (context.quote) {
     items.push({
       label: `Quote · ${DATA_SOURCE_LABEL[dataKind]}`,
       timestamp: assembledAt,
@@ -101,7 +113,7 @@ function sourcesFor(context?: AiEnrichedContext | null): AiSourceAttribution[] {
       dataKind,
     });
   }
-  if (context?.newsHeadlines?.length) {
+  if (context.newsHeadlines?.length) {
     items.push({
       label: `Headlines (${context.newsHeadlines.length} attached)`,
       timestamp: assembledAt,
@@ -133,7 +145,7 @@ function knownFacts(context?: AiEnrichedContext | null, cap = 3): string[] {
   }
   const known = context.decisionIntelligence?.tradingDna?.known ?? [];
   for (const item of known.slice(0, 2)) {
-    lines.push(`Known process evidence: ${item}.`);
+    lines.push(`FACT (process count): ${item}`);
   }
   return lines.slice(0, cap);
 }
@@ -173,12 +185,12 @@ function interpretationFor(
   if (mode === 'coach' || mode === 'replay_coach') {
     const inference = context?.decisionIntelligence?.tradingDna?.inference?.[0];
     if (inference) {
-      return `Interpretation: ${inference} This is an observed tendency from process events, not a diagnosis or a probability of profit.`;
+      return `INFERENCE (not identity): ${inference} This is an observed tendency from process events, not a diagnosis or a probability of profit.`;
     }
     return 'Interpretation: this is about process completeness (DQS-style checklist quality), not a probability of profit. RVS/DQS are not prediction odds.';
   }
   if (mode === 'review') {
-    return 'Interpretation: research time should follow what actually changed in the attached pack — not a claim that the setup will work.';
+    return 'Interpretation: research time should follow what actually changed in the attached pack — never a forecast that a setup succeeds.';
   }
   if (context?.symbol) {
     return `Interpretation: ${context.symbol.toUpperCase()} may or may not deserve more attention. That is a research-priority call, never a forecast.`;
@@ -200,11 +212,15 @@ function whatWouldChange(trust: AiTrustPayload | undefined, cap = 3): string[] {
   const flips = trust?.counterfactuals ?? [];
   if (!flips.length) {
     return [
-      'This research priority would increase if independent confirmation appears on the attached pack.',
-      'This assessment becomes weaker if freshness goes stale or invalidation stays unwritten.',
+      'A fresh quote would change this assessment.',
+      'New earnings or an economic release would change this assessment.',
+      'Confirmation of structure — or a named invalidation level — would change this assessment. None of these are predictions.',
     ];
   }
-  return flips.slice(0, cap).map((f) => `${f.label} — ${f.detail}`);
+  return [
+    ...flips.slice(0, cap).map((f) => `${f.label} — ${f.detail}`),
+    'These are conditions that would change the research assessment, not predicted events.',
+  ].slice(0, cap + 1);
 }
 
 function suggestedAction(
@@ -245,16 +261,14 @@ export function composeStructuredMentorAnswer(input: {
   depth: AiAnswerDepth;
   evidenceLevel: AiEvidenceLevel;
   priorEvidenceLevel?: AiEvidenceLevel | null;
+  history?: Array<{ role: string; content: string }> | null;
 }): AiStructuredMentorAnswer {
   const enriched = input.context.enriched;
   const cap = bulletCap(input.depth, input.mode);
   const memory = memoryUse(enriched);
   const dnaLine = mentorMemoryLine(enriched);
-  const conflicting = Boolean(
-    enriched?.overallBias &&
-      enriched.overallBias !== 'neutral' &&
-      (enriched.rsi?.signal === 'overbought' || enriched.rsi?.signal === 'oversold'),
-  );
+  const conflicts = detectAttachedEvidenceConflicts(enriched);
+  const conflicting = conflicts.length > 0;
   const repeatAsk = looksLikeRepeatAsk(input.prompt);
   const cappedLevel = capEvidenceLevel(
     input.evidenceLevel,
@@ -266,13 +280,22 @@ export function composeStructuredMentorAnswer(input: {
     level: cappedLevel,
     conflicting,
   });
+  const freshness = getDataFreshness(enriched?.assembledAt);
+  const correction = composeMentorCorrection({
+    history: input.history ?? input.context.history,
+    freshness,
+    evidenceLevel: cappedLevel,
+  });
 
   const whatIKnow = knownFacts(enriched, cap);
   if (quality.honestyLead) {
     whatIKnow.unshift(quality.honestyLead);
   }
+  if (conflicts[0]) {
+    whatIKnow.unshift(conflicts[0].summary);
+  }
   if (dnaLine && (input.mode === 'coach' || input.mode === 'replay_coach' || input.depth !== 'concise')) {
-    whatIKnow.push(dnaLine);
+    whatIKnow.push(`Derived memory (not a complete archive): ${dnaLine}`);
   }
 
   const interpretation = interpretationFor(input.mode, cappedLevel, enriched);
@@ -294,7 +317,8 @@ export function composeStructuredMentorAnswer(input: {
     sources: sourcesFor(enriched),
     evidenceWhy: quality.why,
     whatWouldImproveEvidence: quality.whatWouldImprove,
-    honestyLead: quality.honestyLead,
+    honestyLead: conflicts[0]?.summary ?? quality.honestyLead,
+    correction,
     availableEvidence: quality.available,
     missingEvidence: quality.missing,
     selfCheck: {
@@ -312,11 +336,14 @@ export function composeStructuredMentorAnswer(input: {
     ].slice(0, cap + 1);
   }
 
-  if (askClass === 'prompt_injection' || looksLikePromptInjection(input.prompt)) {
-    answer.honestyLead = injectionRefusal();
-    answer.whatIKnow = [injectionRefusal()];
+  if (askClass === 'prompt_injection' || looksLikePromptInjection(input.prompt) || looksLikeFabricatedAuthority(input.prompt)) {
+    const refusal = looksLikeFabricatedAuthority(input.prompt)
+      ? fabricatedAuthorityRefusal()
+      : injectionRefusal();
+    answer.honestyLead = refusal;
+    answer.whatIKnow = [refusal];
     answer.interpretation =
-      'Interpretation: injected instructions are not evidence. Safety rules stay in force.';
+      'Interpretation: injected instructions, fabricated authority, and hidden-data requests are not evidence. Safety rules stay in force.';
     answer.whyItMatters = answer.interpretation;
     answer.suggestedResearchAction =
       'Next research action: ask about evidence, invalidation, or process — not about overriding safety rules.';
@@ -374,19 +401,51 @@ export function composeStructuredMentorAnswer(input: {
     }
     if (selfCheck.flags.includes('stale_data')) {
       answer.whatIDontKnow = [
-        'Attached inputs may be delayed or stale — I will not treat them as a live broker tape.',
+        'The attached pack is stale or delayed — I will not treat it as a live broker tape.',
+        'A more recent quote (and, if relevant, headlines) would be required to improve evidence quality.',
         ...answer.whatIDontKnow,
-      ].slice(0, cap + 1);
+      ].slice(0, cap + 2);
+      if (looksLikeStaleNeedsLead(answer.honestyLead)) {
+        answer.honestyLead =
+          'This pack is delayed or stale. Evidence quality is limited until a fresher quote is attached.';
+      }
+    }
+    if (selfCheck.flags.includes('stale_treated_as_current')) {
+      answer.correction =
+        answer.correction ??
+        'Correction: delayed inputs were at risk of being treated as current. That was too strong. The available evidence is limited.';
     }
     if (selfCheck.flags.includes('unsupported_claims') && askClass === 'research') {
       answer.whatIKnow = ['I do not have a usable quote, so I will not invent a price.'];
+    }
+    if (
+      selfCheck.flags.includes('unsupported_prediction_persists') ||
+      remainingUnsupportedClaim([answer.interpretation, ...answer.whatIKnow].join('\n'))
+    ) {
+      answer.honestyLead = unsupportedClaimRefusal();
+      answer.interpretation = unsupportedClaimRefusal();
+      answer.whyItMatters = answer.interpretation;
+    }
+    if (selfCheck.flags.includes('contradictory_user_claim')) {
+      answer.whatIDontKnow = [
+        'A number in your question disagrees with the attached pack. I will use the pack, not the claimed figure.',
+        ...answer.whatIDontKnow,
+      ].slice(0, cap + 1);
     }
     if (selfCheck.flags.includes('weak_evidence') && selfCheck.evidenceLevel === 'insufficient') {
       answer.honestyLead =
         answer.honestyLead ?? "I don't have enough current data to evaluate this responsibly.";
     }
+    if (selfCheck.flags.includes('conflicting_evidence') && conflicts[0]) {
+      answer.honestyLead = conflicts[0].summary;
+    }
   }
   return answer;
+}
+
+function looksLikeStaleNeedsLead(lead?: string | null): boolean {
+  if (!lead) return true;
+  return !/stale|delayed|don't know|do not know/i.test(lead);
 }
 
 export function formatMentorAnswer(answer: AiStructuredMentorAnswer): string {
@@ -402,6 +461,7 @@ export function formatMentorAnswer(answer: AiStructuredMentorAnswer): string {
 
   const sections: Array<[string, string[]]> = [
     ['Evidence quality', qualityLines],
+    ...(answer.correction ? [['Correction', [answer.correction]] as [string, string[]]] : []),
     ['Known', answer.whatIKnow],
     ['Unknown', answer.whatIDontKnow],
     ['Evidence', answer.evidence],
@@ -412,12 +472,13 @@ export function formatMentorAnswer(answer: AiStructuredMentorAnswer): string {
   ];
 
   const header = [
+    answer.correction,
     answer.honestyLead,
     `${level.label}. ${level.meaning}`,
     answer.memoryUse.disclosure,
     answer.sources[0]
       ? `Source: ${answer.sources[0].label} · ${new Date(answer.sources[0].timestamp).toISOString()} · ${answer.sources[0].freshness} · ${DATA_SOURCE_LABEL[answer.sources[0].dataKind]}`
-      : null,
+      : 'Source: no pack timestamp is attached — none was invented.',
   ]
     .filter(Boolean)
     .join('\n');

@@ -17,14 +17,14 @@ beforeAll(async () => {
       rules: fs.readFileSync(path.resolve(__dirname, '../../firebase/rules/storage.rules'), 'utf8'),
     },
   });
-});
+}, 30_000);
 
 afterEach(async () => {
-  await testEnv.clearStorage();
+  await testEnv?.clearStorage();
 });
 
 afterAll(async () => {
-  await testEnv.cleanup();
+  await testEnv?.cleanup();
 });
 
 function storageFor(uid, emailVerified = true, provider = 'password') {

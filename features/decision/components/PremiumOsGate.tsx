@@ -8,6 +8,7 @@ import {
 } from '@/features/decision/services/decision-os-access.service';
 import { PremiumPreviewCard } from '@/features/subscription/components/PremiumPreviewCard';
 import { Text } from '@/shared/components/ui/Text';
+import { CALM_ATTENTION } from '@/shared/constants/trust-language';
 import { useSubscriptionStore } from '@/shared/stores/subscription.store';
 
 interface PremiumOsGateProps {
@@ -44,7 +45,7 @@ export function PremiumOsGate({ feature, children, freeAlways, teaser }: Premium
       testID={`premium-os-gate-${feature}`}
       title={decisionOsUpsellCopy(feature)}
       teaser={teaser ?? TEASERS[feature]}
-      ctaLabel="Unlock deeper insights"
+      ctaLabel={CALM_ATTENTION.seePremiumDepth}
       preview={
         <View>
           <Text variant="body-sm" className="text-text-secondary">

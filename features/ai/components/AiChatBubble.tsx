@@ -39,6 +39,15 @@ export function AiChatBubble({ message }: AiChatBubbleProps) {
             : 'rounded-bl-sm border border-border bg-background-elevated',
         )}
       >
+        {!isUser && trust ? (
+          <Text
+            variant="caption"
+            className="mb-2 text-text-tertiary"
+            accessibilityLabel={`Ask AI. Evidence quality ${EVIDENCE_LEVEL_COPY[trust.evidenceLevel].label}. Not a prediction.`}
+          >
+            Evidence quality · {EVIDENCE_LEVEL_COPY[trust.evidenceLevel].label}
+          </Text>
+        ) : null}
         <Text
           variant="body-sm"
           className={cn('leading-6', isUser ? 'text-text-on-accent' : 'text-text-primary')}

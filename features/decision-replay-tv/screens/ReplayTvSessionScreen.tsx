@@ -13,7 +13,7 @@ import { useReplayTv } from '@/features/decision-replay-tv/hooks/useReplayTv';
 import { deriveReplayTvSkillProgress } from '@/features/decision-replay-tv/services/replay-tv-skills.service';
 import {
   REPLAY_TV_DECISION_LABELS,
-  replayTvLoopLabel,
+  composeReplayPhaseAnnouncement,
 } from '@/features/decision-replay-tv/services/replay-tv-session.service';
 import type { ReplayTvDecision, ReplayTvReasoning } from '@/features/decision-replay-tv/types/replay-tv.types';
 import { DataSourceBadge } from '@/features/markets/components/DataSourceBadge';
@@ -26,7 +26,7 @@ import { Surface } from '@/shared/components/ui/Surface';
 import { Text } from '@/shared/components/ui/Text';
 import { useOnlineStatus } from '@/shared/hooks/useOnlineStatus';
 import { useResponsiveLayout } from '@/shared/hooks/useResponsiveLayout';
-import { announceForAccessibility } from '@/shared/utils/accessibility';
+import { announceForAccessibility, composeChartSpokenSummary, spokenIntervalLabel } from '@/shared/utils/accessibility';
 
 export function ReplayTvSessionScreen() {
   const router = useRouter();
@@ -70,10 +70,8 @@ export function ReplayTvSessionScreen() {
 
   useEffect(() => {
     if (!activeSession) return;
-    announceForAccessibility(
-      `${replayTvLoopLabel(activeSession.phase)}. Future market information stays hidden until you commit.`,
-    );
-  }, [activeSession?.phase]);
+    announceForAccessibility(composeReplayPhaseAnnouncement(activeSession));
+  }, [activeSession?.phase, activeSession?.revealed]);
 
   if (!activeSession) {
     return (
@@ -121,8 +119,15 @@ export function ReplayTvSessionScreen() {
     phase !== 'coaching' &&
     phase !== 'complete' &&
     phase !== 'skill';
-  const resumed = phase !== 'intro' && activeSession.fullCandles.length > 0;
+  const resumed = Boolean(activeSession.restoredFromPersist) && phase !== 'intro';
   const skills = deriveReplayTvSkillProgress(progress);
+  const chartSummary = composeChartSpokenSummary({
+    symbol: episode.symbolLabel || episode.symbol,
+    candles: visibleCandles,
+    intervalLabel: spokenIntervalLabel(episode.interval),
+    dataKind: episode.dataKind,
+    extraNote: blind ? 'Future path hidden' : undefined,
+  });
 
   const persistReasoning = (next: ReplayTvReasoning) => {
     setReasoning(next);
@@ -176,9 +181,15 @@ export function ReplayTvSessionScreen() {
         ) : null}
 
         {resumed ? (
-          <Text variant="caption" className="text-text-tertiary" testID="replay-tv-resume-banner">
-            Resumed at freeze {activeSession.checkpointIndex + 1} of {episode.checkpoints.length}.
-            The remaining future stays hidden.
+          <Text
+            variant="caption"
+            className="text-text-tertiary"
+            accessibilityLiveRegion="polite"
+            testID="replay-tv-resume-banner"
+          >
+            {blind
+              ? `Resumed at freeze ${activeSession.checkpointIndex + 1} of ${episode.checkpoints.length}. The remaining future stays hidden.`
+              : `Resumed after reveal. Historical path is visible for teaching review only.`}
           </Text>
         ) : null}
 
@@ -250,31 +261,25 @@ export function ReplayTvSessionScreen() {
         {showChart ? (
           <Surface padding="none" className="overflow-hidden p-2">
             <AccessibleChartFrame
-              title={`${episode.symbol} educational tape`}
+              title={`${episode.symbolLabel || episode.symbol} educational tape`}
               timeRange={
                 blind
-                  ? `Freeze ${activeSession.checkpointIndex + 1}/${episode.checkpoints.length}`
+                  ? `Freeze ${activeSession.checkpointIndex + 1} of ${episode.checkpoints.length}`
                   : 'Full educational path'
               }
               source="sample reconstruction"
-              freshness="educational · not live"
-              summary={
-                blind
-                  ? `${visibleCandles.length} visible bars. Future path hidden.`
-                  : `${activeSession.fullCandles.length} educational bars revealed for review.`
-              }
-              textualAlternative={
-                <Text variant="body-sm" className="text-text-secondary">
-                  {blind
-                    ? `Blind window. Last close ${visibleCandles[visibleCandles.length - 1]?.close?.toFixed?.(2) ?? 'n/a'}.`
-                    : 'Full path visible for teaching review only — scores remain process-only.'}
-                </Text>
-              }
+              freshness={blind ? 'educational · future hidden' : 'educational · not live'}
+              summary={chartSummary}
+              textualAlternative={chartSummary}
             >
               <CandlestickChart
                 candles={visibleCandles}
                 height={layout.isLandscape ? 320 : 260}
-                symbol={episode.symbol}
+                symbol={episode.symbolLabel || episode.symbol}
+                intervalLabel={spokenIntervalLabel(episode.interval)}
+                dataKind={episode.dataKind}
+                extraNote={blind ? 'Future path hidden' : undefined}
+                accessible={false}
               />
             </AccessibleChartFrame>
           </Surface>
@@ -514,9 +519,20 @@ export function ReplayTvSessionScreen() {
                 disabled={isSavingJournal || journalSaved}
                 onPress={() => void saveReflectionToJournal()}
                 accessibilityLabel="Save reflection to Journal"
+                accessibilityState={{ disabled: isSavingJournal || journalSaved }}
               >
                 {journalSaved ? 'Reflection saved' : 'Save reflection to Journal'}
               </Button>
+              {journalSaved ? (
+                <Text
+                  variant="caption"
+                  className="text-text-tertiary"
+                  accessibilityLiveRegion="polite"
+                  accessibilityRole="text"
+                >
+                  Reflection saved to Journal on this device.
+                </Text>
+              ) : null}
               {activeSession.scores.academyHint ? (
                 <Button
                   variant="outline"

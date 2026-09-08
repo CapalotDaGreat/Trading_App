@@ -10,10 +10,11 @@ import type { QuizQuestion } from '../types/academy.types';
 interface LessonQuizProps {
   questions: QuizQuestion[];
   onComplete: (scorePercent: number) => void;
+  onAnswer?: (input: { questionId: string; correct: boolean; conceptId?: string }) => void;
   bestScore?: number;
 }
 
-export function LessonQuiz({ questions, onComplete, bestScore }: LessonQuizProps) {
+export function LessonQuiz({ questions, onComplete, onAnswer, bestScore }: LessonQuizProps) {
   const [index, setIndex] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
   const [revealed, setRevealed] = useState(false);
@@ -34,15 +35,15 @@ export function LessonQuiz({ questions, onComplete, bestScore }: LessonQuizProps
     const passed = scorePercent >= 70;
     return (
       <View className="rounded-2xl bg-background-elevated p-4">
-        <Text variant="h3">{passed ? 'Quiz passed' : 'Keep practicing'}</Text>
+        <Text variant="h3">{passed ? 'Knowledge check complete' : 'Review the misses, then retry'}</Text>
         <Text variant="body-sm" className="mt-2">
-          You scored {scorePercent}% ({correctCount}/{questions.length} correct).
+          You scored {scorePercent}% ({correctCount}/{questions.length}).
           {bestScore != null ? ` Best so far: ${bestScore}%.` : ''}
         </Text>
         <Text variant="caption" className="mt-2">
           {passed
-            ? 'Lesson marked complete. Revisit anytime to sharpen the concepts.'
-            : 'You need 70% to auto-complete. Review the lesson and retry.'}
+            ? 'A passing score means you can explain the idea — not that the next paper trade will be profitable.'
+            : 'Aim for 70%. Wrong answers include an explanation. Weak concepts will be recommended next.'}
         </Text>
         <Button
           className="mt-4"
@@ -67,6 +68,7 @@ export function LessonQuiz({ questions, onComplete, bestScore }: LessonQuizProps
     const nextCorrect = correctCount + (isCorrect ? 1 : 0);
     setCorrectCount(nextCorrect);
     setRevealed(true);
+    onAnswer?.({ questionId: question.id, correct: isCorrect, conceptId: question.conceptId });
   };
 
   const onNext = () => {
@@ -124,9 +126,31 @@ export function LessonQuiz({ questions, onComplete, bestScore }: LessonQuizProps
       </View>
 
       {revealed ? (
-        <Text variant="body-sm" className="mt-3 text-text-secondary">
-          {question.explanation}
-        </Text>
+        <View className="mt-3">
+          <Text variant="label">
+            {selected === question.correctIndex
+              ? 'That matches the teaching point.'
+              : 'Not the strongest reading.'}
+          </Text>
+          {question.choiceExplanations?.length ? (
+            <>
+              {selected != null && question.choiceExplanations[selected] ? (
+                <Text variant="body-sm" className="mt-2 text-text-secondary">
+                  {question.choiceExplanations[selected]}
+                </Text>
+              ) : null}
+              {selected !== question.correctIndex && question.choiceExplanations[question.correctIndex] ? (
+                <Text variant="body-sm" className="mt-2 text-text-secondary">
+                  Why the better answer: {question.choiceExplanations[question.correctIndex]}
+                </Text>
+              ) : null}
+            </>
+          ) : (
+            <Text variant="body-sm" className="mt-2 text-text-secondary">
+              {question.explanation}
+            </Text>
+          )}
+        </View>
       ) : null}
 
       <View className="mt-4 flex-row gap-2">

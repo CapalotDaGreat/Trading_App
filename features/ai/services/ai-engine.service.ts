@@ -95,13 +95,32 @@ function nearestLevel(levels: number[], price: number, direction: 'above' | 'bel
 
 function buildTradeSuggestion(context: AiEnrichedContext): AiAnalysisResult {
   const symbol = context.symbol ?? 'MARKET';
-  const price = context.quote?.price ?? 0;
+  const price = context.quote?.price;
   const bias = context.overallBias ?? 'neutral';
   const confidence = context.biasConfidence ?? 50;
 
-  const support = nearestLevel(context.supportLevels ?? [], price, 'below') ?? price * 0.97;
-  const resistance = nearestLevel(context.resistanceLevels ?? [], price, 'above') ?? price * 1.03;
-  const atr = context.atr ?? price * 0.02;
+  if (price == null || price <= 0) {
+    return {
+      type: 'trade_suggestion',
+      content:
+        "I don't know the last price — no quote is attached. I will not invent a price, support, or invalidation level.",
+      sentiment: 'neutral',
+      tradeSuggestion: {
+        symbol,
+        action: 'skip',
+        confidence: 0,
+        reasoning: 'No usable quote. Research priority cannot be ranked from invented levels.',
+        why: ['A verified last price is missing.', 'Named support/resistance were not fabricated.'],
+        timeframe: 'unknown until a quote is attached',
+      },
+      generatedAt: Date.now(),
+      metadata: buildMetadata(context, 0, [], { sentiment: 'neutral', action: 'skip' }),
+    };
+  }
+
+  const support = nearestLevel(context.supportLevels ?? [], price, 'below');
+  const resistance = nearestLevel(context.resistanceLevels ?? [], price, 'above');
+  const atr = context.atr;
 
   let action: 'research' | 'watch' | 'skip' = 'watch';
   if (confidence >= 58 && bias !== 'neutral') {
@@ -156,15 +175,12 @@ function buildTradeSuggestion(context: AiEnrichedContext): AiAnalysisResult {
   }
   why.push(...researchPaths);
 
-  const observeLow = bias === 'bullish' ? support : price * 0.995;
-  const observeHigh = bias === 'bullish' ? price : resistance;
-  const invalidationLevel = bias === 'bullish' ? support - atr * 0.5 : resistance + atr * 0.5;
-  const nextResearchLevel = bias === 'bullish' ? resistance + atr : support - atr;
-
-  const content =
-    bias === 'neutral'
-      ? `${symbol} has mixed technical evidence. Watch for clearer structure above ${formatPrice(resistance)} or below ${formatPrice(support)} before spending more research time.`
-      : `${symbol} has a ${bias} technical bias with ${confidence}% evidence quality. Use ${formatPrice(support)}–${formatPrice(resistance)} as a research zone, not a price forecast.`;
+  const hasLevels = support != null && resistance != null;
+  const content = !hasLevels
+    ? `${symbol} has attached technical labels, but named support/resistance are missing. I will not invent levels. ${confidence}% is evidence coverage, not a chance the market moves.`
+    : bias === 'neutral'
+      ? `${symbol} has mixed technical evidence. Watch for clearer structure above ${formatPrice(resistance)} or below ${formatPrice(support)} before spending more research time. Coverage is not a forecast.`
+      : `${symbol} has a ${bias} technical bias with ${confidence}% evidence coverage. Use ${formatPrice(support)}–${formatPrice(resistance)} as a research zone, not a price forecast.`;
 
   return {
     type: 'trade_suggestion',
@@ -176,9 +192,21 @@ function buildTradeSuggestion(context: AiEnrichedContext): AiAnalysisResult {
       confidence,
       reasoning: content,
       why,
-      observationZone: price > 0 ? { low: round2(observeLow), high: round2(observeHigh) } : undefined,
-      invalidationLevel: price > 0 ? round2(invalidationLevel) : undefined,
-      nextResearchLevel: price > 0 ? round2(nextResearchLevel) : undefined,
+      observationZone: hasLevels
+        ? { low: round2(Math.min(support, price)), high: round2(Math.max(resistance, price)) }
+        : undefined,
+      invalidationLevel:
+        support != null && atr != null && bias === 'bullish'
+          ? round2(support - atr * 0.5)
+          : resistance != null && atr != null && bias !== 'bullish'
+            ? round2(resistance + atr * 0.5)
+            : undefined,
+      nextResearchLevel:
+        resistance != null && atr != null && bias === 'bullish'
+          ? round2(resistance + atr)
+          : support != null && atr != null
+            ? round2(support - atr)
+            : undefined,
       timeframe: '1–3 weeks (daily chart)',
     },
     generatedAt: Date.now(),
@@ -192,13 +220,22 @@ function round2(n: number): number {
 
 function buildRiskAnalysis(context: AiEnrichedContext): AiAnalysisResult {
   const symbol = context.symbol ?? 'MARKET';
-  const price = context.quote?.price ?? 100;
-  const atr = context.atr ?? price * 0.02;
-  const atrPercent = (atr / price) * 100;
+  const price = context.quote?.price;
+  if (price == null || price <= 0) {
+    return {
+      type: 'risk_analysis',
+      content:
+        "I don't know the last price or ATR in usable form. I will not invent a $100 placeholder or a fake volatility percentage.",
+      generatedAt: Date.now(),
+      metadata: buildMetadata(context, 0, [], { action: 'skip' }),
+    };
+  }
+  const atr = context.atr;
+  const atrPercent = atr != null && atr > 0 ? (atr / price) * 100 : null;
 
   let riskScore = 40;
-  if (atrPercent > 3) riskScore += 20;
-  else if (atrPercent > 1.5) riskScore += 10;
+  if (atrPercent != null && atrPercent > 3) riskScore += 20;
+  else if (atrPercent != null && atrPercent > 1.5) riskScore += 10;
   if (context.rsi?.signal === 'overbought' || context.rsi?.signal === 'oversold') riskScore += 8;
   if (context.adx !== undefined && context.adx < 20) riskScore += 5;
   if (context.overallBias === 'neutral') riskScore -= 5;
@@ -214,10 +251,13 @@ function buildRiskAnalysis(context: AiEnrichedContext): AiAnalysisResult {
   const factors: NonNullable<AiAnalysisResult['riskAnalysis']>['factors'] = [
     {
       label: 'Volatility (ATR)',
-      impact: atrPercent > 2.5 ? 'negative' : 'neutral',
-      detail: `Daily ATR ${formatPrice(atr)} (${formatPercent(atrPercent)} of price) — ${
-        atrPercent > 2.5 ? 'elevated; widen stops or reduce size' : 'within normal range'
-      }.`,
+      impact: atrPercent != null && atrPercent > 2.5 ? 'negative' : 'neutral',
+      detail:
+        atr != null && atrPercent != null
+          ? `Daily ATR ${formatPrice(atr)} (${formatPercent(atrPercent)} of price) — ${
+              atrPercent > 2.5 ? 'elevated; widen stops or reduce size' : 'within normal range'
+            }.`
+          : 'ATR is not attached. A volatility percentage was not invented.',
     },
     {
       label: 'Trend strength',
@@ -259,17 +299,26 @@ function buildRiskAnalysis(context: AiEnrichedContext): AiAnalysisResult {
     },
   ];
 
-  const riskPercent = clamp(atrPercent, 0.5, 3);
-  const positionSizing = `Risk 0.5–1.5% of portfolio per trade. With ATR-based stop (~${formatPercent(riskPercent)}), position size ≈ (account risk $) / (stop distance × shares).`;
+  const riskPercent = atrPercent != null ? clamp(atrPercent, 0.5, 3) : null;
+  const positionSizing =
+    riskPercent != null
+      ? `Risk 0.5–1.5% of portfolio per trade. With ATR-based stop (~${formatPercent(riskPercent)}), position size ≈ (account risk $) / (stop distance × shares).`
+      : 'Position size cannot be derived without ATR. I will not invent a stop distance.';
 
   return {
     type: 'risk_analysis',
-    content: `${symbol} risk score: ${riskScore}/100 (${extreme}). Volatility and momentum are the primary drivers of position sizing here.`,
+    content: `${symbol} risk score: ${riskScore}/100 (${extreme}). Volatility and momentum are process inputs for research — not a forecast.`,
     riskAnalysis: {
       symbol,
       riskScore,
       riskLevel: extreme as 'low' | 'medium' | 'high' | 'extreme',
-      summary: `${symbol} presents ${riskLevel} risk. ${atrPercent > 2 ? 'Higher volatility warrants smaller positions and wider stops.' : 'Volatility is manageable for standard position sizing.'}`,
+      summary: `${symbol} presents ${riskLevel} risk. ${
+        atrPercent != null && atrPercent > 2
+          ? 'Higher volatility warrants smaller positions and wider stops.'
+          : atrPercent == null
+            ? 'Volatility is unknown because ATR is missing.'
+            : 'Volatility is manageable for standard position sizing.'
+      }`,
       factors,
       positionSizing,
     },
@@ -744,6 +793,7 @@ export function generateEngineChatResponse(
     depth,
     evidenceLevel: trust?.evidenceLevel ?? 'insufficient',
     priorEvidenceLevel: context.priorEvidenceLevel,
+    history: context.history,
   });
   if (trust) {
     trust.mentorAnswer = mentor;
@@ -755,14 +805,14 @@ export function generateEngineChatResponse(
     ? {
         ...buildMetadata(enriched, 50, [], { sentiment: enriched.overallBias }),
         trust,
-        modelVersion: 'tradevision-mentor-2.1',
+        modelVersion: 'tradevision-mentor-3.0',
       }
     : {
         source: 'engine',
         confidence: 0,
         dataAsOf: Date.now(),
         citations: [{ label: 'Topic', value: 'process' }],
-        modelVersion: 'tradevision-mentor-2.1',
+        modelVersion: 'tradevision-mentor-3.0',
         trust,
       };
 

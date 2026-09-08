@@ -4,6 +4,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { LessonCard } from '@/features/academy/components/LessonCard';
 import { LEARNING_PATHS } from '@/features/academy/content/paths-and-checklists';
 import { useLearningPath } from '@/features/academy/hooks/useAcademy';
+import { scorePathMastery } from '@/features/academy/services/academy-mastery.service';
 import { evaluatePathUnlocks } from '@/features/academy/services/curriculum.service';
 import { useAcademyProgressStore } from '@/features/academy/stores/academy-progress.store';
 import { useDecisionLabStore } from '@/features/decision-lab/stores/lab.store';
@@ -20,6 +21,9 @@ export default function AcademyPathScreen() {
   const practicedCount = useAcademyProgressStore((s) =>
     s.practicedCount(lessons.map((l) => l.id)),
   );
+  const isRead = useAcademyProgressStore((s) => s.isRead);
+  const isPracticedFn = useAcademyProgressStore((s) => s.isPracticed);
+  const getProgress = useAcademyProgressStore((s) => s.getProgress);
   const getChallenges = useDecisionLabStore((s) => s.getChallenges);
   const unlock = evaluatePathUnlocks(getChallenges()).find((u) => u.path.id === pathId);
   const meta = LEARNING_PATHS.find((p) => p.id === pathId);
@@ -45,6 +49,12 @@ export default function AcademyPathScreen() {
 
   const progressPct =
     lessons.length > 0 ? Math.round((completedCount / lessons.length) * 100) : 0;
+  const mastery = scorePathMastery({
+    lessonIds: lessons.map((lesson) => lesson.id),
+    isRead,
+    isPracticed: isPracticedFn,
+    quizBest: (id) => getProgress(id)?.quizBestScore,
+  });
 
   return (
     <Screen scrollable contentClassName="pb-10">
@@ -52,10 +62,12 @@ export default function AcademyPathScreen() {
         title={path.title}
         subtitle={
           meta?.isDefault
-            ? 'Decision Operator · start here'
-            : path.track === 'decision'
-              ? 'Decision coach path'
-              : 'Supporting trading school'
+            ? `${path.title} · start here`
+            : meta?.isSupporting
+              ? 'Supporting path'
+              : path.track === 'decision'
+                ? 'Decision coach path'
+                : 'Trading school path'
         }
         onBack={() => router.back()}
       />
@@ -73,6 +85,12 @@ export default function AcademyPathScreen() {
             PATH PROGRESS
           </Text>
           <Text variant="h3" className="mt-1">
+            {path.title}: {mastery.label}
+          </Text>
+          <Text variant="body-sm" className="mt-1 text-text-secondary">
+            {mastery.evidence}
+          </Text>
+          <Text variant="caption" className="mt-2 text-text-tertiary">
             {completedCount}/{lessons.length} read · {practicedCount}/{lessons.length} practiced
           </Text>
           <View className="mt-3 h-2 overflow-hidden rounded-full bg-surface">

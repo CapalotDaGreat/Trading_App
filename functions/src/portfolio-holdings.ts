@@ -242,7 +242,7 @@ export const createPortfolioHolding = onCall(callableOpts, async (request) => {
       );
       if (!hit) {
         failedPrecondition(
-          "We couldn't verify this instrument. TradeInsight can only manage assets for which reliable market data is available.",
+          "We couldn't verify this instrument. TradeAcademy can only manage assets for which reliable market data is available.",
         );
       } else {
         trusted = {
@@ -266,7 +266,7 @@ export const createPortfolioHolding = onCall(callableOpts, async (request) => {
     const quoteOk = await hasUsableQuote(trusted);
     if (!quoteOk) {
       failedPrecondition(
-        "We couldn't verify this instrument. TradeInsight can only manage assets for which reliable market data is available.",
+        "We couldn't verify this instrument. TradeAcademy can only manage assets for which reliable market data is available.",
       );
     }
 

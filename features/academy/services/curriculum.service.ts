@@ -6,13 +6,14 @@ import { ALL_LESSONS } from '../content';
 import type { AcademyPathMeta } from '../content/paths-and-checklists';
 import { LEARNING_PATHS } from '../content/paths-and-checklists';
 import type { Lesson } from '../types/academy.types';
+import { type WeakConcept } from './academy-mastery.service';
 
 export interface CurriculumRecommendation {
   lesson: Lesson;
   reason: string;
   evidence: string[];
-  source: 'dna' | 'debt' | 'path' | 'unpracticed';
-  /** Personalized engine — Premium surface; free users see Decision Operator default. */
+  source: 'dna' | 'debt' | 'path' | 'unpracticed' | 'weakness';
+  /** Personalized engine — Premium surface; weakness refreshers stay available to everyone. */
   isPersonalized: boolean;
 }
 
@@ -62,9 +63,29 @@ const WEAKNESS_LESSON_MAP: { pattern: RegExp; lessonId: string; reason: string }
     reason: 'Research time budget protects decision quality.',
   },
   {
+    pattern: /rsi|overbought|oversold|momentum oscillator/i,
+    lessonId: 'ta-rsi',
+    reason: 'Momentum / RSI showed up in your process — review stretch versus reversal.',
+  },
+  {
+    pattern: /moving average|crossover|sma|ema/i,
+    lessonId: 'ta-moving-averages',
+    reason: 'Averages appeared in your research — revisit lag and range failure modes.',
+  },
+  {
     pattern: /breakout|early entr/i,
-    lessonId: 'ta-trend-range',
-    reason: 'Breakout / range playbook mismatch — practice confirmation.',
+    lessonId: 'ta-false-breakouts',
+    reason: 'Breakout / range playbook mismatch — practise acceptance, not the first tick.',
+  },
+  {
+    pattern: /drawdown|peak.?to.?trough/i,
+    lessonId: 'risk-drawdown',
+    reason: 'Drawdown literacy is a gap — peak-to-trough is survival math, not a skill score.',
+  },
+  {
+    pattern: /fomo|chase/i,
+    lessonId: 'psych-fomo',
+    reason: 'Chase / FOMO patterns — skip is a complete decision.',
   },
   {
     pattern: /risk.?reward|rr|expectancy/i,
@@ -128,6 +149,22 @@ export function evaluatePathUnlocks(challenges: LabChallenge[]): PathUnlockStatu
   });
 }
 
+export function recommendFromWeakConcepts(weak: WeakConcept[]): CurriculumRecommendation[] {
+  const out: CurriculumRecommendation[] = [];
+  for (const item of weak) {
+    const lesson = lessonById(item.lessonId);
+    if (!lesson) continue;
+    out.push({
+      lesson,
+      reason: item.reason,
+      evidence: item.evidence,
+      source: 'weakness',
+      isPersonalized: true,
+    });
+  }
+  return out;
+}
+
 /**
  * Personalized next lessons from DNA + Decision Debt.
  * Free tier callers should use `buildDefaultNextLesson` instead of surfacing these.
@@ -137,9 +174,10 @@ export function buildPersonalizedCurriculum(input: {
   debt?: DecisionDebtSnapshot;
   isRead: (lessonId: string) => boolean;
   isPracticed: (lessonId: string) => boolean;
+  weakConcepts?: WeakConcept[];
   limit?: number;
 }): CurriculumRecommendation[] {
-  const { memory, debt, isRead, isPracticed, limit = 3 } = input;
+  const { memory, debt, isRead, isPracticed, weakConcepts = [], limit = 3 } = input;
   const out: CurriculumRecommendation[] = [];
   const seen = new Set<string>();
 
@@ -148,6 +186,11 @@ export function buildPersonalizedCurriculum(input: {
     seen.add(rec.lesson.id);
     out.push(rec);
   };
+
+  for (const rec of recommendFromWeakConcepts(weakConcepts)) {
+    if (isPracticed(rec.lesson.id) && isRead(rec.lesson.id)) continue;
+    push(rec);
+  }
 
   // Beginner Mentor Setup → Foundations first
   const experienceHint = `${memory?.notes?.join(' ') ?? ''} ${memory?.tradingStyle ?? ''}`;
@@ -229,13 +272,19 @@ export function buildPersonalizedCurriculum(input: {
   return out.slice(0, limit);
 }
 
-/** Free-tier safe: always Decision Operator next unread/unpracticed lesson. */
+/** Free-tier safe: Foundations next unread/unpracticed lesson, unless a weak concept is stronger. */
 export function buildDefaultNextLesson(input: {
   isRead: (lessonId: string) => boolean;
   isPracticed: (lessonId: string) => boolean;
+  weakConcepts?: WeakConcept[];
 }): CurriculumRecommendation | null {
-  const operator = getDefaultOperatorPath();
-  for (const id of operator.lessonIds) {
+  const weak = recommendFromWeakConcepts(input.weakConcepts ?? []).find(
+    (rec) => !input.isPracticed(rec.lesson.id),
+  );
+  if (weak) return { ...weak, isPersonalized: true };
+
+  const startPath = getDefaultOperatorPath();
+  for (const id of startPath.lessonIds) {
     const lesson = lessonById(id);
     if (!lesson) continue;
     if (!input.isPracticed(id)) {
@@ -243,8 +292,8 @@ export function buildDefaultNextLesson(input: {
         lesson,
         reason: input.isRead(id)
           ? 'You’ve read this — practice in the app to move toward mastery.'
-          : 'Continue the Decision Operator path.',
-        evidence: ['Default journey · free foundations'],
+          : `Continue ${startPath.title} — literacy before tactics.`,
+        evidence: [`Default journey · ${startPath.title}`],
         source: input.isRead(id) ? 'unpracticed' : 'path',
         isPersonalized: false,
       };
@@ -277,3 +326,5 @@ export function auditLessonsWithoutPractice(): { id: string; title: string }[] {
     title: l.title,
   }));
 }
+
+export { auditLessonsWithoutSimulation } from './academy-mastery.service';

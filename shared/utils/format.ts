@@ -108,6 +108,9 @@ export function getCurrencySymbol(currency: string): string {
     EUR: '€',
     GBP: '£',
     JPY: '¥',
+    CHF: 'CHF ',
+    CAD: 'CA$',
+    AUD: 'A$',
     BTC: '₿',
   };
   return symbols[currency] ?? `${currency} `;

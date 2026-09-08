@@ -1,4 +1,5 @@
 import type { OnboardingResolution } from '../types/onboarding.types';
+import { DEMO_USER_UID } from '@/firebase/config';
 
 type AuthGateStatus =
   | 'idle'
@@ -54,4 +55,35 @@ export function resolveRootRedirect({
   if (inOnboarding && !mentorSetupCompleted) return null;
   if (inOnboarding || inAuth) return '/(tabs)';
   return null;
+}
+
+const DEMO_UID = DEMO_USER_UID;
+
+/** Local, synchronous onboarding snapshot — never blocks first paint. */
+export function localOnboardingResolution(input: {
+  uid: string;
+  completed: boolean;
+}): OnboardingResolution {
+  const isDemo = input.uid === DEMO_UID;
+  return {
+    completed: input.completed,
+    experience: isDemo ? 'demo_guide' : 'full',
+    reason: input.completed ? 'explicit_completion' : isDemo ? 'demo_guide' : 'new_user',
+    shouldPersistCompletion: false,
+  };
+}
+
+/**
+ * Wait for Firestore reconcile only when a signed-in cloud user has not
+ * already completed onboarding locally. Guest/demo and returning users paint immediately.
+ */
+export function shouldBlockOnOnboardingReconcile(input: {
+  firebaseConfigured: boolean;
+  authenticated: boolean;
+  localCompleted: boolean;
+}): boolean {
+  if (!input.authenticated) return false;
+  if (!input.firebaseConfigured) return false;
+  if (input.localCompleted) return false;
+  return true;
 }

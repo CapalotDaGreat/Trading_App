@@ -10,6 +10,8 @@ import { useSimulatorStore } from '@/features/decision-simulator/stores/simulato
 import { useEducationalStore } from '@/features/educational/stores/educational.store';
 import { notificationService } from '@/features/notifications/services/notification.service';
 import { onboardingDraftStorageKey } from '@/features/onboarding/services/onboarding-draft.service';
+import { coachProfileStorageKey } from '@/features/onboarding/services/coach-profile.service';
+import { mentorSetupDraftStorageKey } from '@/features/onboarding/services/mentor-setup-draft.service';
 import { useOnboardingStore } from '@/features/onboarding/stores/onboarding.store';
 import { logger } from '@/shared/services/observability/logger';
 import {
@@ -47,6 +49,9 @@ export const USER_LOCAL_STORAGE_KEYS = [
   'tradevision-brief-logged-day',
   'tradevision-portfolio-reviewed-day',
   'tradevision-ai-recommendation-history-v1',
+  'tradevision-simulation-v1',
+  'tradevision-practice-progress-v1',
+  'tradevision-journal-draft-v1',
 ] as const;
 
 export interface ClearUserLocalStateOptions {
@@ -106,7 +111,12 @@ export async function clearAllUserLocalState(
   useEducationalStore.setState({ labOnboardingDismissed: false });
   queryClient?.clear();
 
-  const keys = [...USER_LOCAL_STORAGE_KEYS, onboardingDraftStorageKey(uid)];
+  const keys = [
+    ...USER_LOCAL_STORAGE_KEYS,
+    onboardingDraftStorageKey(uid),
+    coachProfileStorageKey(uid),
+    mentorSetupDraftStorageKey(uid),
+  ];
   await AsyncStorage.multiRemove(keys);
 
   return {

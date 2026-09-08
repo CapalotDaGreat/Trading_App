@@ -18,8 +18,28 @@ const SECTIONS: {
   icon: keyof typeof Ionicons.glyphMap;
 }[] = [
   {
+    title: 'Learn',
+    body: 'Academy paths teach usable skills with charts, exercises, and knowledge checks — not article dumps or get-rich slogans.',
+    icon: 'school-outline',
+  },
+  {
+    title: 'Practice',
+    body: 'Short drills and replay rooms train judgment. A correct answer is the reasoning, not a predicted tick.',
+    icon: 'fitness-outline',
+  },
+  {
+    title: 'Simulate',
+    body: 'Paper capital is labelled simulated. Default starting cash is $100,000 USD. Simulated P/L does not grade the decision.',
+    icon: 'briefcase-outline',
+  },
+  {
+    title: 'Review & Improve',
+    body: 'Journal and Trading DNA come from records you kept. The question is what you learned about your process — not whether paper profit went up.',
+    icon: 'film-outline',
+  },
+  {
     title: 'Decision Simulator',
-    body: 'Practice Research / Wait / Ignore / Create Thesis with future candles hidden. Scores measure process quality — never profits.',
+    body: 'Practice Study / Wait / Ignore / Create Thesis with future candles hidden. Scores measure process quality — never profits.',
     icon: 'fitness-outline',
   },
   {
@@ -34,7 +54,7 @@ const SECTIONS: {
   },
   {
     title: 'How AI works',
-    body: 'Ask and analysis features provide educational research context and explainability. Outputs can be incomplete or wrong. They are not predictions, signals, or personalised financial advice.',
+    body: 'Ask explains concepts and process. Outputs can be incomplete or wrong. They are not predictions, signals, or personalised financial advice.',
     icon: 'sparkles-outline',
   },
   {
@@ -88,8 +108,8 @@ export function EducationalModeScreen() {
             {EDUCATIONAL_MODE_MISSION}
           </Text>
           <Text variant="body-sm" className="mt-3 leading-relaxed text-text-secondary">
-            Educational Mode is always on. It is not a popup disclaimer — it is how TradeInsight is
-            built: education, research, and disciplined practice over brokerage or signals.
+            Educational Mode is always on. It is not a popup disclaimer — it is how TradeAcademy is
+            built: education, simulated practice, and honest review over brokerage or signals.
           </Text>
         </GlassCard>
 
@@ -114,7 +134,7 @@ export function EducationalModeScreen() {
 
         <EducationalPanel
           variant="risk"
-          body="TradeInsight does not execute trades, custody funds, or guarantee future performance. You remain responsible for every live decision with your own broker."
+          body="TradeAcademy does not execute trades, custody funds, or guarantee future performance. Simulated trading is not real money. You remain responsible for every live decision with your own broker."
           learnMoreHref="/legal/risk"
           learnMoreLabel="Read risk disclaimer"
         />

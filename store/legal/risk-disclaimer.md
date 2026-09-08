@@ -12,7 +12,7 @@ This Risk & Investment Disclaimer forms part of your agreement with Aithera / [L
 
 ## 1. Educational and coaching tool only
 
-TradeInsight is a **decision-process and research-coaching** application. It helps discretionary traders organise attention, journal decisions, and review process quality.
+TradeAcademy is a **trading-education and simulated-practice** application. It helps people learn concepts, practise chart reading and decisions, manage **simulated** capital, journal reasoning, and review process quality.
 
 It is **not**:
 
@@ -30,7 +30,7 @@ A **12+ / Teen store rating** is a content-suitability label. It is not permissi
 
 ## 2. No client relationship
 
-Using TradeInsight does **not** create an advisory, fiduciary, brokerage, banking, or portfolio-management relationship under Swiss, EU/EEA/UK, or U.S. law. We do not assess your suitability, appropriateness, knowledge, experience, risk tolerance, or financial situation as a regulated firm would.
+Using TradeAcademy does **not** create an advisory, fiduciary, brokerage, banking, or portfolio-management relationship under Swiss, EU/EEA/UK, or U.S. law. We do not assess your suitability, appropriateness, knowledge, experience, risk tolerance, or financial situation as a regulated firm would.
 
 If you need advice, consult a properly authorised adviser, broker, or other professional in your jurisdiction.
 
@@ -68,7 +68,7 @@ Where marketing or communications rules apply, this app is positioned as **gener
 
 ### United States
 
-Content is for **general informational and educational purposes** and is **not** an offer of securities. TradeInsight is not registered with the SEC, CFTC, FINRA, or state regulators as a broker-dealer, investment adviser, or CTA by offering this software. Hypothetical or backtested-style process metrics (if any) have inherent limitations.
+Content is for **general informational and educational purposes** and is **not** an offer of securities. TradeAcademy is not registered with the SEC, CFTC, FINRA, or state regulators as a broker-dealer, investment adviser, or CTA by offering this software. Hypothetical or backtested-style process metrics (if any) have inherent limitations.
 
 ### Other jurisdictions
 
@@ -82,7 +82,7 @@ By using the Service you acknowledge that:
 
 1. you understand the distinction between research coaching and regulated advice;
 2. you accept full responsibility for your decisions and any resulting gains or losses;
-3. you will not rely on TradeInsight as a sole basis for investment decisions; and
+3. you will not rely on TradeAcademy as a sole basis for investment decisions; and
 4. you have read the Terms of Service and Privacy Policy.
 
 ---

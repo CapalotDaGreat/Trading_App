@@ -6,7 +6,11 @@ export type PerformanceMark =
   | 'chart.work.begin'
   | 'chart.work.end'
   | 'chart.render.begin'
-  | 'chart.render.end';
+  | 'chart.render.end'
+  | 'dna.build.begin'
+  | 'dna.build.end'
+  | 'replay.checkpoint.begin'
+  | 'replay.checkpoint.end';
 
 export type PerformanceCounter =
   | 'market.request.started'
@@ -15,7 +19,7 @@ export type PerformanceCounter =
   | 'market.request.background_skipped'
   | 'market.request.direct';
 
-export type PerformanceWindow = 'brief.build' | 'chart.work' | 'chart.render';
+export type PerformanceWindow = 'brief.build' | 'chart.work' | 'chart.render' | 'dna.build' | 'replay.checkpoint';
 
 export interface PerformanceMetadata {
   requestType?: 'quote' | 'candles';
@@ -129,13 +133,13 @@ export class PerformanceDiagnostics {
 
   measure<T>(window: PerformanceWindow, operation: () => T, metadata?: PerformanceMetadata): T {
     const startedAt = this.now();
-    if (this.alwaysRecord) this.mark(`${window}.begin`, metadata);
+    if (this.alwaysRecord) this.mark(`${window}.begin` as PerformanceMark, metadata);
     try {
       const result = operation();
       const durationMs = this.now() - startedAt;
       if (this.alwaysRecord) {
         this.events.push({
-          name: `${window}.end`,
+          name: `${window}.end` as PerformanceMark,
           at: this.now(),
           durationMs,
           metadata: sanitizeMetadata({ ...metadata, outcome: 'success' }),
@@ -144,11 +148,14 @@ export class PerformanceDiagnostics {
       if (window === 'brief.build') {
         emitSample('perf_screen_load', { screen: 'brief', durationMs });
       }
+      if (window === 'dna.build') {
+        emitSample('perf_screen_load', { screen: 'dna', durationMs });
+      }
       return result;
     } catch (error) {
       if (this.alwaysRecord) {
         this.events.push({
-          name: `${window}.end`,
+          name: `${window}.end` as PerformanceMark,
           at: this.now(),
           durationMs: this.now() - startedAt,
           metadata: sanitizeMetadata({ ...metadata, outcome: 'failure' }),
@@ -164,13 +171,13 @@ export class PerformanceDiagnostics {
     metadata?: PerformanceMetadata,
   ): Promise<T> {
     const startedAt = this.now();
-    if (this.alwaysRecord) this.mark(`${window}.begin`, metadata);
+    if (this.alwaysRecord) this.mark(`${window}.begin` as PerformanceMark, metadata);
     try {
       const result = await operation();
       const durationMs = this.now() - startedAt;
       if (this.alwaysRecord) {
         this.events.push({
-          name: `${window}.end`,
+          name: `${window}.end` as PerformanceMark,
           at: this.now(),
           durationMs,
           metadata: sanitizeMetadata({ ...metadata, outcome: 'success' }),
@@ -183,7 +190,7 @@ export class PerformanceDiagnostics {
     } catch (error) {
       if (this.alwaysRecord) {
         this.events.push({
-          name: `${window}.end`,
+          name: `${window}.end` as PerformanceMark,
           at: this.now(),
           durationMs: this.now() - startedAt,
           metadata: sanitizeMetadata({ ...metadata, outcome: 'failure' }),

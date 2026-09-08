@@ -15,6 +15,7 @@ import {
 import {
   buildEducationalCandles,
   chunkVisibleCandles,
+  clearEducationalPathCache,
   getEducationalCandles,
   visibleCandlesAt,
 } from '../replay-tv-path.service';
@@ -25,13 +26,16 @@ import { episodesForDnaGrowth, rankReplayTvEpisodes } from '../replay-tv-rank.se
 import { scoreReplayTvSession } from '../replay-tv-score.service';
 import {
   advanceReplayTvPhase,
+  composeReplayPhaseAnnouncement,
   createReplayTvSession,
   getBlindSafeEpisodeView,
   getFrozenCandlesForSession,
   getVisibleCandlesForSession,
   getVisibleNewsForSession,
   hydrateReplayTvSessionCandles,
+  rehydrateReplayTvSession,
   replayTvHasFutureLeak,
+  stripReplayTvSessionForPersist,
   submitReplayTvDecision,
 } from '../replay-tv-session.service';
 import { evaluatePassportAchievements } from '@/features/decision-passport/services/passport-achievements.service';
@@ -108,6 +112,15 @@ describe('Decision Replay TV', () => {
     expect(chunked[chunked.length - 1]?.timestamp).toBe(a[freeze]?.timestamp);
   });
 
+  it('keeps revealed chart windows bounded without dropping the frozen teaching path', () => {
+    clearEducationalPathCache();
+    const session = createReplayTvSession('nvidia-earnings');
+    const revealed = { ...session, revealed: true, phase: 'reveal' as const };
+    const visible = getVisibleCandlesForSession(revealed);
+    expect(visible.length).toBeLessThanOrEqual(80);
+    expect(getFrozenCandlesForSession(revealed).length).toBe(revealed.fullCandles.length);
+  });
+
   it('never leaks future candles or outcome strings before reveal', () => {
     let session = createReplayTvSession('nvidia-earnings');
     session = advanceReplayTvPhase(session); // context
@@ -148,6 +161,43 @@ describe('Decision Replay TV', () => {
     const restarted = createReplayTvSession('tesla-rally');
     expect(restarted.phase).toBe('intro');
     expect(restarted.revealed).toBe(false);
+  });
+
+  it('strips candles on persist and stays blind after kill/resume at a checkpoint', () => {
+    let session = createReplayTvSession('nvidia-earnings');
+    session = advanceReplayTvPhase(session); // context
+    session = advanceReplayTvPhase(session); // watching
+    session = advanceReplayTvPhase(session); // reasoning
+    session = advanceReplayTvPhase(session); // decision
+    expect(session.phase).toBe('decision');
+    expect(session.revealed).toBe(false);
+
+    const persisted = stripReplayTvSessionForPersist(session);
+    expect(persisted?.fullCandles).toEqual([]);
+    const serialized = JSON.stringify(persisted);
+    expect(serialized).not.toContain('"fullCandles":[{');
+    expect(serialized.toLowerCase()).not.toContain(
+      getReplayTvEpisode('nvidia-earnings')!.historicalOutcome.slice(0, 24).toLowerCase(),
+    );
+
+    const restored = rehydrateReplayTvSession(persisted);
+    expect(restored?.restoredFromPersist).toBe(true);
+    expect(restored?.phase).toBe('decision');
+    expect(restored?.revealed).toBe(false);
+    expect(restored!.fullCandles.length).toBeGreaterThan(0);
+    expect(getVisibleCandlesForSession(restored!).length).toBeLessThan(restored!.fullCandles.length);
+    expect(getBlindSafeEpisodeView(restored!).historicalOutcome).toBeNull();
+    expect(replayTvHasFutureLeak(restored!)).toBe(false);
+    expect(composeReplayPhaseAnnouncement(restored!)).toContain('stays hidden');
+  });
+
+  it('does not announce a reveal while the session is still blind', () => {
+    let session = createReplayTvSession('tesla-rally');
+    session = advanceReplayTvPhase(session);
+    expect(composeReplayPhaseAnnouncement(session)).toContain('Future market information stays hidden');
+    const revealed = { ...session, phase: 'reveal' as const, revealed: true };
+    expect(composeReplayPhaseAnnouncement(revealed)).toContain('Historical path is visible');
+    expect(composeReplayPhaseAnnouncement(revealed)).not.toContain('stays hidden');
   });
 
   it('runs a blind multi-pause session without grading P&L', () => {
@@ -299,6 +349,15 @@ describe('Decision Replay TV', () => {
     expect(ranked[0]?.id).not.toBe('covid-crash');
     const dna = episodesForDnaGrowth(REPLAY_TV_EPISODES, ['Patience', 'Invalidation'], []);
     expect(dna.length).toBeGreaterThan(0);
+
+    const practiced = rankReplayTvEpisodes(REPLAY_TV_EPISODES, {
+      practiceTraitId: 'invalidationDiscipline',
+    });
+    expect(
+      practiced[0]?.scoringEmphasis.includes('invalidation') ||
+        practiced[0]?.skills.includes('invalidation') ||
+        practiced[0]?.collectionIds.includes('risk_management'),
+    ).toBe(true);
   });
 
   it('builds a Journal reflection payload with process-only shape', () => {

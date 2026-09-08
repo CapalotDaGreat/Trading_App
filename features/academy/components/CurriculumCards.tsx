@@ -12,7 +12,7 @@ interface NextLessonCardProps {
 
 export function NextLessonCard({ recommendation, showPremiumBadge }: NextLessonCardProps) {
   const router = useRouter();
-  const { lesson, reason, evidence, isPersonalized } = recommendation;
+  const { lesson, reason, evidence, isPersonalized, source } = recommendation;
 
   return (
     <Pressable
@@ -20,7 +20,11 @@ export function NextLessonCard({ recommendation, showPremiumBadge }: NextLessonC
       className="rounded-2xl bg-background-elevated p-4 active:opacity-80"
     >
       <Text variant="caption" className="mb-1 font-semibold text-text-tertiary">
-        {isPersonalized && showPremiumBadge ? 'Next lesson · Personalized' : 'Next lesson'}
+        {source === 'weakness'
+          ? 'Refresher · from your checks'
+          : isPersonalized && showPremiumBadge
+            ? 'Next lesson · Personalized'
+            : 'Continue learning'}
       </Text>
       <Text variant="h3" className="mb-1">
         {lesson.title}
@@ -57,7 +61,7 @@ export function AcademyDisciplineCard({
     <View className="rounded-2xl bg-background-elevated p-4">
       <View className="mb-2 flex-row items-center justify-between">
         <Text variant="caption" className="font-semibold text-text-tertiary">
-          DISCIPLINE LOOP
+          Discipline loop
         </Text>
         <Text variant="caption" className="text-accent">
           {days}d streak

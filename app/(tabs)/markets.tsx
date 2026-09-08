@@ -14,6 +14,7 @@ import type { SearchResult } from '@/features/markets/services/market-search.ser
 import { WatchlistCard } from '@/features/watchlists/components/WatchlistCard';
 import { useWatchlists } from '@/features/watchlists/hooks/useWatchlists';
 import { EmptyState } from '@/shared/components/feedback/EmptyState';
+import { RecoverableErrorState } from '@/shared/components/feedback/RecoverableErrorState';
 import { Header } from '@/shared/components/layout/Header';
 import { Screen } from '@/shared/components/layout/Screen';
 import { Skeleton } from '@/shared/components/ui/Skeleton';
@@ -134,14 +135,21 @@ export default function MarketsScreen() {
           Live or delayed quotes as labelled · tap a row to research
         </Text>
         <View className="gap-1">
-          {popularAssets.slice(0, 6).map((asset) => (
-            <QuoteRow
-              key={asset.symbol}
-              asset={asset}
-              quote={quoteBySymbol.get(asset.symbol.toUpperCase())}
-              onPress={() => handleSymbolPress(asset.symbol)}
+          {livePopular.isError && !livePopular.data?.length ? (
+            <RecoverableErrorState
+              error={livePopular.error ?? new Error('Quotes unavailable')}
+              onRetry={() => void livePopular.refetch()}
             />
-          ))}
+          ) : (
+            popularAssets.slice(0, 6).map((asset) => (
+              <QuoteRow
+                key={asset.symbol}
+                asset={asset}
+                quote={quoteBySymbol.get(asset.symbol.toUpperCase())}
+                onPress={() => handleSymbolPress(asset.symbol)}
+              />
+            ))
+          )}
         </View>
       </View>
 

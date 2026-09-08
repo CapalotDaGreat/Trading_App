@@ -1,8 +1,8 @@
 /**
- * Launch monetization catalog for TradeInsight Premium (Aithera Pro).
+ * Launch monetization catalog for TradeAcademy Premium (Aithera Pro).
  *
  * Free is a real daily product. Premium sells depth, personalization, and
- * progression — not basic Today / research / journal access.
+ * progression — not basic Learn / Practice / Journal access.
  *
  * Store product IDs and the RevenueCat entitlement must still be created in
  * the consoles (see docs/MONETIZATION.md). Fallback prices in the paywall are
@@ -54,18 +54,17 @@ export interface FeatureComparisonRow {
  * Depth/personalization/progression — never buy/sell signals or investment advice.
  */
 export const LAUNCH_FEATURE_COMPARISON: readonly FeatureComparisonRow[] = [
-  { feature: 'Today', free: 'Included', premium: 'Included' },
-  { feature: 'Basic research', free: 'Included', premium: 'Included' },
+  { feature: 'Home', free: 'Included', premium: 'Included' },
+  { feature: 'Introductory Academy', free: 'Included', premium: 'Full catalog' },
+  { feature: 'Practice drills', free: 'Selected', premium: 'Full' },
+  { feature: 'Simulation', free: 'Limited', premium: 'Challenges + history depth' },
   { feature: 'Basic journal', free: 'Included', premium: 'Included' },
   { feature: 'Replay', free: 'Limited', premium: 'Full' },
   { feature: 'AI', free: `${AI_DAILY_LIMIT_FREE}/day`, premium: `~${AI_DAILY_LIMIT_PREMIUM}/day fair use` },
-  { feature: 'Radar', free: 'Limited', premium: 'Full' },
   { feature: 'Trading DNA', free: 'Basic', premium: 'Full' },
   { feature: 'Personal Intelligence', free: 'Limited', premium: 'Full' },
   { feature: 'Decision Replay TV', free: 'Limited episodes', premium: 'Full library' },
-  { feature: 'Advanced risk', free: 'Limited', premium: 'Included' },
-  { feature: 'Advanced alerts', free: 'Limited', premium: 'Included' },
-  { feature: 'Portfolio intelligence', free: '—', premium: 'Included' },
+  { feature: 'Advanced review', free: 'Limited', premium: 'Included' },
   { feature: 'Export', free: '—', premium: 'Included' },
   { feature: 'Ads', free: 'None at launch', premium: 'None' },
   { feature: '7-day trial', free: '—', premium: 'Yearly only' },

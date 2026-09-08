@@ -258,6 +258,8 @@ export interface ReplayTvSession {
   revealed: boolean;
   /** Draft reasoning for the current freeze — persisted so kill/resume does not wipe notes. */
   draftReasoning?: ReplayTvReasoning;
+  /** Set when the session was restored from persistence after backgrounding or app kill. */
+  restoredFromPersist?: boolean;
 }
 
 export interface ReplayTvProgress {

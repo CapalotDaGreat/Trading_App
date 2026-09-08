@@ -45,13 +45,12 @@ export function PromptSuggestions({
   );
 }
 
-/** Credibility-first prompts — research desk, not signal bot. */
+/** Educational mentor prompts — never financial advice. */
 export const DEFAULT_CHAT_PROMPTS = [
-  'What do you know vs not know here?',
-  'What would change this assessment?',
-  'What evidence is missing?',
-  'Coach me on invalidation',
-  'Review what changed',
+  'Explain support and resistance.',
+  'Why was my position too large?',
+  'What should I learn next?',
+  'Help me review this decision.',
 ];
 
 export const DEFAULT_ANALYSIS_PROMPTS = [

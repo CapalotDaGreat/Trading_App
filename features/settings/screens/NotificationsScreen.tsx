@@ -6,11 +6,11 @@ import { useAuth } from '@/features/auth/hooks/useAuth';
 import { notificationService } from '@/features/notifications/services/notification.service';
 import { SettingsRow } from '@/features/settings/components/SettingsRow';
 import { useSettings } from '@/features/settings/hooks/useSettings';
-import { Header } from '@/shared/components/layout/Header';
-import { Screen } from '@/shared/components/layout/Screen';
+import { ScreenScaffold } from '@/shared/components/layout/ScreenScaffold';
 import { Button } from '@/shared/components/ui/Button';
-import { GlassCard } from '@/shared/components/ui/GlassCard';
+import { Surface } from '@/shared/components/ui/Surface';
 import { Text } from '@/shared/components/ui/Text';
+import { CALM_ATTENTION } from '@/shared/constants/trust-language';
 import { useToast } from '@/shared/components/feedback/Toast';
 
 export function NotificationsScreen() {
@@ -35,7 +35,7 @@ export function NotificationsScreen() {
     setPermission(status);
 
     if (token) {
-      toast.success('Notifications enabled', 'You will receive price alerts and AI insights.');
+      toast.success('Notifications enabled', CALM_ATTENTION.researchReminderReady);
       await updateNotifications({ pushEnabled: true });
     } else {
       toast.error('Permission denied', 'Enable notifications in system settings.');
@@ -43,71 +43,80 @@ export function NotificationsScreen() {
   };
 
   return (
-    <Screen scrollable>
-      <Header title="Notifications" onBack={() => router.back()} />
-
+    <ScreenScaffold
+      title="Notifications"
+      subtitle="Quiet research reminders — never a prompt to trade."
+      showBack
+      onBack={() => router.back()}
+      contentClassName="pb-12"
+    >
       {permission !== 'granted' ? (
-        <GlassCard className="mb-6 p-4">
-          <Text variant="h3">Enable Push Notifications</Text>
-          <Text variant="body-sm" className="mt-2">
-            Get real-time price alerts, AI trade insights, and portfolio updates.
+        <Surface className="mb-6 p-4">
+          <Text variant="h3">Enable research reminders</Text>
+          <Text variant="body-sm" className="mt-2 text-text-secondary">
+            Named levels and optional process notes can notify you later. This is not real-time
+            trading urgency.
           </Text>
           <Button className="mt-4" onPress={() => void handleEnablePush()}>
-            Enable Notifications
+            Enable reminders
           </Button>
-        </GlassCard>
+        </Surface>
       ) : null}
 
-      <GlassCard className="overflow-hidden">
+      <Surface className="overflow-hidden">
         <SettingsRow
           icon="notifications-outline"
-          label="Push Notifications"
+          label="Push notifications"
           toggle
           toggleValue={notifications.pushEnabled}
           onToggle={(value) => void updateNotifications({ pushEnabled: value })}
         />
         <SettingsRow
           icon="trending-up-outline"
-          label="Price Alerts"
+          label="Named-level reminders"
+          description="When a level you named is reached"
           toggle
           toggleValue={notifications.priceAlerts}
           onToggle={(value) => void updateNotifications({ priceAlerts: value })}
         />
         <SettingsRow
           icon="sparkles-outline"
-          label="AI Insights"
+          label="Process notes"
+          description="Occasional coaching reminders — not trade ideas"
           toggle
           toggleValue={notifications.aiInsights}
           onToggle={(value) => void updateNotifications({ aiInsights: value })}
         />
         <SettingsRow
           icon="newspaper-outline"
-          label="Market News"
+          label="Calendar context"
+          description="Events that may change research conditions"
           toggle
           toggleValue={notifications.marketNews}
           onToggle={(value) => void updateNotifications({ marketNews: value })}
         />
         <SettingsRow
           icon="briefcase-outline"
-          label="Portfolio Updates"
+          label="Portfolio context"
+          description="Concentration notes, not P&L alerts"
           toggle
           toggleValue={notifications.portfolioUpdates}
           onToggle={(value) => void updateNotifications({ portfolioUpdates: value })}
         />
         <SettingsRow
           icon="mail-outline"
-          label="Weekly Email Digest"
+          label="Weekly process digest"
           toggle
           toggleValue={notifications.emailDigest}
           onToggle={(value) => void updateNotifications({ emailDigest: value })}
         />
-      </GlassCard>
+      </Surface>
 
       <View className="mt-6">
-        <Text variant="caption" className="text-center">
+        <Text variant="caption" className="text-center text-text-tertiary">
           Permission status: {permission}
         </Text>
       </View>
-    </Screen>
+    </ScreenScaffold>
   );
 }

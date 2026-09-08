@@ -1,19 +1,25 @@
 /**
- * TradeInsight by Aithera — user-facing product identity.
+ * TradeAcademy by Aithera — user-facing product identity.
  *
  * Phase 0 freezes technical identifiers that would break installs, deep links,
  * or local persistence if renamed casually. See docs/IDENTITY_MIGRATION_PHASE0.md.
+ * Public brand may change without migrating those IDs.
  */
 
 export const BRAND = {
   /** Company / legal operator brand */
   company: 'Aithera',
   /** App / product name shown to users */
-  product: 'TradeInsight',
+  product: 'TradeAcademy',
   /** Attribution line where company credit is useful */
-  attribution: 'TradeInsight by Aithera',
-  /** Store / marketing positioning — not a slogan invention beyond the launch brief */
-  positioning: 'Research smarter. Decide with clarity. Improve your process.',
+  attribution: 'TradeAcademy by Aithera',
+  /** Store / marketing positioning */
+  positioning: 'Learn the concepts. Read the chart. Practice the decision. Manage simulated money. Review your reasoning. Improve your process.',
+  /** Short loop label for headers and empty states */
+  loop: 'Learn → Practice → Simulate → Review → Improve',
+  /** Always-on simulated-trading label */
+  simulatedLabel: 'SIMULATED',
+  paperTradingLabel: 'PAPER TRADING',
 } as const;
 
 /**

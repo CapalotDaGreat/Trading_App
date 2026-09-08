@@ -29,7 +29,7 @@ export function SegmentedControl<T extends string>({
   return (
     <View
       accessibilityRole="tablist"
-      className={cn('min-h-11 flex-row rounded-control bg-surface p-1', className)}
+      className={cn('min-h-11 flex-row flex-wrap rounded-control bg-surface p-1', className)}
       {...props}
     >
       {options.map((option) => {
@@ -45,7 +45,7 @@ export function SegmentedControl<T extends string>({
             disabled={isDisabled}
             onPress={() => onChange(option.value)}
             className={cn(
-              'min-h-11 flex-1 items-center justify-center rounded-control px-3',
+              'min-h-11 min-w-[30%] flex-1 items-center justify-center rounded-control px-3 py-2',
               selected && 'bg-accent',
               isDisabled && 'bg-disabled',
             )}

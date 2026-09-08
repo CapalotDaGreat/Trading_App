@@ -18,7 +18,7 @@ export function LabAccountCard({
   return (
     <GlassCard className="p-4">
       <Text variant="caption" className="mb-1 font-semibold text-text-tertiary">
-        VIRTUAL ACCOUNT · EDUCATIONAL SIMULATION
+        Virtual account · educational simulation
       </Text>
       <Text variant="h2" className="text-accent">
         {currency} {cash.toLocaleString(undefined, { maximumFractionDigits: 0 })}
@@ -45,7 +45,7 @@ export function LabCritiqueCard({ critique }: { critique: LabAiCritique }) {
   return (
     <GlassCard className="p-4">
       <Text variant="caption" className="mb-1 font-semibold text-text-tertiary">
-        AI COACH · PROCESS CRITIQUE
+        AI coach · process critique
       </Text>
       <Text variant="h3" className={`mb-2 ${tone}`}>
         {critique.overall === 'ready'
@@ -100,7 +100,7 @@ export function LabScoresCard({
   return (
     <GlassCard className="p-4">
       <Text variant="caption" className="mb-1 font-semibold text-text-tertiary">
-        AFTER-TRADE PROCESS SCORES
+        After-trade process scores
       </Text>
       <Text variant="h3" className="mb-3">
         Process {scores.processScore}
@@ -144,7 +144,7 @@ export function LabStatsCard({ stats }: { stats: LabStats }) {
   return (
     <GlassCard className="p-4">
       <Text variant="caption" className="mb-1 font-semibold text-text-tertiary">
-        LAB STATISTICS · PROCESS FIRST
+        Lab statistics · process first
       </Text>
       <Text variant="h3" className="mb-2">
         Avg process {stats.avgProcessScore}

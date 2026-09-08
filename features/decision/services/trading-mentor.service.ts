@@ -12,7 +12,10 @@ import type {
   RiskCenterSnapshot,
   TraderMemory,
 } from '@/features/decision/types/decision.types';
-import type { TradingMentorBrief } from '@/features/decision/types/mentor.types';
+import type {
+  MentorWeeklyCoaching,
+  TradingMentorBrief,
+} from '@/features/decision/types/mentor.types';
 import { pickMentorPersonalisationLine } from '@/features/onboarding/services/coach-personalisation.service';
 import type { CoachProfile } from '@/features/onboarding/types/mentor-setup.types';
 import { buildCoachingReferences } from '@/features/personal-intelligence/services/personal-intelligence.service';
@@ -282,10 +285,50 @@ export function buildTradingMentorBrief(input: TradingMentorInput): TradingMento
     processScoreWeek,
     regimeLabel: input.brief?.regimeLabel ?? input.brief?.regimeSnapshot?.label ?? 'Unknown',
     evidenceNotes,
+    evidenceSplit:
+      input.dnaMentorSummary &&
+      ((input.dnaMentorSummary.known?.length ?? 0) > 0 ||
+        (input.dnaMentorSummary.inference?.length ?? 0) > 0 ||
+        (input.dnaMentorSummary.unknown?.length ?? 0) > 0)
+        ? {
+            known: (input.dnaMentorSummary.known ?? []).map(sanitizeMentorCopy),
+            inferred: (input.dnaMentorSummary.inference ?? []).map(sanitizeMentorCopy),
+            unknown: (input.dnaMentorSummary.unknown ?? []).map(sanitizeMentorCopy),
+          }
+        : null,
     coachingReferences: buildCoachingReferences({
       dnaLabel: dna?.styleLabel ?? input.memory?.tradingStyle ?? 'Process trader',
       debt: input.brief?.decisionDebt,
       academyNextTitle: academyRecommendation?.title ?? null,
     }),
+  };
+}
+
+/** One prescribed exercise for Mentor — Academy if mapped, otherwise Replay. */
+export function selectMentorPrimaryExercise(weekly: MentorWeeklyCoaching): {
+  kind: 'academy' | 'replay';
+  title: string;
+  reason: string;
+  href: string;
+  ctaLabel: string;
+  accessibilityLabel: string;
+} {
+  if (weekly.academyRecommendation) {
+    return {
+      kind: 'academy',
+      title: weekly.academyRecommendation.title,
+      reason: weekly.academyRecommendation.reason,
+      href: `/academy/lesson/${weekly.academyRecommendation.lessonId}`,
+      ctaLabel: 'Open Academy lesson',
+      accessibilityLabel: `Open Academy lesson ${weekly.academyRecommendation.title}`,
+    };
+  }
+  return {
+    kind: 'replay',
+    title: weekly.replayRecommendation.label,
+    reason: weekly.replayRecommendation.reason,
+    href: weekly.replayRecommendation.href,
+    ctaLabel: 'Open practice',
+    accessibilityLabel: `Open practice: ${weekly.replayRecommendation.label}`,
   };
 }

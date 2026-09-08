@@ -2,14 +2,14 @@
 
 **Last updated:** 24 August 2026  
 **Version:** 2026.08.24  
-**Brand / product:** Aithera / TradeInsight  
+**Brand / product:** Aithera / TradeAcademy  
 **Operator:** [LEGAL ENTITY NAME REQUIRED], trading as Aithera (“Aithera”, “we”, “us”, “our”)  
 **Registered address:** Höglerstrasse 55, 8600 Dübendorf, Switzerland  
 **VAT/UID:** [VAT/UID REQUIRED]  
 **Contact:** [SUPPORT EMAIL REQUIRED]  
 **Website:** [OFFICIAL DOMAIN REQUIRED]  
 
-These Terms of Service (“Terms”) govern your access to and use of the TradeInsight mobile application and related services (the “Service”). By creating an account, tapping accept, or using cloud features of the Service, you agree to these Terms and our Privacy Policy, Risk & Investment Disclaimer, and Account Deletion Notice. Exploring Guest/demo mode remains subject to the educational and risk notices shown in the app.
+These Terms of Service (“Terms”) govern your access to and use of the TradeAcademy mobile application and related services (the “Service”). By creating an account, tapping accept, or using cloud features of the Service, you agree to these Terms and our Privacy Policy, Risk & Investment Disclaimer, and Account Deletion Notice. Exploring Guest/demo mode remains subject to the educational and risk notices shown in the app.
 
 **This document is a compliance-oriented template.** Bracketed fields are not production values. Have Swiss, EU/EEA, and U.S. counsel review these Terms (including the legal entity name, VAT/UID, and consumer-law adaptations) before production launch. Mandatory consumer protections in your country of residence that cannot be waived remain unaffected.
 
@@ -21,21 +21,22 @@ Downloading the app or exploring **Guest/demo mode** does not require you to be 
 
 You must be at least **18** years old, or the age of majority in your jurisdiction, to create an account or purchase a subscription, and you must be legally able to enter a binding contract.
 
-**Store content rating is separate.** Apple **12+** / Google Play **Teen** ratings describe content suitability. They do **not** mean a person under 18 may open a cloud account, purchase Premium, or treat TradeInsight as authorisation to trade.
+**Store content rating is separate.** Apple **12+** / Google Play **Teen** ratings describe content suitability. They do **not** mean a person under 18 may open a cloud account, purchase Premium, or treat TradeAcademy as authorisation to trade.
 
-The Service is an educational trading research and coaching platform for a general audience. It is **not directed toward young children**. You may not use cloud account features if applicable sanctions or export laws prohibit you from doing so.
+The Service is an educational trading-education and simulated-practice platform for a general audience. It is **not directed toward young children**. You may not use cloud account features if applicable sanctions or export laws prohibit you from doing so.
 
 ---
 
 ## 2. Nature of the Service (critical)
 
-TradeInsight provides **decision-process coaching**, research prioritisation context, journaling, replay, educational Academy content, and related tools for discretionary traders.
+TradeAcademy provides **trading education, simulated paper trading, decision practice, journaling, replay, and coaching**. It is **not** a live trading terminal.
 
-- Research Value Score (**RVS**) and Decision Quality Score (**DQS**) measure **attention priority** and **process/evidence quality**. They **do not** predict price direction or profitability.
+- Research Value Score (**RVS**) and Decision Quality Score (**DQS**) measure **attention priority** and **process/evidence quality**. They **do not** predict price direction or profitability. Simulated profit or loss does **not** grade a decision.
+- Paper trading uses **simulated capital** (default **USD 100,000**) and labelled synthetic or licensed sample data. It is **not** brokerage execution and **not** real money.
 - The Service is **not** a bank, broker-dealer, exchange, ATS, introducing broker, commodity trading advisor, investment adviser, portfolio manager, or credit-rating agency.
 - We **do not** execute, clear, settle, or custody trades or funds.
 - We **do not** provide personalised investment recommendations, suitability assessments, or buy/sell/hold signals as regulated advice.
-- Market data may be **live, delayed, approximate, sample, or mock** and is labelled accordingly when shown.
+- Market data may be **synthetic, sample, delayed, or licensed historical** and is labelled accordingly when shown.
 - AI / explainability features (when shown) describe process and evidence. They are not signals.
 
 **Nothing in the Service is financial, investment, tax, accounting, or legal advice.** See the separate **Risk & Investment Disclaimer**.
@@ -64,7 +65,7 @@ Subscriptions **auto-renew** unless cancelled according to the store’s rules (
 
 ### Managing and cancelling
 
-Use **Settings → Manage Subscription** (or the store’s subscription settings). Deleting your TradeInsight account **does not** cancel store billing.
+Use **Settings → Manage Subscription** (or the store’s subscription settings). Deleting your TradeAcademy account **does not** cancel store billing.
 
 ### Refunds
 
@@ -156,7 +157,7 @@ We may modify features (including disabling cloud AI or changing data providers)
 
 ## 14. Export, sanctions, and U.S. regulatory positioning
 
-You represent that you are not prohibited from receiving the Service under applicable export control or sanctions laws. TradeInsight does not register as a broker-dealer or investment adviser with the U.S. SEC/FINRA or equivalent regulators by virtue of offering educational/research-coaching software. If your use would require such registration, you must not use the Service for that purpose.
+You represent that you are not prohibited from receiving the Service under applicable export control or sanctions laws. TradeAcademy does not register as a broker-dealer or investment adviser with the U.S. SEC/FINRA or equivalent regulators by virtue of offering educational/research-coaching software. If your use would require such registration, you must not use the Service for that purpose.
 
 ---
 

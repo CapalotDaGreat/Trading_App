@@ -1,3 +1,5 @@
+import type { EducationalChartSpec } from './educational-chart.types';
+
 export type LessonDifficulty = 'beginner' | 'intermediate' | 'advanced';
 
 export type LessonCategory =
@@ -9,11 +11,23 @@ export type LessonCategory =
   | 'options'
   | 'crypto'
   | 'decision'
-  | 'journaling';
+  | 'journaling'
+  | 'portfolio';
 
 export type AcademyTrack = 'decision' | 'classic';
 
 export type CalloutType = 'tip' | 'warning' | 'practice';
+
+export type LessonExerciseKind =
+  | 'identify'
+  | 'select'
+  | 'rank'
+  | 'calculate'
+  | 'annotate'
+  | 'explain'
+  | 'compare'
+  | 'choose'
+  | 'scenario';
 
 export interface LessonSection {
   heading: string;
@@ -22,6 +36,7 @@ export interface LessonSection {
     type: CalloutType;
     text: string;
   };
+  chart?: EducationalChartSpec;
 }
 
 export interface QuizQuestion {
@@ -29,7 +44,34 @@ export interface QuizQuestion {
   prompt: string;
   choices: string[];
   correctIndex: number;
+  /** Why the correct answer is right. */
   explanation: string;
+  /** Per-choice coaching. Index matches `choices`. Required for flagship checks. */
+  choiceExplanations?: string[];
+  conceptId?: string;
+}
+
+export interface LessonExercise {
+  id: string;
+  kind: LessonExerciseKind;
+  prompt: string;
+  explanation: string;
+  conceptId?: string;
+  askEvidence?: boolean;
+  situation?: string;
+  choices?: string[];
+  correctIndex?: number;
+  choiceExplanations?: string[];
+  items?: string[];
+  correctOrder?: number[];
+  expectedValue?: number;
+  tolerance?: number;
+  unit?: string;
+  minChars?: number;
+  modelAnswer?: string;
+  leftLabel?: string;
+  rightLabel?: string;
+  chart?: EducationalChartSpec;
 }
 
 export interface PracticeLink {
@@ -58,6 +100,20 @@ export interface Lesson {
   tags: string[];
   createdAt: string;
   updatedAt: string;
+  prerequisiteIds?: string[];
+  searchKeywords?: string[];
+  commonMistakes?: string[];
+  whenItWorks?: string[];
+  whenItFails?: string[];
+  educationalCharts?: EducationalChartSpec[];
+  learningObjectives?: string[];
+  whyItMatters?: string;
+  practicalExamples?: string[];
+  limitations?: string[];
+  exercises?: LessonExercise[];
+  simulationLinks?: PracticeLink[];
+  journalHref?: string;
+  conceptIds?: string[];
 }
 
 export interface ChecklistItem {
@@ -98,4 +154,5 @@ export const CATEGORY_LABELS: Record<LessonCategory, string> = {
   crypto: 'Crypto',
   decision: 'Decision',
   journaling: 'Journal',
+  portfolio: 'Portfolio',
 };

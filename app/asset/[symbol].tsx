@@ -23,6 +23,7 @@ import {
   INSTRUMENT_RESOLUTION_COPY,
   isUsableMarketPrice,
 } from '@/features/markets/types/instrument.types';
+import { ResearchLearnCard } from '@/features/research/components/ResearchLearnCard';
 import { AddToWatchlistSheet } from '@/features/watchlists/components/AddToWatchlistSheet';
 import { AccessibleChartFrame } from '@/shared/components/charts/AccessibleChartFrame';
 import { ScreenScaffold } from '@/shared/components/layout/ScreenScaffold';
@@ -35,6 +36,7 @@ import { Text } from '@/shared/components/ui/Text';
 import type { CandleInterval, MarketType } from '@/shared/types/market';
 import { useResponsiveLayout } from '@/shared/hooks/useResponsiveLayout';
 import { cn } from '@/shared/utils/cn';
+import { composeChartSpokenSummary, spokenIntervalLabel } from '@/shared/utils/accessibility';
 import {
   formatChange,
   formatPercent,
@@ -236,6 +238,8 @@ export default function AssetDetailScreen() {
           ))}
         </View>
 
+        <ResearchLearnCard tab={activeTab} indicators={activeIndicators} symbol={symbol} />
+
         {activeTab === 'decision' ? (
           <View className="gap-4" testID="asset-decision-panel">
             {!analysis && chartLoading ? <Skeleton height={180} rounded="lg" /> : null}
@@ -253,7 +257,7 @@ export default function AssetDetailScreen() {
                         : 'Low research priority today'}
                   </Text>
                   <Text variant="body-sm" className="mt-2 text-text-secondary">
-                    Decision-quality context {researchPriority}% · {analysis.summary.overallBias}{' '}
+                    Research value {researchPriority}% · {analysis.summary.overallBias} technical
                     bias · {analysis.summary.trend}. This is not a buy or sell signal.
                   </Text>
                 </Surface>
@@ -354,7 +358,11 @@ export default function AssetDetailScreen() {
                     <Button
                       size="sm"
                       variant="ghost"
-                      onPress={() => router.push('/journal' as never)}
+                      onPress={() =>
+                        router.push(
+                          `/journal?symbol=${encodeURIComponent(symbol)}` as never,
+                        )
+                      }
                     >
                       Journal this research
                     </Button>
@@ -414,7 +422,7 @@ export default function AssetDetailScreen() {
             ) : null}
             <AccessibleChartFrame
               title={`${asset.symbol} chart`}
-              timeRange={interval}
+              timeRange={spokenIntervalLabel(interval) ?? interval}
               source={
                 chartSource
                   ? `${chartSource.kind} · ${chartSource.provider}`
@@ -425,15 +433,27 @@ export default function AssetDetailScreen() {
                   ? `Fetched ${new Date(chartSource.fetchedAt).toLocaleTimeString()}`
                   : 'Freshness unknown'
               }
-              summary={
-                analysis
-                  ? `${analysis.summary.overallBias} bias with ${analysis.summary.trend} trend context.`
-                  : 'Price history for research context only.'
-              }
+              summary={composeChartSpokenSummary({
+                symbol: asset.symbol,
+                candles,
+                intervalLabel: spokenIntervalLabel(interval),
+                dataKind: chartSource?.kind,
+              })}
               textualAlternative={
                 quote
-                  ? `Last ${formatPrice(quote.price, quote.currency)}; open ${formatPrice(quote.open, quote.currency)}; high ${formatPrice(quote.high, quote.currency)}; low ${formatPrice(quote.low, quote.currency)}; volume ${formatVolume(quote.volume)}.`
-                  : 'Quote details are not available for a textual chart alternative yet.'
+                  ? composeChartSpokenSummary({
+                      symbol: asset.symbol,
+                      candles,
+                      intervalLabel: spokenIntervalLabel(interval),
+                      dataKind: chartSource?.kind,
+                      extraNote: `Last ${formatPrice(quote.price, quote.currency)}; open ${formatPrice(quote.open, quote.currency)}; high ${formatPrice(quote.high, quote.currency)}; low ${formatPrice(quote.low, quote.currency)}`,
+                    })
+                  : composeChartSpokenSummary({
+                      symbol: asset.symbol,
+                      candles,
+                      intervalLabel: spokenIntervalLabel(interval),
+                      dataKind: chartSource?.kind,
+                    })
               }
             >
               <Surface padding="sm" className="overflow-hidden">
@@ -443,6 +463,9 @@ export default function AssetDetailScreen() {
                   currency={quote?.currency}
                   height={layout.isLandscape ? 360 : 300}
                   symbol={asset.symbol}
+                  intervalLabel={spokenIntervalLabel(interval)}
+                  dataKind={chartSource?.kind}
+                  accessible={false}
                 />
               </Surface>
             </AccessibleChartFrame>

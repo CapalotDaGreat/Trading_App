@@ -1,7 +1,12 @@
 export type DataSourceKind = 'live' | 'delayed' | 'approximate' | 'sample' | 'mock';
 
 export type MarketDataProvider =
-  'coingecko' | 'exchange-rate-api' | 'finnhub' | 'alpha-vantage' | 'sample';
+  | 'coingecko'
+  | 'exchange-rate-api'
+  | 'finnhub'
+  | 'alpha-vantage'
+  | 'sample'
+  | 'synthetic';
 
 export interface MarketDataProvenance {
   provider: MarketDataProvider;

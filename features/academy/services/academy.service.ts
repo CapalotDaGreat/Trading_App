@@ -98,6 +98,12 @@ function toLesson(id: string, data: DocumentData): Lesson {
     tags: (data.tags as string[]) ?? local?.tags ?? [],
     createdAt: serializeTimestamp(data.createdAt),
     updatedAt: serializeTimestamp(data.updatedAt),
+    prerequisiteIds: (data.prerequisiteIds as string[] | undefined) ?? local?.prerequisiteIds,
+    searchKeywords: (data.searchKeywords as string[] | undefined) ?? local?.searchKeywords,
+    commonMistakes: (data.commonMistakes as string[] | undefined) ?? local?.commonMistakes,
+    whenItWorks: (data.whenItWorks as string[] | undefined) ?? local?.whenItWorks,
+    whenItFails: (data.whenItFails as string[] | undefined) ?? local?.whenItFails,
+    educationalCharts: local?.educationalCharts,
   };
 }
 

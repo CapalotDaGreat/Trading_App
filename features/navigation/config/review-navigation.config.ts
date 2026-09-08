@@ -55,7 +55,10 @@ export function buildLegacyRouteRedirect(
 export const COLD_DEEP_LINK_FALLBACKS = {
   research: '/research',
   review: '/review',
-  portfolio: '/portfolio',
+  portfolio: '/simulate',
+  simulate: '/simulate',
+  learn: '/learn',
+  practice: '/practice',
   you: '/you',
   ask: '/ai',
 } as const;

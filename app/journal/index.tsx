@@ -1,5 +1,5 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { View } from 'react-native';
 
 import { JournalEntryCard } from '@/features/journal/components/JournalEntryCard';
@@ -11,15 +11,18 @@ import {
 } from '@/features/journal/components/JournalLearningPanels';
 import { useJournal } from '@/features/journal/hooks/useJournal';
 import { useJournalLearningJourney } from '@/features/journal/hooks/useJournalLearningJourney';
+import { searchJournalEntries, type JournalQuickFilter } from '@/features/journal/services/journal-search.service';
 import type { JournalHubTab } from '@/features/journal/types/journal-learning-journey.types';
 import { EmptyState } from '@/shared/components/feedback/EmptyState';
 import { StatusState } from '@/shared/components/feedback/StatusState';
 import { ScreenScaffold } from '@/shared/components/layout/ScreenScaffold';
 import { CollapsibleSection } from '@/shared/components/patterns/CollapsibleSection';
 import { Button } from '@/shared/components/ui/Button';
+import { Input } from '@/shared/components/ui/Input';
 import { SegmentedControl } from '@/shared/components/ui/SegmentedControl';
 import { Surface } from '@/shared/components/ui/Surface';
 import { Text } from '@/shared/components/ui/Text';
+import { useOnlineStatus } from '@/shared/hooks/useOnlineStatus';
 import { formatChange, formatNumber, formatPercent } from '@/shared/utils/format';
 
 const TABS: Array<{ value: JournalHubTab; label: string }> = [
@@ -29,13 +32,33 @@ const TABS: Array<{ value: JournalHubTab; label: string }> = [
   { value: 'entries', label: 'Entries' },
 ];
 
+/** Keep the entries tab bounded inside the parent ScrollView. Full export remains available. */
+const JOURNAL_ENTRIES_RENDER_CAP = 40;
+
+const JOURNAL_FILTERS: Array<{ value: JournalQuickFilter; label: string }> = [
+  { value: 'all', label: 'All' },
+  { value: 'uncertain', label: 'Uncertain' },
+  { value: 'losses', label: 'Losses' },
+  { value: 'recent', label: '30 days' },
+  { value: 'thesis_changed', label: 'Thesis changed' },
+];
+
 export default function JournalScreen() {
   const router = useRouter();
   const { symbol, from } = useLocalSearchParams<{ symbol?: string; from?: string }>();
   const [tab, setTab] = useState<JournalHubTab>('timeline');
-  const [showReflectionForm, setShowReflectionForm] = useState(from === 'onboarding');
+  const [showReflectionForm, setShowReflectionForm] = useState(
+    from === 'onboarding' || from === 'simulate',
+  );
+  const [journalQuery, setJournalQuery] = useState(symbol ?? '');
+  const [journalFilter, setJournalFilter] = useState<JournalQuickFilter>('all');
   const { canExport, createEntry, deleteEntry, exportJournal, isCreating } = useJournal();
+  const { isOnline } = useOnlineStatus();
   const { journey, stats, entries, isLoading } = useJournalLearningJourney();
+  const visibleEntries = useMemo(
+    () => searchJournalEntries(entries, journalQuery, journalFilter),
+    [entries, journalQuery, journalFilter],
+  );
 
   if (isLoading || !journey) {
     return (
@@ -61,12 +84,29 @@ export default function JournalScreen() {
       }
     >
       <View className="gap-4">
+        {!isOnline ? (
+          <Text variant="caption" className="text-text-tertiary">
+            Journal stays on this device. You can keep writing and reviewing offline.
+          </Text>
+        ) : null}
+
         {from === 'onboarding' ? (
           <Surface padding="sm" tone="info" testID="journal-onboarding-context">
             <Text variant="label">Close your first decision loop</Text>
             <Text variant="body-sm" className="mt-1 text-text-secondary">
               {symbol ? `${symbol.toUpperCase()} is prefilled. ` : ''}
               Saving a real entry completes activation; going back keeps your progress.
+            </Text>
+          </Surface>
+        ) : null}
+
+        {from === 'simulate' ? (
+          <Surface padding="sm" tone="info" testID="journal-simulate-context">
+            <Text variant="label">Review the simulated trade</Text>
+            <Text variant="body-sm" className="mt-1 text-text-secondary">
+              {symbol ? `${symbol.toUpperCase()} is prefilled. ` : ''}
+              This journal is for process: what happened, whether the thesis held, and what you would change.
+              Simulated P/L is not the grade.
             </Text>
           </Surface>
         ) : null}
@@ -119,9 +159,9 @@ export default function JournalScreen() {
               </Text>
               {entries.length === 0 ? (
                 <EmptyState
-                  title="No reflections yet"
-                  description="Authored notes explain what shaped a decision and what you would repeat. Without them, coaching cannot spot process patterns."
-                  actionLabel="New reflection"
+                  title="Your decisions will appear here"
+                  description="A short note on thesis and what you would change is enough to start Review."
+                  actionLabel="Make Your First Decision"
                   onAction={() => setShowReflectionForm(true)}
                   className="px-4 py-8"
                 />
@@ -153,22 +193,57 @@ export default function JournalScreen() {
             <Text variant="h3" headingLevel={3} className="mb-2">
               Entries
             </Text>
-            {entries.length === 0 ? (
+            <Input
+              accessibilityLabel="Search journal entries"
+              placeholder="Tesla, RSI, uncertain, last month…"
+              value={journalQuery}
+              onChangeText={setJournalQuery}
+              autoCorrect={false}
+              autoCapitalize="none"
+              returnKeyType="search"
+            />
+            <View className="mt-3">
+              <SegmentedControl
+                options={JOURNAL_FILTERS}
+                value={journalFilter}
+                onChange={setJournalFilter}
+                testID="journal-entry-filters"
+              />
+            </View>
+            {visibleEntries.length === 0 ? (
               <EmptyState
-                title="No journal entries"
-                description="Capture your first authored decision note so Review and Mentor can reuse the lesson."
-                actionLabel="New reflection"
-                onAction={() => setShowReflectionForm(true)}
+                title={entries.length === 0 ? 'No journal entries' : 'No entries match that search'}
+                description={
+                  entries.length === 0
+                    ? 'Your decisions will appear here.'
+                    : 'Try a ticker, a concept like RSI, or a filter such as Uncertain or Losses.'
+                }
+                actionLabel={entries.length === 0 ? 'Make Your First Decision' : 'Clear filters'}
+                onAction={() => {
+                  if (entries.length === 0) setShowReflectionForm(true);
+                  else {
+                    setJournalQuery('');
+                    setJournalFilter('all');
+                  }
+                }}
                 className="px-4 py-8"
               />
             ) : (
-              entries.map((entry) => (
-                <JournalEntryCard
-                  key={entry.id}
-                  entry={entry}
-                  onDelete={(id) => void deleteEntry(id)}
-                />
-              ))
+              <>
+                {visibleEntries.slice(0, JOURNAL_ENTRIES_RENDER_CAP).map((entry) => (
+                  <JournalEntryCard
+                    key={entry.id}
+                    entry={entry}
+                    onDelete={(id) => void deleteEntry(id)}
+                  />
+                ))}
+                {visibleEntries.length > JOURNAL_ENTRIES_RENDER_CAP ? (
+                  <Text variant="caption" className="mt-2 text-text-tertiary">
+                    Showing the {JOURNAL_ENTRIES_RENDER_CAP} most recent matching reflections. Export still
+                    includes the full journal.
+                  </Text>
+                ) : null}
+              </>
             )}
           </View>
         ) : null}

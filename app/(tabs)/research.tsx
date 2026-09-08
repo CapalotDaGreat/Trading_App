@@ -72,9 +72,9 @@ export default function ResearchScreen() {
 
   return (
     <ScreenScaffold
-      eyebrow="Research"
-      title="What deserves research time?"
-      subtitle="One ranked queue. Research the top of the list, or skip it."
+      eyebrow="Educational research"
+      title="Study a name, not a live terminal"
+      subtitle="Charts and queues here are for learning. They are not brokerage quotes or buy/sell signals."
       contentClassName="pb-12 pt-2"
       scrollViewProps={{
         refreshControl: (

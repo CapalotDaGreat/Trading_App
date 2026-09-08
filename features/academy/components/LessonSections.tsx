@@ -5,6 +5,7 @@ import { Text } from '@/shared/components/ui/Text';
 import { useTheme } from '@/shared/hooks/useTheme';
 import { cn } from '@/shared/utils/cn';
 
+import { EducationalChart } from './EducationalChart';
 import type { CalloutType, LessonSection } from '../types/academy.types';
 
 const calloutStyles: Record<
@@ -46,6 +47,11 @@ export function LessonSections({ sections }: LessonSectionsProps) {
                   </Text>
                   <Text variant="body-sm">{section.callout.text}</Text>
                 </View>
+              </View>
+            ) : null}
+            {section.chart ? (
+              <View className="mt-3">
+                <EducationalChart spec={section.chart} />
               </View>
             ) : null}
           </View>

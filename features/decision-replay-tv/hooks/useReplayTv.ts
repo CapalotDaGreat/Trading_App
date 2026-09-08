@@ -1,6 +1,6 @@
 import { useMutation } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { getReplayTvEpisode } from '@/features/decision-replay-tv/content/replay-tv.catalog';
@@ -50,10 +50,18 @@ export function useReplayTv() {
   const appendDecision = useAppendDecisionRecord();
 
   const episode = activeSession ? getReplayTvEpisode(activeSession.episodeId) : null;
-  const visibleCandles =
-    activeSession && episode ? getVisibleCandlesForSession(activeSession) : [];
-  const visibleNews = activeSession && episode ? getVisibleNewsForSession(activeSession) : [];
-  const blindView = activeSession && episode ? getBlindSafeEpisodeView(activeSession) : null;
+  const visibleCandles = useMemo(
+    () => (activeSession && episode ? getVisibleCandlesForSession(activeSession) : []),
+    [activeSession, episode],
+  );
+  const visibleNews = useMemo(
+    () => (activeSession && episode ? getVisibleNewsForSession(activeSession) : []),
+    [activeSession, episode],
+  );
+  const blindView = useMemo(
+    () => (activeSession && episode ? getBlindSafeEpisodeView(activeSession) : null),
+    [activeSession, episode],
+  );
   const nextPractice = selectReplayTvNextPractice(progress);
 
   const beginMutation = useMutation({
@@ -155,7 +163,7 @@ export function useReplayTv() {
           invalidationClarity: session.scores.invalidationClarity,
           patience: session.scores.patience,
           namedInvalidation: session.checklist.namedInvalidation,
-          decisions: session.decisions.map((d) => d.decision),
+          decisions: session.decisions,
         }),
         eventKey: `replay-tv:${ep.id}:${session.id}`,
       });

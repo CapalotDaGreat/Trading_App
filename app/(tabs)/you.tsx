@@ -1,8 +1,9 @@
 import { useRouter } from 'expo-router';
 import { View } from 'react-native';
 
-import { useTradingMentor } from '@/features/decision/hooks/useTradingMentor';
+import { useAcademy } from '@/features/academy/hooks/useAcademy';
 import { IA_GLOSSARY, YOU_HUB_SECTIONS } from '@/features/navigation/config/navigation-ia.config';
+import { LoopCtaRow } from '@/features/navigation/components/LoopCtaRow';
 import { useCoachProfile } from '@/features/onboarding/hooks/useCoachProfile';
 import { ScreenScaffold } from '@/shared/components/layout/ScreenScaffold';
 import { CollapsibleSection } from '@/shared/components/patterns/CollapsibleSection';
@@ -10,70 +11,77 @@ import { HubPathList } from '@/shared/components/patterns/HubPathList';
 import { Button } from '@/shared/components/ui/Button';
 import { Surface } from '@/shared/components/ui/Surface';
 import { Text } from '@/shared/components/ui/Text';
+import { BRAND } from '@/shared/constants/brand';
 
-const GROWTH = YOU_HUB_SECTIONS.filter((section) => section.title === 'Growth');
-const DESK = YOU_HUB_SECTIONS.filter((section) => section.title === 'Desk');
+const PROFILE = YOU_HUB_SECTIONS.filter((section) => section.title === 'Profile');
+const PROGRESS = YOU_HUB_SECTIONS.filter((section) => section.title === 'Progress');
 const ACCOUNT = YOU_HUB_SECTIONS.filter((section) => section.title === 'Account');
 
 export default function YouScreen() {
   const router = useRouter();
-  const mentorQuery = useTradingMentor();
-  const { mentorSetupCompleted } = useCoachProfile();
-  const priority = mentorQuery.data?.daily.todaysFocus ?? mentorQuery.data?.daily.headline;
-  const pattern = mentorQuery.data?.daily.repeatingMistake;
-  const exercise =
-    mentorQuery.data?.weekly.academyRecommendation?.title ??
-    mentorQuery.data?.weekly.replayRecommendation.label;
+  const { completedCount, practicedCount } = useAcademy();
+  const { mentorSetupCompleted, profile } = useCoachProfile();
 
   return (
     <ScreenScaffold
       eyebrow={IA_GLOSSARY.you}
-      title="Who are you becoming?"
-      subtitle="Growth first. Desk and account stay quiet until you need them."
+      title="Profile, progress, account"
+      subtitle={`${BRAND.product} is education and simulated practice — not a brokerage.`}
       contentClassName="pb-12"
       testID="you-screen"
     >
       <View className="gap-4">
-        <Surface tone="accent" emphasis="outlined" testID="you-growth-priority">
+        <Surface tone="accent" emphasis="outlined" testID="you-progress-snapshot">
           <Text variant="label" className="text-text-tertiary">
-            Growth priority
+            Progress
           </Text>
           <Text variant="h2" headingLevel={2} className="mt-2">
-            {priority ?? 'Open Mentor to set one coaching priority'}
+            {completedCount === 0 && practicedCount === 0
+              ? 'Start with the Foundations path'
+              : `${completedCount} lessons read · ${practicedCount} practised`}
           </Text>
-          {pattern ? (
-            <Text variant="body-sm" className="mt-2 text-text-secondary">
-              Repeated pattern: {pattern}
-            </Text>
-          ) : null}
-          {exercise ? (
-            <Text variant="caption" className="mt-2 text-text-tertiary">
-              Practice next: {exercise}
-            </Text>
-          ) : null}
+          <Text variant="body-sm" className="mt-2 text-text-secondary">
+            {profile?.learningProfileLabel
+              ? `${profile.learningProfileLabel}. Ask is the educational mentor — it does not give buy/sell calls.`
+              : 'Set a learning profile so Academy and Practice can start in the right place.'}
+          </Text>
           <View className="mt-4 flex-row flex-wrap gap-2">
-            <Button size="sm" onPress={() => router.push('/decision/mentor' as never)}>
-              Open Mentor
+            <Button
+              size="sm"
+              onPress={() =>
+                router.push(
+                  completedCount === 0
+                    ? ('/academy/path/path-foundations' as never)
+                    : ('/learn' as never),
+                )
+              }
+            >
+              {completedCount === 0 ? 'Start Learning' : 'Continue learning'}
             </Button>
             <Button
               size="sm"
               variant="ghost"
               onPress={() => router.push('/onboarding' as never)}
             >
-              {mentorSetupCompleted ? 'Edit Coach Profile' : 'Set up Coach Profile'}
+              {mentorSetupCompleted ? 'Edit learning profile' : 'Set learning profile'}
             </Button>
           </View>
         </Surface>
 
-        <CollapsibleSection title="Growth" description="Mentor, DNA, passport, and lessons." defaultExpanded>
-          <HubPathList sections={GROWTH} emphasizeFirst />
+        <CollapsibleSection title="Profile" description="Who you are in this app — not KYC." defaultExpanded>
+          <HubPathList sections={PROFILE} emphasizeFirst />
         </CollapsibleSection>
-        <CollapsibleSection title="Desk" description="Portfolio, alerts, and calendar.">
-          <HubPathList sections={DESK} emphasizeFirst={false} />
+        <CollapsibleSection title="Progress" description="Academy, passport, and Trading DNA.">
+          <HubPathList sections={PROGRESS} emphasizeFirst={false} />
         </CollapsibleSection>
-        <CollapsibleSection title="Account" description="Settings and subscription.">
+        <CollapsibleSection
+          title="Account"
+          description="Settings, subscription, privacy, and data management."
+        >
           <HubPathList sections={ACCOUNT} emphasizeFirst={false} />
         </CollapsibleSection>
+
+        <LoopCtaRow title="Back to the loop" />
       </View>
     </ScreenScaffold>
   );

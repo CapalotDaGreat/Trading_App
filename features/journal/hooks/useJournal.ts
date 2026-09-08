@@ -40,6 +40,7 @@ export function useJournal() {
     queryKey: journalQueryKey(uid),
     queryFn: () => getJournalEntries(uid!),
     enabled: Boolean(uid),
+    staleTime: 60_000,
   });
 
   const entries = entriesQuery.data ?? [];
