@@ -51,7 +51,7 @@ export function AiSettingsScreen() {
         <SettingsRow
           icon="finger-print-outline"
           label="Personal Intelligence & memory"
-          description="Trading DNA and AI learning memory — process traits only"
+          description="Process patterns and AI learning memory — process traits only"
           showChevron
           onPress={() => router.push('/decision/intelligence' as never)}
         />

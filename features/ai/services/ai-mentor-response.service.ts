@@ -68,7 +68,7 @@ function memoryUse(context?: AiEnrichedContext | null): AiMentorMemoryUse {
   const di = context?.decisionIntelligence;
   const used: string[] = [];
   const notUsed = ['raw journal text', 'portfolio dollar values', 'other users’ DNA'];
-  if (dna?.observationLine) used.push('Trading DNA process note (labels only)');
+  if (dna?.observationLine) used.push('Process-pattern note (labels only)');
   if (dna?.strengths?.length) used.push('Recent process strengths');
   if (di?.psychologyReminder) used.push('Mentor setup process reminder');
   if (di?.tradingStyle) used.push('Stated research style');
@@ -77,13 +77,13 @@ function memoryUse(context?: AiEnrichedContext | null): AiMentorMemoryUse {
       used: [],
       notUsed,
       disclosure:
-        'No Trading DNA or Decision Log process notes are attached to this answer. I am not claiming to remember everything you have ever told me.',
+        'No process-pattern or Decision Log notes are attached to this answer. I am not claiming to remember everything you have ever told me.',
     };
   }
   return {
     used,
     notUsed,
-    disclosure: `Using derived memory (Decision Log counts / Trading DNA labels): ${used.join('; ')}. Not using journal bodies, P&L, or a complete history dump. This is not a complete personal archive.`,
+    disclosure: `Using derived memory (Decision Log counts / process-pattern labels): ${used.join('; ')}. Not using journal bodies, P&L, or a complete history dump. This is not a complete personal archive.`,
   };
 }
 
@@ -156,7 +156,7 @@ function unknownFacts(context?: AiEnrichedContext | null, cap = 3): string[] {
   if (!context?.newsHeadlines?.length) lines.push('No headlines are attached — I will not invent news.');
   if (context?.atr == null) lines.push('ATR / volatility context is missing.');
   if (!context?.decisionIntelligence?.tradingDna) {
-    lines.push('Trading DNA labels are not attached (and I will not invent your history).');
+    lines.push('Process-pattern labels are not attached (and I will not invent your history).');
   } else {
     for (const item of context.decisionIntelligence.tradingDna.unknown?.slice(0, 2) ?? []) {
       lines.push(item);

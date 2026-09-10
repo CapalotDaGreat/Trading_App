@@ -16,9 +16,12 @@ export function sessionLengthFromBudget(minutes: number | null | undefined): Tra
 export function sessionBudgetMinutes(
   length: TrainingSessionLength,
   overrideMinutes?: number,
+  options?: { preferLength?: boolean },
 ): number {
-  if (typeof overrideMinutes === 'number' && Number.isFinite(overrideMinutes) && overrideMinutes > 0) {
-    return overrideMinutes;
+  if (!options?.preferLength) {
+    if (typeof overrideMinutes === 'number' && Number.isFinite(overrideMinutes) && overrideMinutes > 0) {
+      return overrideMinutes;
+    }
   }
   return SESSION_BUDGET_MINUTES[length];
 }
@@ -32,5 +35,27 @@ export function sessionFitDelta(
   if (critical) return 0;
   if (estimatedMinutes <= budgetMinutes) return 18;
   if (estimatedMinutes <= budgetMinutes + 8) return 4;
+  return 0;
+}
+
+/**
+ * Session length must change ranking, not only the Home chips.
+ * Quick prefers one focused drill; deep prefers richer loop activities.
+ */
+export function sessionPreferenceDelta(
+  estimatedMinutes: number,
+  length: TrainingSessionLength,
+  critical: boolean,
+): number {
+  if (length === 'quick') {
+    if (estimatedMinutes <= 10) return critical ? 12 : 48;
+    if (estimatedMinutes >= 22) return critical ? -20 : -58;
+    return 0;
+  }
+  if (length === 'deep') {
+    if (estimatedMinutes >= 18) return 42;
+    if (estimatedMinutes <= 8 && !critical) return -30;
+    return 0;
+  }
   return 0;
 }

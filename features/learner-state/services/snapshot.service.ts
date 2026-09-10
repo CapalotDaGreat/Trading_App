@@ -11,8 +11,8 @@ import { emptyProgressSnapshot } from './merge.service';
 import type { LearnerStateBundle } from '../types/learner-state.types';
 
 export function collectLearnerBundle(uid: string, now = Date.now()): LearnerStateBundle {
-  const academy = useAcademyProgressStore.getState();
-  const queue = useLearningQueueStore.getState();
+  const academy = useAcademyProgressStore.getState().sliceFor(uid);
+  const queue = useLearningQueueStore.getState().sliceFor(uid);
   const replay = useReplayTvStore.getState().progressFor(uid);
   const account = useSimulationStore.getState().accountFor(uid);
   const thesisBacked = account?.decisions.filter((item) => item.thesis.trim().length >= 8).length ?? 0;
@@ -26,7 +26,7 @@ export function collectLearnerBundle(uid: string, now = Date.now()): LearnerStat
         conceptResults: academy.conceptResults,
         savedLessonIds: academy.savedLessonIds,
       },
-      practiceAttempts: usePracticeProgressStore.getState().attempts,
+      practiceAttempts: usePracticeProgressStore.getState().attemptsFor(uid),
       queue: {
         dispositions: sanitizeQueueDispositions(queue.dispositions),
         conceptDeferCounts: queue.conceptDeferCounts,
@@ -61,8 +61,11 @@ export function applyLearnerBundle(uid: string, bundle: LearnerStateBundle): voi
     throw new Error('Refusing to apply learner state for a different uid.');
   }
   useCompetencyEvidenceStore.getState().importRecords(uid, bundle.evidence);
+  useAcademyProgressStore.getState().setActiveUid(uid);
   useAcademyProgressStore.getState().mergeFromRemote(bundle.progress.academy);
+  usePracticeProgressStore.getState().setActiveUid(uid);
   usePracticeProgressStore.getState().mergeAttempts(bundle.progress.practiceAttempts);
+  useLearningQueueStore.getState().setActiveUid(uid);
   useLearningQueueStore.getState().mergeFromRemote(bundle.progress.queue);
   useReplayTvStore.getState().mergeProgress(uid, {
     ...EMPTY_REPLAY_TV_PROGRESS,

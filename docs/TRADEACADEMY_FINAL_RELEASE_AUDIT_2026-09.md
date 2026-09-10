@@ -1,8 +1,10 @@
 # TradeAcademy — Final Pre-Release Competence, Product, Security, and Store Audit
 
-**Date:** 10 September 2026 (updated same day after post-audit product hardening)  
+**Date:** 10 September 2026 (updated same day after the score-improvement implementation pass)  
 **Product:** TradeAcademy by Aithera  
 **Auditor method:** inspect the current tree; do not assume earlier prompts landed. Automated tests were re-run in this pass. Learner journeys were **code-traced**, not walked on a device. Live store consoles, EAS production binaries, and native App Check tokens were **not** available in this repository. `https://tradevision.ai` and `https://tradevision.ai/privacy` were fetched again and still returned **HTTP 500**.
+
+**Implementation report:** [TRADEACADEMY_SCORE_IMPROVEMENT_IMPLEMENTATION_2026-09.md](./TRADEACADEMY_SCORE_IMPROVEMENT_IMPLEMENTATION_2026-09.md)
 
 **Does not replace:** [TRADEACADEMY_COMPETENCE_AUDIT_2026-09.md](./TRADEACADEMY_COMPETENCE_AUDIT_2026-09.md), [TRADEACADEMY_SECURITY_BACKEND_2026-09.md](./TRADEACADEMY_SECURITY_BACKEND_2026-09.md), [TRADEACADEMY_STORE_LEGAL_2026-09.md](./TRADEACADEMY_STORE_LEGAL_2026-09.md), [TRADEACADEMY_PERFORMANCE_RELIABILITY_2026-09.md](./TRADEACADEMY_PERFORMANCE_RELIABILITY_2026-09.md), [TRADEACADEMY_APP_CHECK.md](./TRADEACADEMY_APP_CHECK.md). This document is the combined go / no-go.
 
@@ -35,7 +37,7 @@ A closed internal preview of the on-device educational core is possible with doc
 | Command | Result |
 | --- | --- |
 | `npx tsc --noEmit` | **PASS** (exit 0) |
-| `npx jest --runInBand --forceExit` | **PASS** — **111** suites, **730** tests (was 110 / 716; coverage increased) |
+| `npx jest --runInBand --forceExit` | **PASS** — **113** suites, **744** tests (was 111 / 730; coverage increased) |
 | `npm run functions:build` | **PASS** |
 | `npm --prefix functions test` | **PASS** — **19** tests, 0 fail |
 | `npm run test:rules` | **PASS** — 2 suites, **14** tests (Firestore + Storage) |
@@ -49,17 +51,17 @@ No other release-gate script exists besides `expo:config`. Device QA, EAS produc
 
 | Category            | Score / 100 | PASS/BLOCKED | Evidence |
 | ------------------- | ----------: | ------------ | -------- |
-| Learning quality    |          84 | PASS with limits | `BRAND.loop` is the full loop. Journal has Review CTA (`journal-review-cta`). Review `LoopCtaRow` uses Training Planner primary. Practice no longer forces Replay when remediation leads. Replay / Journal remain off the tab bar (reachable from the loop). Device walk **UNVERIFIED**. |
-| Personalization     |          76 | PASS with limits | Canonical next action is `composeTrainingPlan`. Academy, Practice, Review, Mentor, and Replay TV consume planner primary. Replay TV / Events / simulation still generate **candidates**. Development history is evidence-backed, not a trophy score. |
-| Competency          |          76 | PASS (engine) | Completion ≠ mastery; process ≠ P/L; decay, remediation, transfer recipes exist and are tested. Loss-aversion and premature-entry now have named drills. Dual/legacy mastery leftovers remain in code. |
-| Simulation          |          82 | PASS | USD 100,000; stochastic scenarios; internal seed; thesis required on simulated entry; risk caps; journal handoff; process eval; no broker. Outcomes are not rigged. Device UX **UNVERIFIED**. |
-| Replay              |          80 | PASS | Point-in-time boundary and leak tests pass. Process coaching independent of outcome. Planner CTA when primary is replay. Catalog is `dataKind: 'sample'`. Licensed historical library is a type, not content. |
-| Events              |          82 | PASS | Educational calendar, attribution, no-prediction tests. `educationForKind` and training-plan hrefs include `concept=` / `loop=`. Practice honors `?topic=`. |
-| Psychology training |          78 | PASS (named subset) | FOMO / revenge / loss aversion / premature entry / confirmation / overconfidence have named drills. FOMO remediation now uses `fomo-chase`. No diagnostic “you have this bias” claims. |
-| Fundamentals        |          78 | PASS (tests) | `fundamentals-education.test.ts` and curriculum coverage tests pass. Event-driven `?topic=fundamentals` now filters the library. Transfer variety is still thinner than sizing/invalidation. |
-| UX                  |          74 | PARTIAL | Home is “what should I train now?” plus development history. Review process patterns (not a DNA dashboard title). Hidden Markets/Portfolio/Ask routes remain. Journeys not device-walked. |
-| Accessibility       |          64 | PARTIAL / UNVERIFIED | Design-system a11y tests passed. Educational and candlestick charts now expose a **visible** spoken caption, not only `accessibilityLabel`. No VoiceOver / TalkBack journey. |
-| Privacy             |          80 | PASS (behavior) | Analytics allowlisted and consent-gated; no journal/AI/portfolio text props. Competency evidence is uid-keyed. Guest isolation persists `tradevision-last-auth-uid` across process kill (tested). |
+| Learning quality    |          87 | PASS with limits | Full loop chrome. Planner-first `LoopCtaRow` on every step. ChartExercise retries a **different** item after a miss. Lesson completion is exposure, not mastery. Device walk **UNVERIFIED**. |
+| Personalization     |          83 | PASS with limits | `composeTrainingPlan` is the only user-facing next action. Session length can change the primary. Deferral surfaces a shorter same-gap activity. Academy / Events / Replay TV generate **candidates** only. Legacy `scoreAllConceptMastery` remains a fallback candidate helper. |
+| Competency          |          81 | PASS (engine) | Completion ≠ mastery; process ≠ P/L. Named remediations now include uncertainty, thesis, confirmation-bias, overconfidence, event-risk, earnings, valuation. Transfer contexts expanded. Dual leftover calculators still exist as non-authoritative helpers. |
+| Simulation          |          86 | PASS | USD 100,000; stochastic scenarios; internal seed; **thesis and invalidation required**; generic “Simulated entry” blocked; failed process orders do not mutate the ledger; journal debrief on close. Outcomes are not rigged. Device UX **UNVERIFIED**. |
+| Replay              |          82 | PASS | Point-in-time boundary and leak tests pass. Process coaching independent of outcome. Local Replay TV ranker is **Library order**, not “recommended next.” Catalog is `dataKind: 'sample'`. |
+| Events              |          84 | PASS | Educational calendar, attribution, no-prediction tests. Next practice comes from the planner. Weakness domain comes from the competency ledger, not `buildSkillModel`. |
+| Psychology training |          81 | PASS (named subset) | FOMO / revenge / loss aversion / premature entry / confirmation / overconfidence / recency / uncertainty-conflict have named drills or remediations. Neutral process-pattern language. No diagnostic “you are an emotional trader.” |
+| Fundamentals        |          80 | PASS (tests) | Coverage tests pass. Transfer/remediation wired to existing fictional cases (`changing-margins`, `valuation-uncertainty`). Still thinner than sizing/invalidation. |
+| UX                  |          79 | PARTIAL | Home is one next action. User-facing “Trading DNA” chrome is now process patterns. Replay / Journal stay off the tab bar but are loop-discoverable. Hidden Markets/Portfolio routes remain as redirects. Journeys not device-walked. |
+| Accessibility       |          69 | PARTIAL / UNVERIFIED | ChartExercise has non-color status, 44×44 targets, roles/labels. Loop CTAs labelled. No VoiceOver / TalkBack journey. |
+| Privacy             |          85 | PASS (behavior) | Analytics allowlisted and consent-gated; no journal/AI/portfolio text props. Academy, practice attempts, and learning queue are **uid-keyed** on the same frozen storage keys. Guest slice survives login (tested). |
 | Security            |          82 | PASS (code) / UNVERIFIED (deploy) | Vendor keys stay off store-like EAS profiles. Cloud AI disabled. Webhook and quotas fail closed. Firestore owner + append-only usage/ops. Native App Check unwired. Production deploy **UNVERIFIED**. |
 | Performance         |          68 | PARTIAL / UNVERIFIED device | Code work in the 2026-09 performance pass; `performance.test.ts` passed here. Cold-start TTI, FPS, and heap on hardware were **not** measured. |
 | App Store           |          32 | BLOCKED | Copy is educational. Screenshots empty. Listing URLs not live (HTTP 500). ASC app id placeholder. Native attestation missing. |
@@ -92,13 +94,13 @@ Hidden routes `/markets`, `/portfolio`, `/research`, `/ai`, `/more` still exist 
 
 **Canonical next-action planner:** `composeTrainingPlan` in `features/training-planner/services/training-planner.service.ts`.
 
-Academy, Practice, Mentor, Replay TV, Events, Review and Personal Intelligence may generate **candidates**. Home, Review, Academy hub, Practice, Mentor (`plannerFocus`), and Replay TV (when primary is replay) consume the planner primary for the next CTA.
+Academy, Practice, Mentor, Replay TV, Events, Review and Personal Intelligence may generate **candidates**. Home, Review, Academy hub, Practice, Mentor (`plannerFocus`), Events cards, and Replay TV (when primary is replay) consume the planner primary for the next CTA. Replay TV otherwise shows **Library order**.
 
 Competing browse rankers still exist (`buildPersonalizedCurriculum`, Replay TV library sort, simulation scenario personalization, radar on hidden routes). They must not independently set the final next action.
 
-There is **one competency ledger**. Leftover **concept-mastery / skill-model** paths in `useLearningEngine` remain in code.
+There is **one competency ledger**. Leftover **concept-mastery / skill-model** paths remain as candidate or Readiness-dimension helpers, not as Home’s next-action authority.
 
-**Verdict:** PASS with limits. Competing browse rankers remain; they must not override Today’s Training.
+**Verdict:** PASS with limits. Browse rankers remain; they must not override Today’s Training.
 
 ---
 
@@ -120,7 +122,7 @@ Verified in `features/competency/` and tests (`mastery-system.test.ts`, `compete
 | Re-demonstration exists | Recipes + conceal-on-retest for core IDs; **not locked** |
 | Transfer testing exists | For named core IDs, not the whole taxonomy |
 
-**Limits that keep the score at 72:** Today’s Training can be skipped. Named remediations cover position sizing, risk-per-trade, invalidation, FOMO, emotional decision-making, revenge trading. ChartExercise locks after the first choice (no immediate retry). Dual mastery leftovers remain.
+**Limits that keep competency below the mid-80s:** Today’s Training can still be deferred (by design). Named remediations now cover a larger set but not the whole taxonomy. ChartExercise retries a **different** item after a miss (not the same prompt). Dual leftover mastery calculators remain as non-authoritative helpers.
 
 This is **not** a six-month outcome study. It is engine + unit tests.
 
@@ -144,14 +146,15 @@ No infinite grind in the ranker when grinding is detected. Users can still open 
 | Stochastic scenarios | `scenario-randomization.test.ts` passed |
 | Seeded reproducibility | Internal seed; not shown in UI |
 | No deterministic outcome manipulation | Generator + engine tests; no “make the user win” path found |
-| Thesis requirement | `SimulationTradeTicket` blocks buy without a one-line thesis |
+| Thesis requirement | Hard gate — thesis ≥ 8 characters |
+| Invalidation requirement | Hard gate — invalidation ≥ 8 characters |
+| Generic bypass | `Simulated entry` and empty process text rejected (`process_required`) |
+| Failed order | Does not mutate the ledger |
 | Risk controls | Engine caps |
-| Journal linking | Simulate → journal handoff |
+| Journal linking | Close debrief always offers Journal with inherited thesis / invalidation |
 | Process evaluation | Independent of P/L |
 | No broker integration | Disclaimer + no execution APIs |
 | No buy/sell signals | Educational add/reduce language; disclaimers |
-
-Invalidation is encouraged, not a hard gate on every fill. Engine can still persist a generic simulated entry in some paths. Those are P1 polish, not P0 product lies.
 
 ---
 
@@ -257,9 +260,9 @@ Production Functions env and webhook URL: **UNVERIFIED**.
 
 ## 13. Guest mode (`demo-guest`)
 
-Same-session guest → authenticated **does** reset academy, practice attempts, and learning queue (`isolateGuestProgressIfNeeded`).
+Same-session guest → authenticated **switches** the active uid on academy, practice attempts, and learning queue (`isolateGuestProgressIfNeeded`). Guest work is retained under `demo-guest` and restored when that uid is active again (tested).
 
-Cold start: `tradevision-last-auth-uid` is persisted so `isolateGuestProgressIfNeeded` can still run after a process kill (tested). Academy progress / practice / queue keys remain global, but the last-uid stamp prevents attaching guest work to the first authenticated login after restart.
+Cold start: `tradevision-last-auth-uid` is persisted so isolation can still run after a process kill (tested). Storage **key names** stay `tradevision-*` (frozen); payloads are now `byUser` / `attemptsByUser`.
 
 Competency evidence is uid-keyed and does not mix. Journal under Firestore is owner-scoped. Guest never calls vendor proxies.
 
@@ -362,12 +365,12 @@ Until 1–3 are done, `listingUrlsReady` must stay `false`.
 
 Should be fixed before launch if feasible; not a substitute for P0:
 
-1. Dual mastery leftovers (`concept-mastery` / skill-model vs competency ledger) confuse personalization over time.
-2. Hidden terminal-adjacent routes (`/markets`, `/portfolio`) still exist as deep links.
-3. VoiceOver / TalkBack journey pass (charts now have visible captions; OS readers **UNVERIFIED**).
-4. Competing candidate rankers (Replay TV library sort, radar) should stay clearly labelled as browse, not “the” next action.
+1. Dual leftover calculators (`concept-mastery` / `buildSkillModel`) still exist as candidate or Readiness helpers — wrap or delete in a later pass so they cannot be reused as a second authority.
+2. Hidden terminal-adjacent routes (`/markets`, `/portfolio`) still exist as deep-link redirects.
+3. VoiceOver / TalkBack journey pass (code a11y improved; OS readers **UNVERIFIED**).
+4. Practice / Simulate fatal-error chrome is still thinner than Journal.
 
-**Closed in this product pass (no longer P1):** guest `lastUid` persist; Journal → Review CTA; Review → planner; event `concept`/`loop` handoff; Practice `?topic=`; `BRAND.loop`; Academy/Mentor/Replay planner consumption; named loss-aversion / premature-entry drills.
+**Closed in this product pass (no longer P1):** planner-first loop CTAs on every step; Events/Replay TV no longer present browse rankers as “next”; session-length ranking; ChartExercise new-item retry; simulation invalidation hard gate; UID-keyed academy/practice/queue; named remediations for uncertainty / thesis / bias / events / valuation.
 
 ### P2 POST-RELEASE
 
@@ -378,8 +381,8 @@ Do not delay launch for these:
 3. Hide or retire leftover terminal routes more aggressively.
 4. Hosted legal HTML still describing a “research and coaching” app.
 5. Device performance budget (TTI / FPS / heap).
-6. Immediate retry on ChartExercise after a wrong first choice.
-7. Hard-gate invalidation on every simulated fill (today: thesis is gated; invalidation is encouraged).
+6. Fully remove leftover mastery calculators from the candidate pool once profiling shows no regressions.
+7. Dedicated Practice / Simulate stale + fatal-error screens at Journal quality.
 
 ---
 
@@ -400,4 +403,5 @@ That is enough to keep building and enough for a **closed educational preview**.
 - [TRADEACADEMY_PERFORMANCE_RELIABILITY_2026-09.md](./TRADEACADEMY_PERFORMANCE_RELIABILITY_2026-09.md)
 - [TRADEACADEMY_APP_CHECK.md](./TRADEACADEMY_APP_CHECK.md)
 - [TRADEACADEMY_POST_AUDIT_IMPLEMENTATION_PLAN.md](./TRADEACADEMY_POST_AUDIT_IMPLEMENTATION_PLAN.md)
+- [TRADEACADEMY_SCORE_IMPROVEMENT_IMPLEMENTATION_2026-09.md](./TRADEACADEMY_SCORE_IMPROVEMENT_IMPLEMENTATION_2026-09.md)
 - [STORE_LAUNCH_CHECKLIST.md](./STORE_LAUNCH_CHECKLIST.md)

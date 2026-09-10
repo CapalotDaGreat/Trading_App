@@ -163,6 +163,7 @@ describe('simulation scenario generator', () => {
       price,
       now: NOW,
       thesis: 'Process test: size from the stop, not from conviction.',
+      invalidation: 'A close back through the range.',
     });
     expect(bought.ok).toBe(true);
     if (!bought.ok) return;

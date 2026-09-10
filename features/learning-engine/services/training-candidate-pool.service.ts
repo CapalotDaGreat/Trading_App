@@ -1041,11 +1041,7 @@ export function buildTrainingCandidatePool(
     pool.push(journalCandidate(snapshot));
   }
 
-  const masteryHasEvent =
-    competency.some((row) => row.conceptId === 'event-risk' && row.state !== 'not_started') ||
-    scoreAllConceptMastery(snapshot.byConcept, now).some(
-      (row) => row.conceptId === 'event-risk' && row.state !== 'not_started',
-    );
+  const masteryHasEvent = competency.some((row) => row.conceptId === 'event-risk' && row.state !== 'not_started');
   const eventItem = eventPrepCandidate(snapshot, masteryHasEvent);
   if (eventItem && !beginner && !pool.some((item) => item.id === eventItem.id)) {
     pool.push(eventItem);

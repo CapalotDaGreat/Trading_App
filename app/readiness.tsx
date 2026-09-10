@@ -3,7 +3,7 @@ import { useRouter } from 'expo-router';
 import { View } from 'react-native';
 
 import { ALL_LESSONS } from '@/features/academy/content';
-import { useAcademy } from '@/features/academy/hooks/useAcademy';
+import { useAcademy, useNextAcademyLesson } from '@/features/academy/hooks/useAcademy';
 import { useAcademyProgressStore } from '@/features/academy/stores/academy-progress.store';
 import { useJournal } from '@/features/journal/hooks/useJournal';
 import { PRACTICE_DRILLS } from '@/features/practice/content/practice-drills';
@@ -11,7 +11,7 @@ import { usePracticeProgressStore } from '@/features/practice/stores/practice-pr
 import { assessTrainingReadiness } from '@/features/progress/services/readiness.service';
 import { buildSkillModel } from '@/features/progress/services/skill-model.service';
 import { buildWeeklyTrainingPlan } from '@/features/progress/services/weekly-training-plan.service';
-import { useNextAcademyLesson } from '@/features/academy/hooks/useAcademy';
+import { useLearningEngine } from '@/features/learning-engine/hooks/useLearningEngine';
 import { useLearnerModel } from '@/features/learner-model';
 import { preferredPracticeDrillIds } from '@/features/mistake-library/services/mistake-library.service';
 import { recommendPracticeDrill } from '@/features/practice/services/practice-library.service';
@@ -26,6 +26,7 @@ export default function ReadinessScreen() {
   const router = useRouter();
   const { completedCount, practicedCount } = useAcademy();
   const { recommendation } = useNextAcademyLesson();
+  const { primary } = useLearningEngine();
   const lessonProgress = useAcademyProgressStore((state) => state.lessons);
   const attempts = usePracticeProgressStore((state) => state.attempts);
   const { entries } = useJournal();
@@ -64,7 +65,12 @@ export default function ReadinessScreen() {
     closeReviews: account?.decisions.filter((item) => item.closeReview).length ?? 0,
     practiceAccuracy: accuracy,
   });
-  const weekly = buildWeeklyTrainingPlan({ skill, nextLesson: recommendation, drill });
+  const weekly = buildWeeklyTrainingPlan({
+    skill,
+    nextLesson: recommendation,
+    drill,
+    plannerPrimary: primary,
+  });
 
   return (
     <ScreenScaffold
@@ -129,8 +135,8 @@ export default function ReadinessScreen() {
       ) : null}
 
       <View className="mt-4 flex-row flex-wrap gap-2">
-        <Button size="sm" onPress={() => router.push(readiness.nextHref as never)}>
-          {readiness.nextLabel}
+        <Button size="sm" onPress={() => router.push((primary?.href ?? readiness.nextHref) as never)}>
+          {primary?.title ?? readiness.nextLabel}
         </Button>
         <Button
           size="sm"

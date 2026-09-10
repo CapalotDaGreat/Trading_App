@@ -74,7 +74,7 @@ export default function YouScreen() {
         <CollapsibleSection title="Profile" description="Who you are in this app — not KYC." defaultExpanded>
           <HubPathList sections={PROFILE} emphasizeFirst />
         </CollapsibleSection>
-        <CollapsibleSection title="Progress" description="Academy, passport, and Trading DNA.">
+        <CollapsibleSection title="Progress" description="Academy, passport, and process patterns.">
           <HubPathList sections={PROGRESS} emphasizeFirst={false} />
         </CollapsibleSection>
         <CollapsibleSection

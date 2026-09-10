@@ -22,9 +22,11 @@ const LIFECYCLE_VARIANT: Record<MarketEventCardModel['lifecycle'], 'default' | '
 export function MarketEventCard({
   event,
   variant = 'full',
+  nextPractice,
 }: {
   event: MarketEventCardModel;
   variant?: 'beginner' | 'full';
+  nextPractice?: { label: string; href: string };
 }) {
   const router = useRouter();
   const beginner = variant === 'beginner';
@@ -88,16 +90,22 @@ export function MarketEventCard({
       ) : null}
 
       <View className="mt-3 flex-row flex-wrap gap-2">
+        {nextPractice ? (
+          <Button size="sm" onPress={() => router.push(nextPractice.href as never)}>
+            Next practice: {nextPractice.label}
+          </Button>
+        ) : null}
         <Button
           size="sm"
+          variant={nextPractice ? 'outline' : undefined}
           onPress={() => router.push(`/academy/lesson/${event.training.lessonId}` as never)}
         >
-          {beginner ? 'Learn more' : 'Lesson'}
+          {beginner ? 'Learn more' : 'Related lesson'}
         </Button>
         {!beginner ? (
           <>
             <Button size="sm" variant="outline" onPress={() => router.push(event.training.practiceHref as never)}>
-              Practice
+              Related practice
             </Button>
             <Button size="sm" variant="outline" onPress={() => router.push(event.training.replayHref as never)}>
               Replay

@@ -3,6 +3,7 @@ import { View } from 'react-native';
 
 import { type ProductLoopStep } from '@/features/navigation/config/navigation-ia.config';
 import { resolveLoopCtas } from '@/features/navigation/config/product-loop';
+import { useLearningQueueStore } from '@/features/learning-engine/stores/learning-queue.store';
 import { Button } from '@/shared/components/ui/Button';
 import { Text } from '@/shared/components/ui/Text';
 import { BRAND } from '@/shared/constants/brand';
@@ -14,11 +15,11 @@ interface LoopCtaRowProps {
   title?: string;
   testID?: string;
   followUp?: { label: string; href: string };
-  /** Review → Improve: Training Planner primary, not an empty sequential slice. */
+  /** Training Planner primary. Falls back to the cached planner CTA. */
   plannerNext?: { label: string; href: string } | null;
 }
 
-/** Next steps in the competence loop — sequential, not a random hub. */
+/** Next steps in the competence loop — planner first, then sequential surfaces. */
 export function LoopCtaRow({
   current,
   title = 'Continue the loop',
@@ -27,7 +28,12 @@ export function LoopCtaRow({
   plannerNext,
 }: LoopCtaRowProps) {
   const router = useRouter();
-  const next = resolveLoopCtas({ current, followUp, plannerNext });
+  const cached = useLearningQueueStore((state) => state.plannerPrimaryCta);
+  const next = resolveLoopCtas({
+    current,
+    followUp,
+    plannerNext: plannerNext ?? cached,
+  });
 
   return (
     <View className="mt-2" testID={testID}>
@@ -41,7 +47,9 @@ export function LoopCtaRow({
             size="sm"
             variant="outline"
             onPress={() => router.push(step.href as never)}
+            accessibilityRole="button"
             accessibilityLabel={`Go to ${step.label}`}
+            accessibilityState={{ disabled: false }}
           >
             {step.label}
           </Button>

@@ -23,6 +23,7 @@ describe('practice library', () => {
       'confidence-check',
       'loss-aversion',
       'premature-entry',
+      'recency-bias',
     ]);
     expect(
       filterPracticeDrills(PRACTICE_DRILLS, { ...all, difficulty: 'intermediate' }, []).every(

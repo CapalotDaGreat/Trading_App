@@ -189,7 +189,7 @@ function OverviewTab({
         ) : null}
       </PassportSectionCard>
 
-      <PassportSectionCard title="Trading DNA" delay={160}>
+      <PassportSectionCard title="Process patterns" delay={160}>
         <Text variant="caption" className="mb-1 font-semibold text-text-tertiary">
           Strengths
         </Text>

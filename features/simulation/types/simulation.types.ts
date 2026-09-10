@@ -25,7 +25,8 @@ export type SimulationErrorCode =
   | 'invalid_symbol'
   | 'invalid_account'
   | 'challenge_violation'
-  | 'account_inactive';
+  | 'account_inactive'
+  | 'process_required';
 
 export type SimulationResult<T> =
   | { ok: true; value: T }

@@ -312,7 +312,7 @@ export function buildCoachForRecord(
       processNote = 'Practice without live risk — keep the habit without forcing trades.';
       break;
     default:
-      processNote = 'Review whether this step matched your plan, risk rules, and Trading DNA.';
+      processNote = 'Review whether this step matched your plan, risk rules, and process patterns.';
   }
 
   if (dnaFit === 'mismatch') {
@@ -427,8 +427,8 @@ export function buildLearningInsights(
   if (memory?.typicalMistakes[0] && journaled.length > 0) {
     insights.push({
       id: 'dna-mistake',
-      statement: `Watch for a repeated DNA pattern: ${memory.typicalMistakes[0]}.`,
-      evidence: [`From Trading DNA · ${journaled.length} journals in range`],
+      statement: `Watch for a repeated process pattern: ${memory.typicalMistakes[0]}.`,
+      evidence: [`From process patterns · ${journaled.length} journals in range`],
       category: 'habit',
     });
   }

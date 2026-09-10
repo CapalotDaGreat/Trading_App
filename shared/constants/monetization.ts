@@ -63,7 +63,7 @@ export const LAUNCH_FEATURE_COMPARISON: readonly FeatureComparisonRow[] = [
   { feature: 'Basic journal', free: 'Included', premium: 'Included' },
   { feature: 'Replay', free: 'Limited', premium: 'Full' },
   { feature: 'AI', free: `${AI_DAILY_LIMIT_FREE}/day`, premium: `~${AI_DAILY_LIMIT_PREMIUM}/day fair use` },
-  { feature: 'Trading DNA', free: 'Basic', premium: 'Full' },
+  { feature: 'Process patterns', free: 'Basic', premium: 'Full' },
   { feature: 'Personal Intelligence', free: 'Limited', premium: 'Full' },
   { feature: 'Decision Replay TV', free: 'Limited episodes', premium: 'Full library' },
   { feature: 'Advanced review', free: 'Limited', premium: 'Included' },

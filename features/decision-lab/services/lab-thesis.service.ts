@@ -165,7 +165,7 @@ export function buildLabAiCritique(input: {
   }
 
   // DNA
-  let dna = 'No Trading DNA match yet — journal Lab results to enrich memory.';
+  let dna = 'No process-pattern match yet — journal Lab results to enrich memory.';
   if (memory) {
     const hay = `${thesis.catalyst} ${thesis.notes} ${thesis.scenarioId}`.toLowerCase();
     if (memory.weakestSetups.some((w) => hay.includes(w.toLowerCase().split(/\s+/)[0] ?? ''))) {

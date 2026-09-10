@@ -532,7 +532,7 @@ export const DECISION_LESSONS: Lesson[] = [
       },
       {
         heading: 'Review cadence',
-        body: 'Daily: 5-minute skim for rule breaks. Weekly: cluster mistakes (late entries, moved stops, revenge adds). Monthly: update your Trading DNA notes — what setups you actually execute well.\n\nCoach features work better when journal rows are honest and complete.',
+        body: 'Daily: 5-minute skim for rule breaks. Weekly: cluster mistakes (late entries, moved stops, revenge adds). Monthly: update your process-pattern notes — what setups you actually execute well.\n\nCoach features work better when journal rows are honest and complete.',
         callout: {
           type: 'practice',
           text: 'Log one “no trade” decision this week with the same care as an entry — it trains the filter muscle.',
@@ -666,7 +666,7 @@ export const DECISION_LESSONS: Lesson[] = [
 
   lesson({
     id: 'dec-trading-dna',
-    title: 'Build your Trading DNA',
+    title: 'Build your process patterns',
     description: 'Know the setups, regimes, and habits you actually execute well.',
     category: 'psychology',
     difficulty: 'advanced',
@@ -683,10 +683,10 @@ export const DECISION_LESSONS: Lesson[] = [
     sections: [
       {
         heading: 'Edge is personal and empirical',
-        body: 'Borrowed strategies fail when they clash with your schedule, temperament, and skill. Trading DNA is the living map of: setups you execute cleanly, regimes you mishandle, times of day you tilt, and markets you overtrade.\n\nBuild it from journal evidence, not aspiration.',
+        body: 'Borrowed strategies fail when they clash with your schedule, temperament, and skill. Process patterns are the living map of: setups you execute cleanly, regimes you mishandle, times of day you tilt, and markets you overtrade.\n\nBuild them from journal evidence, not aspiration.',
       },
       {
-        heading: 'How to update DNA',
+        heading: 'How to update process patterns',
         body: 'Every month: list top 3 setup types by plan-adherence and expectancy proxy. List bottom 3 leak patterns. Adjust Radar priorities and personal scorecard thresholds accordingly.\n\nShrink the playbook until it is boring and competent — then expand carefully.',
         callout: {
           type: 'practice',
@@ -695,14 +695,14 @@ export const DECISION_LESSONS: Lesson[] = [
       },
     ],
     keyTakeaways: [
-      'DNA comes from logged behavior, not wishlists.',
+      'Process patterns come from logged behavior, not wishlists.',
       'Narrow playbook beats scattered imitation.',
       'Update monthly from journal clusters.',
     ],
     quiz: [
       {
         id: 'q1',
-        prompt: 'Best input for Trading DNA?',
+        prompt: 'Best input for process patterns?',
         choices: [
           'A viral thread',
           'Your own journaled decisions over a sample',

@@ -225,6 +225,7 @@ function toRecommendation(
     evidence: CompetencyEvidenceRecord[];
     competency: CompetencyMastery[];
     sessionBudgetMinutes: number;
+    sessionLength: TrainingSessionLength;
     grinding: boolean;
     recentActivityKeys: string[];
     learner?: LearnerModelSnapshot;
@@ -238,6 +239,7 @@ function toRecommendation(
     evidence: ctx.evidence,
     competency: ctx.competency,
     sessionBudgetMinutes: ctx.sessionBudgetMinutes,
+    sessionLength: ctx.sessionLength,
     grinding: ctx.grinding,
     mistakeLibrary: ctx.learner?.mistakePatterns,
     stage: ctx.stage,
@@ -292,20 +294,31 @@ function toRecommendation(
 function applySessionLead(
   ranked: TrainingRecommendation[],
   budgetMinutes: number,
+  sessionLength: TrainingSessionLength,
 ): TrainingRecommendation[] {
   const lead = ranked[0];
   if (!lead) return ranked;
-  const critical = lead.isRemediation || lead.isRedemonstration || lead.priority === 'in_progress';
-  if (critical || lead.estimatedMinutes <= budgetMinutes) return ranked;
-  const alternative = ranked.find(
-    (row, index) =>
-      index > 0 &&
-      row.estimatedMinutes <= budgetMinutes &&
-      row.score >= lead.score - 110 &&
-      !row.isOptional,
-  );
+  const critical = lead.isRemediation || lead.isRedemonstration;
+  if (lead.estimatedMinutes <= budgetMinutes && sessionLength !== 'quick') return ranked;
+  if (critical && lead.estimatedMinutes <= budgetMinutes) return ranked;
+  const alternative = ranked.find((row, index) => {
+    if (index === 0) return false;
+    if (row.isOptional) return false;
+    if (row.estimatedMinutes > budgetMinutes) return false;
+    if (sessionLength === 'quick') {
+      return true;
+    }
+    return row.score >= lead.score - 110;
+  });
   if (!alternative) return ranked;
-  return [alternative, ...ranked.filter((row) => row.id !== alternative.id)];
+  const swapped: TrainingRecommendation = {
+    ...alternative,
+    reason:
+      sessionLength === 'quick' && lead.estimatedMinutes > budgetMinutes
+        ? `This fits a quick session on the same gap. ${alternative.reason}`
+        : alternative.reason,
+  };
+  return [swapped, ...ranked.filter((row) => row.id !== alternative.id)];
 }
 
 /**
@@ -318,7 +331,9 @@ export function composeTrainingPlan(input: ComposeTrainingPlanInput): TrainingPl
   const built = buildTrainingCandidatePool(input.snapshot, dispositions, options);
   const sessionLength =
     input.sessionLength ?? sessionLengthFromBudget(input.sessionBudgetMinutes);
-  const budget = sessionBudgetMinutes(sessionLength, input.sessionBudgetMinutes);
+  const budget = sessionBudgetMinutes(sessionLength, input.sessionBudgetMinutes, {
+    preferLength: Boolean(input.sessionLength),
+  });
   const recent = options.recentActivityKeys ?? [];
   const now = input.snapshot.now;
 
@@ -341,6 +356,7 @@ export function composeTrainingPlan(input: ComposeTrainingPlanInput): TrainingPl
       evidence: built.evidence,
       competency: built.competency,
       sessionBudgetMinutes: budget,
+      sessionLength,
       grinding: built.grinding.grinding,
       recentActivityKeys: recent,
       learner: input.learnerModel,
@@ -351,7 +367,7 @@ export function composeTrainingPlan(input: ComposeTrainingPlanInput): TrainingPl
   scored.sort(comparePlannerScores);
 
   const visible = scored.filter((row) => isQueueItemVisible(row, dispositions, now));
-  const fitted = applySessionLead(visible, budget);
+  const fitted = applySessionLead(visible, budget, sessionLength);
   const lead = fitted[0];
   const rest = lead
     ? interleaveByFamily(fitted.slice(1).map(recommendationToQueueItem), {
@@ -384,6 +400,20 @@ export function composeTrainingPlan(input: ComposeTrainingPlanInput): TrainingPl
     }
   }
 
+  const primaryRaw = queue[0] ?? null;
+  const deferredConcept =
+    primaryRaw?.conceptId && (options.conceptDeferCounts?.[primaryRaw.conceptId] ?? 0) > 0;
+  const primary =
+    primaryRaw && deferredConcept
+      ? {
+          ...primaryRaw,
+          reason: `You deferred a longer activity on this gap. Here is a shorter way to work on it. ${primaryRaw.reason}`,
+        }
+      : primaryRaw;
+  if (primary && queue[0] && primary.reason !== queue[0].reason) {
+    queue = [primary, ...queue.slice(1)];
+  }
+
   const items: TrainingQueueItem[] = queue.map(recommendationToQueueItem);
   const empty = emptyStateOf(input.snapshot, built.competency, items[0]);
   const continueId = input.snapshot.openedLessonIds[0] ?? input.snapshot.nextLessonId;
@@ -394,7 +424,6 @@ export function composeTrainingPlan(input: ComposeTrainingPlanInput): TrainingPl
       )
     : null;
 
-  const primary = queue[0] ?? null;
   const today: TodaysTraining = {
     headline: headlineFor(empty, items[0]),
     coachLine: COACH_LINE,

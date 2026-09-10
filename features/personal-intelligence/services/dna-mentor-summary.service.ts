@@ -82,7 +82,7 @@ export function buildDnaMentorSummary(input: {
     candidates.push(`Growth edge this week: ${input.dna.growthEdges[0]} — one deliberate practice session helps.`);
   }
   if (!candidates.length) {
-    candidates.push('Keep logging research, skips, and journals so Trading DNA can coach from evidence.');
+    candidates.push('Keep logging research, skips, and journals so process patterns can coach from evidence.');
   }
 
   const observationLine =

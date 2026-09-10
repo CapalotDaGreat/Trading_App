@@ -121,10 +121,17 @@ export function SimulationTradeTicket({
     setMessage('Suggested quantity uses 1% of simulated equity between entry and stop. Confirm only if that matches your plan.');
   };
 
+  const processIncomplete = (field: string, min = 8) => field.trim().length < 8;
+
   const reviewOrder = () => {
-    if (side === 'buy' && !thesis.trim()) {
+    if (side === 'buy' && processIncomplete(thesis)) {
       setPreview(null);
       setMessage('Write a one-line thesis before recording a simulated entry. Process first — this is not a brokerage.');
+      return;
+    }
+    if (side === 'buy' && processIncomplete(invalidation)) {
+      setPreview(null);
+      setMessage('Write what would prove the idea wrong before recording a simulated entry.');
       return;
     }
     const input = buildInput();
@@ -139,8 +146,12 @@ export function SimulationTradeTicket({
   };
 
   const confirmOrder = () => {
-    if (side === 'buy' && !thesis.trim()) {
+    if (side === 'buy' && processIncomplete(thesis)) {
       setMessage('Write a one-line thesis before recording a simulated entry. Process first — this is not a brokerage.');
+      return;
+    }
+    if (side === 'buy' && processIncomplete(invalidation)) {
+      setMessage('Write what would prove the idea wrong before recording a simulated entry.');
       return;
     }
     const input = buildInput();
@@ -304,7 +315,7 @@ export function SimulationTradeTicket({
       <CollapsibleSection
         className="mt-3"
         title="Record the decision"
-        description="A one-line thesis is required for simulated entries. Evidence and invalidation make the review useful later."
+        description="Thesis and invalidation are required for simulated entries. Evidence makes the review useful later."
         defaultExpanded
       >
         <Input
@@ -319,7 +330,7 @@ export function SimulationTradeTicket({
         <Input containerClassName="mt-3" label="Evidence" value={evidence} onChangeText={setEvidence} multiline />
         <Input
           containerClassName="mt-3"
-          label="Invalidation"
+          label="Invalidation (required)"
           value={invalidation}
           onChangeText={setInvalidation}
         />

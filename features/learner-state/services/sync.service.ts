@@ -45,10 +45,10 @@ export async function persistAuthUid(uid: string): Promise<void> {
 }
 
 export function isolateGuestProgressIfNeeded(previousUid: string | null, nextUid: string): boolean {
+  useAcademyProgressStore.getState().setActiveUid(nextUid);
+  usePracticeProgressStore.getState().setActiveUid(nextUid);
+  useLearningQueueStore.getState().setActiveUid(nextUid);
   if (!previousUid || previousUid === nextUid) return false;
-  useAcademyProgressStore.getState().resetProgress();
-  usePracticeProgressStore.setState({ attempts: [] });
-  useLearningQueueStore.getState().reset();
   return true;
 }
 

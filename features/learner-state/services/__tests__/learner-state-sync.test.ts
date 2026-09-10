@@ -42,8 +42,11 @@ function ev(uid: string, sourceId: string, conceptId = 'invalidation') {
 
 function resetStores() {
   useCompetencyEvidenceStore.getState().resetAll();
+  useAcademyProgressStore.getState().setActiveUid(DEMO_USER_UID);
   useAcademyProgressStore.getState().resetProgress();
-  usePracticeProgressStore.setState({ attempts: [] });
+  usePracticeProgressStore.getState().setActiveUid(DEMO_USER_UID);
+  usePracticeProgressStore.setState({ attempts: [], attemptsByUser: { [DEMO_USER_UID]: [] } });
+  useLearningQueueStore.getState().setActiveUid(DEMO_USER_UID);
   useLearningQueueStore.getState().reset();
   useLearnerBehaviorStore.getState().resetAll();
 }
@@ -106,9 +109,19 @@ describe('learner-state persistence', () => {
     expect(useAcademyProgressStore.getState().lessons['ta-candles']).toBeUndefined();
   });
 
+  it('restores guest academy when switching back to demo-guest', () => {
+    useAcademyProgressStore.getState().setActiveUid(DEMO_USER_UID);
+    useAcademyProgressStore.getState().markCompleted('ta-candles');
+    expect(isolateGuestProgressIfNeeded(DEMO_USER_UID, 'alice')).toBe(true);
+    expect(useAcademyProgressStore.getState().lessons['ta-candles']).toBeUndefined();
+    expect(isolateGuestProgressIfNeeded('alice', DEMO_USER_UID)).toBe(true);
+    expect(useAcademyProgressStore.getState().isRead('ta-candles')).toBe(true);
+  });
+
   it('restores evidence after a simulated reinstall', async () => {
     const port = createMemoryLearnerCloud();
     useCompetencyEvidenceStore.getState().recordEvidence(ev('alice', 'keep-me'));
+    useAcademyProgressStore.getState().setActiveUid('alice');
     useAcademyProgressStore.getState().markCompleted('dec-invalidation');
     const first = await syncLearnerState({ authUid: 'alice', online: true, now: NOW, port });
     expect(first.status).toBe('synced');

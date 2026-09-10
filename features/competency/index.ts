@@ -96,6 +96,7 @@ export { scoreEvidenceQuality } from './services/quality.service';
 export { scoreTransferEvidence, strongestEvidenceNote, detectFalseMastery, isFamiliarRecord } from './services/transfer.service';
 export { computeRedemonstrationDueAt, forgettingRiskFromQuality } from './services/schedule.service';
 export { inferScenarioContext, selectNextDemonstration, selectTransferContext, buildRemediationPlan, inferMisconception } from './services/context.service';
+export { weakestSkillDomainFromMastery } from './services/skill-domain-from-mastery.service';
 export { MASTERY_USER_LABELS, COMPETENCE_STATE_LABELS, userLabelFor } from './services/copy.service';
 
 export {

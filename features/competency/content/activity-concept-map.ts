@@ -86,11 +86,19 @@ export const DRILL_CONCEPT_IDS: Record<string, readonly string[]> = {
   'confidence-check': ['overconfidence'],
   'loss-aversion': ['loss-aversion'],
   'premature-entry': ['thesis', 'invalidation'],
+  'recency-bias': ['recency-bias'],
+  'uncertainty-conflict': ['uncertainty'],
 };
 
 export const EVENT_DRILL_IDS = new Set(['inflation-asset-effects', 'rate-decision-uncertainty']);
 
-export const TRANSFER_DRILL_IDS = new Set(['growth-vs-quality']);
+export const TRANSFER_DRILL_IDS = new Set([
+  'growth-vs-quality',
+  'compare-two-businesses',
+  'valuation-uncertainty',
+  'uncertainty-conflict',
+  'recency-bias',
+]);
 
 export const SURPRISE_REPLAY_IDS = new Set([
   'nfp-surprise-lab',

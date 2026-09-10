@@ -5,8 +5,12 @@ import type { CompetencyEvidenceRecord, CompetencyMastery } from '@/features/com
 import type { MistakeLibrarySnapshot } from '@/features/mistake-library/types/mistake-library.types';
 import { plannerScoreDeltaForMistakeLibrary } from '@/features/mistake-library/services/mistake-library.service';
 
-import { sessionFitDelta } from './planner-session.service';
-import type { PlannerPriorityBand, TrainingActivityType } from '../types/training-planner.types';
+import { sessionFitDelta, sessionPreferenceDelta } from './planner-session.service';
+import type {
+  PlannerPriorityBand,
+  TrainingActivityType,
+  TrainingSessionLength,
+} from '../types/training-planner.types';
 import type { PracticeStage } from '@/features/learning-engine/types/learning-engine.types';
 
 export const BAND_BASE_SCORE: Record<PlannerPriorityBand, number> = {
@@ -62,6 +66,7 @@ export interface ScoreContext {
   evidence: CompetencyEvidenceRecord[];
   competency: CompetencyMastery[];
   sessionBudgetMinutes: number;
+  sessionLength?: TrainingSessionLength;
   grinding: boolean;
   mistakeLibrary?: MistakeLibrarySnapshot;
   stage?: PracticeStage;
@@ -168,6 +173,7 @@ export function scorePlannerCandidate(
   if (ctx.grinding && (band === 'varied_practice' || band === 'transfer_practice')) score += 55;
 
   score += sessionFitDelta(estimatedMinutes, ctx.sessionBudgetMinutes, critical);
+  score += sessionPreferenceDelta(estimatedMinutes, ctx.sessionLength ?? 'normal', critical);
   score += Math.min(20, candidate.deferCount * 8);
   score -= PRIORITY_RANK[candidate.priority] * 0.01;
   score += plannerScoreDeltaForMistakeLibrary(

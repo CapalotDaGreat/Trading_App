@@ -232,7 +232,7 @@ export default function AcademyScreen() {
             <Surface padding="sm" tone="subtle" testID="academy-progress-strip">
               <Text variant="label">Path standing</Text>
               <Text variant="caption" className="mt-1 text-text-tertiary">
-                Labels come from lessons read, practised, and quiz scores — not XP.
+                Labels are exposure and practice coverage — not independent mastery.
               </Text>
               {primaryPaths.map((path) => (
                 <Text key={path.id} variant="body-sm" className="mt-1.5 text-text-secondary">
@@ -250,7 +250,7 @@ export default function AcademyScreen() {
                   recommendation={primary}
                   onOpen={() => openItem(primary)}
                   onDefer={defer}
-                  eyebrow="Train next"
+                  eyebrow="Today's training"
                 />
               </View>
             ) : completedCount === 0 && practicedCount === 0 ? (
@@ -326,7 +326,7 @@ export default function AcademyScreen() {
               {isPremium ? null : (
                 <PremiumOsGate feature="tradingDnaInsights">
                   <Text variant="body-sm" className="text-text-secondary">
-                    Premium can rank supporting lessons from Trading DNA and waiting reviews — only
+                    Premium can rank supporting lessons from process patterns and waiting reviews — only
                     from activity you already have.
                   </Text>
                 </PremiumOsGate>

@@ -190,6 +190,20 @@ function thesisText(input: SimulationTradeInput): string {
   return (input.thesis ?? input.reason ?? '').trim();
 }
 
+const GENERIC_PROCESS = /^(simulated entry|test|n\/a|na|none|-|\.|todo|tbd)$/i;
+
+export function educationalProcessGate(input: SimulationTradeInput): string | undefined {
+  const thesis = thesisText(input);
+  const invalidation = (input.invalidation ?? '').trim();
+  if (thesis.length < 8 || GENERIC_PROCESS.test(thesis)) {
+    return 'Write a specific thesis before recording a simulated entry. A generic fill note is not a thesis.';
+  }
+  if (invalidation.length < 8 || GENERIC_PROCESS.test(invalidation)) {
+    return 'Write what would prove the idea wrong before recording a simulated entry.';
+  }
+  return undefined;
+}
+
 function riskPercentOfEquity(
   input: SimulationTradeInput,
   equity: number,
@@ -295,7 +309,7 @@ function attachDecision(
     id: nextId('dec', account.decisions.length),
     accountId: account.id,
     symbol,
-    thesis: thesis || 'Simulated entry',
+    thesis: thesis,
     setup: input.setup,
     evidence: input.evidence,
     confidence: input.confidence,
@@ -344,6 +358,8 @@ export function previewBuy(
     stop,
   );
   if (violation) return err('challenge_violation', violation);
+  const processMissing = educationalProcessGate({ ...input, quantity, price });
+  if (processMissing) return err('process_required', processMissing);
 
   return ok({
     side: 'buy',

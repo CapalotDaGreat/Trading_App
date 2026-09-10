@@ -27,6 +27,7 @@ export interface SimulationEducationFollowup {
   drillId: string;
   drillHref: string;
   replayHref: string;
+  journalHref: string;
   nextFocusLabel: string;
 }
 
@@ -53,11 +54,27 @@ function conceptFromGaps(process: SimulationProcessScore, scenario?: SimulationS
   return concepts.slice(0, 3);
 }
 
+function journalHrefFromAccount(account?: SimulationAccount): string {
+  const last = account?.decisions.at(-1);
+  const thesis = last?.thesis?.trim() ?? '';
+  const invalidation = last?.invalidation?.trim() ?? '';
+  const notes = [
+    thesis ? `Thesis: ${thesis}` : '',
+    invalidation ? `Invalidation: ${invalidation}` : '',
+    'Process review after a simulated close. Simulated P/L is context, not the grade.',
+  ]
+    .filter(Boolean)
+    .join('\n');
+  return `/journal?from=simulate&notes=${encodeURIComponent(notes)}`;
+}
+
 export function recommendAfterSimulation(
   process: SimulationProcessScore,
   scenario?: SimulationScenario,
+  account?: SimulationAccount,
 ): SimulationEducationFollowup {
   const concepts = conceptFromGaps(process, scenario);
+  const journalHref = journalHrefFromAccount(account);
   if (process.risk < 55) {
     return {
       concepts,
@@ -66,6 +83,7 @@ export function recommendAfterSimulation(
       drillId: 'position-size',
       drillHref: '/practice?drill=position-size',
       replayHref: '/decision/replay-tv',
+      journalHref,
       nextFocusLabel: 'Next simulation will put more weight on sizing under volatility.',
     };
   }
@@ -77,6 +95,7 @@ export function recommendAfterSimulation(
       drillId: 'breakout-quality',
       drillHref: '/practice?drill=breakout-quality',
       replayHref: '/decision/replay-tv',
+      journalHref,
       nextFocusLabel: 'Next simulation will include more failed breakout structure.',
     };
   }
@@ -88,6 +107,7 @@ export function recommendAfterSimulation(
       drillId: 'missing-evidence',
       drillHref: '/practice?drill=missing-evidence',
       replayHref: '/decision/replay-tv',
+      journalHref,
       nextFocusLabel: 'Next simulation will withhold more of the print until it happens.',
     };
   }
@@ -98,6 +118,7 @@ export function recommendAfterSimulation(
     drillId: 'rr-compare',
     drillHref: '/practice?drill=rr-compare',
     replayHref: '/decision/replay-tv',
+    journalHref,
     nextFocusLabel: 'Complexity can rise. Process still grades the book, not the P/L.',
   };
 }
@@ -166,7 +187,7 @@ export function debriefSimulation(account: SimulationAccount): SimulationDebrief
     },
     process,
     timeline: buildSimulationTimeline(account),
-    followup: recommendAfterSimulation(process, account.scenario),
+    followup: recommendAfterSimulation(process, account.scenario, account),
     reminder:
       'The financial result is one dimension. A profitable book can still show a weak process. A losing book can still show discipline.',
   };

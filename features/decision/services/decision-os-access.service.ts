@@ -41,7 +41,7 @@ export function decisionOsUpsellCopy(feature: DecisionOsFeature): string {
   const map: Record<DecisionOsFeature, string> = {
     advancedResearchQueue:
       'See the complete ranked research queue with learning value and portfolio relevance.',
-    tradingDnaInsights: 'Explore your full Trading DNA insights from memory and journals.',
+    tradingDnaInsights: 'Explore your full process-pattern insights from memory and journals.',
     weeklyReviews: 'Continue your growth with weekly process reviews from recorded decisions.',
     portfolioIntelligence:
       'See portfolio concentration, stress tests, and holding context in more depth.',

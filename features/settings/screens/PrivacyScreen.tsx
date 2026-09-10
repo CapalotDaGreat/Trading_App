@@ -213,7 +213,7 @@ export function PrivacyScreen() {
         />
         <SettingsRow
           icon="finger-print-outline"
-          label="Trading DNA stays on-device"
+          label="Process patterns stay on-device"
           description="Behavioural coaching is personal — never sold, never public, never compared to other traders"
           toggle
           toggleValue={privacy.tradingDnaLocalOnly ?? true}

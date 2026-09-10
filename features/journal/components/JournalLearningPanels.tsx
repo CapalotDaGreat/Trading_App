@@ -230,7 +230,7 @@ export function JournalInsightsPanel({ journey }: { journey: JournalLearningJour
       >
         {journey.dna ? (
           <View>
-            <Text variant="h3">Trading DNA evolution</Text>
+            <Text variant="h3">Process-pattern evolution</Text>
             <Text variant="body-sm" className="mt-2 text-text-secondary">
               {journey.dna.becomingLabel}
             </Text>

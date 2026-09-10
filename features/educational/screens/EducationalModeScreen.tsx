@@ -34,7 +34,7 @@ const SECTIONS: {
   },
   {
     title: 'Review & Improve',
-    body: 'Journal and Trading DNA come from records you kept. The question is what you learned about your process — not whether paper profit went up.',
+    body: 'Journal and process patterns come from records you kept. The question is what you learned about your process — not whether paper profit went up.',
     icon: 'film-outline',
   },
   {

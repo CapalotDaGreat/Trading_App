@@ -323,7 +323,7 @@ function EducationalChartComponent({ spec, height = 220 }: EducationalChartProps
         {spoken}
       </Text>
 
-      {spec.exercise ? <ChartExercise exercise={spec.exercise} /> : null}
+      {spec.exercise ? <ChartExercise exercise={spec.exercise} kind={spec.kind} /> : null}
     </View>
   );
 }

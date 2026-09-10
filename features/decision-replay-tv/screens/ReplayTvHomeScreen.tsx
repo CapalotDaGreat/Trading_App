@@ -348,9 +348,9 @@ export function ReplayTvHomeScreen() {
             ) : null}
           </Surface>
         ) : recommended[0] ? (
-          <Surface tone="accent" emphasis="outlined">
-            <Text variant="label" className="text-accent">
-              Next session
+          <Surface tone="subtle" emphasis="outlined" testID="replay-tv-library-order">
+            <Text variant="label" className="text-text-tertiary">
+              {primary?.activityType === 'replay' ? 'Start this room' : 'Library order'}
             </Text>
             <Text variant="h2" headingLevel={2} className="mt-2">
               {recommended[0].title}
@@ -358,11 +358,11 @@ export function ReplayTvHomeScreen() {
             <Text variant="body-sm" className="mt-2 text-text-secondary">
               {recommended[0].teaser}
             </Text>
-            {trainingPlan.personalized ? (
-              <Text variant="caption" className="mt-2 text-text-tertiary">
-                {trainingPlan.trainingRationale ?? GENERIC_REPLAY_TRAINING_RATIONALE}
-              </Text>
-            ) : null}
+            <Text variant="caption" className="mt-2 text-text-tertiary">
+              {primary?.activityType === 'replay'
+                ? (trainingPlan.trainingRationale ?? GENERIC_REPLAY_TRAINING_RATIONALE)
+                : 'This is library order for browsing, not the Training Planner next action.'}
+            </Text>
             <Button
               className="mt-4"
               disabled={isStarting}

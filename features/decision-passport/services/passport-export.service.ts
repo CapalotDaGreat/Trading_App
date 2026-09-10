@@ -24,7 +24,7 @@ export function buildPassportExportPackage(profile: DecisionPassportProfile): Pa
     suggestedFilename: `tradevision-decision-passport-${stamp}.json`,
     sections: [
       'Trading Identity',
-      'Trading DNA',
+      'Process patterns',
       'Learning Journey',
       'Decision Quality Trend',
       'Research quality trend',

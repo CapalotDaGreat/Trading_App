@@ -20,6 +20,7 @@ import {
 } from '@/features/practice/services/practice-library.service';
 import { usePracticeProgressStore } from '@/features/practice/stores/practice-progress.store';
 import { ingestPracticeAttempt } from '@/features/competency';
+import { ALTERNATE_ACTIVITIES } from '@/features/competency/content/remediation-catalog';
 import { TrainingHandoffBanner } from '@/features/learning-engine/components/TrainingHandoffBanner';
 import { useLearningEngine } from '@/features/learning-engine/hooks/useLearningEngine';
 import { useTrainingHandoff } from '@/features/learning-engine/hooks/useTrainingHandoff';
@@ -105,6 +106,20 @@ function DrillCard({ drill }: { drill: PracticeDrill }) {
         </View>
       ) : null}
       <ChartExercise
+        key={`chart-exercise-${drill.id}`}
+        kind={drill.chartKind}
+        retryBank={(ALTERNATE_ACTIVITIES[drill.id] ?? [])
+          .map((step) => {
+            const alt = step.sourceId ? getPracticeDrill(step.sourceId) : undefined;
+            if (!alt) return null;
+            return {
+              prompt: alt.prompt,
+              choices: alt.choices,
+              correctIndex: alt.correctIndex,
+              explanation: alt.explanation,
+            };
+          })
+          .filter((item): item is NonNullable<typeof item> => item != null)}
         exercise={{
           prompt: drill.prompt,
           choices: drill.choices,
@@ -243,7 +258,7 @@ export default function PracticeScreen() {
             recommendation={primary}
             onOpen={() => openItem(primary)}
             onDefer={defer}
-            eyebrow="Train next"
+            eyebrow="Also available"
             testID="practice-planner-next"
           />
         </View>

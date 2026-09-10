@@ -514,6 +514,52 @@ export const PRACTICE_DRILLS: PracticeDrill[] = [
       'Premature entry is size before a written idea. A smaller unplanned fill is still unplanned. Process is thesis and invalidation first.',
     whyItMatters: 'Speed is not a substitute for a decision. Missing a move is cheaper than an unwritten paper trade.',
   },
+  {
+    id: 'recency-bias',
+    title: 'The last print is not the whole file',
+    prompt:
+      'The last two paper sessions were green. A new ambiguous tape appears. Which response is process — not a diagnosis of you?',
+    skill: 'psychology',
+    topic: 'psychology',
+    difficulty: 'beginner',
+    estimatedMinutes: 5,
+    isPremium: false,
+    lessonId: 'psych-recency',
+    simulateHref: '/simulate?start=1&focus=uncertainty',
+    choices: [
+      'Keep the written risk percent and judge this tape on its own evidence',
+      'Double size because “it has been working”',
+      'Skip the journal because recent wins already prove the method',
+      'Treat the last two prints as a forecast for this name',
+    ],
+    correctIndex: 0,
+    explanation:
+      'Recency overweighting treats the last outcome as the base rate. Each decision still needs thesis, evidence, and invalidation. Simulated P/L is context.',
+    whyItMatters: 'A streak is a path, not a new edge. The next tape can still be ambiguous.',
+  },
+  {
+    id: 'uncertainty-conflict',
+    title: 'Two notes disagree',
+    prompt:
+      'One educational note supports the idea. Another, equally sourced, argues the opposite. The print is still unknown. Process next?',
+    skill: 'decision',
+    topic: 'decision_making',
+    difficulty: 'intermediate',
+    estimatedMinutes: 5,
+    isPremium: false,
+    lessonId: 'dec-uncertainty',
+    simulateHref: '/simulate?start=1&focus=uncertainty',
+    choices: [
+      'Name the conflict, reduce or skip size, and write what would resolve it',
+      'Average the two notes into a buy because “both might be right”',
+      'Ignore the disagreeing note so the thesis stays clean',
+      'Enter full size and decide later — uncertainty is just noise',
+    ],
+    correctIndex: 0,
+    explanation:
+      'Conflicting evidence is a reason to shrink or stand aside, not to invent certainty. Naming the conflict is the skill.',
+    whyItMatters: 'Ambiguity is common. Process is how you size when you do not know.',
+  },
 ];
 
 export function getPracticeDrill(id: string): PracticeDrill | undefined {

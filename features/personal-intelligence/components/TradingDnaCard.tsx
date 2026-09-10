@@ -218,7 +218,7 @@ export function TradingDnaCard({ dna, compact = false, limited = false }: Tradin
     >
       <Surface tone="subtle" emphasis="outlined">
         <Text variant="caption" className="font-medium text-text-tertiary">
-          Your Trading DNA
+          Your process patterns
         </Text>
         <Text variant="h3" headingLevel={2} className="mt-1">
           {dna.becomingLabel}

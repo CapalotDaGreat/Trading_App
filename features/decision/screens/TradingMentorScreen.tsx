@@ -271,7 +271,7 @@ export function TradingMentorScreen() {
               ) : null}
               <Pressable
                 accessibilityRole="button"
-                accessibilityLabel="Open Trading DNA memory"
+                accessibilityLabel="Open process-pattern memory"
                 className="mt-3 min-h-11 flex-row items-center"
                 onPress={() => router.push('/decision/intelligence' as never)}
               >

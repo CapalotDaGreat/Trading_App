@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
+import { DEMO_USER_UID } from '@/firebase/config';
 import { createPersistedStorage } from '@/shared/stores/create-persisted-storage';
 
 import type { QueueDisposition, TrainingHandoff } from '../types/learning-engine.types';
@@ -9,12 +10,20 @@ import type { TrainingSessionLength } from '@/features/training-planner/types/tr
 const DAY = 24 * 60 * 60 * 1000;
 const RECENT_CAP = 12;
 
-interface LearningQueueState {
+interface QueueUserSlice {
   dispositions: Record<string, QueueDisposition>;
   conceptDeferCounts: Record<string, number>;
   recentActivityKeys: string[];
   activeHandoff: TrainingHandoff | null;
   sessionLength: TrainingSessionLength | null;
+}
+
+interface LearningQueueState extends QueueUserSlice {
+  activeUid: string;
+  byUser: Record<string, QueueUserSlice>;
+  plannerPrimaryCta: { label: string; href: string } | null;
+  setActiveUid: (uid: string) => void;
+  sliceFor: (uid: string) => QueueUserSlice;
   skip: (id: string, now?: number, conceptId?: string) => void;
   defer: (id: string, now?: number, conceptId?: string, reason?: string) => void;
   bookmark: (id: string) => void;
@@ -22,6 +31,7 @@ interface LearningQueueState {
   recordOpened: (activityKey: string) => void;
   setHandoff: (handoff: TrainingHandoff | null) => void;
   setSessionLength: (length: TrainingSessionLength | null) => void;
+  setPlannerPrimaryCta: (cta: { label: string; href: string } | null) => void;
   mergeFromRemote: (input: {
     dispositions: Record<string, QueueDisposition>;
     conceptDeferCounts: Record<string, number>;
@@ -38,18 +48,57 @@ function merge(
   return { ...current, [id]: { ...current[id], ...patch } };
 }
 
+const EMPTY_SLICE: QueueUserSlice = {
+  dispositions: {},
+  conceptDeferCounts: {},
+  recentActivityKeys: [],
+  activeHandoff: null,
+  sessionLength: null,
+};
+
 const EMPTY = {
-  dispositions: {} as Record<string, QueueDisposition>,
-  conceptDeferCounts: {} as Record<string, number>,
-  recentActivityKeys: [] as string[],
-  activeHandoff: null as TrainingHandoff | null,
-  sessionLength: null as TrainingSessionLength | null,
+  activeUid: DEMO_USER_UID,
+  byUser: {} as Record<string, QueueUserSlice>,
+  ...EMPTY_SLICE,
+  plannerPrimaryCta: null as { label: string; href: string } | null,
 };
 
 export const useLearningQueueStore = create<LearningQueueState>()(
   persist(
     (set, get) => ({
       ...EMPTY,
+      setActiveUid: (uid) => {
+        const nextUid = uid.trim() || DEMO_USER_UID;
+        const state = get();
+        const current: QueueUserSlice = {
+          dispositions: state.dispositions,
+          conceptDeferCounts: state.conceptDeferCounts,
+          recentActivityKeys: state.recentActivityKeys,
+          activeHandoff: state.activeHandoff,
+          sessionLength: state.sessionLength,
+        };
+        const byUser = { ...state.byUser, [state.activeUid]: current };
+        const next = byUser[nextUid] ?? EMPTY_SLICE;
+        set({
+          activeUid: nextUid,
+          byUser,
+          ...next,
+          plannerPrimaryCta: null,
+        });
+      },
+      sliceFor: (uid) => {
+        const state = get();
+        if (uid === state.activeUid) {
+          return {
+            dispositions: state.dispositions,
+            conceptDeferCounts: state.conceptDeferCounts,
+            recentActivityKeys: state.recentActivityKeys,
+            activeHandoff: state.activeHandoff,
+            sessionLength: state.sessionLength,
+          };
+        }
+        return state.byUser[uid] ?? EMPTY_SLICE;
+      },
       skip: (id, now = Date.now(), conceptId) => {
         const current = get().dispositions[id];
         set({
@@ -96,6 +145,7 @@ export const useLearningQueueStore = create<LearningQueueState>()(
       },
       setHandoff: (handoff) => set({ activeHandoff: handoff }),
       setSessionLength: (length) => set({ sessionLength: length }),
+      setPlannerPrimaryCta: (cta) => set({ plannerPrimaryCta: cta }),
       mergeFromRemote: (input) => {
         const dispositions = { ...get().dispositions };
         for (const [id, row] of Object.entries(input.dispositions)) {
@@ -120,20 +170,61 @@ export const useLearningQueueStore = create<LearningQueueState>()(
           sessionLength: get().sessionLength ?? input.sessionLength,
         });
       },
-      reset: () => set(EMPTY),
+      reset: () => {
+        const uid = get().activeUid;
+        set({
+          ...EMPTY_SLICE,
+          plannerPrimaryCta: null,
+          byUser: { ...get().byUser, [uid]: EMPTY_SLICE },
+        });
+      },
     }),
     {
       name: 'tradevision-learning-queue-v1',
       storage: createPersistedStorage(),
-      version: 3,
+      version: 5,
+      partialize: (state) => ({
+        activeUid: state.activeUid,
+        byUser: {
+          ...state.byUser,
+          [state.activeUid]: {
+            dispositions: state.dispositions,
+            conceptDeferCounts: state.conceptDeferCounts,
+            recentActivityKeys: state.recentActivityKeys,
+            activeHandoff: state.activeHandoff,
+            sessionLength: state.sessionLength,
+          },
+        },
+        dispositions: state.dispositions,
+        conceptDeferCounts: state.conceptDeferCounts,
+        recentActivityKeys: state.recentActivityKeys,
+        activeHandoff: state.activeHandoff,
+        sessionLength: state.sessionLength,
+      }),
       migrate: (persisted) => {
-        const state = (persisted ?? {}) as Partial<LearningQueueState>;
-        return {
+        const state = (persisted ?? {}) as Partial<LearningQueueState> & {
+          byUser?: Record<string, QueueUserSlice>;
+        };
+        if (state.byUser && Object.keys(state.byUser).length > 0) {
+          const uid = state.activeUid || DEMO_USER_UID;
+          const slice = state.byUser[uid] ?? EMPTY_SLICE;
+          return {
+            activeUid: uid,
+            byUser: state.byUser,
+            ...slice,
+          };
+        }
+        const slice: QueueUserSlice = {
           dispositions: state.dispositions ?? {},
           conceptDeferCounts: state.conceptDeferCounts ?? {},
           recentActivityKeys: state.recentActivityKeys ?? [],
           activeHandoff: state.activeHandoff ?? null,
           sessionLength: state.sessionLength ?? null,
+        };
+        return {
+          activeUid: DEMO_USER_UID,
+          byUser: { [DEMO_USER_UID]: slice },
+          ...slice,
         };
       },
     },

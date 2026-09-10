@@ -80,7 +80,7 @@ export function buildCoachingReferences(input: {
     },
     {
       id: 'dna',
-      label: 'Trading DNA',
+      label: 'Process patterns',
       reason: `Current becoming: ${input.dnaLabel}`,
       href: '/decision/intelligence',
     },

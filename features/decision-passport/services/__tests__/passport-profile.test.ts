@@ -158,7 +158,7 @@ describe('decision passport profile', () => {
     expect(stub.status).toBe('ready');
     expect(stub.suggestedFilename).toContain('decision-passport');
     expect(stub.suggestedFilename.endsWith('.json')).toBe(true);
-    expect(stub.sections).toContain('Trading DNA');
+    expect(stub.sections).toContain('Process patterns');
     expect(profile.exportReady.status).toBe('ready');
   });
 });

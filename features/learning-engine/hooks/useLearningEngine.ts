@@ -2,7 +2,11 @@ import { ALL_LESSONS } from '@/features/academy/content';
 import { useNextAcademyLesson } from '@/features/academy/hooks/useAcademy';
 import { useAcademyProgressStore } from '@/features/academy/stores/academy-progress.store';
 import { useAuth } from '@/features/auth/hooks/useAuth';
-import { scoreAllCompetencyMastery, useCompetencyEvidenceStore } from '@/features/competency';
+import {
+  scoreAllCompetencyMastery,
+  useCompetencyEvidenceStore,
+  weakestSkillDomainFromMastery,
+} from '@/features/competency';
 import { EMPTY_REPLAY_TV_PROGRESS, useReplayTvStore } from '@/features/decision-replay-tv/stores/replay-tv.store';
 import { useMarketEvents } from '@/features/events/hooks/useMarketEvents';
 import { collectPracticeGapConceptIds } from '@/features/events/services/event-personalization.service';
@@ -18,7 +22,7 @@ import { composeTrainingPlan } from '@/features/training-planner/services/traini
 import { sessionLengthFromBudget } from '@/features/training-planner/services/planner-session.service';
 import type { TrainingSessionLength } from '@/features/training-planner/types/training-planner.types';
 import { DEMO_USER_UID } from '@/firebase/config';
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 
 import { activityKey } from '../services/concept-handoff.service';
 import { buildLearningEvidence } from '../services/learning-evidence.service';
@@ -49,6 +53,7 @@ export function useLearningEngine(options?: { lessonId?: string }) {
   const recordOpened = useLearningQueueStore((state) => state.recordOpened);
   const setHandoff = useLearningQueueStore((state) => state.setHandoff);
   const setSessionLength = useLearningQueueStore((state) => state.setSessionLength);
+  const setPlannerPrimaryCta = useLearningQueueStore((state) => state.setPlannerPrimaryCta);
   const evidence =
     useCompetencyEvidenceStore((state) => state.recordsByUser[uid]) ?? EMPTY_EVIDENCE;
   const behaviorEvents = useLearnerBehaviorStore((state) => state.eventsByUser[uid]);
@@ -77,7 +82,12 @@ export function useLearningEngine(options?: { lessonId?: string }) {
     [attempts, mastery],
   );
 
-  const { trainingPlan } = useMarketEvents({ weakness: skill.weakest, gapConceptIds, mastery });
+  const competencyWeakness = useMemo(() => weakestSkillDomainFromMastery(mastery), [mastery]);
+  const { trainingPlan } = useMarketEvents({
+    weakness: competencyWeakness ?? skill.weakest,
+    gapConceptIds,
+    mastery,
+  });
 
   const snapshot = useMemo(() => {
     const process = account ? scoreSimulationProcess(account) : undefined;
@@ -154,7 +164,8 @@ export function useLearningEngine(options?: { lessonId?: string }) {
         snapshot,
         dispositions,
         sessionLength,
-        sessionBudgetMinutes: profile.timeBudgetMinutes ?? undefined,
+        sessionBudgetMinutes:
+          sessionLengthOverride != null ? undefined : (profile.timeBudgetMinutes ?? undefined),
         learnerModel: learner,
         options: {
           competency,
@@ -172,10 +183,17 @@ export function useLearningEngine(options?: { lessonId?: string }) {
       profile.timeBudgetMinutes,
       recentActivityKeys,
       sessionLength,
+      sessionLengthOverride,
       snapshot,
       uid,
     ],
   );
+
+  useEffect(() => {
+    setPlannerPrimaryCta(
+      plan.primary ? { label: plan.primary.title, href: plan.primary.href } : null,
+    );
+  }, [plan.primary, setPlannerPrimaryCta]);
 
   const today = plan.today;
   const lessonChain = options?.lessonId ? nextAfterLesson(options.lessonId) : today.lessonChain;

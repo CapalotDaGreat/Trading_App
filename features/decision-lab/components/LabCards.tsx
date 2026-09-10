@@ -65,7 +65,7 @@ export function LabCritiqueCard({ critique }: { critique: LabAiCritique }) {
           ['Concentration', critique.concentration],
           ['Checklist', critique.checklist],
           ['Psychology', critique.psychology],
-          ['Trading DNA', critique.dna],
+          ['Process patterns', critique.dna],
         ] as const
       ).map(([label, body]) => (
         <View key={label} className="mb-2">

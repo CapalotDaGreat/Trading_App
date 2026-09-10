@@ -73,7 +73,7 @@ export const IA_GLOSSARY = {
   calendar: 'Market Events',
   settings: 'Settings',
   subscription: 'Subscription',
-  tradingDna: 'Trading DNA',
+  tradingDna: 'Process patterns',
   passport: 'Decision Passport',
 } as const;
 
@@ -260,7 +260,7 @@ export const REVIEW_HUB_SECTIONS: readonly NavigationHubSection[] = [
         href: '/decision/intelligence',
         title: IA_GLOSSARY.tradingDna,
         description: 'Who you are becoming — from your records, not invented stats.',
-        accessibilityLabel: 'Open Trading DNA',
+        accessibilityLabel: 'Open process patterns',
         icon: 'finger-print-outline',
         testID: 'review-trading-dna',
       },
@@ -343,7 +343,7 @@ export const YOU_HUB_SECTIONS: readonly NavigationHubSection[] = [
         href: '/decision/intelligence',
         title: IA_GLOSSARY.tradingDna,
         description: 'Personal patterns from journal and practice evidence.',
-        accessibilityLabel: 'Open Trading DNA',
+        accessibilityLabel: 'Open process patterns',
         icon: 'finger-print-outline',
         testID: 'you-trading-dna',
       },

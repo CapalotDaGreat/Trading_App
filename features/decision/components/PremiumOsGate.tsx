@@ -22,7 +22,7 @@ interface PremiumOsGateProps {
 
 const TEASERS: Record<DecisionOsFeature, string> = {
   advancedResearchQueue: 'Your queue continues beyond the free top three.',
-  tradingDnaInsights: "We've identified recurring strengths in your Trading DNA.",
+  tradingDnaInsights: "We've identified recurring strengths in your process patterns.",
   weeklyReviews: 'Your weekly process review has new patterns to explore.',
   portfolioIntelligence: 'Portfolio concentration and stress insights are ready.',
   advancedReplay: 'Advanced Process Tape comparisons are available.',

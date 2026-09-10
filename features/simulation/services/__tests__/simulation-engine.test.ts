@@ -20,6 +20,18 @@ import {
   transactionsAreImmutable,
 } from '../simulation-engine.service';
 
+const PROCESS = {
+  thesis: 'Defined educational thesis for the test',
+  invalidation: 'Invalid if the written level breaks',
+} as const;
+
+function buy(
+  account: ReturnType<typeof createSimulationAccount>,
+  input: Parameters<typeof executeBuy>[1],
+) {
+  return executeBuy(account, { ...PROCESS, ...input });
+}
+
 describe('simulation engine', () => {
   const now = '2026-09-08T10:00:00.000Z';
 
@@ -48,7 +60,7 @@ describe('simulation engine', () => {
 
   it('buys with auditable cash reduction and average entry', () => {
     const started = createSimulationAccount({ userId: 'user-a', now });
-    const bought = executeBuy(started, {
+    const bought = buy(started, {
       symbol: 'NESN',
       quantity: 100,
       price: 90,
@@ -84,10 +96,10 @@ describe('simulation engine', () => {
 
   it('averages entry across adds', () => {
     const started = createSimulationAccount({ userId: 'user-a', now });
-    const first = executeBuy(started, { symbol: 'AAPL', quantity: 10, price: 100, now });
+    const first = buy(started, { symbol: 'AAPL', quantity: 10, price: 100, now });
     expect(first.ok).toBe(true);
     if (!first.ok) return;
-    const second = executeBuy(first.value, { symbol: 'AAPL', quantity: 10, price: 120, now });
+    const second = buy(first.value, { symbol: 'AAPL', quantity: 10, price: 120, now });
     expect(second.ok).toBe(true);
     if (!second.ok) return;
     expect(second.value.positions[0]?.quantity).toBe(20);
@@ -96,9 +108,9 @@ describe('simulation engine', () => {
 
   it('supports etf, crypto, and forex symbols', () => {
     const started = createSimulationAccount({ userId: 'user-a', now });
-    const etf = executeBuy(started, { symbol: 'SPY', quantity: 1, price: 510, now });
-    const crypto = executeBuy(etf.ok ? etf.value : started, { symbol: 'BTC', quantity: 0.1, price: 64_000, now });
-    const fx = executeBuy(crypto.ok ? crypto.value : started, { symbol: 'EURUSD', quantity: 10_000, price: 1.08, now });
+    const etf = buy(started, { symbol: 'SPY', quantity: 1, price: 510, now });
+    const crypto = buy(etf.ok ? etf.value : started, { symbol: 'BTC', quantity: 0.1, price: 64_000, now });
+    const fx = buy(crypto.ok ? crypto.value : started, { symbol: 'EURUSD', quantity: 10_000, price: 1.08, now });
     expect(etf.ok && crypto.ok && fx.ok).toBe(true);
     if (!fx.ok) return;
     expect(fx.value.positions.map((item) => item.assetType).sort()).toEqual(['crypto', 'etf', 'forex']);
@@ -106,7 +118,7 @@ describe('simulation engine', () => {
 
   it('rejects a buy when cash is insufficient', () => {
     const started = createSimulationAccount({ userId: 'user-a', now, startingBalance: 1_000 });
-    const result = executeBuy(started, { symbol: 'SPY', quantity: 10, price: 510, now });
+    const result = buy(started, { symbol: 'SPY', quantity: 10, price: 510, now });
     expect(result).toEqual({
       ok: false,
       code: 'insufficient_cash',
@@ -141,7 +153,7 @@ describe('simulation engine', () => {
 
   it('realizes P/L on a full close, including fees, and keeps history', () => {
     const started = createSimulationAccount({ userId: 'user-a', now });
-    const bought = executeBuy(started, { symbol: 'NESN', quantity: 10, price: 100, fees: 1, now });
+    const bought = buy(started, { symbol: 'NESN', quantity: 10, price: 100, fees: 1, now });
     expect(bought.ok).toBe(true);
     if (!bought.ok) return;
     const sold = executeSell(bought.value, { symbol: 'NESN', quantity: 10, price: 110, fees: 1, now });
@@ -155,7 +167,7 @@ describe('simulation engine', () => {
 
   it('keeps average entry on a partial sell and allocates remaining weight', () => {
     const started = createSimulationAccount({ userId: 'user-a', now });
-    const bought = executeBuy(started, { symbol: 'NESN', quantity: 10, price: 100, now });
+    const bought = buy(started, { symbol: 'NESN', quantity: 10, price: 100, now });
     expect(bought.ok).toBe(true);
     if (!bought.ok) return;
     const sold = executeSell(bought.value, { symbol: 'NESN', quantity: 4, price: 110, now });
@@ -169,7 +181,7 @@ describe('simulation engine', () => {
 
   it('marks unrealized P/L and equity from provider prices', () => {
     const started = createSimulationAccount({ userId: 'user-a', now });
-    const bought = executeBuy(started, { symbol: 'NESN', quantity: 10, price: 100, now });
+    const bought = buy(started, { symbol: 'NESN', quantity: 10, price: 100, now });
     expect(bought.ok).toBe(true);
     if (!bought.ok) return;
     const marked = markToMarket(bought.value, { NESN: 90 }, now);
@@ -180,7 +192,7 @@ describe('simulation engine', () => {
 
   it('computes return and drawdown from peak equity', () => {
     const started = createSimulationAccount({ userId: 'user-a', now, startingBalance: 10_000 });
-    const bought = executeBuy(started, { symbol: 'NESN', quantity: 10, price: 100, now });
+    const bought = buy(started, { symbol: 'NESN', quantity: 10, price: 100, now });
     expect(bought.ok).toBe(true);
     if (!bought.ok) return;
     const up = markToMarket(bought.value, { NESN: 200 }, now);
@@ -196,7 +208,7 @@ describe('simulation engine', () => {
   it('previews a buy without mutating the account', () => {
     const started = createSimulationAccount({ userId: 'user-a', now });
     const snapshot = structuredClone(started);
-    const preview = previewBuy(started, { symbol: 'NESN', quantity: 10, price: 100, now });
+    const preview = previewBuy(started, { symbol: 'NESN', quantity: 10, price: 100, now, ...PROCESS });
     expect(preview.ok).toBe(true);
     if (!preview.ok) return;
     expect(preview.value.cashAfter).toBe(99_000);
@@ -207,7 +219,7 @@ describe('simulation engine', () => {
   it('archives on reset instead of deleting history', () => {
     const alice = createSimulationAccount({ userId: 'alice', now });
     const bob = createSimulationAccount({ userId: 'bob', now });
-    const aliceBought = executeBuy(alice, { symbol: 'AAPL', quantity: 5, price: 100, now });
+    const aliceBought = buy(alice, { symbol: 'AAPL', quantity: 5, price: 100, now });
     expect(aliceBought.ok).toBe(true);
     if (!aliceBought.ok) return;
     expect(bob.cashBalance).toBe(DEFAULT_STARTING_BALANCE);
@@ -228,7 +240,7 @@ describe('simulation engine', () => {
 
   it('does not rewrite historical transactions after a later fill', () => {
     const started = createSimulationAccount({ userId: 'user-a', now });
-    const bought = executeBuy(started, { symbol: 'NESN', quantity: 10, price: 100, now, thesis: 'first' });
+    const bought = buy(started, { symbol: 'NESN', quantity: 10, price: 100, now, thesis: 'First educational fill' });
     expect(bought.ok).toBe(true);
     if (!bought.ok) return;
     const firstTxn = structuredClone(bought.value.transactions[0]);
@@ -262,7 +274,7 @@ describe('simulation engine', () => {
     if (tooMuchRisk.ok) return;
     expect(tooMuchRisk.code).toBe('challenge_violation');
 
-    const sized = executeBuy(account, {
+    const sized = buy(account, {
       symbol: 'NESN',
       quantity: 100,
       price: 100,
@@ -284,7 +296,7 @@ describe('simulation engine', () => {
     if (tooConcentrated.ok) return;
     expect(tooConcentrated.code).toBe('challenge_violation');
 
-    const allowed = executeBuy(account, { symbol: 'NESN', quantity: 200, price: 100, now });
+    const allowed = buy(account, { symbol: 'NESN', quantity: 200, price: 100, now });
     expect(allowed.ok).toBe(true);
   });
 
@@ -295,7 +307,7 @@ describe('simulation engine', () => {
       challengeId: DRAWDOWN_CHALLENGE.id,
       now,
     });
-    const bought = executeBuy(account, { symbol: 'NESN', quantity: 1_000, price: 100, now });
+    const bought = buy(account, { symbol: 'NESN', quantity: 1_000, price: 100, now });
     expect(bought.ok).toBe(true);
     if (!bought.ok) return;
     const marked = markToMarket(bought.value, { NESN: 95 }, now);
@@ -315,7 +327,7 @@ describe('simulation engine', () => {
     if (missing.ok) return;
     expect(missing.code).toBe('challenge_violation');
 
-    const recorded = executeBuy(account, {
+    const recorded = buy(account, {
       symbol: 'NESN',
       quantity: 1,
       price: 90,
@@ -327,7 +339,7 @@ describe('simulation engine', () => {
 
   it('stores a close review on the original decision', () => {
     const started = createSimulationAccount({ userId: 'user-a', now });
-    const bought = executeBuy(started, { symbol: 'NESN', quantity: 1, price: 90, now, thesis: 'Defined setup' });
+    const bought = buy(started, { symbol: 'NESN', quantity: 1, price: 90, now, thesis: 'Defined setup' });
     expect(bought.ok).toBe(true);
     if (!bought.ok) return;
     const decisionId = bought.value.decisions[0]!.id;
@@ -359,7 +371,7 @@ describe('simulation engine', () => {
 
   it('converts a yen-quoted FX pair into a USD paper book', () => {
     const started = createSimulationAccount({ userId: 'user-a', now, currency: 'USD' });
-    const bought = executeBuy(started, {
+    const bought = buy(started, {
       symbol: 'USDJPY',
       quantity: 1_000,
       price: 150,
@@ -375,7 +387,7 @@ describe('simulation engine', () => {
 
   it('converts EUR/USD notionals into a euro paper book', () => {
     const started = createSimulationAccount({ userId: 'user-a', now, currency: 'EUR' });
-    const bought = executeBuy(started, {
+    const bought = buy(started, {
       symbol: 'EURUSD',
       quantity: 1_000,
       price: 1.08,
@@ -385,5 +397,32 @@ describe('simulation engine', () => {
     if (!bought.ok) return;
     expect(bought.value.cashBalance).toBe(99_000);
     expect(bought.value.positions[0]?.averageEntryPrice).toBe(1);
+  });
+
+  it('requires thesis and invalidation and rejects a generic simulated entry', () => {
+    const started = createSimulationAccount({ userId: 'user-a', now });
+    const snapshot = structuredClone(started);
+    const generic = executeBuy(started, {
+      symbol: 'NESN',
+      quantity: 1,
+      price: 90,
+      now,
+      thesis: 'Simulated entry',
+      invalidation: 'Invalid if the written level breaks',
+    });
+    expect(generic.ok).toBe(false);
+    if (!generic.ok) expect(generic.code).toBe('process_required');
+    expect(started).toEqual(snapshot);
+
+    const noInvalidation = executeBuy(started, {
+      symbol: 'NESN',
+      quantity: 1,
+      price: 90,
+      now,
+      thesis: 'Defined educational thesis for the test',
+    });
+    expect(noInvalidation.ok).toBe(false);
+    if (!noInvalidation.ok) expect(noInvalidation.code).toBe('process_required');
+    expect(started.transactions).toHaveLength(0);
   });
 });

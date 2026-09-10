@@ -85,6 +85,7 @@ function planFor(
     sessionLength?: 'quick' | 'normal' | 'deep';
     now?: number;
     learnerModel?: Parameters<typeof composeTrainingPlan>[0]['learnerModel'];
+    conceptDeferCounts?: Record<string, number>;
   } = {},
 ) {
   const now = extra.now ?? NOW;
@@ -99,6 +100,7 @@ function planFor(
       evidence,
       competency: scoreAllCompetencyMastery(evidence, now),
       recentActivityKeys: extra.recent,
+      conceptDeferCounts: extra.conceptDeferCounts,
     },
   });
 }
@@ -404,5 +406,55 @@ describe('training planner', () => {
     expect(plan.primary?.reason.toLowerCase()).not.toMatch(/you are an emotional trader|diagnos/);
     const without = planFor('user-a', records, { now: NOW + 1 });
     expect(plan.primary!.score).toBeGreaterThan(without.primary!.score);
+  });
+
+  it('lets session length change the selected activity', () => {
+    const evidence = sizingPath('user-a');
+    const quick = planFor('user-a', evidence, { sessionLength: 'quick' });
+    const deep = planFor('user-a', evidence, { sessionLength: 'deep' });
+    expect(quick.sessionLength).toBe('quick');
+    expect(deep.sessionLength).toBe('deep');
+    expect(quick.sessionBudgetMinutes).toBe(10);
+    expect(deep.sessionBudgetMinutes).toBe(45);
+    expect(quick.primary && deep.primary).toBeTruthy();
+    const sameItem =
+      quick.primary?.id === deep.primary?.id &&
+      quick.primary?.estimatedMinutes === deep.primary?.estimatedMinutes &&
+      quick.primary?.activityType === deep.primary?.activityType;
+    expect(sameItem).toBe(false);
+    expect(quick.primary!.estimatedMinutes).toBeLessThanOrEqual(deep.primary!.estimatedMinutes);
+  });
+
+  it('surfaces a shorter alternative after a deferral on the same gap', () => {
+    const rem = [
+      ...sizingPath('user-a'),
+      ev('user-a', {
+        conceptId: 'position-sizing',
+        sourceType: 'practice_drill',
+        sourceId: 'miss',
+        occurredAt: NOW,
+        result: 'fail',
+      }),
+      ev('user-a', {
+        conceptId: 'position-sizing',
+        sourceType: 'practice_drill',
+        sourceId: 'miss-2',
+        occurredAt: NOW + 1000,
+        result: 'fail',
+      }),
+    ];
+    const base = planFor('user-a', rem, { now: NOW + 1000 });
+    expect(base.primary?.id).toBeTruthy();
+    const deferred = planFor('user-a', rem, {
+      now: NOW + 1000,
+      dispositions: {
+        [base.primary!.id]: { deferredUntil: NOW + 2 * DAY, deferCount: 1, lastDeferredAt: NOW + 1000 },
+      },
+      conceptDeferCounts: base.primary?.conceptId ? { [base.primary.conceptId]: 1 } : {},
+    });
+    expect(deferred.primary?.id).not.toBe(base.primary?.id);
+    if (deferred.primary?.conceptId && deferred.primary.conceptId === base.primary?.conceptId) {
+      expect(deferred.whyPrimary).toMatch(/deferred|shorter/i);
+    }
   });
 });

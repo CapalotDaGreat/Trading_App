@@ -32,9 +32,19 @@ export function resolveLoopCtas(input: {
           label: step.label,
         }));
 
-  if (input.current === 'review') {
-    const next = input.plannerNext ?? { label: 'Train next', href: '/' };
-    sequential = [{ id: 'improve', href: next.href, label: next.label }];
+  if (input.plannerNext?.href) {
+    const plannerCta: ProductLoopCta = {
+      id: 'improve',
+      href: input.plannerNext.href,
+      label: input.plannerNext.label,
+    };
+    if (input.current === 'review') {
+      sequential = [plannerCta];
+    } else {
+      sequential = [plannerCta, ...sequential.filter((step) => step.href !== plannerCta.href)];
+    }
+  } else if (input.current === 'review') {
+    sequential = [{ id: 'improve', href: '/', label: 'Train next' }];
   }
 
   const follow = input.followUp

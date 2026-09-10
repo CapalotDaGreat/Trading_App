@@ -24,7 +24,7 @@ import { PremiumBadge } from './PremiumBadge';
 const OUTCOMES = [
   'Full Academy catalog and coaching context',
   'Full replay and Replay TV library',
-  'Trading DNA and Personal Intelligence',
+  'Process patterns and Personal Intelligence',
   'Process progression you can review',
   'Fair-use AI coaching — not buy/sell signals',
   'Export and deeper simulation review',
@@ -125,7 +125,7 @@ export function PaywallScreen() {
             You&apos;re on Aithera Pro
           </Text>
           <Text variant="body-sm" className="mt-2 text-center">
-            Enjoy deeper Academy, Replay, Trading DNA, and review tools.
+            Enjoy deeper Academy, Replay, process patterns, and review tools.
           Free remains a complete way to learn, practise, simulate, and journal.
           </Text>
           <Text variant="body-sm" className="mt-3 text-center text-text-secondary">

@@ -2,10 +2,8 @@ import { View } from 'react-native';
 import { useMemo } from 'react';
 import { useRouter } from 'expo-router';
 
-import { ALL_LESSONS } from '@/features/academy/content';
-import { useAcademyProgressStore } from '@/features/academy/stores/academy-progress.store';
 import { useAuth } from '@/features/auth/hooks/useAuth';
-import { scoreAllCompetencyMastery, useCompetencyEvidenceStore } from '@/features/competency';
+import { scoreAllCompetencyMastery, useCompetencyEvidenceStore, weakestSkillDomainFromMastery } from '@/features/competency';
 import { EventTrainingPlanCard } from '@/features/events/components/EventTrainingPlanCard';
 import { MarketEventCard } from '@/features/events/components/MarketEventCard';
 import { useMarketEvents } from '@/features/events/hooks/useMarketEvents';
@@ -13,13 +11,11 @@ import { cardsForLifecycle } from '@/features/events/services/event-hub.service'
 import { collectPracticeGapConceptIds } from '@/features/events/services/event-personalization.service';
 import { LIFECYCLE_LABELS } from '@/features/events/services/event-status.service';
 import type { MarketEventLifecycle } from '@/features/events/types/events.types';
-import { useJournal } from '@/features/journal/hooks/useJournal';
-import { useCoachProfile } from '@/features/onboarding/hooks/useCoachProfile';
 import { TrainingHandoffBanner } from '@/features/learning-engine/components/TrainingHandoffBanner';
+import { useLearningEngine } from '@/features/learning-engine/hooks/useLearningEngine';
 import { LoopCtaRow } from '@/features/navigation/components/LoopCtaRow';
-import { buildSkillModel } from '@/features/progress/services/skill-model.service';
+import { useCoachProfile } from '@/features/onboarding/hooks/useCoachProfile';
 import { usePracticeProgressStore } from '@/features/practice/stores/practice-progress.store';
-import { useSimulation } from '@/features/simulation/hooks/useSimulation';
 import { EmptyState } from '@/shared/components/feedback/EmptyState';
 import { ScreenScaffold } from '@/shared/components/layout/ScreenScaffold';
 import { Button } from '@/shared/components/ui/Button';
@@ -36,25 +32,13 @@ export default function EventsScreen() {
   const router = useRouter();
   const { user } = useAuth();
   const uid = user?.uid ?? DEMO_USER_UID;
-  const lessonProgress = useAcademyProgressStore((state) => state.lessons);
   const attempts = usePracticeProgressStore((state) => state.attempts);
   const evidence = useCompetencyEvidenceStore((state) => state.recordsByUser[uid]) ?? EMPTY_EVIDENCE;
-  const { entries } = useJournal();
-  const { account } = useSimulation();
   const { profile } = useCoachProfile();
+  const { primary } = useLearningEngine();
   const beginner = !profile.experience || profile.experience === 'completely_new' || profile.experience === 'beginner';
-  const weakness = useMemo(
-    () =>
-      buildSkillModel({
-        lessons: ALL_LESSONS,
-        lessonProgress,
-        attempts,
-        journalCount: entries.length,
-        thesisDecisionCount: account?.decisions.filter((item) => item.thesis.trim().length >= 8).length ?? 0,
-      }).weakest,
-    [account?.decisions, attempts, entries.length, lessonProgress],
-  );
   const mastery = useMemo(() => scoreAllCompetencyMastery(evidence), [evidence]);
+  const weakness = useMemo(() => weakestSkillDomainFromMastery(mastery), [mastery]);
   const gapConceptIds = useMemo(
     () =>
       collectPracticeGapConceptIds({
@@ -176,15 +160,26 @@ export default function EventsScreen() {
               <Text variant="label" className="mb-2">
                 {LIFECYCLE_LABELS[lifecycle]}
               </Text>
-              {rows.map((event) => (
-                <MarketEventCard key={event.id} event={event} />
+      {rows.map((event) => (
+                <MarketEventCard
+                  key={event.id}
+                  event={event}
+                  nextPractice={
+                    primary
+                      ? { label: primary.title, href: primary.href }
+                      : undefined
+                  }
+                />
               ))}
             </View>
           );
         })
       )}
 
-      <LoopCtaRow title="Use the event as study, not as a signal" />
+      <LoopCtaRow
+        title="Use the event as study, not as a signal"
+        plannerNext={primary ? { label: primary.title, href: primary.href } : null}
+      />
     </ScreenScaffold>
   );
 }

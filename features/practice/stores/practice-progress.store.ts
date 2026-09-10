@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
+import { DEMO_USER_UID } from '@/firebase/config';
 import { createPersistedStorage } from '@/shared/stores/create-persisted-storage';
 
 export interface PracticeAttempt {
@@ -12,7 +13,11 @@ export interface PracticeAttempt {
 }
 
 interface PracticeProgressState {
+  activeUid: string;
+  attemptsByUser: Record<string, PracticeAttempt[]>;
   attempts: PracticeAttempt[];
+  setActiveUid: (uid: string) => void;
+  attemptsFor: (uid: string) => PracticeAttempt[];
   recordAttempt: (attempt: Omit<PracticeAttempt, 'at'> & { at?: string }) => void;
   mergeAttempts: (attempts: PracticeAttempt[]) => void;
   statsFor: (drillId: string) => { attempts: number; accuracy: number; lastCorrect?: boolean };
@@ -22,7 +27,24 @@ interface PracticeProgressState {
 export const usePracticeProgressStore = create<PracticeProgressState>()(
   persist(
     (set, get) => ({
+      activeUid: DEMO_USER_UID,
+      attemptsByUser: {},
       attempts: [],
+      setActiveUid: (uid) => {
+        const nextUid = uid.trim() || DEMO_USER_UID;
+        const state = get();
+        const attemptsByUser = { ...state.attemptsByUser, [state.activeUid]: state.attempts };
+        set({
+          activeUid: nextUid,
+          attemptsByUser,
+          attempts: attemptsByUser[nextUid] ?? [],
+        });
+      },
+      attemptsFor: (uid) => {
+        const state = get();
+        if (uid === state.activeUid) return state.attempts;
+        return state.attemptsByUser[uid] ?? [];
+      },
       recordAttempt: (attempt) => {
         const next: PracticeAttempt = {
           drillId: attempt.drillId,
@@ -31,7 +53,12 @@ export const usePracticeProgressStore = create<PracticeProgressState>()(
           confidence: attempt.confidence,
           at: attempt.at ?? new Date().toISOString(),
         };
-        set({ attempts: [...get().attempts, next].slice(-200) });
+        const attempts = [...get().attempts, next].slice(-200);
+        const uid = get().activeUid;
+        set({
+          attempts,
+          attemptsByUser: { ...get().attemptsByUser, [uid]: attempts },
+        });
       },
       mergeAttempts: (attempts) => {
         const byKey = new Map(get().attempts.map((row) => [`${row.drillId}:${row.at}`, row]));
@@ -39,8 +66,11 @@ export const usePracticeProgressStore = create<PracticeProgressState>()(
           const key = `${row.drillId}:${row.at}`;
           if (!byKey.has(key)) byKey.set(key, row);
         }
+        const merged = [...byKey.values()].sort((a, b) => Date.parse(a.at) - Date.parse(b.at)).slice(-200);
+        const uid = get().activeUid;
         set({
-          attempts: [...byKey.values()].sort((a, b) => Date.parse(a.at) - Date.parse(b.at)).slice(-200),
+          attempts: merged,
+          attemptsByUser: { ...get().attemptsByUser, [uid]: merged },
         });
       },
       statsFor: (drillId) => {
@@ -67,7 +97,33 @@ export const usePracticeProgressStore = create<PracticeProgressState>()(
     {
       name: 'tradevision-practice-progress-v1',
       storage: createPersistedStorage(),
-      version: 1,
+      version: 2,
+      partialize: (state) => ({
+        activeUid: state.activeUid,
+        attemptsByUser: { ...state.attemptsByUser, [state.activeUid]: state.attempts },
+        attempts: state.attempts,
+      }),
+      migrate: (persisted) => {
+        const state = (persisted ?? {}) as {
+          activeUid?: string;
+          attemptsByUser?: Record<string, PracticeAttempt[]>;
+          attempts?: PracticeAttempt[];
+        };
+        if (state.attemptsByUser) {
+          const uid = state.activeUid || DEMO_USER_UID;
+          return {
+            activeUid: uid,
+            attemptsByUser: state.attemptsByUser,
+            attempts: state.attemptsByUser[uid] ?? [],
+          };
+        }
+        const attempts = state.attempts ?? [];
+        return {
+          activeUid: DEMO_USER_UID,
+          attemptsByUser: { [DEMO_USER_UID]: attempts },
+          attempts,
+        };
+      },
     },
   ),
 );

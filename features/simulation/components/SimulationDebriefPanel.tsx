@@ -93,11 +93,14 @@ export function SimulationDebriefPanel({ debrief }: SimulationDebriefPanelProps)
           {followup.nextFocusLabel}
         </Text>
         <View className="mt-3 flex-row flex-wrap gap-2">
-          <Button size="sm" onPress={() => router.push(followup.lessonHref as never)}>
+          <Button size="sm" onPress={() => router.push(followup.journalHref as never)}>
+            Journal this close
+          </Button>
+          <Button size="sm" variant="outline" onPress={() => router.push(followup.lessonHref as never)}>
             Lesson
           </Button>
           <Button size="sm" variant="outline" onPress={() => router.push(followup.drillHref as never)}>
-            Exercise
+            Related practice
           </Button>
           <Button size="sm" variant="ghost" onPress={() => router.push(followup.replayHref as never)}>
             Historical replay

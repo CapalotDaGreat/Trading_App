@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
+import { DEMO_USER_UID } from '@/firebase/config';
 import { createPersistedStorage } from '@/shared/stores/create-persisted-storage';
 
 /**
@@ -39,12 +40,19 @@ export interface ConceptResult {
   lastAt?: string;
 }
 
-interface AcademyProgressState {
+interface AcademyUserSlice {
   lessons: Record<string, LessonProgress>;
   conceptResults: Record<string, ConceptResult>;
   savedLessonIds: string[];
   discipline: AcademyDisciplineDay | null;
   disciplineStreakDays: number;
+}
+
+interface AcademyProgressState extends AcademyUserSlice {
+  activeUid: string;
+  byUser: Record<string, AcademyUserSlice>;
+  setActiveUid: (uid: string) => void;
+  sliceFor: (uid: string) => AcademyUserSlice;
   markOpened: (lessonId: string) => void;
   /** Soft complete = read (never requires practice). */
   markCompleted: (lessonId: string) => void;
@@ -103,14 +111,55 @@ function normalizeProgress(raw: LessonProgress | undefined): LessonProgress {
   };
 }
 
+function emptySlice(): AcademyUserSlice {
+  return {
+    lessons: {},
+    conceptResults: {},
+    savedLessonIds: [],
+    discipline: null,
+    disciplineStreakDays: 0,
+  };
+}
+
+function snapshotSlice(state: AcademyUserSlice): AcademyUserSlice {
+  return {
+    lessons: state.lessons,
+    conceptResults: state.conceptResults,
+    savedLessonIds: state.savedLessonIds,
+    discipline: state.discipline,
+    disciplineStreakDays: state.disciplineStreakDays,
+  };
+}
+
 export const useAcademyProgressStore = create<AcademyProgressState>()(
   persist(
     (set, get) => ({
+      activeUid: DEMO_USER_UID,
+      byUser: {},
       lessons: {},
       conceptResults: {},
       savedLessonIds: [],
       discipline: null,
       disciplineStreakDays: 0,
+
+      setActiveUid: (uid) => {
+        const nextUid = uid.trim() || DEMO_USER_UID;
+        const state = get();
+        const current = snapshotSlice(state);
+        const byUser = { ...state.byUser, [state.activeUid]: current };
+        const next = byUser[nextUid] ?? emptySlice();
+        set({
+          activeUid: nextUid,
+          byUser,
+          ...next,
+        });
+      },
+
+      sliceFor: (uid) => {
+        const state = get();
+        if (uid === state.activeUid) return snapshotSlice(state);
+        return state.byUser[uid] ?? emptySlice();
+      },
 
       markOpened: (lessonId) => {
         const current = normalizeProgress(get().lessons[lessonId]);
@@ -226,10 +275,16 @@ export const useAcademyProgressStore = create<AcademyProgressState>()(
         });
       },
       mergeFromRemote: (input) => {
-        set({
+        const uid = get().activeUid;
+        const next = {
+          ...snapshotSlice(get()),
           lessons: input.lessons,
           conceptResults: input.conceptResults,
           savedLessonIds: input.savedLessonIds,
+        };
+        set({
+          ...next,
+          byUser: { ...get().byUser, [uid]: next },
         });
       },
       isSaved: (lessonId) => get().savedLessonIds.includes(lessonId),
@@ -292,44 +347,73 @@ export const useAcademyProgressStore = create<AcademyProgressState>()(
             : { brief: false, lesson: false, journal: false };
         return { days: get().disciplineStreakDays, today };
       },
-      resetProgress: () =>
+      resetProgress: () => {
+        const uid = get().activeUid;
+        const empty = emptySlice();
         set({
-          lessons: {},
-          conceptResults: {},
-          savedLessonIds: [],
-          discipline: null,
-          disciplineStreakDays: 0,
-        }),
+          ...empty,
+          byUser: { ...get().byUser, [uid]: empty },
+        });
+      },
     }),
     {
       name: 'tradevision-academy-progress',
       storage: createPersistedStorage(),
-      version: 4,
-      partialize: (state) => ({
-        lessons: state.lessons,
-        conceptResults: state.conceptResults,
-        savedLessonIds: state.savedLessonIds,
-        discipline: state.discipline,
-        disciplineStreakDays: state.disciplineStreakDays,
-      }),
+      version: 5,
+      partialize: (state) => {
+        const slice = snapshotSlice(state);
+        return {
+          activeUid: state.activeUid,
+          byUser: { ...state.byUser, [state.activeUid]: slice },
+          ...slice,
+        };
+      },
       migrate: (persisted: unknown) => {
         const state = persisted as {
+          activeUid?: string;
+          byUser?: Record<string, AcademyUserSlice>;
           lessons?: Record<string, LessonProgress>;
           conceptResults?: Record<string, ConceptResult>;
           savedLessonIds?: string[];
           discipline?: AcademyDisciplineDay | null;
           disciplineStreakDays?: number;
         };
+        if (state?.byUser && Object.keys(state.byUser).length > 0) {
+          const uid = state.activeUid || DEMO_USER_UID;
+          const slice = state.byUser[uid] ?? emptySlice();
+          const lessons: Record<string, LessonProgress> = {};
+          for (const [id, raw] of Object.entries(slice.lessons ?? {})) {
+            lessons[id] = normalizeProgress(raw);
+          }
+          const nextSlice = {
+            ...slice,
+            lessons,
+            conceptResults: slice.conceptResults ?? {},
+            savedLessonIds: slice.savedLessonIds ?? [],
+            discipline: slice.discipline ?? null,
+            disciplineStreakDays: slice.disciplineStreakDays ?? 0,
+          };
+          return {
+            activeUid: uid,
+            byUser: { ...state.byUser, [uid]: nextSlice },
+            ...nextSlice,
+          };
+        }
         const lessons: Record<string, LessonProgress> = {};
         for (const [id, raw] of Object.entries(state?.lessons ?? {})) {
           lessons[id] = normalizeProgress(raw);
         }
-        return {
+        const slice: AcademyUserSlice = {
           lessons,
           conceptResults: state?.conceptResults ?? {},
           savedLessonIds: state?.savedLessonIds ?? [],
           discipline: state?.discipline ?? null,
           disciplineStreakDays: state?.disciplineStreakDays ?? 0,
+        };
+        return {
+          activeUid: DEMO_USER_UID,
+          byUser: { [DEMO_USER_UID]: slice },
+          ...slice,
         };
       },
     },

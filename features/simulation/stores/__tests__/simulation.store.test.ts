@@ -18,6 +18,8 @@ describe('simulation store isolation', () => {
       symbol: 'NESN',
       quantity: 10,
       price: 100,
+      thesis: 'Defined educational thesis for the test',
+      invalidation: 'Invalid if the written level breaks',
     });
     expect(bought.ok).toBe(true);
 
@@ -30,7 +32,13 @@ describe('simulation store isolation', () => {
 
   it('archives the previous ledger on reset', () => {
     useSimulationStore.getState().ensureAccount('alice');
-    useSimulationStore.getState().buy('alice', { symbol: 'NESN', quantity: 10, price: 100 });
+    useSimulationStore.getState().buy('alice', {
+      symbol: 'NESN',
+      quantity: 10,
+      price: 100,
+      thesis: 'Defined educational thesis for the test',
+      invalidation: 'Invalid if the written level breaks',
+    });
     const live = useSimulationStore.getState().reset('alice', 'standard');
     expect(live.transactions).toHaveLength(0);
     expect(live.cashBalance).toBe(100_000);

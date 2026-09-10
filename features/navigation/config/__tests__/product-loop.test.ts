@@ -74,4 +74,25 @@ describe('product loop CTAs', () => {
       { id: 'improve', href: '/', label: 'Train next' },
     ]);
   });
+
+  it('puts the planner next action first after Learn', () => {
+    const next = resolveLoopCtas({
+      current: 'learn',
+      plannerNext: { label: 'Retry sizing', href: '/practice?drill=position-size' },
+    });
+    expect(next[0]).toEqual({
+      id: 'improve',
+      href: '/practice?drill=position-size',
+      label: 'Retry sizing',
+    });
+    expect(next.map((step) => step.href)).toContain('/practice');
+  });
+
+  it('puts the planner next action first after Simulate', () => {
+    const next = resolveLoopCtas({
+      current: 'simulate',
+      plannerNext: { label: 'Journal this close', href: '/journal?from=simulate' },
+    });
+    expect(next[0]?.href).toBe('/journal?from=simulate');
+  });
 });

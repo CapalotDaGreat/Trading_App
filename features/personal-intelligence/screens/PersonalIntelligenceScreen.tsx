@@ -31,7 +31,7 @@ export function PersonalIntelligenceScreen() {
 
   return (
     <ScreenScaffold
-      title="Trading DNA"
+      title="Process patterns"
       subtitle="How do I make decisions — and how am I changing over time?"
       contentClassName="pb-12"
       showBack
@@ -51,7 +51,7 @@ export function PersonalIntelligenceScreen() {
           <StatusState
             status="loading"
             title="Composing your process profile"
-            description="Trading DNA describes observed decision tendencies from Decision Log, Journal, Replay, and practice — never P&L, never a personality diagnosis."
+            description="Process patterns describe observed decision tendencies from Decision Log, Journal, Replay, and practice — never P&L, never a personality diagnosis."
           />
         ) : data ? (
           <>
@@ -115,7 +115,7 @@ export function PersonalIntelligenceScreen() {
           <StatusState
             status="empty"
             title="Not enough evidence yet"
-            description="Open Today once and log a few research, skip, or journal actions so Trading DNA can compose."
+            description="Open Today once and log a few research, skip, or journal actions so process patterns can compose."
             actionLabel="Go to Today"
             onAction={() => router.push('/' as never)}
           />

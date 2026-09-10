@@ -300,7 +300,7 @@ export function buildPersonalizedToday(input: {
             ? `/asset/${encodeURIComponent(input.startHereSymbol)}`
             : '/decision/radar',
         },
-        secondaryCta: { label: 'Trading DNA', href: '/decision/intelligence' },
+        secondaryCta: { label: 'Process patterns', href: '/decision/intelligence' },
         sectionOrder: uniqueOrder([
           'header',
           'dynamicToday',
