@@ -45,6 +45,7 @@ interface JournalFormProps {
   onSubmit: (input: CreateJournalEntryInput) => Promise<void>;
   isSubmitting?: boolean;
   initialSymbol?: string;
+  initialNotes?: string;
 }
 
 const EMOTIONS: TradeEmotion[] = ['confident', 'fearful', 'greedy', 'neutral', 'fomo'];
@@ -60,7 +61,7 @@ const MISTAKES: Array<JournalMistakeCategory | 'none'> = [
   'other',
 ];
 
-export function JournalForm({ onSubmit, isSubmitting, initialSymbol = '' }: JournalFormProps) {
+export function JournalForm({ onSubmit, isSubmitting, initialSymbol = '', initialNotes = '' }: JournalFormProps) {
   const draft = useJournalDraftStore((state) => state.draft);
   const savedAt = useJournalDraftStore((state) => state.savedAt);
   const saveDraft = useJournalDraftStore((state) => state.saveDraft);
@@ -85,7 +86,7 @@ export function JournalForm({ onSubmit, isSubmitting, initialSymbol = '' }: Jour
       emotion: draft?.emotion ?? 'neutral',
       planAdhered: draft?.planAdhered ?? 'unset',
       mistakeCategory: (draft?.mistakeCategory as JournalFormValues['mistakeCategory']) ?? 'none',
-      notes: draft?.notes ?? '',
+      notes: draft?.notes || initialNotes,
       lessonsLearned: draft?.lessonsLearned ?? '',
       improvementCommitment: draft?.improvementCommitment ?? '',
       linkedReplayHref: draft?.linkedReplayHref ?? '',

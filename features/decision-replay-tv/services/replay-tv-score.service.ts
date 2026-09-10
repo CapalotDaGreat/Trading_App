@@ -23,7 +23,14 @@ function checklistScore(checklist: ReplayTvChecklist): number {
 function decisionProcessPts(decision: ReplayTvDecision): number {
   switch (decision) {
     case 'wait':
+    case 'no_trade':
       return 88;
+    case 'reduce':
+      return 84;
+    case 'exit':
+      return 80;
+    case 'enter':
+      return 70;
     case 'protect_attention':
       return 90;
     case 'skip':
@@ -124,8 +131,10 @@ function researchEfficiencyPts(
   const inaction = decisions.filter(
     (d) =>
       d.decision === 'wait' ||
+      d.decision === 'no_trade' ||
       d.decision === 'skip' ||
       d.decision === 'protect_attention' ||
+      d.decision === 'reduce' ||
       d.decision === 'review_other',
   ).length;
   const research = decisions.filter((d) => d.decision === 'research_more').length;
@@ -168,7 +177,11 @@ export function scoreReplayTvSession(input: {
   const researchEfficiency = researchEfficiencyPts(input.decisions, input.episode);
 
   const patienceBoost = input.decisions.some(
-    (d) => d.decision === 'wait' || d.decision === 'protect_attention' || d.decision === 'skip',
+    (d) =>
+      d.decision === 'wait' ||
+      d.decision === 'no_trade' ||
+      d.decision === 'protect_attention' ||
+      d.decision === 'skip',
   )
     ? 12
     : 0;

@@ -6,8 +6,10 @@ import { useDisplayCurrency } from '@/shared/hooks/useDisplayCurrency';
 
 import { SYNTHETIC_UNIVERSE } from '../constants/simulation.constants';
 import { getSyntheticQuote, listedSyntheticName } from '../services/synthetic-market.service';
+import { quotesForScenario } from '../services/scenario-path.service';
 import { resetSnapshot } from '../services/simulation-engine.service';
 import { useSimulationStore } from '../stores/simulation.store';
+import type { ScenarioDecisionOption, ScenarioStartOptions } from '../types/scenario.types';
 import type {
   SimulationCloseReview,
   SimulationMode,
@@ -30,25 +32,37 @@ export function useSimulation(options?: { autoStart?: boolean }) {
   const recordCloseReview = useSimulationStore((state) => state.recordCloseReview);
   const refreshPrices = useSimulationStore((state) => state.refreshPrices);
   const reset = useSimulationStore((state) => state.reset);
+  const advanceClock = useSimulationStore((state) => state.advanceClock);
+  const advanceToNextInformation = useSimulationStore((state) => state.advanceToNextInformation);
+  const answerDecision = useSimulationStore((state) => state.answerDecision);
 
   useEffect(() => {
     if (!autoStart) return;
     ensureAccount(userId, undefined, undefined, displayCurrency);
   }, [autoStart, ensureAccount, userId, displayCurrency]);
 
-  const start = () => ensureAccount(userId, undefined, undefined, displayCurrency);
+  const start = (options?: ScenarioStartOptions) =>
+    ensureAccount(userId, undefined, undefined, displayCurrency, options);
 
-  const quotes: SimulationQuote[] = SYNTHETIC_UNIVERSE.map((item) => getSyntheticQuote(item.symbol)).filter(
-    (quote): quote is SimulationQuote => quote != null,
-  );
+  const symbols = SYNTHETIC_UNIVERSE.map((item) => item.symbol);
+  const scenarioSymbols = account?.scenario?.assets.map((item) => item.symbol) ?? symbols;
+  const quotes: SimulationQuote[] = account?.scenario
+    ? quotesForScenario(account.scenario, scenarioSymbols)
+    : symbols
+        .map((symbol) => getSyntheticQuote(symbol))
+        .filter((quote): quote is SimulationQuote => quote != null);
+
+  const listedName = (symbol: string) =>
+    account?.scenario?.assets.find((item) => item.symbol === symbol.toUpperCase())?.name ??
+    listedSyntheticName(symbol);
 
   return {
     userId,
     account,
     archives,
     quotes,
-    universe: SYNTHETIC_UNIVERSE,
-    listedName: listedSyntheticName,
+    universe: account?.scenario?.assets ?? SYNTHETIC_UNIVERSE,
+    listedName,
     snapshot: account ? resetSnapshot(account) : undefined,
     start,
     previewBuy: (input: Omit<SimulationTradeInput, 'price'> & { price?: number }) => previewBuy(userId, input),
@@ -58,8 +72,12 @@ export function useSimulation(options?: { autoStart?: boolean }) {
     recordCloseReview: (decisionId: string, review: SimulationCloseReview) =>
       recordCloseReview(userId, decisionId, review),
     refresh: () => refreshPrices(userId),
-    reset: (mode?: SimulationMode, challengeId?: string, currency?: string) =>
-      reset(userId, mode, challengeId, currency ?? displayCurrency),
+    advanceClock: () => advanceClock(userId),
+    advanceToNextInformation: () => advanceToNextInformation(userId),
+    answerDecision: (windowId: string, option: ScenarioDecisionOption, reasoning?: string) =>
+      answerDecision(userId, windowId, option, reasoning),
+    reset: (mode?: SimulationMode, challengeId?: string, currency?: string, options?: ScenarioStartOptions) =>
+      reset(userId, mode, challengeId, currency ?? displayCurrency, options),
     displayCurrency,
   };
 }

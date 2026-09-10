@@ -220,6 +220,7 @@ function RootLayoutNav() {
         <Stack.Screen name="alerts" />
         <Stack.Screen name="academy" />
         <Stack.Screen name="calendar" />
+        <Stack.Screen name="readiness" />
         <Stack.Screen name="asset/[symbol]" />
         <Stack.Screen name="search" />
         <Stack.Screen name="settings" />
@@ -255,6 +256,7 @@ function RootLayoutNav() {
       <Stack.Screen name="alerts" />
       <Stack.Screen name="academy" />
       <Stack.Screen name="calendar" />
+      <Stack.Screen name="readiness" />
       <Stack.Screen name="asset/[symbol]" />
       <Stack.Screen name="search" />
       <Stack.Screen name="settings" />

@@ -57,6 +57,19 @@ describe('academy semantic search', () => {
     expect(searchAcademyLessons(ALL_LESSONS, '   ')).toEqual([]);
   });
 
+  it('keeps core competence lessons exercisable with limitations and concept tags', () => {
+    for (const id of ['risk-position-sizing', 'fund-calendar', 'dec-invalidation']) {
+      const lesson = ALL_LESSONS.find((item) => item.id === id);
+      expect(lesson?.exercises?.length).toBeGreaterThan(0);
+      expect(lesson?.limitations?.length).toBeGreaterThan(0);
+      expect(lesson?.conceptIds?.length).toBeGreaterThan(0);
+      expect(lesson?.simulationLinks?.length).toBeGreaterThan(0);
+      expect(lesson?.quiz.some((question) => question.conceptId && question.choiceExplanations?.length)).toBe(
+        true,
+      );
+    }
+  });
+
   it('unifies lessons, practice, and glossary for educational intent', () => {
     const results = searchEducation(ALL_LESSONS, 'Why can RSI stay overbought?');
     expect(results.lessons[0]?.lesson.id).toBe('ta-rsi');

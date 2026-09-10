@@ -1,8 +1,12 @@
+import { inferReplayTvEventKind, inferReplayTvTopics } from '@/features/decision-replay-tv/services/replay-tv-boundary.service';
 import type {
   ReplayTvCollectionId,
   ReplayTvEpisode,
   ReplayTvEpisodeKind,
+  ReplayTvEventKind,
   ReplayTvMarketFocus,
+  ReplayTvProgress,
+  ReplayTvTopic,
 } from '@/features/decision-replay-tv/types/replay-tv.types';
 
 export type ReplayTvDifficultyFilter = 'beginner' | 'intermediate' | 'advanced' | 'all';
@@ -15,6 +19,9 @@ export type ReplayTvThemeFilter =
   | 'risk'
   | 'volatility'
   | 'patience';
+export type ReplayTvDurationFilter = 'all' | 'short' | 'standard' | 'long';
+export type ReplayTvCompletedFilter = 'all' | 'done' | 'todo';
+export type ReplayTvWeakAreaFilter = 'all' | 'breakouts' | 'risk' | 'patience' | 'uncertainty';
 
 const KIND_FROM_COLLECTION: Partial<Record<ReplayTvCollectionId, ReplayTvEpisodeKind>> = {
   policy: 'macro_event',
@@ -74,18 +81,94 @@ export function matchesTheme(episode: ReplayTvEpisode, filter: ReplayTvThemeFilt
   }
 }
 
+export function matchesTopic(episode: ReplayTvEpisode, topic?: ReplayTvTopic | 'all'): boolean {
+  if (!topic || topic === 'all') return true;
+  return inferReplayTvTopics(episode).includes(topic);
+}
+
+export function matchesEvent(episode: ReplayTvEpisode, event?: ReplayTvEventKind | 'all'): boolean {
+  if (!event || event === 'all') return true;
+  return inferReplayTvEventKind(episode) === event;
+}
+
+export function matchesAsset(episode: ReplayTvEpisode, asset?: string | 'all'): boolean {
+  if (!asset || asset === 'all') return true;
+  const needle = asset.toUpperCase();
+  return episode.symbol.toUpperCase() === needle || episode.symbolLabel.toUpperCase().includes(needle);
+}
+
+export function matchesSkill(episode: ReplayTvEpisode, skill?: string | 'all'): boolean {
+  if (!skill || skill === 'all') return true;
+  return episode.skills.includes(skill) || episode.scoringEmphasis.includes(skill as never);
+}
+
+export function matchesDuration(episode: ReplayTvEpisode, filter: ReplayTvDurationFilter = 'all'): boolean {
+  if (filter === 'all') return true;
+  if (filter === 'short') return episode.durationMinutes <= 8;
+  if (filter === 'standard') return episode.durationMinutes <= 15;
+  return episode.durationMinutes > 15;
+}
+
+export function matchesCompleted(
+  episode: ReplayTvEpisode,
+  filter: ReplayTvCompletedFilter,
+  completedIds: string[],
+): boolean {
+  if (filter === 'all') return true;
+  const done = completedIds.includes(episode.id);
+  return filter === 'done' ? done : !done;
+}
+
+export function matchesWeakArea(episode: ReplayTvEpisode, area: ReplayTvWeakAreaFilter): boolean {
+  if (area === 'all') return true;
+  const topics = inferReplayTvTopics(episode);
+  if (area === 'breakouts') {
+    return topics.includes('breakout') || topics.includes('failed_breakout') || episode.collectionIds.includes('false_breakouts');
+  }
+  if (area === 'risk') {
+    return episode.collectionIds.includes('risk_management') || episode.scoringEmphasis.includes('risk');
+  }
+  if (area === 'patience') {
+    return episode.inactionIsValidProcess === true || episode.collectionIds.includes('patience');
+  }
+  return topics.includes('macro') || episode.collectionIds.includes('uncertainty');
+}
+
+export function inferWeakAreaFromProgress(progress: ReplayTvProgress): ReplayTvWeakAreaFilter {
+  const entries = Object.entries(progress.bestProcessByEpisode);
+  if (!entries.length) return 'all';
+  const weakest = [...entries].sort((a, b) => a[1] - b[1])[0];
+  if (!weakest || weakest[1] >= 70) return 'all';
+  return 'risk';
+}
+
 export function filterReplayTvLibrary(
   episodes: ReplayTvEpisode[],
   input: {
     difficulty?: ReplayTvDifficultyFilter;
     market?: ReplayTvMarketFilter;
     theme?: ReplayTvThemeFilter;
+    topic?: ReplayTvTopic | 'all';
+    event?: ReplayTvEventKind | 'all';
+    asset?: string | 'all';
+    skill?: string | 'all';
+    duration?: ReplayTvDurationFilter;
+    completed?: ReplayTvCompletedFilter;
+    weakArea?: ReplayTvWeakAreaFilter;
+    completedIds?: string[];
   },
 ): ReplayTvEpisode[] {
   return episodes.filter(
     (episode) =>
       matchesDifficulty(episode, input.difficulty ?? 'all') &&
       matchesMarket(episode, input.market ?? 'all') &&
-      matchesTheme(episode, input.theme ?? 'all'),
+      matchesTheme(episode, input.theme ?? 'all') &&
+      matchesTopic(episode, input.topic ?? 'all') &&
+      matchesEvent(episode, input.event ?? 'all') &&
+      matchesAsset(episode, input.asset ?? 'all') &&
+      matchesSkill(episode, input.skill ?? 'all') &&
+      matchesDuration(episode, input.duration ?? 'all') &&
+      matchesCompleted(episode, input.completed ?? 'all', input.completedIds ?? []) &&
+      matchesWeakArea(episode, input.weakArea ?? 'all'),
   );
 }

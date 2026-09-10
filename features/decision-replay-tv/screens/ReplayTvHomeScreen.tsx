@@ -1,5 +1,5 @@
-﻿import { useRouter } from 'expo-router';
-import { useMemo, useState } from 'react';
+﻿import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { ScrollView, View } from 'react-native';
 
 import { ReplayTvEpisodeCard } from '@/features/decision-replay-tv/components/ReplayTvEpisodeCard';
@@ -16,9 +16,13 @@ import { useReplayTv } from '@/features/decision-replay-tv/hooks/useReplayTv';
 import { episodeRequiresPremium } from '@/features/decision-replay-tv/services/replay-tv-access.service';
 import {
   filterReplayTvLibrary,
+  type ReplayTvCompletedFilter,
   type ReplayTvDifficultyFilter,
+  type ReplayTvDurationFilter,
   type ReplayTvMarketFilter,
   type ReplayTvThemeFilter,
+  type ReplayTvWeakAreaFilter,
+  inferWeakAreaFromProgress,
 } from '@/features/decision-replay-tv/services/replay-tv-filter.service';
 import {
   episodesForDnaGrowth,
@@ -105,6 +109,8 @@ function EpisodeRow({
 
 export function ReplayTvHomeScreen() {
   const router = useRouter();
+  const { episode: episodeParam } = useLocalSearchParams<{ episode?: string }>();
+  const episodeKickoff = useRef<string | null>(null);
   const {
     activeSession,
     episode: activeEpisode,
@@ -127,11 +133,18 @@ export function ReplayTvHomeScreen() {
   const [difficultyFilter, setDifficultyFilter] = useState<ReplayTvDifficultyFilter>('all');
   const [marketFilter, setMarketFilter] = useState<ReplayTvMarketFilter>('all');
   const [themeFilter, setThemeFilter] = useState<ReplayTvThemeFilter>('all');
+  const [durationFilter, setDurationFilter] = useState<ReplayTvDurationFilter>('all');
+  const [completedFilter, setCompletedFilter] = useState<ReplayTvCompletedFilter>('all');
+  const [weakAreaFilter, setWeakAreaFilter] = useState<ReplayTvWeakAreaFilter>('all');
 
   const rankInput = useMemo(
     () => ({
       markets: profile.markets,
-      struggles: profile.struggles,
+      struggles: [
+        ...(profile.struggles ?? []),
+        inferWeakAreaFromProgress(progress) === 'breakouts' ? 'breakout' : '',
+        inferWeakAreaFromProgress(progress) === 'risk' ? 'risk' : '',
+      ].filter(Boolean),
       styles: profile.styles,
       experience: profile.experience,
       growthEdges: rankEdges,
@@ -145,6 +158,7 @@ export function ReplayTvHomeScreen() {
       profile.experience,
       rankEdges,
       progress.completedEpisodeIds,
+      progress.bestProcessByEpisode,
       reinforcementTrait,
     ],
   );
@@ -190,13 +204,22 @@ export function ReplayTvHomeScreen() {
           difficulty: difficultyFilter,
           market: marketFilter,
           theme: themeFilter,
+          duration: durationFilter,
+          completed: completedFilter,
+          weakArea: weakAreaFilter,
+          completedIds: progress.completedEpisodeIds,
         }),
         rankInput,
       ),
-    [difficultyFilter, marketFilter, themeFilter, rankInput],
+    [difficultyFilter, marketFilter, themeFilter, durationFilter, completedFilter, weakAreaFilter, rankInput, progress],
   );
   const filtersActive =
-    difficultyFilter !== 'all' || marketFilter !== 'all' || themeFilter !== 'all';
+    difficultyFilter !== 'all' ||
+    marketFilter !== 'all' ||
+    themeFilter !== 'all' ||
+    durationFilter !== 'all' ||
+    completedFilter !== 'all' ||
+    weakAreaFilter !== 'all';
   const skillProgress = useMemo(() => deriveReplayTvSkillProgress(progress), [progress]);
 
   const onBegin = (id: string) => {
@@ -204,6 +227,14 @@ export function ReplayTvHomeScreen() {
       /* accessBlock state surfaces calm Premium / monthly preview */
     });
   };
+
+  useEffect(() => {
+    if (!episodeParam || episodeKickoff.current === episodeParam) return;
+    episodeKickoff.current = episodeParam;
+    void beginEpisode(episodeParam).catch(() => {
+      /* accessBlock surfaces Premium / missing episode */
+    });
+  }, [beginEpisode, episodeParam]);
 
   return (
     <ScreenScaffold
@@ -223,6 +254,10 @@ export function ReplayTvHomeScreen() {
         <Surface padding="md" tone="subtle" testID="replay-tv-intro">
           <Text variant="h3" headingLevel={2}>
             The future stays hidden until you commit.
+          </Text>
+          <Text variant="body-sm" className="mt-2 leading-6 text-text-secondary">
+            If the freeze is 10 January, you do not get the 11 January tape, headlines, or outcome.
+            That is the historical information boundary.
           </Text>
           <Text variant="body-sm" className="mt-2 leading-6 text-text-secondary">
             Practice research-time decisions on a blind tape. Waiting is a valid expert decision.
@@ -387,6 +422,55 @@ export function ReplayTvHomeScreen() {
                   accessibilityRole="tab"
                   accessibilityLabel={`${label} theme`}
                   onPress={() => setThemeFilter(id)}
+                />
+              ))}
+            </View>
+          </ScrollView>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            <View className="flex-row gap-2 pr-4">
+              {(
+                [
+                  ['all', 'Any length'],
+                  ['short', 'Short'],
+                  ['standard', 'Standard'],
+                  ['long', 'Longer'],
+                ] as const
+              ).map(([id, label]) => (
+                <FilterChip
+                  key={id}
+                  label={label}
+                  selected={durationFilter === id}
+                  onPress={() => setDurationFilter(id)}
+                />
+              ))}
+              {(
+                [
+                  ['all', 'All rooms'],
+                  ['todo', 'Not done'],
+                  ['done', 'Completed'],
+                ] as const
+              ).map(([id, label]) => (
+                <FilterChip
+                  key={id}
+                  label={label}
+                  selected={completedFilter === id}
+                  onPress={() => setCompletedFilter(id)}
+                />
+              ))}
+              {(
+                [
+                  ['all', 'Any weak area'],
+                  ['breakouts', 'Breakouts'],
+                  ['risk', 'Risk'],
+                  ['patience', 'Patience'],
+                  ['uncertainty', 'Uncertainty'],
+                ] as const
+              ).map(([id, label]) => (
+                <FilterChip
+                  key={id}
+                  label={label}
+                  selected={weakAreaFilter === id}
+                  onPress={() => setWeakAreaFilter(id)}
                 />
               ))}
             </View>

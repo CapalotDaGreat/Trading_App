@@ -5,32 +5,36 @@ import { Button } from '@/shared/components/ui/Button';
 import { Text } from '@/shared/components/ui/Text';
 import { BRAND } from '@/shared/constants/brand';
 
-import { IA_GLOSSARY } from '../config/navigation-ia.config';
-
-export type ProductLoopStep = 'learn' | 'practice' | 'simulate' | 'review' | 'ask';
+export type ProductLoopStep = 'learn' | 'practice' | 'replay' | 'simulate' | 'journal' | 'review' | 'ask';
 
 const LOOP_STEPS: { id: ProductLoopStep; href: string; label: string }[] = [
-  { id: 'learn', href: '/learn', label: IA_GLOSSARY.learn },
-  { id: 'practice', href: '/practice', label: IA_GLOSSARY.practice },
-  { id: 'simulate', href: '/simulate', label: IA_GLOSSARY.simulate },
-  { id: 'review', href: '/review', label: IA_GLOSSARY.review },
-  { id: 'ask', href: '/ai', label: IA_GLOSSARY.ask },
+  { id: 'learn', href: '/learn', label: 'Learn' },
+  { id: 'practice', href: '/practice', label: 'Practice' },
+  { id: 'replay', href: '/decision/replay-tv', label: 'Replay' },
+  { id: 'simulate', href: '/simulate', label: 'Simulate' },
+  { id: 'journal', href: '/journal', label: 'Journal' },
+  { id: 'review', href: '/review', label: 'Review' },
 ];
 
 interface LoopCtaRowProps {
   current?: ProductLoopStep;
   title?: string;
   testID?: string;
+  followUp?: { label: string; href: string };
 }
 
-/** Connects any surface back to the product loop without extra nested cards. */
+/** Next steps in the competence loop — sequential, not a random hub. */
 export function LoopCtaRow({
   current,
   title = 'Continue the loop',
   testID = 'loop-cta-row',
+  followUp,
 }: LoopCtaRowProps) {
   const router = useRouter();
-  const next = LOOP_STEPS.filter((step) => step.id !== current).slice(0, 3);
+  const index = current ? LOOP_STEPS.findIndex((step) => step.id === current) : -1;
+  const sequential =
+    index >= 0 ? LOOP_STEPS.slice(index + 1, index + 4) : LOOP_STEPS.slice(0, 3);
+  const next = followUp ? [{ id: 'follow' as const, href: followUp.href, label: followUp.label }, ...sequential] : sequential;
 
   return (
     <View className="mt-2" testID={testID}>
@@ -38,9 +42,9 @@ export function LoopCtaRow({
         {title} · {BRAND.loop}
       </Text>
       <View className="flex-row flex-wrap gap-2">
-        {next.map((step) => (
+        {next.slice(0, 3).map((step) => (
           <Button
-            key={step.id}
+            key={`${step.id}-${step.href}`}
             size="sm"
             variant="outline"
             onPress={() => router.push(step.href as never)}

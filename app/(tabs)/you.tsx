@@ -65,6 +65,9 @@ export default function YouScreen() {
             >
               {mentorSetupCompleted ? 'Edit learning profile' : 'Set learning profile'}
             </Button>
+            <Button size="sm" variant="outline" onPress={() => router.push('/readiness' as never)}>
+              Training readiness
+            </Button>
           </View>
         </Surface>
 

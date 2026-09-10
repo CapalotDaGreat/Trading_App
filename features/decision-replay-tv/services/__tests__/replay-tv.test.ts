@@ -19,13 +19,17 @@ import {
   getEducationalCandles,
   visibleCandlesAt,
 } from '../replay-tv-path.service';
+import { replayInformationBoundary } from '../replay-tv-boundary.service';
+import { overlayUsesOnly, visibleRsi, visibleSma } from '../replay-tv-chart-tools.service';
 import { filterReplayTvLibrary, inferReplayTvEpisodeKinds } from '../replay-tv-filter.service';
+import { buildReplayLabReview } from '../replay-tv-review.service';
 import { composeReplayTvCoachNote, composeReplayTvReasoning } from '../replay-tv-coach.service';
 import { deriveReplayTvSkillProgress, selectReplayTvNextPractice } from '../replay-tv-skills.service';
 import { episodesForDnaGrowth, rankReplayTvEpisodes } from '../replay-tv-rank.service';
 import { scoreReplayTvSession } from '../replay-tv-score.service';
 import {
   advanceReplayTvPhase,
+  advanceReplayTvReveal,
   composeReplayPhaseAnnouncement,
   createReplayTvSession,
   getBlindSafeEpisodeView,
@@ -56,7 +60,10 @@ function advanceToDecision(session: ReturnType<typeof createReplayTvSession>) {
   let next = session;
   next = advanceReplayTvPhase(next); // context
   next = advanceReplayTvPhase(next); // watching
+  next = advanceReplayTvPhase(next); // research
   next = advanceReplayTvPhase(next); // reasoning
+  next = advanceReplayTvPhase(next); // risk
+  next = advanceReplayTvPhase(next); // sizing
   next = advanceReplayTvPhase(next); // decision
   return next;
 }
@@ -165,10 +172,7 @@ describe('Decision Replay TV', () => {
 
   it('strips candles on persist and stays blind after kill/resume at a checkpoint', () => {
     let session = createReplayTvSession('nvidia-earnings');
-    session = advanceReplayTvPhase(session); // context
-    session = advanceReplayTvPhase(session); // watching
-    session = advanceReplayTvPhase(session); // reasoning
-    session = advanceReplayTvPhase(session); // decision
+    session = advanceToDecision(session);
     expect(session.phase).toBe('decision');
     expect(session.revealed).toBe(false);
 
@@ -212,7 +216,13 @@ describe('Decision Replay TV', () => {
     expect(visible.length).toBeLessThan(session.fullCandles.length);
 
     session = advanceReplayTvPhase(session);
+    expect(session.phase).toBe('research');
+    session = advanceReplayTvPhase(session);
     expect(session.phase).toBe('reasoning');
+    session = advanceReplayTvPhase(session);
+    expect(session.phase).toBe('risk');
+    session = advanceReplayTvPhase(session);
+    expect(session.phase).toBe('sizing');
     session = advanceReplayTvPhase(session);
     expect(session.phase).toBe('decision');
     session = submitReplayTvDecision({
@@ -226,7 +236,11 @@ describe('Decision Replay TV', () => {
     session = advanceReplayTvPhase(session);
     expect(session.phase).toBe('watching');
     session = advanceReplayTvPhase(session);
+    expect(session.phase).toBe('research');
+    session = advanceReplayTvPhase(session);
     expect(session.phase).toBe('reasoning');
+    session = advanceReplayTvPhase(session);
+    session = advanceReplayTvPhase(session);
     session = advanceReplayTvPhase(session);
     session = submitReplayTvDecision({
       session,
@@ -606,5 +620,102 @@ describe('Decision Replay TV', () => {
     });
     expect(next.skill.id).toBeTruthy();
     expect(next.episode?.id).not.toBe('failed-setup-patience');
+  });
+
+  it('defines an information boundary and keeps indicators on the visible slice', () => {
+    const episode = getReplayTvEpisode('nfp-surprise-lab')!;
+    expect(episode).toBeTruthy();
+    const session = createReplayTvSession(episode.id);
+    const boundary = replayInformationBoundary(episode, session);
+    expect(boundary.scenarioStart).toBe(0);
+    expect(boundary.decisionTime).toBe(episode.checkpoints[0]!.freezeIndex);
+    expect(boundary.informationCutoff).toBeLessThan(boundary.revealWindowEnd);
+    const visible = visibleCandlesAt(session.fullCandles, boundary.informationCutoff);
+    expect(visibleSma(visible, 5)).not.toBeNull();
+    expect(overlayUsesOnly(visible, session.fullCandles, boundary.informationCutoff)).toBe(true);
+    const rsiVisible = visibleRsi(visible, 8);
+    const rsiFull = visibleRsi(session.fullCandles, 8);
+    expect(rsiVisible).not.toBe(rsiFull);
+  });
+
+  it('filters by topic, duration, completed rooms, and weak area', () => {
+    const employment = filterReplayTvLibrary(REPLAY_TV_EPISODES, { event: 'employment' });
+    expect(employment.some((item) => item.id === 'nfp-surprise-lab')).toBe(true);
+    const short = filterReplayTvLibrary(REPLAY_TV_EPISODES, { duration: 'short' });
+    expect(short.every((item) => item.durationMinutes <= 8)).toBe(true);
+    const todo = filterReplayTvLibrary(REPLAY_TV_EPISODES, {
+      completed: 'todo',
+      completedIds: ['covid-crash'],
+    });
+    expect(todo.some((item) => item.id === 'covid-crash')).toBe(false);
+    const breakouts = filterReplayTvLibrary(REPLAY_TV_EPISODES, { weakArea: 'breakouts' });
+    expect(breakouts.some((item) => item.id === 'false-breakout-drill')).toBe(true);
+  });
+
+  it('treats no-trade as valid process and writes counterfactuals without calling the user right', () => {
+    const episode = getReplayTvEpisode('fomc-decision-lab')!;
+    const scores = scoreReplayTvSession({
+      episode,
+      decisions: [
+        {
+          checkpointId: 'c1',
+          decision: 'no_trade',
+          reasoning: 'Binary event. I will not size into an unknown statement.',
+          structured: {
+            thesis: 'No edge into the print',
+            evidence: 'Calendar event only',
+            invalidation: 'I would need a post-statement structure',
+            confidence: 3,
+            mainUncertainty: 'The wording',
+            intendedSize: 'Zero',
+            riskAssessment: 'Gap risk through any tight stop',
+          },
+          at: Date.now(),
+        },
+      ],
+      checklist: {
+        namedInvalidation: true,
+        notedRegime: true,
+        consideredTimeBudget: true,
+        wroteReasoning: true,
+        consideredAlternative: true,
+      },
+    });
+    expect(scores.processQuality).toBeGreaterThan(50);
+    const review = buildReplayLabReview({
+      episode,
+      session: {
+        ...createReplayTvSession(episode.id),
+        revealed: true,
+        scores,
+        decisions: [
+          {
+            checkpointId: 'c1',
+            decision: 'no_trade',
+            reasoning: 'Stand down',
+            structured: scores ? undefined : undefined,
+            at: Date.now(),
+          },
+        ],
+      },
+      scores,
+    });
+    expect(review.counterfactuals.length).toBe(3);
+    expect(JSON.stringify(review).toLowerCase()).not.toMatch(/you were right/);
+    expect(review.loop.lessonHref).toContain('/academy/lesson/');
+    expect(review.loop.simulateHref).toBe('/simulate');
+  });
+
+  it('reveals later bars only after commit and only up to the cursor', () => {
+    const session = {
+      ...createReplayTvSession('guidance-cut-lab'),
+      phase: 'reveal' as const,
+      revealed: true,
+      revealCursor: 28,
+    };
+    const first = getVisibleCandlesForSession(session);
+    const later = getVisibleCandlesForSession(advanceReplayTvReveal(session, 8));
+    expect(later[later.length - 1]!.timestamp).toBeGreaterThanOrEqual(first[first.length - 1]!.timestamp);
+    expect(getBlindSafeEpisodeView(session).historicalOutcome).toBeNull();
   });
 });

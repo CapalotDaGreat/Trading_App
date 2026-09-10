@@ -1,3 +1,5 @@
+import type { SimulationScenario } from './scenario.types';
+
 /** ISO 4217. Default product currency is USD — do not assume it in the engine. */
 export type IsoCurrencyCode = string;
 
@@ -148,6 +150,8 @@ export interface SimulationAccount {
   status: SimulationStatus;
   challengeId?: string;
   lastChallengeViolation?: string;
+  /** Unique generated market. Seed is stored for audit, never shown. */
+  scenario?: SimulationScenario;
 }
 
 export interface SimulationTradeInput {

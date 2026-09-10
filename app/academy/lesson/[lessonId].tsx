@@ -4,6 +4,8 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
 import { LessonLearningLoop } from '@/features/academy/components/LessonLearningLoop';
+import { LessonNextSteps } from '@/features/learning-engine/components/LessonNextSteps';
+import { nextAfterLesson } from '@/features/learning-engine/services/lesson-next.service';
 import { getLocalLessonById } from '@/features/academy/content';
 import { useLesson } from '@/features/academy/hooks/useAcademy';
 import { useAcademyProgressStore } from '@/features/academy/stores/academy-progress.store';
@@ -199,6 +201,11 @@ export default function AcademyLessonScreen() {
           }
         }}
       />
+
+      {(() => {
+        const chain = nextAfterLesson(lesson.id);
+        return chain ? <LessonNextSteps chain={chain} /> : null;
+      })()}
 
       <View className="mt-4 gap-3">
         <EducationalPanel

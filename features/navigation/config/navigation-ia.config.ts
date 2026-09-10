@@ -1,11 +1,11 @@
-/** Visible primary tabs — the product loop plus Ask and You. */
+/** Visible primary tabs — training loop plus Market Events and You. Ask stays a route. */
 export const PRIMARY_TAB_LABELS = [
   'Home',
   'Learn',
   'Practice',
   'Simulate',
   'Review',
-  'Ask',
+  'Events',
   'You',
 ] as const;
 
@@ -17,6 +17,7 @@ export const IA_GLOSSARY = {
   simulate: 'Simulate',
   research: 'Research',
   review: 'Review',
+  events: 'Events',
   ask: 'Ask',
   you: 'You',
   setups: 'Setups',
@@ -34,7 +35,7 @@ export const IA_GLOSSARY = {
   strategySandbox: 'Strategy sandbox',
   portfolio: 'Simulate',
   alerts: 'Alerts',
-  calendar: 'Calendar',
+  calendar: 'Market Events',
   settings: 'Settings',
   subscription: 'Subscription',
   tradingDna: 'Trading DNA',
@@ -102,6 +103,14 @@ export const RESEARCH_HUB_SECTIONS: readonly NavigationHubSection[] = [
   {
     title: 'Explore (educational)',
     items: [
+      {
+        href: '/events',
+        title: IA_GLOSSARY.events,
+        description: 'Upcoming prints and why a trader might care — never a buy/sell call.',
+        accessibilityLabel: 'Open Market Events',
+        icon: 'calendar-outline',
+        testID: 'research-events',
+      },
       {
         href: '/markets',
         title: IA_GLOSSARY.markets,
@@ -310,6 +319,22 @@ export const YOU_HUB_SECTIONS: readonly NavigationHubSection[] = [
         accessibilityLabel: 'Open Trading DNA',
         icon: 'finger-print-outline',
         testID: 'you-trading-dna',
+      },
+      {
+        href: '/readiness',
+        title: 'Training readiness',
+        description: 'Strengths and gaps in your training record — never a live-trading certificate.',
+        accessibilityLabel: 'Open training readiness',
+        icon: 'shield-checkmark-outline',
+        testID: 'you-readiness',
+      },
+      {
+        href: '/academy/lesson/prep-simulation-vs-live',
+        title: 'Simulation vs real money',
+        description: 'Why paper profit is not permission to trade live.',
+        accessibilityLabel: 'Open simulation versus real money lesson',
+        icon: 'book-outline',
+        testID: 'you-real-money-prep',
       },
     ],
   },

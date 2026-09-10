@@ -33,15 +33,18 @@ const REVEALED_PHASES: ReplayTvPhase[] = ['reveal', 'coaching', 'complete', 'ski
 
 export const REPLAY_TV_LOOP_STEPS: Array<{ phase: ReplayTvPhase; label: string }> = [
   { phase: 'intro', label: 'Episode' },
-  { phase: 'context', label: 'Blind context' },
-  { phase: 'watching', label: 'Research' },
-  { phase: 'reasoning', label: 'Reasoning' },
-  { phase: 'decision', label: 'Commit' },
-  { phase: 'mentor', label: 'Next state' },
-  { phase: 'reveal', label: 'Outcome' },
-  { phase: 'coaching', label: 'Coaching' },
+  { phase: 'context', label: 'Context' },
+  { phase: 'watching', label: 'Chart' },
+  { phase: 'research', label: 'Research' },
+  { phase: 'reasoning', label: 'Thesis' },
+  { phase: 'risk', label: 'Risk' },
+  { phase: 'sizing', label: 'Size' },
+  { phase: 'decision', label: 'Decision' },
+  { phase: 'mentor', label: 'Next freeze' },
+  { phase: 'reveal', label: 'Reveal' },
+  { phase: 'coaching', label: 'Review' },
   { phase: 'complete', label: 'Reflection' },
-  { phase: 'skill', label: 'Skill progression' },
+  { phase: 'skill', label: 'Learn next' },
 ];
 
 export function replayTvLoopLabel(phase: ReplayTvPhase): string {
@@ -125,7 +128,8 @@ export function getSessionEpisode(session: ReplayTvSession): ReplayTvEpisode {
 function currentFreezeIndex(session: ReplayTvSession): number {
   const episode = getSessionEpisode(session);
   if (isReplayTvRevealed(session)) {
-    return Math.max(0, session.fullCandles.length - 1);
+    const end = episode.revealWindowEndIndex ?? Math.max(0, session.fullCandles.length - 1);
+    return Math.min(end, session.revealCursor ?? end);
   }
   const checkpoint = episode.checkpoints[session.checkpointIndex] ?? episode.checkpoints[0];
   return checkpoint?.freezeIndex ?? Math.floor(session.fullCandles.length * 0.5);
@@ -149,10 +153,10 @@ export function getFrozenCandlesForSession(session: ReplayTvSession) {
 
 export function getVisibleNewsForSession(session: ReplayTvSession): ReplayTvNewsItem[] {
   const episode = getSessionEpisode(session);
-  if (isReplayTvRevealed(session)) {
-    return episode.availableNews;
-  }
   const freeze = currentFreezeIndex(session);
+  if (isReplayTvRevealed(session)) {
+    return episode.availableNews.filter((item) => item.availableAtIndex <= freeze);
+  }
   const checkpoint = episode.checkpoints[session.checkpointIndex];
   const byTime = episode.availableNews.filter((n) => n.availableAtIndex <= freeze);
   if (checkpoint?.newsIdsVisible?.length) {
@@ -175,8 +179,15 @@ export function getBlindSafeEpisodeView(session: ReplayTvSession) {
     provenanceNote: episode.provenanceNote,
     dataKind: episode.dataKind,
     news: getVisibleNewsForSession(session),
-    historicalOutcome: revealed ? episode.historicalOutcome : null,
-    teachingNotes: revealed ? episode.checkpoints.map((c) => c.teachingNote) : [],
+    historicalOutcome:
+      revealed && (session.revealCursor ?? 0) >= (episode.revealWindowEndIndex ?? episode.barCount - 1)
+        ? episode.historicalOutcome
+        : null,
+    teachingNotes: revealed
+      ? episode.checkpoints
+          .filter((item) => item.freezeIndex <= currentFreezeIndex(session))
+          .map((c) => c.teachingNote)
+      : [],
   };
 }
 
@@ -200,14 +211,27 @@ export function advanceReplayTvPhase(session: ReplayTvSession): ReplayTvSession 
     case 'context':
       return { ...session, phase: 'watching' };
     case 'watching':
+      return { ...session, phase: 'research' };
+    case 'research':
       return { ...session, phase: 'reasoning' };
     case 'reasoning':
+      return { ...session, phase: 'risk' };
+    case 'risk':
+      return { ...session, phase: 'sizing' };
+    case 'sizing':
       return { ...session, phase: 'decision' };
     case 'mentor': {
       const episode = getSessionEpisode(session);
       const committedAll = session.decisions.length >= episode.checkpoints.length;
       if (committedAll) {
-        return { ...session, phase: 'reveal', revealed: true, mentorReply: undefined };
+        const cutoff = episode.checkpoints[episode.checkpoints.length - 1]?.freezeIndex ?? 0;
+        return {
+          ...session,
+          phase: 'reveal',
+          revealed: true,
+          mentorReply: undefined,
+          revealCursor: Math.min(episode.barCount - 1, cutoff + 6),
+        };
       }
       return {
         ...session,
@@ -314,8 +338,12 @@ export function patchReplayTvDraftReasoning(
 
 /** Observe / Research / Stay out / Form hypothesis mapped onto process enum. */
 export const REPLAY_TV_DECISION_LABELS: Record<ReplayTvDecision, string> = {
+  no_trade: 'No trade',
   wait: 'Wait',
-  research_more: 'Continue researching',
+  enter: 'Enter (paper thesis)',
+  reduce: 'Reduce exposure',
+  exit: 'Exit / stand down',
+  research_more: 'Research more',
   skip: 'Skip',
   write_thesis: 'Form a research thesis',
   protect_attention: 'Protect attention',
@@ -323,17 +351,36 @@ export const REPLAY_TV_DECISION_LABELS: Record<ReplayTvDecision, string> = {
   review_other: 'Research another asset',
 };
 
-/** Default commit choices — doing nothing (wait / skip) stays first-class. */
+/** Default commit choices — doing nothing stays first-class. */
 export const REPLAY_TV_PRIMARY_DECISIONS: ReplayTvDecision[] = [
-  'research_more',
+  'no_trade',
   'wait',
-  'mark_invalidation',
-  'skip',
-  'review_other',
+  'enter',
+  'reduce',
+  'exit',
+  'research_more',
 ];
 
 export const REPLAY_TV_DECISION_ORDER: ReplayTvDecision[] = [
   ...REPLAY_TV_PRIMARY_DECISIONS,
+  'skip',
   'write_thesis',
   'protect_attention',
+  'mark_invalidation',
+  'review_other',
 ];
+
+export function advanceReplayTvReveal(session: ReplayTvSession, bars = 6): ReplayTvSession {
+  if (!isReplayTvRevealed(session)) return session;
+  const episode = getSessionEpisode(session);
+  const end = episode.revealWindowEndIndex ?? episode.barCount - 1;
+  const current = session.revealCursor ?? currentFreezeIndex(session);
+  return { ...session, revealCursor: Math.min(end, current + bars) };
+}
+
+export function patchReplayTvAnnotations(
+  session: ReplayTvSession,
+  annotations: ReplayTvSession['annotations'],
+): ReplayTvSession {
+  return { ...session, annotations };
+}

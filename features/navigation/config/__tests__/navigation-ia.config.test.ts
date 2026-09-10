@@ -16,7 +16,7 @@ describe('navigation information architecture', () => {
       'Practice',
       'Simulate',
       'Review',
-      'Ask',
+      'Events',
       'You',
     ]);
     expect([
@@ -25,7 +25,7 @@ describe('navigation information architecture', () => {
       IA_GLOSSARY.practice,
       IA_GLOSSARY.simulate,
       IA_GLOSSARY.review,
-      IA_GLOSSARY.ask,
+      IA_GLOSSARY.events,
       IA_GLOSSARY.you,
     ]).toEqual([...PRIMARY_TAB_LABELS]);
   });
@@ -77,6 +77,7 @@ describe('navigation information architecture', () => {
     expect(researchHrefs).toContain('/academy');
     expect(researchHrefs).toContain('/markets');
     expect(researchHrefs).toContain('/search');
+    expect(researchHrefs).toContain('/events');
     expect(researchHrefs).toContain('/ai?source=research');
   });
 
@@ -90,6 +91,7 @@ describe('navigation information architecture', () => {
       practice: '/practice',
       you: '/you',
       ask: '/ai',
+      events: '/events',
     });
     expect(buildLegacyRouteRedirect('/you')).toEqual({ pathname: '/you', params: {} });
     expect(buildLegacyRouteRedirect('/research')).toEqual({ pathname: '/research', params: {} });

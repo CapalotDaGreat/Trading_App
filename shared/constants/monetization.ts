@@ -58,6 +58,8 @@ export const LAUNCH_FEATURE_COMPARISON: readonly FeatureComparisonRow[] = [
   { feature: 'Introductory Academy', free: 'Included', premium: 'Full catalog' },
   { feature: 'Practice drills', free: 'Selected', premium: 'Full' },
   { feature: 'Simulation', free: 'Limited', premium: 'Challenges + history depth' },
+  { feature: 'Market events', free: 'Included', premium: 'Included' },
+  { feature: 'Training plans', free: 'Basic loop', premium: 'Personalized weekly plan' },
   { feature: 'Basic journal', free: 'Included', premium: 'Included' },
   { feature: 'Replay', free: 'Limited', premium: 'Full' },
   { feature: 'AI', free: `${AI_DAILY_LIMIT_FREE}/day`, premium: `~${AI_DAILY_LIMIT_PREMIUM}/day fair use` },

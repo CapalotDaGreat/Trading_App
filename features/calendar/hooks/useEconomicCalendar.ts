@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { create } from 'zustand';
 
 import {
@@ -50,6 +50,9 @@ export function useEconomicCalendar(overrideFilter?: CalendarFilter) {
     queryKey: calendarQueryKey(filter),
     queryFn: () => fetchEconomicCalendar(filter),
     staleTime: 15 * 60 * 1000,
+    gcTime: 24 * 60 * 60 * 1000,
+    placeholderData: keepPreviousData,
+    retry: 1,
   });
 
   const events = query.data ?? [];
@@ -65,8 +68,10 @@ export function useEconomicCalendar(overrideFilter?: CalendarFilter) {
     setCountryFilter,
     clearFilters,
     isLoading: query.isLoading,
+    isFetching: query.isFetching,
     isError: query.isError,
     error: query.error,
+    dataUpdatedAt: query.dataUpdatedAt,
     refetch: query.refetch,
   };
 }

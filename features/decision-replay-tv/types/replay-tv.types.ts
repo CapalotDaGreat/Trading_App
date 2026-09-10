@@ -18,7 +18,12 @@ export type ReplayTvCollectionId =
   | 'patterns'
   | 'volatility'
   | 'failed_setups'
-  | 'patience';
+  | 'patience'
+  | 'recoveries'
+  | 'bull_markets'
+  | 'corrections'
+  | 'employment'
+  | 'sector_rotation';
 
 export type ReplayTvEpisodeKind =
   | 'pattern'
@@ -53,7 +58,10 @@ export type ReplayTvPhase =
   | 'intro'
   | 'context'
   | 'watching'
+  | 'research'
   | 'reasoning'
+  | 'risk'
+  | 'sizing'
   | 'decision'
   | 'mentor'
   | 'reveal'
@@ -61,12 +69,45 @@ export type ReplayTvPhase =
   | 'complete'
   | 'skill';
 
+export type ReplayTvTopic =
+  | 'bull'
+  | 'bear'
+  | 'crash'
+  | 'recovery'
+  | 'bubble'
+  | 'correction'
+  | 'volatility'
+  | 'breakout'
+  | 'failed_breakout'
+  | 'reversal'
+  | 'earnings'
+  | 'macro'
+  | 'rates'
+  | 'inflation'
+  | 'employment'
+  | 'sector_rotation'
+  | 'company';
+
+export type ReplayTvEventKind =
+  | 'earnings'
+  | 'rate_decision'
+  | 'inflation'
+  | 'employment'
+  | 'geopolitical'
+  | 'company'
+  | 'liquidity'
+  | 'none';
+
 /** Process decision at a freeze — never a broker order or buy/sell signal. */
 export type ReplayTvDecision =
   | 'research_more'
   | 'write_thesis'
   | 'wait'
   | 'skip'
+  | 'no_trade'
+  | 'enter'
+  | 'exit'
+  | 'reduce'
   | 'protect_attention'
   | 'mark_invalidation'
   | 'review_other';
@@ -144,6 +185,12 @@ export interface ReplayTvEpisode {
   inactionIsValidProcess?: boolean;
   /** Premium-only when true (advanced library / expert rooms). */
   premiumOnly?: boolean;
+  topics?: ReplayTvTopic[];
+  eventKind?: ReplayTvEventKind;
+  scenarioStartIndex?: number;
+  revealWindowEndIndex?: number;
+  fundamentals?: ReplayTvFundamentalNote[];
+  revealBeats?: ReplayTvRevealBeat[];
 }
 
 export interface ReplayTvCollection {
@@ -167,7 +214,41 @@ export interface ReplayTvReasoning {
   /** Process confidence 1–5 — never a forecast of price direction. */
   confidence: number;
   mainUncertainty: string;
+  why?: string;
+  whatWouldChangeMind?: string;
+  riskAssessment?: string;
+  intendedSize?: string;
+  expectedRisk?: string;
   freeText?: string;
+}
+
+export interface ReplayTvInformationBoundary {
+  scenarioStart: number;
+  decisionTime: number;
+  informationCutoff: number;
+  revealWindowEnd: number;
+}
+
+export interface ReplayTvFundamentalNote {
+  id: string;
+  availableAtIndex: number;
+  label: string;
+  value: string;
+}
+
+export interface ReplayTvRevealBeat {
+  untilIndex: number;
+  whatHappened: string;
+  whyKnown?: string;
+  riskMaterialized?: string;
+}
+
+export interface ReplayTvAnnotation {
+  id: string;
+  type: 'level' | 'measure';
+  price: number;
+  secondPrice?: number;
+  label: string;
 }
 
 export interface ReplayTvCoachNote {
@@ -260,6 +341,9 @@ export interface ReplayTvSession {
   draftReasoning?: ReplayTvReasoning;
   /** Set when the session was restored from persistence after backgrounding or app kill. */
   restoredFromPersist?: boolean;
+  /** Inclusive bar index shown after reveal starts. Future beyond this stays hidden until advanced. */
+  revealCursor?: number;
+  annotations?: ReplayTvAnnotation[];
 }
 
 export interface ReplayTvProgress {

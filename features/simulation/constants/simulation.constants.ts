@@ -1,5 +1,7 @@
-import type { SimulationChallengeConstraints, SimulationAssetType } from '../types/simulation.types';
 import { DEFAULT_DISPLAY_CURRENCY } from '@/shared/constants/currency';
+
+import { FICTIONAL_UNIVERSE } from './fictional-universe';
+import type { SimulationChallengeConstraints, SimulationAssetType } from '../types/simulation.types';
 
 /** Default paper-trading starting cash in major units. Currency is separate. */
 export const DEFAULT_STARTING_BALANCE = 100_000;
@@ -127,7 +129,20 @@ export function challengeById(id: string | undefined): SimulationChallengeConstr
 
 export function isListedSimulationSymbol(symbol: string): boolean {
   const upper = symbol.trim().toUpperCase();
-  return SYNTHETIC_UNIVERSE.some((item) => item.symbol === upper);
+  return (
+    SYNTHETIC_UNIVERSE.some((item) => item.symbol === upper) ||
+    FICTIONAL_UNIVERSE.some((item) => item.symbol === upper)
+  );
+}
+
+export function listedSimulationInstrument(symbol: string):
+  | { symbol: string; name: string; assetType: SimulationAssetType; basePrice: number }
+  | undefined {
+  const upper = symbol.trim().toUpperCase();
+  return (
+    SYNTHETIC_UNIVERSE.find((item) => item.symbol === upper) ??
+    FICTIONAL_UNIVERSE.find((item) => item.symbol === upper)
+  );
 }
 
 export const SIMULATION_EDUCATION_LINKS = [

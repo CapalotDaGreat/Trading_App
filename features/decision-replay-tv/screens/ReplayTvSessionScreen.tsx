@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Pressable, View } from 'react-native';
 
 import { CandlestickChart } from '@/features/charts/components/CandlestickChart';
@@ -8,7 +8,12 @@ import { ReplayTvDecisionChooser } from '@/features/decision-replay-tv/component
 import { ReplayTvLoopStepper } from '@/features/decision-replay-tv/components/ReplayTvLoopStepper';
 import { ReplayTvReasoningForm, emptyReplayTvReasoning } from '@/features/decision-replay-tv/components/ReplayTvReasoningForm';
 import { ReplayTvReportCard } from '@/features/decision-replay-tv/components/ReplayTvReportCard';
+import { ReplayTvReviewPanel } from '@/features/decision-replay-tv/components/ReplayTvReviewPanel';
 import { ReplayTvSkillProgressCard } from '@/features/decision-replay-tv/components/ReplayTvSkillProgressCard';
+import { ReplayTvTapeTools } from '@/features/decision-replay-tv/components/ReplayTvTapeTools';
+import { replayInformationBoundary, visibleFundamentalsAt, visibleRevealBeats } from '@/features/decision-replay-tv/services/replay-tv-boundary.service';
+import { resampleVisibleCandles, type ReplayTapeTimeframe } from '@/features/decision-replay-tv/services/replay-tv-chart-tools.service';
+import { buildReplayLabReview } from '@/features/decision-replay-tv/services/replay-tv-review.service';
 import { useReplayTv } from '@/features/decision-replay-tv/hooks/useReplayTv';
 import { deriveReplayTvSkillProgress } from '@/features/decision-replay-tv/services/replay-tv-skills.service';
 import {
@@ -44,6 +49,8 @@ export function ReplayTvSessionScreen() {
     updateChecklist,
     submitDecision,
     updateDraftReasoning,
+    advanceReveal,
+    updateAnnotations,
     finishSession,
     isFinishing,
     finishError,
@@ -55,6 +62,7 @@ export function ReplayTvSessionScreen() {
     clearActive,
   } = useReplayTv();
   const [reasoning, setReasoning] = useState<ReplayTvReasoning>(() => emptyReplayTvReasoning());
+  const [tapeFrame, setTapeFrame] = useState<ReplayTapeTimeframe>('1d');
 
   useEffect(() => {
     if (!activeSession) {
@@ -106,13 +114,23 @@ export function ReplayTvSessionScreen() {
   const checkpoint = episode.checkpoints[activeSession.checkpointIndex];
   const showChart =
     phase === 'watching' ||
+    phase === 'research' ||
     phase === 'reasoning' ||
+    phase === 'risk' ||
+    phase === 'sizing' ||
     phase === 'decision' ||
     phase === 'mentor' ||
     phase === 'reveal' ||
     phase === 'coaching' ||
     phase === 'complete' ||
     phase === 'skill';
+  const tapeCandles = useMemo(
+    () => resampleVisibleCandles(visibleCandles, tapeFrame),
+    [visibleCandles, tapeFrame],
+  );
+  const boundary = replayInformationBoundary(episode, activeSession);
+  const fundamentals = visibleFundamentalsAt(episode, boundary.informationCutoff);
+  const revealBeats = visibleRevealBeats(episode, boundary.informationCutoff);
   const blind =
     !activeSession.revealed &&
     phase !== 'reveal' &&
@@ -273,15 +291,31 @@ export function ReplayTvSessionScreen() {
               textualAlternative={chartSummary}
             >
               <CandlestickChart
-                candles={visibleCandles}
+                candles={tapeCandles}
                 height={layout.isLandscape ? 320 : 260}
                 symbol={episode.symbolLabel || episode.symbol}
-                intervalLabel={spokenIntervalLabel(episode.interval)}
+                intervalLabel={spokenIntervalLabel(tapeFrame === '1w' ? '1w' : episode.interval)}
                 dataKind={episode.dataKind}
                 extraNote={blind ? 'Future path hidden' : undefined}
+                guideLevels={(activeSession.annotations ?? [])
+                  .filter((item) => item.type === 'level')
+                  .map((item) => item.price)}
                 accessible={false}
               />
             </AccessibleChartFrame>
+            {blind ? (
+              <View className="px-2 pb-2">
+                <Text variant="caption" className="text-text-tertiary">
+                  Cutoff at bar {boundary.informationCutoff}. Decision time {boundary.decisionTime}. Later sessions stay closed.
+                </Text>
+                <ReplayTvTapeTools
+                  candles={visibleCandles}
+                  annotations={activeSession.annotations ?? []}
+                  onAnnotationsChange={updateAnnotations}
+                  onTimeframeChange={setTapeFrame}
+                />
+              </View>
+            ) : null}
           </Surface>
         ) : null}
 
@@ -318,8 +352,36 @@ export function ReplayTvSessionScreen() {
                 ))}
               </View>
             ) : null}
-            <Button className="mt-4" onPress={advancePhase} accessibilityLabel="Continue to reasoning">
-              Write your reasoning
+            <Button className="mt-4" onPress={advancePhase} accessibilityLabel="Continue to research">
+              Continue to research
+            </Button>
+          </Surface>
+        ) : null}
+
+        {phase === 'research' ? (
+          <Surface emphasis="outlined">
+            <Text variant="h3" headingLevel={2}>
+              Research
+            </Text>
+            <Text variant="body-sm" className="mt-2 text-text-secondary">
+              Only information available at this cutoff. Future prints, later headlines, and later
+              fundamentals stay hidden.
+            </Text>
+            {fundamentals.length ? (
+              <View className="mt-3 gap-1">
+                {fundamentals.map((item) => (
+                  <Text key={item.id} variant="caption" className="text-text-tertiary">
+                    {item.label}: {item.value}
+                  </Text>
+                ))}
+              </View>
+            ) : (
+              <Text variant="caption" className="mt-3 text-text-tertiary">
+                No additional fundamental card at this freeze. The tape and visible headlines are the file.
+              </Text>
+            )}
+            <Button className="mt-4" onPress={advancePhase} accessibilityLabel="Continue to thesis">
+              Write the thesis
             </Button>
           </Surface>
         ) : null}
@@ -327,11 +389,11 @@ export function ReplayTvSessionScreen() {
         {phase === 'reasoning' ? (
           <Surface emphasis="outlined">
             <Text variant="h3" headingLevel={2}>
-              Reasoning
+              Thesis
             </Text>
             <Text variant="body-sm" className="mt-2 text-text-secondary">
-              Capture thesis, evidence, invalidation, and uncertainty. Notes stay on-device. Empty
-              fields are allowed — doing nothing is a valid decision.
+              What do you believe, why, and what would change your mind? Empty fields are allowed —
+              no trade is sometimes the strongest process.
             </Text>
             {checkpoint?.hypothesisPrompt ? (
               <Text variant="caption" className="mt-2 text-text-tertiary">
@@ -341,8 +403,42 @@ export function ReplayTvSessionScreen() {
             <View className="mt-4">
               <ReplayTvReasoningForm value={reasoning} onChange={persistReasoning} />
             </View>
-            <Button className="mt-4" onPress={advancePhase} accessibilityLabel="Continue to commit a process decision">
-              Continue to commit
+            <Button className="mt-4" onPress={advancePhase} accessibilityLabel="Continue to risk assessment">
+              Continue to risk
+            </Button>
+          </Surface>
+        ) : null}
+
+        {phase === 'risk' ? (
+          <Surface emphasis="outlined">
+            <Text variant="h3" headingLevel={2}>
+              Risk assessment
+            </Text>
+            <Text variant="body-sm" className="mt-2 text-text-secondary">
+              Name the downside before you name a size. This is not a forecast.
+            </Text>
+            <View className="mt-4">
+              <ReplayTvReasoningForm value={reasoning} onChange={persistReasoning} section="risk" />
+            </View>
+            <Button className="mt-4" onPress={advancePhase} accessibilityLabel="Continue to position sizing">
+              Continue to size
+            </Button>
+          </Surface>
+        ) : null}
+
+        {phase === 'sizing' ? (
+          <Surface emphasis="outlined">
+            <Text variant="h3" headingLevel={2}>
+              Position sizing
+            </Text>
+            <Text variant="body-sm" className="mt-2 text-text-secondary">
+              Size is optional. “No size” is a valid answer when the case does not deserve risk.
+            </Text>
+            <View className="mt-4">
+              <ReplayTvReasoningForm value={reasoning} onChange={persistReasoning} section="sizing" />
+            </View>
+            <Button className="mt-4" onPress={advancePhase} accessibilityLabel="Continue to the process decision">
+              Continue to decide
             </Button>
           </Surface>
         ) : null}
@@ -428,24 +524,37 @@ export function ReplayTvSessionScreen() {
         {phase === 'reveal' ? (
           <Surface emphasis="outlined">
             <Text variant="h3" headingLevel={2}>
-              Outcome
+              Market reveal
             </Text>
             <Text variant="body-sm" className="mt-2 text-text-secondary">
-              What became visible after you committed. This is not a grade, and it is not proof that
-              the process was good or bad.
+              Subsequent behavior, shown in stretches. This is not “you were right.”
             </Text>
-            <Text variant="body" className="mt-3 text-text-secondary">
-              {blindView.historicalOutcome}
-            </Text>
-            <View className="mt-3 gap-2">
-              {blindView.teachingNotes.map((note) => (
-                <Text key={note} variant="body-sm" className="text-text-tertiary">
-                  • {note}
-                </Text>
-              ))}
-            </View>
-            <Button className="mt-4" onPress={advancePhase} accessibilityLabel="Open process coaching">
-              Compare the process
+            {revealBeats.map((beat) => (
+              <View key={beat.untilIndex} className="mt-3">
+                <Text variant="body-sm">{beat.whatHappened}</Text>
+                {beat.whyKnown ? (
+                  <Text variant="caption" className="mt-1 text-text-tertiary">
+                    Why it is known historically: {beat.whyKnown}
+                  </Text>
+                ) : null}
+                {beat.riskMaterialized ? (
+                  <Text variant="caption" className="mt-1 text-text-tertiary">
+                    Risk that showed up: {beat.riskMaterialized}
+                  </Text>
+                ) : null}
+              </View>
+            ))}
+            {blindView.historicalOutcome ? (
+              <Text variant="body" className="mt-3 text-text-secondary">
+                {blindView.historicalOutcome}
+              </Text>
+            ) : (
+              <Button className="mt-4" variant="outline" onPress={advanceReveal}>
+                Reveal the next stretch
+              </Button>
+            )}
+            <Button className="mt-4" onPress={advancePhase} accessibilityLabel="Open process review">
+              Review the process
             </Button>
           </Surface>
         ) : null}
@@ -453,6 +562,13 @@ export function ReplayTvSessionScreen() {
         {phase === 'coaching' && activeSession.scores ? (
           <View className="gap-4">
             <ReplayTvReportCard scores={activeSession.scores} />
+            <ReplayTvReviewPanel
+              review={buildReplayLabReview({
+                episode,
+                session: activeSession,
+                scores: activeSession.scores,
+              })}
+            />
             <Surface emphasis="outlined">
               <Text variant="h3" headingLevel={2}>
                 Coaching
@@ -573,6 +689,15 @@ export function ReplayTvSessionScreen() {
                 Next practice: {nextPractice.skill.label}
               </Text>
             )}
+            <View className="mt-4">
+              <ReplayTvReviewPanel
+                review={buildReplayLabReview({
+                  episode,
+                  session: activeSession,
+                  scores: activeSession.scores,
+                })}
+              />
+            </View>
             <View className="mt-4 gap-2">
               <Button variant="outline" onPress={() => router.push('/decision/passport' as never)}>
                 Decision Passport

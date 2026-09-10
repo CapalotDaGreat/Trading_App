@@ -74,6 +74,9 @@ function mapCategory(title: string): EventCategory {
   if (lower.includes('rate') || lower.includes('fomc') || lower.includes('fed')) {
     return 'interest_rate';
   }
+  if (lower.includes('earnings') || lower.includes('eps')) {
+    return 'other';
+  }
   if (lower.includes('pmi') || lower.includes('manufacturing') || lower.includes('industrial')) {
     return 'manufacturing';
   }
@@ -139,6 +142,31 @@ function getMockEvents(from: number, to: number): EconomicEvent[] {
       forecast: '0.2%',
       previous: '0.1%',
       scheduledAt: from + 48 * 60 * 60 * 1000,
+      source: 'mock',
+    },
+    {
+      id: 'us-fomc',
+      title: 'FOMC rate decision',
+      country: 'United States',
+      countryCode: 'US',
+      category: 'interest_rate',
+      impact: 'high',
+      forecast: 'Hold',
+      previous: 'Hold',
+      scheduledAt: from + 4 * 24 * 60 * 60 * 1000,
+      source: 'mock',
+    },
+    {
+      id: 'us-retail-released',
+      title: 'Retail Sales m/m',
+      country: 'United States',
+      countryCode: 'US',
+      category: 'consumer',
+      impact: 'medium',
+      forecast: '0.4%',
+      previous: '0.3%',
+      actual: '0.3%',
+      scheduledAt: from + 6 * 60 * 60 * 1000,
       source: 'mock',
     },
   ];

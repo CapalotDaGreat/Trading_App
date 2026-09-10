@@ -250,16 +250,77 @@ export const DECISION_LESSONS: Lesson[] = [
     sortOrder: 4,
     isPremium: false,
     tags: ['invalidation', 'risk', 'process'],
-    relatedLessonIds: ['dec-setup-quality', 'risk-position-sizing', 'ta-structure'],
+    relatedLessonIds: ['dec-setup-quality', 'risk-position-sizing', 'ta-structure', 'risk-stops'],
+    conceptIds: ['invalidation', 'thesis'],
+    learningObjectives: [
+      'Write a thesis-killer in price, time, or condition before you care about a target.',
+      'Refuse a tighter stop that structure does not support.',
+      'Treat a hit invalidation as an exit-and-review job, not a debate.',
+    ],
+    whyItMatters:
+      'Targets are optional. Invalidation is how you know the idea is false. Without it, size is theater and review has nothing to grade.',
+    practicalExamples: [
+      'Long “buyers defend this zone”: invalidation is acceptance below the zone, then size to that distance.',
+      'Time stop: if the idea has not worked in N sessions, the premise is stale even if price has not exploded against you.',
+      'Event invalidation: you held for “no surprise hike” and the hike prints. The thesis is done — not “give it room”.',
+    ],
+    limitations: [
+      'A stop can gap. Invalidation is the claim, not a guaranteed fill at that print.',
+      'One red candle is not automatically invalidation. Your written condition is.',
+      'This lesson does not pick levels for you. It trains the habit of naming the killer.',
+    ],
+    commonMistakes: [
+      'Placing a stop where the loss “feels OK” instead of where the thesis dies.',
+      'Moving the stop farther after entry because you still like the story.',
+      'Calling every dip “noise” until the account decides for you.',
+    ],
+    whenItWorks: ['You can say, in one sentence, what would prove you wrong — and you would actually exit.'],
+    whenItFails: [
+      'When the thesis was never written, so every stop is arbitrary.',
+      'When you negotiate after the condition hits.',
+    ],
+    educationalCharts: [
+      {
+        id: 'invalidation-zone',
+        kind: 'support_resistance',
+        title: 'Invalidation lives relative to a claim',
+        caption: 'Educational zone. A stop inside the zone is often noise. Acceptance beyond it is a different claim.',
+      },
+    ],
+    exercises: [
+      {
+        id: 'ex-inval-compare',
+        kind: 'compare',
+        prompt: 'Which sentence is an invalidation, not a hope?',
+        leftLabel: 'I will get out if it feels uncomfortable',
+        rightLabel: 'Acceptance below this zone means buyers failed; I exit and review',
+        correctIndex: 1,
+        explanation: 'Feelings arrive late. A written condition can be checked on the tape.',
+        conceptId: 'invalidation',
+        askEvidence: true,
+      },
+    ],
     practiceLinks: [
       { label: 'Chart Replay', href: '/decision/replay' },
       {
         label: 'Decision Replay TV',
         href: '/decision/replay-tv',
-        description: 'Name invalidation on a blind historical tape',
+        description: 'Name invalidation on a blind historical tape. Outcome is not the sole score.',
       },
-      { label: 'Pre-trade checklist', href: '/academy' },
+      {
+        label: 'Risk/reward sketch',
+        href: '/practice?drill=rr-compare',
+        description: 'You cannot size until the killer level is named.',
+      },
     ],
+    simulationLinks: [
+      {
+        label: 'Paper trade with a written killer',
+        href: '/simulate?start=1',
+        description: 'No invalidation ⇒ no honest size. Simulated P/L does not grade the decision.',
+      },
+    ],
+    journalHref: '/journal?from=academy&notes=Invalidation%3A',
     sections: [
       {
         heading: 'Invalidation is part of the thesis',
@@ -299,6 +360,13 @@ export const DECISION_LESSONS: Lesson[] = [
         ],
         correctIndex: 1,
         explanation: 'Invalidation is thesis-linked, not cosmetic price noise.',
+        conceptId: 'invalidation',
+        choiceExplanations: [
+          'A target is where you hope to be right. Invalidation is where you are wrong.',
+          'If this condition prints, the premise is false — exit is the job.',
+          'Color is not a thesis. Structure and time can be.',
+          'Margin is a broker event, not your idea’s funeral.',
+        ],
       },
       {
         id: 'q2',
@@ -311,6 +379,13 @@ export const DECISION_LESSONS: Lesson[] = [
         ],
         correctIndex: 1,
         explanation: 'Structure and risk rules beat forced participation.',
+        conceptId: 'invalidation',
+        choiceExplanations: [
+          'A tighter stop that structure cannot support is a fake risk number.',
+          'If the killer is too far for the budget, you do not have a trade today.',
+          'No stop converts a defined claim into an argument.',
+          'Averaging down to be right is the opposite of honoring invalidation.',
+        ],
       },
     ],
   }),

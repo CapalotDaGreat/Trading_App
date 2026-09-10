@@ -26,7 +26,7 @@ Engine: `features/simulation/services/simulation-engine.service.ts` (pure functi
 
 ## Prices
 
-`SimulationPriceProvider` / `syntheticSimulationPriceProvider` — deterministic synthetic quotes. **Does not import Finnhub.** App-wide market-data default is also synthetic (`getMarketDataRuntimeMode()`), labelled `sample` / provider `synthetic`. Licensed historical adapters can implement the same interface later. Do not assume historical data is free to redistribute.
+New books use a **structured scenario path** (`engineVersion: 2`) generated from an internal seed — see `docs/TRADEACADEMY_SIMULATION_ENGINE.md`. Quotes come from the visible clock only. Fallback `syntheticSimulationPriceProvider` remains for books without a scenario. **Does not import Finnhub.** Labelled `sample` / provider `synthetic`.
 
 ## Modes and challenges
 

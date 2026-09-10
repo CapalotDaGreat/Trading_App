@@ -5,6 +5,7 @@ import { CLASSIC_LESSONS } from './classic-lessons';
 import { DECISION_LESSONS } from './decision-lessons';
 import { FLAGSHIP_LESSONS } from './flagship-lessons';
 import { FLAGSHIP_PROCESS_LESSONS } from './flagship-process-lessons';
+import { READINESS_LESSONS } from './readiness-lessons';
 import { DEFAULT_CHECKLISTS, LEARNING_PATHS } from './paths-and-checklists';
 
 const DEFAULT_PRACTICE: PracticeLink = {
@@ -44,6 +45,7 @@ export const ALL_LESSONS: Lesson[] = [
   ...CHART_LESSONS,
   ...FLAGSHIP_LESSONS,
   ...FLAGSHIP_PROCESS_LESSONS,
+  ...READINESS_LESSONS,
 ]
   .map(ensureAcademyLoop)
   .sort((a, b) => a.sortOrder - b.sortOrder || a.title.localeCompare(b.title));

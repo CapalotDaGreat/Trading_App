@@ -21,6 +21,8 @@ interface CandlestickChartProps {
   intervalLabel?: string;
   dataKind?: string;
   extraNote?: string;
+  /** Horizontal guides (support/resistance). Drawn on the visible window only. */
+  guideLevels?: number[];
   /** Set false when nested inside AccessibleChartFrame to avoid duplicate image roles. */
   accessible?: boolean;
 }
@@ -110,6 +112,7 @@ export function CandlestickChart({
   intervalLabel,
   dataKind,
   extraNote,
+  guideLevels,
   accessible = true,
 }: CandlestickChartProps) {
   const { colors } = useTheme();
@@ -217,6 +220,26 @@ export function CandlestickChart({
                   {formatPrice(price, currency, { decimals: 2 })}
                 </SvgText>
               </G>
+            );
+          })}
+
+          {(guideLevels ?? []).map((price, i) => {
+            if (price < minPrice || price > maxPrice) return null;
+            const y =
+              CHART_PADDING.top +
+              chartHeight -
+              ((price - minPrice) / (maxPrice - minPrice || 1)) * chartHeight;
+            return (
+              <Line
+                key={`guide-${i}`}
+                x1={CHART_PADDING.left}
+                y1={y}
+                x2={dimensions.width - CHART_PADDING.right}
+                y2={y}
+                stroke={colors.accent.primary}
+                strokeWidth={1}
+                strokeDasharray="6,4"
+              />
             );
           })}
 

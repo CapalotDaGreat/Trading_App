@@ -1,4 +1,5 @@
 import { DEFAULT_SIMULATION_CURRENCY, SYNTHETIC_UNIVERSE } from '../constants/simulation.constants';
+import type { SimulationScenario } from '../types/scenario.types';
 import type {
   SimulationAccount,
   SimulationAssetType,
@@ -198,6 +199,44 @@ export function migrateSimulationAccount(raw: Record<string, unknown>): Simulati
     challengeId: typeof raw.challengeId === 'string' ? raw.challengeId : undefined,
     lastChallengeViolation:
       typeof raw.lastChallengeViolation === 'string' ? raw.lastChallengeViolation : undefined,
+    scenario: migrateScenario(raw.scenario),
+  };
+}
+
+function migrateScenario(raw: unknown): SimulationScenario | undefined {
+  if (!raw || typeof raw !== 'object') return undefined;
+  const value = raw as SimulationScenario;
+  if (typeof value.seed !== 'number' || !value.id || !Array.isArray(value.events)) return undefined;
+  return {
+    ...value,
+    engineVersion: value.engineVersion === 2 ? 2 : 1,
+    segments: Array.isArray(value.segments) ? value.segments : [],
+    climate: value.climate ?? { macro: 'uncertain', sentiment: 'mixed', liquidity: 'normal' },
+    friction: value.friction ?? { spreadBps: 4, slippageBps: 3, feeBps: 2, gapRisk: 0.15, executionUncertainty: 0.18 },
+    decisionWindows: Array.isArray(value.decisionWindows) ? value.decisionWindows : [],
+    paths: value.paths && typeof value.paths === 'object' ? value.paths : {},
+    marketPath: Array.isArray(value.marketPath) ? value.marketPath : [],
+    horizonDays: value.horizonDays ?? 32,
+    clockMode: value.clockMode ?? 'normal',
+    complexity: {
+      volatility: value.complexity?.volatility ?? 0.5,
+      informationFriction: value.complexity?.informationFriction ?? 0.45,
+      assetCount: value.complexity?.assetCount ?? value.assets?.length ?? 4,
+      eventCount: value.complexity?.eventCount ?? value.events.length,
+      regimeUncertainty: value.complexity?.regimeUncertainty ?? 0.35,
+      timePressure: value.complexity?.timePressure ?? 0.4,
+      psychologicalPressure: value.complexity?.psychologicalPressure ?? 0.35,
+      incompleteInformation: value.complexity?.incompleteInformation ?? 0.45,
+    },
+    assets: (value.assets ?? []).map((asset) => ({
+      ...asset,
+      name: asset.name ?? asset.symbol,
+      sector: asset.sector ?? 'index',
+      beta: asset.beta ?? 1,
+      liquidity: asset.liquidity ?? 0.7,
+      meanReversion: asset.meanReversion ?? 0.2,
+      momentumBias: asset.momentumBias ?? 0,
+    })),
   };
 }
 

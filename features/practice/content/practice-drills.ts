@@ -198,6 +198,53 @@ export const PRACTICE_DRILLS: PracticeDrill[] = [
       'Quote is dollars per euro. 11,000 / 1.10 = 10,000 euros. Conversion literacy is not a buy/sell instruction.',
     whyItMatters: 'If you cannot convert units, you cannot size an FX pair in a USD book.',
   },
+  {
+    id: 'inflation-asset-effects',
+    title: 'Inflation surprise — asset classes',
+    prompt:
+      'A fictional inflation print surprises versus a consensus guess. Which description is the educational mapping — not a prediction of any real release?',
+    skill: 'decision',
+    topic: 'fundamentals',
+    difficulty: 'intermediate',
+    estimatedMinutes: 5,
+    isPremium: false,
+    lessonId: 'fund-calendar',
+    simulateHref: '/simulate?start=1&prep=inflation',
+    choices: [
+      'Hotter-than-guess inflation can lift real-yield pressure and often hits long-duration growth first; cooler can do the reverse — first ticks still fail',
+      'Always buy gold and sell the index when CPI prints, because that is guaranteed',
+      'The print does not matter if you already have a chart pattern',
+      'You should short the currency of the country releasing the data, every time',
+    ],
+    correctIndex: 0,
+    explanation:
+      'The skill is mapping channels (real yields, policy odds, duration) without predicting this month’s number. First reactions fade. Simulated P/L would not grade the map.',
+    whyItMatters:
+      'Upcoming CPI is a reason to practice uncertainty — not to guess the print or issue a buy/sell call.',
+  },
+  {
+    id: 'rate-decision-uncertainty',
+    title: 'Rate Surprise Exercise',
+    prompt:
+      'A fictional committee decision is due in two sessions. The path of rates is unknown. Which process is sound?',
+    skill: 'risk',
+    topic: 'decision_making',
+    difficulty: 'intermediate',
+    estimatedMinutes: 5,
+    isPremium: false,
+    lessonId: 'fund-economy',
+    simulateHref: '/simulate?start=1&prep=rates',
+    choices: [
+      'Decide the hike now and triple size because you are sure',
+      'Name event risk, cut or skip size if you lack a playbook, and write what would invalidate each path',
+      'Turn stops off so you are not shaken out by the statement',
+      'Copy last year’s reaction and treat it as the next outcome',
+    ],
+    correctIndex: 1,
+    explanation:
+      'Possible fictional outcomes include higher than expected, lower, exactly expected, or mixed interpretation. Adaptation is the lesson. The real meeting is not being predicted.',
+    whyItMatters: 'Rate days teach preparation and size, not a signal for the actual decision.',
+  },
 ];
 
 export function getPracticeDrill(id: string): PracticeDrill | undefined {

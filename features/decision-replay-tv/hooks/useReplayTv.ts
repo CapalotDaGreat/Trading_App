@@ -44,6 +44,8 @@ export function useReplayTv() {
   const updateChecklist = useReplayTvStore((s) => s.updateChecklist);
   const submitDecision = useReplayTvStore((s) => s.submitDecision);
   const updateDraftReasoning = useReplayTvStore((s) => s.updateDraftReasoning);
+  const advanceReveal = useReplayTvStore((s) => s.advanceReveal);
+  const updateAnnotations = useReplayTvStore((s) => s.updateAnnotations);
   const markComplete = useReplayTvStore((s) => s.markComplete);
   const clearActive = useReplayTvStore((s) => s.clearActive);
   const recordPassport = useDecisionPassportStore((s) => s.recordSimulatorResult);
@@ -213,6 +215,8 @@ export function useReplayTv() {
     journalError: saveJournalMutation.error,
     nextPractice,
     updateDraftReasoning,
+    advanceReveal,
+    updateAnnotations,
     clearActive: () => {
       const session = useReplayTvStore.getState().activeSession;
       if (session && session.phase !== 'complete' && session.phase !== 'skill') {

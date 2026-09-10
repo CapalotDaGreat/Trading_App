@@ -17,6 +17,16 @@ import {
   resetSimulationAccount,
 } from '../services/simulation-engine.service';
 import { migrateSimulationPersist } from '../services/simulation-persist.service';
+import { inferScenarioFocus } from '../services/scenario-adaptation.service';
+import { applyExecutionFriction } from '../services/scenario-friction.service';
+import {
+  generateSimulationScenario,
+  advanceScenarioClock,
+  advanceToNextInformation,
+  answerDecisionWindow,
+} from '../services/scenario-generator.service';
+import { createScenarioPriceProvider } from '../services/scenario-path.service';
+import type { ScenarioDecisionOption, ScenarioStartOptions } from '../types/scenario.types';
 import { syntheticSimulationPriceProvider } from '../services/synthetic-market.service';
 import type {
   SimulationAccount,
@@ -44,6 +54,7 @@ interface SimulationState {
     mode?: SimulationMode,
     challengeId?: string,
     currency?: string,
+    options?: ScenarioStartOptions,
   ) => SimulationAccount;
   accountFor: (userId: string) => SimulationAccount | undefined;
   archivesFor: (userId: string) => SimulationAccount[];
@@ -65,12 +76,54 @@ interface SimulationState {
   ) => SimulationResult<SimulationAccount>;
   recordCloseReview: (userId: string, decisionId: string, review: SimulationCloseReview) => SimulationAccount;
   refreshPrices: (userId: string, nowMs?: number) => SimulationAccount;
-  reset: (userId: string, mode?: SimulationMode, challengeId?: string, currency?: string) => SimulationAccount;
+  reset: (
+    userId: string,
+    mode?: SimulationMode,
+    challengeId?: string,
+    currency?: string,
+    options?: ScenarioStartOptions,
+  ) => SimulationAccount;
+  advanceClock: (userId: string) => SimulationAccount;
+  advanceToNextInformation: (userId: string) => SimulationAccount;
+  answerDecision: (
+    userId: string,
+    windowId: string,
+    option: ScenarioDecisionOption,
+    reasoning?: string,
+  ) => SimulationAccount;
 }
 
-function resolvePrice(input: Omit<SimulationTradeInput, 'price'> & { price?: number }): number | undefined {
-  if (input.price != null) return input.price;
-  return priceProvider.getQuote(input.symbol)?.price;
+function nextScenario(
+  userId: string,
+  mode: SimulationMode,
+  prior?: SimulationAccount,
+  options?: ScenarioStartOptions,
+): ReturnType<typeof generateSimulationScenario> {
+  return generateSimulationScenario({
+    userId,
+    mode,
+    focus: options?.focus ?? inferScenarioFocus(prior),
+    preferredEventKind: options?.preferredEventKind,
+  });
+}
+
+function resolveFill(
+  account: SimulationAccount,
+  input: Omit<SimulationTradeInput, 'price'> & { price?: number },
+  side: 'buy' | 'sell',
+): { price: number; fees?: number } | undefined {
+  if (input.price != null) return { price: input.price, fees: input.fees };
+  const provider = account.scenario ? createScenarioPriceProvider(account.scenario) : priceProvider;
+  const mid = provider.getQuote(input.symbol)?.price;
+  if (mid == null) return undefined;
+  if (!account.scenario) return { price: mid, fees: input.fees };
+  return applyExecutionFriction({
+    mid,
+    side,
+    scenario: account.scenario,
+    symbol: input.symbol.toUpperCase(),
+    notional: mid * input.quantity,
+  });
 }
 
 function writeLive(
@@ -93,9 +146,17 @@ export const useSimulationStore = create<SimulationState>()(
     (set, get) => ({
       accountsByUser: {},
       archivesByUser: {},
-      ensureAccount: (userId, mode = 'standard', challengeId, currency) => {
+      ensureAccount: (userId, mode = 'standard', challengeId, currency, options) => {
         const existing = get().accountsByUser[userId];
-        if (existing && existing.status !== 'archived') return existing;
+        if (existing && existing.status !== 'archived') {
+          if (!existing.scenario) {
+            return writeLive(set, get, userId, {
+              ...existing,
+              scenario: nextScenario(userId, existing.mode, existing, options),
+            });
+          }
+          return existing;
+        }
         if (existing?.status === 'archived') {
           set({ archivesByUser: pushArchive(get, userId, existing) });
         }
@@ -105,6 +166,7 @@ export const useSimulationStore = create<SimulationState>()(
           startingBalance: DEFAULT_STARTING_BALANCE,
           challengeId,
           currency: currency ?? getDisplayCurrency(),
+          scenario: nextScenario(userId, mode, get().archivesByUser[userId]?.at(-1), options),
         });
         return writeLive(set, get, userId, created);
       },
@@ -112,37 +174,37 @@ export const useSimulationStore = create<SimulationState>()(
       archivesFor: (userId) => get().archivesByUser[userId] ?? [],
       previewBuy: (userId, input) => {
         const account = get().ensureAccount(userId);
-        const price = resolvePrice(input);
-        if (price == null) {
+        const fill = resolveFill(account, input, 'buy');
+        if (fill == null) {
           return { ok: false, code: 'invalid_symbol', message: 'Choose a listed simulated instrument.' };
         }
-        return previewBuy(account, { ...input, price });
+        return previewBuy(account, { ...input, price: fill.price, fees: fill.fees ?? input.fees });
       },
       previewSell: (userId, input) => {
         const account = get().ensureAccount(userId);
-        const price = resolvePrice(input);
-        if (price == null) {
+        const fill = resolveFill(account, input, 'sell');
+        if (fill == null) {
           return { ok: false, code: 'invalid_symbol', message: 'Choose a listed simulated instrument.' };
         }
-        return previewSell(account, { ...input, price });
+        return previewSell(account, { ...input, price: fill.price, fees: fill.fees ?? input.fees });
       },
       buy: (userId, input) => {
         const account = get().ensureAccount(userId);
-        const price = resolvePrice(input);
-        if (price == null) {
+        const fill = resolveFill(account, input, 'buy');
+        if (fill == null) {
           return { ok: false, code: 'invalid_symbol', message: 'Choose a listed simulated instrument.' };
         }
-        const result = executeBuy(account, { ...input, price });
+        const result = executeBuy(account, { ...input, price: fill.price, fees: fill.fees ?? input.fees });
         if (result.ok) writeLive(set, get, userId, result.value);
         return result;
       },
       sell: (userId, input) => {
         const account = get().ensureAccount(userId);
-        const price = resolvePrice(input);
-        if (price == null) {
+        const fill = resolveFill(account, input, 'sell');
+        if (fill == null) {
           return { ok: false, code: 'invalid_symbol', message: 'Choose a listed simulated instrument.' };
         }
-        const result = executeSell(account, { ...input, price });
+        const result = executeSell(account, { ...input, price: fill.price, fees: fill.fees ?? input.fees });
         if (result.ok) writeLive(set, get, userId, result.value);
         return result;
       },
@@ -152,19 +214,59 @@ export const useSimulationStore = create<SimulationState>()(
       },
       refreshPrices: (userId, nowMs = Date.now()) => {
         const account = get().ensureAccount(userId);
+        const provider = account.scenario ? createScenarioPriceProvider(account.scenario) : priceProvider;
         const prices: Record<string, number> = {};
         for (const position of account.positions) {
-          const quote = priceProvider.getQuote(position.symbol, nowMs);
+          const quote = provider.getQuote(position.symbol, nowMs);
           if (quote) prices[position.symbol] = quote.price;
         }
         return writeLive(set, get, userId, markToMarket(account, prices, new Date(nowMs).toISOString()));
       },
-      reset: (userId, mode, challengeId, currency) => {
-        const account = get().ensureAccount(userId, mode, challengeId, currency);
+      advanceClock: (userId) => {
+        const account = get().ensureAccount(userId);
+        if (!account.scenario) return account;
+        const scenario = advanceScenarioClock(account.scenario, 1);
+        const provider = createScenarioPriceProvider(scenario);
+        const prices: Record<string, number> = {};
+        for (const position of account.positions) {
+          const quote = provider.getQuote(position.symbol);
+          if (quote) prices[position.symbol] = quote.price;
+        }
+        return writeLive(
+          set,
+          get,
+          userId,
+          markToMarket({ ...account, scenario }, prices),
+        );
+      },
+      advanceToNextInformation: (userId) => {
+        const account = get().ensureAccount(userId);
+        if (!account.scenario) return account;
+        const scenario = advanceToNextInformation(account.scenario);
+        const provider = createScenarioPriceProvider(scenario);
+        const prices: Record<string, number> = {};
+        for (const position of account.positions) {
+          const quote = provider.getQuote(position.symbol);
+          if (quote) prices[position.symbol] = quote.price;
+        }
+        return writeLive(set, get, userId, markToMarket({ ...account, scenario }, prices));
+      },
+      answerDecision: (userId, windowId, option, reasoning) => {
+        const account = get().ensureAccount(userId);
+        if (!account.scenario) return account;
+        return writeLive(set, get, userId, {
+          ...account,
+          scenario: answerDecisionWindow(account.scenario, windowId, option, reasoning),
+        });
+      },
+      reset: (userId, mode, challengeId, currency, options) => {
+        const account = get().ensureAccount(userId, mode, challengeId, currency, options);
+        const nextMode = mode ?? account.mode;
         const { archived, next } = resetSimulationAccount(account, {
-          mode: mode ?? account.mode,
+          mode: nextMode,
           challengeId: challengeId ?? account.challengeId,
           currency: currency ?? getDisplayCurrency(),
+          scenario: nextScenario(userId, nextMode, account, options),
         });
         const alreadyArchived = archived.status === 'archived' ? archived : archiveSimulationAccount(archived);
         set({
@@ -177,7 +279,7 @@ export const useSimulationStore = create<SimulationState>()(
     {
       name: 'tradevision-simulation-v1',
       storage: createPersistedStorage(),
-      version: 2,
+      version: 3,
       partialize: (state) => ({
         accountsByUser: state.accountsByUser,
         archivesByUser: state.archivesByUser,

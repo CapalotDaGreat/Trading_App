@@ -1,4 +1,8 @@
-import { DEFAULT_SIMULATION_CURRENCY, SYNTHETIC_UNIVERSE } from '../constants/simulation.constants';
+import {
+  DEFAULT_SIMULATION_CURRENCY,
+  SYNTHETIC_UNIVERSE,
+  listedSimulationInstrument,
+} from '../constants/simulation.constants';
 import { parseFxPair, quoteCurrencyFor } from './fx-conversion.service';
 import { toMajor, toMinor } from './simulation-money.service';
 import type { SimulationPriceProvider, SimulationQuote } from '../types/simulation.types';
@@ -64,5 +68,9 @@ export const syntheticSimulationDataProvider = syntheticSimulationPriceProvider;
 
 export function listedSyntheticName(symbol: string): string {
   const upper = symbol.toUpperCase();
-  return SYNTHETIC_UNIVERSE.find((item) => item.symbol === upper)?.name ?? `${upper} (synthetic)`;
+  return (
+    SYNTHETIC_UNIVERSE.find((item) => item.symbol === upper)?.name ??
+    listedSimulationInstrument(upper)?.name ??
+    `${upper} (synthetic)`
+  );
 }

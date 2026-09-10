@@ -138,6 +138,11 @@ export function rankReplayTvEpisodes(
           value += 3;
         }
       }
+      if (/breakout|confirmation/.test(struggles)) {
+        if (ep.collectionIds.includes('false_breakouts') || ep.collectionIds.includes('patterns')) {
+          value += 6;
+        }
+      }
 
       value += growthEdgeBoost(ep, growthEdges);
       value += practiceTraitBoost(ep, practiceTraitId);

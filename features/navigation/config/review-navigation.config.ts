@@ -61,6 +61,7 @@ export const COLD_DEEP_LINK_FALLBACKS = {
   practice: '/practice',
   you: '/you',
   ask: '/ai',
+  events: '/events',
 } as const;
 
 export function buildLegacyReplayRedirect(params: RouteParams = {}) {

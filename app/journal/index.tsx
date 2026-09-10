@@ -45,10 +45,12 @@ const JOURNAL_FILTERS: Array<{ value: JournalQuickFilter; label: string }> = [
 
 export default function JournalScreen() {
   const router = useRouter();
-  const { symbol, from } = useLocalSearchParams<{ symbol?: string; from?: string }>();
+  const { symbol, from, notes } = useLocalSearchParams<{ symbol?: string; from?: string; notes?: string }>();
+  const fromParam = typeof from === 'string' ? from : Array.isArray(from) ? from[0] : undefined;
+  const notesParam = typeof notes === 'string' ? notes : Array.isArray(notes) ? notes[0] : undefined;
   const [tab, setTab] = useState<JournalHubTab>('timeline');
   const [showReflectionForm, setShowReflectionForm] = useState(
-    from === 'onboarding' || from === 'simulate',
+    fromParam === 'onboarding' || fromParam === 'simulate' || fromParam === 'academy' || Boolean(notesParam),
   );
   const [journalQuery, setJournalQuery] = useState(symbol ?? '');
   const [journalFilter, setJournalFilter] = useState<JournalQuickFilter>('all');
@@ -90,7 +92,7 @@ export default function JournalScreen() {
           </Text>
         ) : null}
 
-        {from === 'onboarding' ? (
+        {fromParam === 'onboarding' ? (
           <Surface padding="sm" tone="info" testID="journal-onboarding-context">
             <Text variant="label">Close your first decision loop</Text>
             <Text variant="body-sm" className="mt-1 text-text-secondary">
@@ -100,7 +102,7 @@ export default function JournalScreen() {
           </Surface>
         ) : null}
 
-        {from === 'simulate' ? (
+        {fromParam === 'simulate' ? (
           <Surface padding="sm" tone="info" testID="journal-simulate-context">
             <Text variant="label">Review the simulated trade</Text>
             <Text variant="body-sm" className="mt-1 text-text-secondary">
@@ -119,10 +121,11 @@ export default function JournalScreen() {
             </Text>
             <JournalForm
               initialSymbol={symbol}
+              initialNotes={notesParam}
               onSubmit={async (input) => {
                 await createEntry(input);
                 setShowReflectionForm(false);
-                if (from === 'onboarding') {
+                if (fromParam === 'onboarding') {
                   router.replace(
                     `/onboarding?journaled=1&symbol=${encodeURIComponent(input.symbol)}` as never,
                   );

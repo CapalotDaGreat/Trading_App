@@ -3,7 +3,9 @@ import { persist } from 'zustand/middleware';
 
 import {
   advanceReplayTvPhase,
+  advanceReplayTvReveal,
   createReplayTvSession,
+  patchReplayTvAnnotations,
   patchReplayTvChecklist,
   patchReplayTvDraftReasoning,
   rehydrateReplayTvSession,
@@ -11,6 +13,7 @@ import {
   submitReplayTvDecision,
 } from '@/features/decision-replay-tv/services/replay-tv-session.service';
 import type {
+  ReplayTvAnnotation,
   ReplayTvChecklist,
   ReplayTvCollectionId,
   ReplayTvDecision,
@@ -51,6 +54,8 @@ interface ReplayTvState {
   updateChecklist: (patch: Partial<ReplayTvChecklist>) => void;
   submitDecision: (decision: ReplayTvDecision, reasoning: string, structured?: ReplayTvReasoning) => void;
   updateDraftReasoning: (draft: ReplayTvReasoning) => void;
+  advanceReveal: () => void;
+  updateAnnotations: (annotations: ReplayTvAnnotation[]) => void;
   markComplete: (input: {
     episodeId: string;
     collectionIds: ReplayTvCollectionId[];
@@ -113,6 +118,16 @@ export const useReplayTvStore = create<ReplayTvState>()(
         const active = get().activeSession;
         if (!active) return;
         set({ activeSession: patchReplayTvDraftReasoning(active, draft) });
+      },
+      advanceReveal: () => {
+        const active = get().activeSession;
+        if (!active) return;
+        set({ activeSession: advanceReplayTvReveal(active) });
+      },
+      updateAnnotations: (annotations) => {
+        const active = get().activeSession;
+        if (!active) return;
+        set({ activeSession: patchReplayTvAnnotations(active, annotations) });
       },
       markComplete: ({ episodeId, collectionIds, processScore }) => {
         const prev = get().progress;

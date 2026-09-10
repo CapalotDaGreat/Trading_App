@@ -10,12 +10,14 @@ import { SimulationDisclaimer } from '@/features/simulation/components/Simulatio
 import { SimulationEducationLinks } from '@/features/simulation/components/SimulationEducationLinks';
 import { SimulationPositionList } from '@/features/simulation/components/SimulationPositionList';
 import { SimulationResetPanel } from '@/features/simulation/components/SimulationResetPanel';
+import { SimulationScenarioPanel } from '@/features/simulation/components/SimulationScenarioPanel';
 import { SimulationSummary } from '@/features/simulation/components/SimulationSummary';
 import { SimulationTradeTicket } from '@/features/simulation/components/SimulationTradeTicket';
 import { SimulationTransactionList } from '@/features/simulation/components/SimulationTransactionList';
 import { SELECTABLE_CHALLENGES } from '@/features/simulation/constants/simulation.constants';
 import { useSimulation } from '@/features/simulation/hooks/useSimulation';
 import { resetSnapshot } from '@/features/simulation/services/simulation-engine.service';
+import type { ScenarioEventKind, ScenarioStartOptions } from '@/features/simulation/types/scenario.types';
 import type {
   SimulationCloseReview,
   SimulationMode,
@@ -38,9 +40,30 @@ const MODE_OPTIONS: { value: SimulationMode; label: string }[] = [
   { value: 'challenge', label: 'Challenge' },
 ];
 
+const PREP_EVENT_KIND: Record<string, ScenarioEventKind> = {
+  rates: 'rate_decision',
+  inflation: 'inflation',
+  employment: 'employment',
+  earnings: 'earnings',
+  macro: 'rate_decision',
+};
+
+const PREP_LABEL: Record<string, string> = {
+  rates: 'an uncertain rate decision',
+  inflation: 'a fictional inflation print',
+  employment: 'a fictional labor report',
+  earnings: 'a fictional company report',
+  macro: 'an uncertain macro event',
+};
+
+function eventPrepOptions(prep?: string): ScenarioStartOptions | undefined {
+  if (!prep || !PREP_EVENT_KIND[prep]) return undefined;
+  return { focus: 'event_adaptation', preferredEventKind: PREP_EVENT_KIND[prep] };
+}
+
 export default function SimulateScreen() {
   const router = useRouter();
-  const { start: startParam } = useLocalSearchParams<{ start?: string }>();
+  const { start: startParam, prep: prepParam } = useLocalSearchParams<{ start?: string; prep?: string }>();
   const {
     account,
     archives,
@@ -53,6 +76,9 @@ export default function SimulateScreen() {
     recordCloseReview,
     refresh,
     reset,
+    advanceClock,
+    advanceToNextInformation,
+    answerDecision,
     displayCurrency,
     start,
   } = useSimulation();
@@ -62,15 +88,24 @@ export default function SimulateScreen() {
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    if (startParam === '1' && !account) start();
-  }, [account, start, startParam]);
+    if (startParam === '1' && !account) start(eventPrepOptions(prepParam));
+  }, [account, prepParam, start, startParam]);
 
   useEffect(() => {
     if (account) refresh();
   }, [account, refresh]);
 
   const openJournal = (symbol: string) => {
-    router.push(`/journal?symbol=${encodeURIComponent(symbol)}&from=simulate` as never);
+    const decision = account?.decisions
+      .slice()
+      .reverse()
+      .find((item) => item.symbol === symbol.toUpperCase());
+    const draft = [decision?.thesis, decision?.invalidation ? `Invalidation: ${decision.invalidation}` : '']
+      .filter(Boolean)
+      .join('\n');
+    const qs = new URLSearchParams({ symbol, from: 'simulate' });
+    if (draft) qs.set('notes', draft.slice(0, 1800));
+    router.push(`/journal?${qs.toString()}` as never);
   };
 
   const handleConfirm = (side: SimulationSide, input: Omit<SimulationTradeInput, 'price'> & { price?: number }) => {
@@ -162,12 +197,50 @@ export default function SimulateScreen() {
     >
       <SimulationDisclaimer />
 
+      {prepParam && PREP_EVENT_KIND[prepParam] ? (
+        <Surface tone="accent" emphasis="outlined" className="mb-4" testID="simulate-event-prep">
+          <Text variant="label" className="text-accent">
+            Event-inspired book
+          </Text>
+          <Text variant="body-sm" className="mt-2 text-text-secondary">
+            Fictional simulation inspired by {PREP_LABEL[prepParam] ?? 'an upcoming event type'}. The actual real-world
+            outcome is hidden. Possible paths include higher than expected, lower, exactly expected, or mixed
+            interpretation. Adaptation is the lesson — not a prediction.
+          </Text>
+          {account ? (
+            <Button
+              className="mt-3"
+              size="sm"
+              onPress={() => {
+                Alert.alert(
+                  'Archive and start a prepared book?',
+                  'This archives the current paper account and opens a new fictional event-adaptation book. Simulated P/L is not the grade.',
+                  [
+                    { text: 'Cancel', style: 'cancel' },
+                    {
+                      text: 'Archive and start',
+                      style: 'destructive',
+                      onPress: () => {
+                        reset(account.mode, account.challengeId, displayCurrency, eventPrepOptions(prepParam));
+                        setStatusMessage('New fictional event book opened. The real-world print is not being forecast.');
+                      },
+                    },
+                  ],
+                );
+              }}
+            >
+              Start prepared book
+            </Button>
+          ) : null}
+        </Surface>
+      ) : null}
+
       {!account ? (
         <EmptyState
           title="Start with $100,000 in simulated capital"
           description="This opens a paper book. It is not a brokerage, not real money, and simulated P/L does not grade a decision."
           actionLabel="Start Simulation"
-          onAction={() => start()}
+          onAction={() => start(eventPrepOptions(prepParam))}
           iconName="briefcase-outline"
           className="px-4 py-10"
           testID="simulate-empty"
@@ -175,6 +248,21 @@ export default function SimulateScreen() {
       ) : (
         <>
           <SimulationSummary account={account} />
+          <SimulationScenarioPanel
+            account={account}
+            onAdvance={() => {
+              advanceClock();
+              setStatusMessage('Clock advanced. Re-check thesis and size — the path is not knowable in advance.');
+            }}
+            onAdvanceToInformation={() => {
+              advanceToNextInformation();
+              setStatusMessage('Advanced to the next visible headline or decision. Later sessions stay hidden.');
+            }}
+            onAnswerDecision={(windowId, option, reasoning) => {
+              answerDecision(windowId, option, reasoning);
+              setStatusMessage('Decision recorded. Process matters more than the next print.');
+            }}
+          />
 
           <View className="mb-4 flex-row flex-wrap gap-2" testID="simulate-loop-actions">
             <Button size="sm" accessibilityLabel="Trade in this simulated book">

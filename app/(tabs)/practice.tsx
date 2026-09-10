@@ -52,6 +52,7 @@ function DrillCard({ drill }: { drill: PracticeDrill }) {
   const router = useRouter();
   const recordAttempt = usePracticeProgressStore((state) => state.recordAttempt);
   const attempts = usePracticeProgressStore((state) => state.attempts);
+  const [lastResult, setLastResult] = useState<{ correct: boolean } | null>(null);
   const stats = useMemo(() => {
     const rows = attempts.filter((item) => item.drillId === drill.id);
     const correct = rows.filter((item) => item.correct).length;
@@ -94,30 +95,65 @@ function DrillCard({ drill }: { drill: PracticeDrill }) {
           correctIndex: drill.correctIndex,
           explanation: drill.explanation,
         }}
-        onAttempt={(result) =>
+        onAttempt={(result) => {
+          setLastResult({ correct: result.correct });
           recordAttempt({
             drillId: drill.id,
             correct: result.correct,
             selectedIndex: result.selectedIndex,
-          })
-        }
+          });
+        }}
       />
-      <View className="mt-3 flex-row flex-wrap gap-2">
-        {drill.lessonId ? (
-          <Button
-            size="sm"
-            variant="ghost"
-            onPress={() => router.push(`/academy/lesson/${drill.lessonId}` as never)}
-          >
-            Related lesson
-          </Button>
-        ) : null}
-        {drill.simulateHref ? (
-          <Button size="sm" variant="ghost" onPress={() => router.push(drill.simulateHref as never)}>
-            Apply in simulation
-          </Button>
-        ) : null}
-      </View>
+      {lastResult ? (
+        <View className="mt-3" testID={`practice-next-${drill.id}`}>
+          <Text variant="caption" className="text-text-secondary">
+            {lastResult.correct
+              ? 'Demonstrated. Next: a historical room, then an uncertain paper book, then a journal note.'
+              : 'Missed — that is useful evidence. Re-read the idea, then try once more. Reading still is not mastery.'}
+          </Text>
+          <View className="mt-2 flex-row flex-wrap gap-2">
+            {lastResult.correct ? (
+              <>
+                <Button
+                  size="sm"
+                  onPress={() => router.push('/decision/replay-tv' as never)}
+                >
+                  Replay a historical example
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onPress={() => router.push((drill.simulateHref ?? '/simulate?start=1') as never)}
+                >
+                  Apply in simulation
+                </Button>
+                <Button size="sm" variant="ghost" onPress={() => router.push('/journal' as never)}>
+                  Journal the reasoning
+                </Button>
+              </>
+            ) : drill.lessonId ? (
+              <Button
+                size="sm"
+                onPress={() => router.push(`/academy/lesson/${drill.lessonId}` as never)}
+              >
+                Review the lesson
+              </Button>
+            ) : null}
+          </View>
+        </View>
+      ) : (
+        <View className="mt-3 flex-row flex-wrap gap-2">
+          {drill.lessonId ? (
+            <Button
+              size="sm"
+              variant="ghost"
+              onPress={() => router.push(`/academy/lesson/${drill.lessonId}` as never)}
+            >
+              Related lesson
+            </Button>
+          ) : null}
+        </View>
+      )}
     </Surface>
   );
 }
@@ -247,7 +283,11 @@ export default function PracticeScreen() {
         <HubPathList sections={PRACTICE_HUB_SECTIONS} emphasizeFirst={false} />
       </CollapsibleSection>
 
-      <LoopCtaRow current="practice" title="After a drill" />
+      <LoopCtaRow
+        current="practice"
+        title="After a drill"
+        followUp={{ label: 'Replay', href: '/decision/replay-tv' }}
+      />
     </ScreenScaffold>
   );
 }

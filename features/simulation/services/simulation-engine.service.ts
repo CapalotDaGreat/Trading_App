@@ -5,6 +5,7 @@ import {
   SYNTHETIC_UNIVERSE,
   challengeById,
   isListedSimulationSymbol,
+  listedSimulationInstrument,
 } from '../constants/simulation.constants';
 import type {
   IsoCurrencyCode,
@@ -58,7 +59,9 @@ function ledgerPrice(symbol: string, nativePrice: number, accountCurrency: strin
 
 export function assetTypeFor(symbol: string, explicit?: SimulationAssetType): SimulationAssetType {
   if (explicit) return explicit;
-  const listed = SYNTHETIC_UNIVERSE.find((item) => item.symbol === symbol.toUpperCase());
+  const listed =
+    SYNTHETIC_UNIVERSE.find((item) => item.symbol === symbol.toUpperCase()) ??
+    listedSimulationInstrument(symbol);
   return listed?.assetType ?? 'equity';
 }
 
@@ -116,6 +119,7 @@ export function createSimulationAccount(input: {
   currency?: IsoCurrencyCode;
   challengeId?: string;
   now?: string;
+  scenario?: SimulationAccount['scenario'];
 }): SimulationAccount {
   const now = input.now ?? new Date().toISOString();
   const startingBalance = roundMoney(input.startingBalance ?? DEFAULT_STARTING_BALANCE);
@@ -147,6 +151,7 @@ export function createSimulationAccount(input: {
     updatedAt: now,
     status: 'active',
     challengeId: input.challengeId ?? (mode === 'challenge' ? 'one-percent-risk' : undefined),
+    scenario: input.scenario,
   };
   return recompute(account, now);
 }
@@ -616,6 +621,7 @@ export function resetSimulationAccount(
     challengeId?: string;
     currency?: IsoCurrencyCode;
     now?: string;
+    scenario?: SimulationAccount['scenario'];
   },
 ): { archived: SimulationAccount; next: SimulationAccount } {
   const now = input?.now ?? new Date().toISOString();
@@ -627,6 +633,7 @@ export function resetSimulationAccount(
     currency: input?.currency ?? account.currency,
     challengeId: input?.challengeId ?? account.challengeId,
     now,
+    scenario: input && 'scenario' in input ? input.scenario : undefined,
   });
   return { archived, next };
 }

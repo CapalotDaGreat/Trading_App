@@ -23,6 +23,11 @@ export function emptyReplayTvReasoning(): ReplayTvReasoning {
     invalidation: '',
     confidence: 3,
     mainUncertainty: '',
+    why: '',
+    whatWouldChangeMind: '',
+    riskAssessment: '',
+    intendedSize: '',
+    expectedRisk: '',
     freeText: '',
   };
 }
@@ -30,9 +35,14 @@ export function emptyReplayTvReasoning(): ReplayTvReasoning {
 export function composeReplayTvReasoning(fields: ReplayTvReasoning): string {
   return [
     fields.thesis.trim() ? `Thesis: ${fields.thesis.trim()}` : null,
+    fields.why?.trim() ? `Why: ${fields.why.trim()}` : null,
     fields.evidence.trim() ? `Evidence: ${fields.evidence.trim()}` : null,
     fields.invalidation.trim() ? `Invalidation: ${fields.invalidation.trim()}` : null,
+    fields.whatWouldChangeMind?.trim() ? `Would change mind: ${fields.whatWouldChangeMind.trim()}` : null,
     fields.mainUncertainty.trim() ? `Uncertainty: ${fields.mainUncertainty.trim()}` : null,
+    fields.riskAssessment?.trim() ? `Risk: ${fields.riskAssessment.trim()}` : null,
+    fields.intendedSize?.trim() ? `Size: ${fields.intendedSize.trim()}` : null,
+    fields.expectedRisk?.trim() ? `Expected risk: ${fields.expectedRisk.trim()}` : null,
     `Process confidence ${clampConfidence(fields.confidence)}/5 (not a price forecast).`,
     fields.freeText?.trim() || null,
   ]
@@ -42,7 +52,7 @@ export function composeReplayTvReasoning(fields: ReplayTvReasoning): string {
 
 export function reasoningHasSubstance(fields: ReplayTvReasoning | undefined, fallback = ''): boolean {
   if (!fields) return fallback.trim().length >= 12;
-  const packed = `${fields.thesis} ${fields.evidence} ${fields.invalidation} ${fields.mainUncertainty} ${fields.freeText ?? ''} ${fallback}`;
+  const packed = `${fields.thesis} ${fields.why ?? ''} ${fields.evidence} ${fields.invalidation} ${fields.whatWouldChangeMind ?? ''} ${fields.mainUncertainty} ${fields.riskAssessment ?? ''} ${fields.intendedSize ?? ''} ${fields.freeText ?? ''} ${fallback}`;
   return packed.trim().length >= 12;
 }
 
@@ -56,6 +66,14 @@ function decisionLabel(decision: ReplayTvDecision): string {
       return 'continue researching';
     case 'wait':
       return 'wait for more evidence';
+    case 'no_trade':
+      return 'take no trade';
+    case 'enter':
+      return 'enter a paper thesis';
+    case 'reduce':
+      return 'reduce exposure';
+    case 'exit':
+      return 'stand down';
     case 'skip':
       return 'skip';
     case 'protect_attention':

@@ -3,6 +3,7 @@ import { View } from 'react-native';
 
 import { NextLessonCard } from '@/features/academy/components/CurriculumCards';
 import { useNextAcademyLesson } from '@/features/academy/hooks/useAcademy';
+import { useLearningEngine } from '@/features/learning-engine/hooks/useLearningEngine';
 import { useDecisionLog } from '@/features/decision-log/hooks/useDecisionLog';
 import { useReplayTvStore } from '@/features/decision-replay-tv/stores/replay-tv.store';
 import { useJournal } from '@/features/journal/hooks/useJournal';
@@ -32,6 +33,8 @@ const REPLAY = REVIEW_HUB_SECTIONS.filter((section) => section.title === 'Replay
 export default function ReviewScreen() {
   const router = useRouter();
   const { recommendation } = useNextAcademyLesson();
+  const { today } = useLearningEngine();
+  const focus = today.focusAreas[0];
   const { entries } = useJournal();
   const { records, summary } = useDecisionLog();
   const { account, archives } = useSimulation();
@@ -81,14 +84,41 @@ export default function ReviewScreen() {
             <Button size="sm" onPress={() => router.push('/journal' as never)}>
               Journal
             </Button>
-            <Button size="sm" variant="outline" onPress={() => router.push('/learn' as never)}>
-              Improve with a lesson
+            <Button
+              size="sm"
+              variant="outline"
+              onPress={() => router.push((focus?.href ?? '/learn') as never)}
+            >
+              {focus ? 'Practice the area to improve' : 'Improve with a lesson'}
             </Button>
           </View>
         )}
       </Surface>
 
-      {recommendation ? (
+      {focus ? (
+        <Surface className="mt-4" testID="review-learn-next">
+          <Text variant="label" className="text-text-tertiary">
+            From your recent work
+          </Text>
+          <Text variant="h3" headingLevel={3} className="mt-2">
+            {focus.title}
+          </Text>
+          <Text variant="body-sm" className="mt-2 text-text-secondary">
+            {focus.explanation}
+          </Text>
+          <Text variant="caption" className="mt-2 text-text-tertiary">
+            Evidence: {focus.evidence[0]}
+          </Text>
+          <Button className="mt-3" size="sm" onPress={() => router.push(focus.href as never)}>
+            Practice this next
+          </Button>
+          {recommendation ? (
+            <Button className="mt-2" size="sm" variant="ghost" onPress={() => router.push('/learn' as never)}>
+              Or continue the curriculum
+            </Button>
+          ) : null}
+        </Surface>
+      ) : recommendation ? (
         <Surface className="mt-4" testID="review-learn-next">
           <Text variant="label" className="text-text-tertiary">
             Recommended next lesson
@@ -96,9 +126,6 @@ export default function ReviewScreen() {
           <View className="mt-3">
             <NextLessonCard recommendation={recommendation} />
           </View>
-          <Button className="mt-3" size="sm" variant="ghost" onPress={() => router.push('/learn' as never)}>
-            Return to Academy
-          </Button>
         </Surface>
       ) : null}
 
