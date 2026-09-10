@@ -20,7 +20,26 @@ export type TrainingQueueKind =
   | 'simulation_challenge'
   | 'journal_review'
   | 'spaced_review'
-  | 'event_prep';
+  | 'event_prep'
+  | 'remediation'
+  | 'redemonstration';
+
+export type TrainingLoopStep =
+  | 'learn'
+  | 'demonstrate'
+  | 'practice'
+  | 'apply'
+  | 'review'
+  | 'remediate'
+  | 'redemonstrate';
+
+export type TrainingPriority =
+  | 'remediation'
+  | 'redemonstration'
+  | 'in_progress'
+  | 'weak_competency'
+  | 'curriculum'
+  | 'varied_practice';
 
 /** Conceptual challenge — not longer copy. */
 export type TargetComplexity = 'foundations' | 'applied' | 'complex';
@@ -62,15 +81,62 @@ export interface FocusArea {
   conceptId: string;
 }
 
+export interface TrainingHandoff {
+  conceptId: string;
+  loopStep: TrainingLoopStep;
+  concealConcept: boolean;
+  priority: TrainingPriority;
+  whyToday: string;
+}
+
+export type TrainingEmptyState =
+  | 'new_user'
+  | 'sim_no_journal'
+  | 'weak_competency'
+  | 'strong_mixed'
+  | 'standard';
+
+/** Long-term journey stage. Derived — not a separate screen. */
+export type PracticeStage =
+  | 'foundation'
+  | 'application'
+  | 'integration'
+  | 'deliberate'
+  | 'maintenance';
+
+export interface ScaffoldingPolicy {
+  stage: PracticeStage;
+  nameConcept: boolean;
+  showHints: boolean;
+  guidedQuestions: boolean;
+  showExamples: boolean;
+  concealConcept: boolean;
+  mixedConcepts: boolean;
+  incompleteInformation: boolean;
+  competingExplanations: boolean;
+}
+
+export interface EasySessionGrinding {
+  grinding: boolean;
+  easySessions: number;
+  independentApplications: number;
+  reason: string | null;
+}
+
 export interface TrainingQueueItem {
   id: string;
   kind: TrainingQueueKind;
   title: string;
   reason: string;
+  /** Explainable “why this is today’s training”. */
+  whyToday?: string;
   evidence: string[];
   href: string;
   conceptId?: string;
   complexity?: TargetComplexity;
+  loopStep?: TrainingLoopStep;
+  priority?: TrainingPriority;
+  concealConcept?: boolean;
 }
 
 export interface LessonNextChain {
@@ -86,10 +152,14 @@ export interface TodaysTraining {
   items: TrainingQueueItem[];
   focusAreas: FocusArea[];
   lessonChain: LessonNextChain | null;
+  emptyState?: TrainingEmptyState;
+  stage: PracticeStage;
 }
 
 export interface QueueDisposition {
   skippedUntil?: number;
   deferredUntil?: number;
   bookmarked?: boolean;
+  deferCount?: number;
+  skipCount?: number;
 }

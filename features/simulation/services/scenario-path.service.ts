@@ -6,6 +6,7 @@ import type {
   ScenarioAssetConfig,
   ScenarioClimate,
   ScenarioComplexity,
+  ScenarioDifficulty,
   ScenarioEvent,
   ScenarioFocus,
   SimulationBar,
@@ -51,6 +52,7 @@ const PHASE_DRIFT: Record<TapePhase, number> = {
   breakout_attempt: 1.8,
   failed_breakout: -1.55,
   reversal: -1.7,
+  momentum_burst: 2.05,
 };
 
 const PHASE_VOL: Record<TapePhase, number> = {
@@ -60,6 +62,7 @@ const PHASE_VOL: Record<TapePhase, number> = {
   breakout_attempt: 1.55,
   failed_breakout: 1.7,
   reversal: 1.45,
+  momentum_burst: 1.85,
 };
 
 const ALL_REGIMES: readonly MarketRegime[] = [
@@ -93,8 +96,19 @@ export function buildRegimeSegments(input: {
   primary: MarketRegime;
   horizon: number;
   uncertainty: number;
+  difficulty?: ScenarioDifficulty;
 }): RegimeSegment[] {
-  const extra = input.uncertainty > 0.5 ? 1 + (input.rand() > 0.4 ? 1 : 0) : input.rand() > 0.65 ? 1 : 0;
+  const beginner = input.difficulty === 'beginner';
+  const expertish = input.difficulty === 'advanced' || input.difficulty === 'expert';
+  const extra = beginner
+    ? 0
+    : expertish
+      ? 1 + (input.rand() > 0.35 ? 1 : 0)
+      : input.uncertainty > 0.5
+        ? 1 + (input.rand() > 0.4 ? 1 : 0)
+        : input.rand() > 0.65
+          ? 1
+          : 0;
   const count = 1 + extra;
   if (count === 1) {
     return [{ startDay: 0, endDay: input.horizon - 1, regime: input.primary }];
@@ -120,23 +134,38 @@ function regimeOnDay(segments: RegimeSegment[], day: number, fallback: MarketReg
   return segments.find((item) => day >= item.startDay && day <= item.endDay)?.regime ?? fallback;
 }
 
-function nextPhase(rand: () => number, current: TapePhase, regime: MarketRegime, focus?: ScenarioFocus): TapePhase {
-  const falseBias = focus === 'false_breakouts' ? 0.18 : 0;
+function nextPhase(
+  rand: () => number,
+  current: TapePhase,
+  regime: MarketRegime,
+  focus?: ScenarioFocus,
+  difficulty?: ScenarioDifficulty,
+): TapePhase {
+  const beginner = difficulty === 'beginner';
+  const expertish = difficulty === 'advanced' || difficulty === 'expert';
+  const falseBias = (focus === 'false_breakouts' ? 0.18 : 0) + (expertish ? 0.08 : 0) - (beginner ? 0.12 : 0);
   if (current === 'impulse') {
-    if (rand() < 0.42) return 'pullback';
+    if (rand() < (beginner ? 0.28 : 0.42)) return 'pullback';
     if (rand() < 0.28) return 'consolidation';
-    if (rand() < 0.12 + (regime === 'transition' ? 0.1 : 0)) return 'reversal';
+    if (rand() < 0.12 + (regime === 'transition' ? 0.1 : 0) - (beginner ? 0.08 : 0)) return 'reversal';
+    if (expertish && rand() < 0.16) return 'momentum_burst';
     return 'impulse';
+  }
+  if (current === 'momentum_burst') {
+    if (rand() < 0.45) return 'pullback';
+    if (rand() < 0.35) return 'reversal';
+    return 'consolidation';
   }
   if (current === 'pullback') {
     if (rand() < 0.5) return 'impulse';
     if (rand() < 0.28) return 'consolidation';
-    if (rand() < 0.14) return 'reversal';
+    if (rand() < (beginner ? 0.06 : 0.14)) return 'reversal';
     return 'pullback';
   }
   if (current === 'consolidation') {
     if (rand() < 0.34 + falseBias) return 'breakout_attempt';
     if (rand() < 0.22) return 'impulse';
+    if (expertish && rand() < 0.12) return 'momentum_burst';
     return 'consolidation';
   }
   if (current === 'breakout_attempt') {
@@ -151,7 +180,7 @@ function nextPhase(rand: () => number, current: TapePhase, regime: MarketRegime,
 }
 
 function phaseLength(rand: () => number, phase: TapePhase): number {
-  if (phase === 'breakout_attempt') return 1 + (rand() > 0.65 ? 1 : 0);
+  if (phase === 'breakout_attempt' || phase === 'momentum_burst') return 1 + (rand() > 0.65 ? 1 : 0);
   if (phase === 'failed_breakout') return 2 + (rand() > 0.5 ? 1 : 0);
   if (phase === 'reversal') return 2 + intIn(rand, 0, 2);
   if (phase === 'consolidation') return 3 + intIn(rand, 0, 4);
@@ -166,6 +195,7 @@ export function buildDayPlan(input: {
   horizon: number;
   focus?: ScenarioFocus;
   psychologicalPressure: number;
+  difficulty?: ScenarioDifficulty;
 }): DayPlan[] {
   const plan: DayPlan[] = [];
   let phase: TapePhase = input.rand() > 0.45 ? 'impulse' : 'consolidation';
@@ -173,7 +203,7 @@ export function buildDayPlan(input: {
   for (let day = 0; day < input.horizon; day += 1) {
     const regime = regimeOnDay(input.segments, day, input.primary);
     if (remaining <= 0) {
-      phase = nextPhase(input.rand, phase, regime, input.focus);
+      phase = nextPhase(input.rand, phase, regime, input.focus, input.difficulty);
       remaining = phaseLength(input.rand, phase);
     }
     plan.push({ day, regime, phase });
@@ -269,6 +299,7 @@ export function generateStructuredPaths(input: {
   primary: MarketRegime;
   horizon: number;
   focus?: ScenarioFocus;
+  difficulty?: ScenarioDifficulty;
 }): { marketPath: SimulationBar[]; paths: Record<string, SimulationBar[]>; plan: DayPlan[] } {
   const planRand = mulberry32(hashSeed([input.seed, 'plan']));
   const plan = buildDayPlan({
@@ -278,6 +309,7 @@ export function generateStructuredPaths(input: {
     horizon: input.horizon,
     focus: input.focus,
     psychologicalPressure: input.complexity.psychologicalPressure,
+    difficulty: input.difficulty,
   });
 
   const marketRand = mulberry32(hashSeed([input.seed, 'market']));
@@ -303,6 +335,13 @@ export function generateStructuredPaths(input: {
       gaussian(marketRand) * vol * PHASE_VOL[row.phase] * liqMul;
     let gap = 0;
     let volMul = PHASE_VOL[row.phase];
+    const expertish = input.difficulty === 'advanced' || input.difficulty === 'expert';
+    if (expertish && marketRand() < 0.1) {
+      gap += gaussian(marketRand) * 0.007;
+    }
+    if (input.difficulty !== 'beginner' && input.climate.liquidity === 'thin' && marketRand() < 0.18) {
+      volMul *= 1.35;
+    }
     for (const event of eventsOn(input.events, day)) {
       const impulse = reactionImpulse(event.reactionStyle, event.surpriseMagnitude, 0);
       ret += impulse.ret * event.marketRelevance;

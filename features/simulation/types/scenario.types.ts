@@ -18,7 +18,14 @@ export type TapePhase =
   | 'consolidation'
   | 'breakout_attempt'
   | 'failed_breakout'
-  | 'reversal';
+  | 'reversal'
+  | 'momentum_burst';
+
+/**
+ * Scenario practice level. Independent of challenge rails (1% risk, diversification).
+ * Influences ambiguity and information — never a forced-loss slider.
+ */
+export type ScenarioDifficulty = 'beginner' | 'intermediate' | 'advanced' | 'expert';
 
 export type ScenarioEventKind =
   | 'inflation'
@@ -56,6 +63,7 @@ export type ScenarioFocus =
 export interface ScenarioStartOptions {
   focus?: ScenarioFocus;
   preferredEventKind?: ScenarioEventKind;
+  difficulty?: ScenarioDifficulty;
 }
 
 export type ScenarioClockMode = 'normal' | 'accelerated' | 'paused';
@@ -181,6 +189,7 @@ export interface SimulationScenario {
   seed: number;
   /** 2 = structured multi-factor paths stored on the scenario. */
   engineVersion: 1 | 2;
+  difficulty: ScenarioDifficulty;
   regime: MarketRegime;
   segments: RegimeSegment[];
   climate: ScenarioClimate;
@@ -208,6 +217,8 @@ export interface PublicScenarioView {
   clockMode: ScenarioClockMode;
   observableTape: string;
   climateHint: string;
+  /** Practice level copy — not “this market will be easy/hard to profit from”. */
+  practiceLevelHint: string;
   assets: Array<{ symbol: string; name: string; sector: string; assetType: SimulationAssetType }>;
   visibleBars: Record<string, Array<Omit<SimulationBar, 'phase'>>>;
   visibleEvents: PublicScenarioEvent[];

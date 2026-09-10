@@ -1,42 +1,12 @@
 import type { ScenarioComplexity, ScenarioFocus } from '../types/scenario.types';
 import type { SimulationAccount, SimulationMode } from '../types/simulation.types';
+import { complexityForDifficulty, defaultDifficultyForMode } from './scenario-difficulty.service';
 import { scoreSimulationProcess } from './scenario-process.service';
 
+export { complexityForDifficulty, defaultDifficultyForMode } from './scenario-difficulty.service';
+
 export function complexityForMode(mode: SimulationMode): ScenarioComplexity {
-  if (mode === 'beginner') {
-    return {
-      volatility: 0.32,
-      informationFriction: 0.22,
-      assetCount: 4,
-      eventCount: 2,
-      regimeUncertainty: 0.18,
-      timePressure: 0.15,
-      psychologicalPressure: 0.15,
-      incompleteInformation: 0.25,
-    };
-  }
-  if (mode === 'challenge') {
-    return {
-      volatility: 0.72,
-      informationFriction: 0.68,
-      assetCount: 7,
-      eventCount: 5,
-      regimeUncertainty: 0.58,
-      timePressure: 0.65,
-      psychologicalPressure: 0.7,
-      incompleteInformation: 0.7,
-    };
-  }
-  return {
-    volatility: 0.48,
-    informationFriction: 0.42,
-    assetCount: 5,
-    eventCount: 3,
-    regimeUncertainty: 0.36,
-    timePressure: 0.4,
-    psychologicalPressure: 0.35,
-    incompleteInformation: 0.45,
-  };
+  return complexityForDifficulty(defaultDifficultyForMode(mode));
 }
 
 export function applyFocus(complexity: ScenarioComplexity, focus?: ScenarioFocus): ScenarioComplexity {

@@ -3,7 +3,8 @@ import { useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
 
 import { useAuth } from '@/features/auth/hooks/useAuth';
-import { getReplayTvEpisode } from '@/features/decision-replay-tv/content/replay-tv.catalog';
+import { getReplayTvEpisode, replayTvEpisodeHref } from '@/features/decision-replay-tv/content/replay-tv.catalog';
+import { ingestReplayCompletion, ingestReplayDecision } from '@/features/competency';
 import {
   buildReplayTvDecisionLogNote,
   evaluateReplayTvBeginAccess,
@@ -12,6 +13,8 @@ import {
 } from '@/features/decision-replay-tv/services/replay-tv-access.service';
 import { softSaveReplayTvReflection } from '@/features/decision-replay-tv/services/replay-tv-journal.service';
 import { selectReplayTvNextPractice } from '@/features/decision-replay-tv/services/replay-tv-skills.service';
+import { conceptIdsForReplayEpisode } from '@/features/decision-replay-tv/services/replay-scenario.adapter';
+import { scoreReplayTvSession } from '@/features/decision-replay-tv/services/replay-tv-score.service';
 import {
   getVisibleCandlesForSession,
   getVisibleNewsForSession,
@@ -106,6 +109,23 @@ export function useReplayTv() {
         processScore: session.scores.processQuality,
       });
 
+      ingestReplayCompletion({
+        uid,
+        episodeId: ep.id,
+        skills: ep.skills,
+        processQuality: session.scores.processQuality,
+        conceptIds: conceptIdsForReplayEpisode(ep),
+        scenarioContext: ep.collectionIds.includes('earnings')
+          ? 'earnings'
+          : ep.pathShape === 'crash' || ep.pathShape === 'slow_bleed'
+            ? 'losing_position'
+            : ep.pathShape === 'whipsaw'
+              ? 'regime_change'
+              : ep.pathShape === 'squeeze' || ep.pathShape === 'meltup'
+                ? 'high_volatility'
+                : 'trend',
+      });
+
       void trackEvent('replay_completed', {
         episodeId: ep.id.slice(0, 64),
         difficulty: ep.difficulty,
@@ -148,7 +168,7 @@ export function useReplayTv() {
                 reason: session.scores.academyHint.reason,
               }
             : undefined,
-          replayHref: `/decision/replay-tv/${ep.id}`,
+          replayHref: replayTvEpisodeHref(ep.id),
         },
       });
 
@@ -204,8 +224,35 @@ export function useReplayTv() {
     advancePhase,
     restartEpisode,
     updateChecklist: (patch: Partial<ReplayTvChecklist>) => updateChecklist(patch),
-    submitDecision: (decision: ReplayTvDecision, reasoning: string, structured?: ReplayTvReasoning) =>
-      submitDecision(decision, reasoning, structured),
+    submitDecision: (decision: ReplayTvDecision, reasoning: string, structured?: ReplayTvReasoning) => {
+      submitDecision(decision, reasoning, structured);
+      const session = useReplayTvStore.getState().activeSession;
+      const ep = session ? getReplayTvEpisode(session.episodeId) : episode;
+      const last = session?.decisions[session.decisions.length - 1];
+      if (!session || !ep || !last) return;
+      const scores = scoreReplayTvSession({
+        episode: ep,
+        decisions: session.decisions,
+        checklist: session.checklist,
+      });
+      ingestReplayDecision({
+        uid,
+        episodeId: ep.id,
+        checkpointId: last.checkpointId,
+        skills: ep.skills,
+        conceptIds: conceptIdsForReplayEpisode(ep),
+        processQuality: scores.processQuality,
+        scenarioContext: ep.collectionIds.includes('earnings')
+          ? 'earnings'
+          : ep.pathShape === 'crash' || ep.pathShape === 'slow_bleed'
+            ? 'losing_position'
+            : ep.pathShape === 'whipsaw'
+              ? 'regime_change'
+              : ep.pathShape === 'squeeze' || ep.pathShape === 'meltup'
+                ? 'high_volatility'
+                : 'trend',
+      });
+    },
     finishSession: finishMutation.mutateAsync,
     isFinishing: finishMutation.isPending,
     finishError: finishMutation.error,

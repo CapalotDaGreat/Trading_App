@@ -205,5 +205,8 @@ describe('simulation scenario generator', () => {
     const score = scoreSimulationProcess(withThesis);
     expect(score.composite).toBeGreaterThan(50);
     expect(score.outcomeNote.toLowerCase()).toContain('does not mean');
+    const losing: typeof withThesis = { ...withThesis, totalReturn: -0.25, realizedPnL: -1_000 };
+    expect(scoreSimulationProcess(losing).composite).toBe(score.composite);
+    expect(scoreSimulationProcess(losing).outcomeNote).not.toBe(score.outcomeNote);
   });
 });

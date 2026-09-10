@@ -49,6 +49,9 @@ export function SimulationScenarioPanel({
         <Text variant="caption" className="mt-1 text-text-tertiary">
           {view.climateHint} Future headlines, candles, and prints stay hidden.
         </Text>
+        <Text variant="caption" className="mt-1 text-text-tertiary">
+          {view.practiceLevelHint}
+        </Text>
         {view.visibleEvents.length ? (
           <View className="mt-3 gap-2">
             {view.visibleEvents.map((event) => (

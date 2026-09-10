@@ -3,7 +3,6 @@ import { Tabs } from 'expo-router';
 import { Platform, StyleSheet } from 'react-native';
 
 import { IA_GLOSSARY } from '@/features/navigation/config/navigation-ia.config';
-import { useCoachProfile } from '@/features/onboarding/hooks/useCoachProfile';
 import { ErrorBoundary } from '@/shared/components/feedback/ErrorBoundary';
 import { useTheme } from '@/shared/hooks/useTheme';
 
@@ -15,9 +14,6 @@ function TabIcon({ name, color }: { name: TabIconName; color: string }) {
 
 export default function TabLayout() {
   const { colors } = useTheme();
-  const { profile } = useCoachProfile();
-  const hideEvents =
-    !profile.experience || profile.experience === 'completely_new' || profile.experience === 'beginner';
 
   return (
     <ErrorBoundary>
@@ -90,7 +86,6 @@ export default function TabLayout() {
           name="events"
           options={{
             title: IA_GLOSSARY.events,
-            ...(hideEvents ? { href: null } : {}),
             tabBarAccessibilityLabel: 'Market Events tab',
             tabBarIcon: ({ color }) => <TabIcon name="calendar-outline" color={color} />,
           }}

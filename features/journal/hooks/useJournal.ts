@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Platform, Share } from 'react-native';
 
 import { useAuth } from '@/features/auth/hooks/useAuth';
+import { ingestJournalReflection } from '@/features/competency';
 import { useAppendDecisionRecord } from '@/features/decision-log/hooks/useDecisionLog';
 import { canAccessFeature } from '@/shared/constants/subscription';
 import { useSubscriptionStore } from '@/shared/stores/subscription.store';
@@ -49,6 +50,15 @@ export function useJournal() {
   const createMutation = useMutation({
     mutationFn: (input: CreateJournalEntryInput) => createJournalEntry(uid!, input),
     onSuccess: (entry) => {
+      if (uid) {
+        ingestJournalReflection({
+          uid,
+          sourceId: entry.id,
+          occurredAt: Date.parse(entry.createdAt) || Date.now(),
+          mistakeCategory: entry.mistakeCategory,
+          planAdhered: entry.planAdhered,
+        });
+      }
       void appendDecision.mutateAsync({
         symbol: entry.symbol,
         regime: entry.regimeNote?.trim() || 'journal',

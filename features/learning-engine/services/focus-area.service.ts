@@ -97,7 +97,7 @@ export function detectFocusAreas(snapshot: LearningEvidenceSnapshot): FocusArea[
       area(
         'developing_skill',
         'fomo',
-        'Emotional tags are showing up. That is a process signal, not a character label.',
+        'Emotional tags are showing up. That is a process observation, not a character label.',
         ['Recent journal emotions or FOMO/revenge tags.'],
         '/academy/lesson/psych-fomo',
       ),

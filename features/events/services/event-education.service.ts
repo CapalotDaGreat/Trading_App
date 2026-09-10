@@ -56,6 +56,9 @@ export function educationForEvent(event: EconomicEvent): EventEducation {
 export function trainingFromEducation(education: EventEducation): MarketEventTraining {
   return {
     concepts: education.concepts,
+    conceptIds: education.conceptIds,
+    riskConceptIds: education.riskConceptIds,
+    psychologyConceptIds: education.psychologyConceptIds,
     lessonId: education.relatedLessonId,
     lessonTitle: education.relatedLessonTitle,
     practiceId: education.practiceId,

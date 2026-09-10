@@ -26,3 +26,5 @@ Academy, Practice, Replay, Simulation, Journal, Events, and readiness share one 
 ## Readiness
 
 `assessTrainingReadiness` describes strengths and gaps. `certifiesLiveTrading` is always `false`. Copy never says the user is ready to trade real money.
+
+Hidden and legacy surfaces (Research, Radar, Markets, Alerts, Mentor, live portfolio) were inventoried in `docs/TRADEACADEMY_HIDDEN_FEATURE_AUDIT.md` and cleaned up in `docs/TRADEACADEMY_CLEANUP_REPORT.md`. They are secondary or redirected; do not put them back on the primary loop.

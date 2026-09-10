@@ -80,6 +80,40 @@ export interface SimulationOrder {
   rejectReason?: string;
 }
 
+export interface SimulationLedgerSnapshot {
+  clockDay: number;
+  cashBalance: number;
+  equity: number;
+  realizedPnL: number;
+  unrealizedPnL: number;
+  positions: Array<{
+    symbol: string;
+    quantity: number;
+    averageEntryPrice: number;
+    portfolioWeight: number;
+  }>;
+  visibleEventIds: string[];
+}
+
+export interface SimulationDecisionCheckpoint {
+  id: string;
+  at: string;
+  kind: 'entry' | 'management' | 'exit' | 'window';
+  windowId?: string;
+  symbol?: string;
+  thesis?: string;
+  evidence?: string;
+  confidence?: 'low' | 'medium' | 'high';
+  invalidation?: string;
+  positionSize?: string;
+  risk?: string;
+  expectedScenarios?: string;
+  decision?: string;
+  managementChange?: string;
+  exitReasoning?: string;
+  snapshot: SimulationLedgerSnapshot;
+}
+
 export interface SimulationDecision {
   id: string;
   accountId: string;
@@ -91,7 +125,11 @@ export interface SimulationDecision {
   invalidation?: string;
   expectedRisk?: string;
   intendedPositionSize?: string;
+  expectedScenarios?: string;
+  managementChange?: string;
+  exitReasoning?: string;
   reasonForEntry?: string;
+  checkpointId?: string;
   createdAt: string;
   closedAt?: string;
   closeReview?: SimulationCloseReview;
@@ -152,6 +190,8 @@ export interface SimulationAccount {
   lastChallengeViolation?: string;
   /** Unique generated market. Seed is stored for audit, never shown. */
   scenario?: SimulationScenario;
+  /** Process snapshots at entries, management, exits, and decision windows. */
+  checkpoints?: SimulationDecisionCheckpoint[];
 }
 
 export interface SimulationTradeInput {
@@ -167,6 +207,9 @@ export interface SimulationTradeInput {
   invalidation?: string;
   expectedRisk?: string;
   intendedPositionSize?: string;
+  expectedScenarios?: string;
+  managementChange?: string;
+  exitReasoning?: string;
   stopPrice?: number;
   targetPrice?: number;
   assetType?: SimulationAssetType;

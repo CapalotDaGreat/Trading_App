@@ -35,6 +35,7 @@ describe('simulation engine', () => {
     expect(account.status).toBe('active');
     expect(account.positions).toEqual([]);
     expect(account.transactions).toEqual([]);
+    expect(account.checkpoints).toEqual([]);
     expect(account.currentDrawdown).toBe(0);
     expect(account.maxDrawdown).toBe(0);
   });
@@ -75,6 +76,10 @@ describe('simulation engine', () => {
     expect(bought.value.transactions[0]?.resultingPositionQuantity).toBe(100);
     expect(bought.value.decisions[0]?.thesis).toBe('Lesson: position sizing');
     expect(bought.value.transactions[0]?.decisionId).toBe(bought.value.decisions[0]?.id);
+    expect(bought.value.checkpoints).toHaveLength(1);
+    expect(bought.value.checkpoints?.[0]?.kind).toBe('entry');
+    expect(bought.value.checkpoints?.[0]?.snapshot.cashBalance).toBe(91_000);
+    expect(bought.value.checkpoints?.[0]?.snapshot.equity).toBe(100_000);
   });
 
   it('averages entry across adds', () => {

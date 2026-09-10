@@ -35,4 +35,18 @@ describe('simulation store isolation', () => {
     expect(archives[0]?.status).toBe('archived');
     expect(archives[0]?.transactions).toHaveLength(1);
   });
+
+  it('opens a new production path on reset and honors practice difficulty', () => {
+    const first = useSimulationStore.getState().ensureAccount('alice', 'standard', undefined, 'USD', {
+      difficulty: 'beginner',
+    });
+    expect(first.scenario?.difficulty).toBe('beginner');
+    const second = useSimulationStore.getState().reset('alice', 'standard', undefined, 'USD', {
+      difficulty: 'expert',
+    });
+    expect(second.cashBalance).toBe(100_000);
+    expect(second.scenario?.difficulty).toBe('expert');
+    expect(second.scenario?.seed).not.toBe(first.scenario?.seed);
+    expect(second.checkpoints).toEqual([]);
+  });
 });

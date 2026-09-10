@@ -9,7 +9,7 @@ export function EventArticleRow({ article }: { article: MarketEventArticle }) {
   return (
     <View className="mt-3 border-t border-border pt-3" testID="event-article">
       <Text variant="caption" className="text-text-tertiary">
-        {article.source} · {article.date}
+        External source · {article.source} · {article.date}
       </Text>
       <Text variant="body-sm" className="mt-1">
         {article.headline}
@@ -18,10 +18,13 @@ export function EventArticleRow({ article }: { article: MarketEventArticle }) {
         {article.summary}
       </Text>
       <Text variant="caption" className="mt-1 text-text-tertiary">
-        Why it matters: {article.whyItMatters}
+        Why it matters (TradeAcademy): {article.whyItMatters}
+      </Text>
+      <Text variant="caption" className="mt-1 text-text-tertiary">
+        We link to the source. We do not copy the article. This is not TradeAcademy’s interpretation of the event.
       </Text>
       <Button size="sm" variant="ghost" className="mt-2" onPress={() => void Linking.openURL(article.url)}>
-        Read article
+        Open source
       </Button>
     </View>
   );

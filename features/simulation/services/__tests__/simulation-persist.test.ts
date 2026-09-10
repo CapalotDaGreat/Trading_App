@@ -51,6 +51,7 @@ describe('simulation persist migrate', () => {
     expect(migrated.transactions[0]?.executionPrice).toBe(90);
     expect(migrated.transactions[0]?.grossValue).toBe(9_000);
     expect(migrated.orders).toEqual([]);
+    expect(migrated.checkpoints).toEqual([]);
   });
 
   it('keeps archives when bumping persist version', () => {

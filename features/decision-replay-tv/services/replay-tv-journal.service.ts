@@ -1,3 +1,4 @@
+import { replayTvEpisodeHref } from '@/features/decision-replay-tv/content/replay-tv.catalog';
 import type {
   ReplayTvEpisode,
   ReplayTvJournalReflection,
@@ -72,7 +73,7 @@ export function buildReplayTvJournalEntryInput(
     improvementCommitment: episode.scoringEmphasis[0]
       ? `Practice ${episode.scoringEmphasis[0]} on the next blind pause.`
       : 'Name invalidation before deepening research.',
-    linkedReplayHref: `/decision/replay-tv/${episode.id}`,
+    linkedReplayHref: replayTvEpisodeHref(episode.id),
     linkedAcademyLessonIds: episode.academyLessonIds.slice(0, 2),
   };
 }

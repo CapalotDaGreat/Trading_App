@@ -11,6 +11,7 @@ import { ReplayTvReportCard } from '@/features/decision-replay-tv/components/Rep
 import { ReplayTvReviewPanel } from '@/features/decision-replay-tv/components/ReplayTvReviewPanel';
 import { ReplayTvSkillProgressCard } from '@/features/decision-replay-tv/components/ReplayTvSkillProgressCard';
 import { ReplayTvTapeTools } from '@/features/decision-replay-tv/components/ReplayTvTapeTools';
+import { replayConcealsCompetency, replayPracticeDifficulty, REPLAY_PRACTICE_DIFFICULTY_LABELS } from '@/features/decision-replay/services/replay-practice-difficulty.service';
 import { replayInformationBoundary, visibleFundamentalsAt, visibleRevealBeats } from '@/features/decision-replay-tv/services/replay-tv-boundary.service';
 import { resampleVisibleCandles, type ReplayTapeTimeframe } from '@/features/decision-replay-tv/services/replay-tv-chart-tools.service';
 import { buildReplayLabReview } from '@/features/decision-replay-tv/services/replay-tv-review.service';
@@ -21,6 +22,7 @@ import {
   composeReplayPhaseAnnouncement,
 } from '@/features/decision-replay-tv/services/replay-tv-session.service';
 import type { ReplayTvDecision, ReplayTvReasoning } from '@/features/decision-replay-tv/types/replay-tv.types';
+import { TrainingHandoffBanner } from '@/features/learning-engine/components/TrainingHandoffBanner';
 import { DataSourceBadge } from '@/features/markets/components/DataSourceBadge';
 import { RecoverableErrorState } from '@/shared/components/feedback/RecoverableErrorState';
 import { StatusState } from '@/shared/components/feedback/StatusState';
@@ -190,6 +192,7 @@ export function ReplayTvSessionScreen() {
       testID="replay-tv-session"
     >
       <View className="gap-4">
+        <TrainingHandoffBanner />
         <ReplayTvLoopStepper phase={phase} />
 
         {!isOnline ? (
@@ -239,13 +242,19 @@ export function ReplayTvSessionScreen() {
               {blindView.subtitle}. {blindView.teaser}
             </Text>
             <Text variant="caption" className="mt-3 text-text-tertiary">
-              {episode.symbolLabel} · {blindView.eraLabel} · {episode.difficulty} · ~
+              {episode.symbolLabel} · {blindView.eraLabel} ·{' '}
+              {REPLAY_PRACTICE_DIFFICULTY_LABELS[replayPracticeDifficulty(episode)]} · ~
               {episode.durationMinutes} min · {episode.estimatedDecisionCount} pauses
             </Text>
             <Text variant="body-sm" className="mt-3 text-text-tertiary">
               Waiting or skipping is a legitimate expert decision. You will only see information
               that would have been available at each freeze.
             </Text>
+            {replayConcealsCompetency(episode) ? (
+              <Text variant="caption" className="mt-2 text-text-tertiary">
+                This room does not advertise the competency under test. Decide from the tape, not from a label.
+              </Text>
+            ) : null}
             <Button className="mt-4" onPress={advancePhase} accessibilityLabel="Continue to blind context">
               Begin with context
             </Button>
@@ -338,10 +347,10 @@ export function ReplayTvSessionScreen() {
         {phase === 'watching' ? (
           <Surface emphasis="outlined">
             <Text variant="h3" headingLevel={2}>
-              Research
+              Study this freeze
             </Text>
             <Text variant="body" className="mt-2 text-text-secondary">
-              {checkpoint?.prompt ?? 'What would you do with your research time?'}
+              {checkpoint?.prompt ?? 'What would you do with your study time?'}
             </Text>
             {checkpoint?.availableDataNotes?.length ? (
               <View className="mt-3 gap-1">
@@ -352,8 +361,8 @@ export function ReplayTvSessionScreen() {
                 ))}
               </View>
             ) : null}
-            <Button className="mt-4" onPress={advancePhase} accessibilityLabel="Continue to research">
-              Continue to research
+            <Button className="mt-4" onPress={advancePhase} accessibilityLabel="Continue to study">
+              Continue to study
             </Button>
           </Surface>
         ) : null}
@@ -361,7 +370,7 @@ export function ReplayTvSessionScreen() {
         {phase === 'research' ? (
           <Surface emphasis="outlined">
             <Text variant="h3" headingLevel={2}>
-              Research
+              Study this freeze
             </Text>
             <Text variant="body-sm" className="mt-2 text-text-secondary">
               Only information available at this cutoff. Future prints, later headlines, and later
@@ -528,6 +537,9 @@ export function ReplayTvSessionScreen() {
             </Text>
             <Text variant="body-sm" className="mt-2 text-text-secondary">
               Subsequent behavior, shown in stretches. This is not “you were right.”
+            </Text>
+            <Text variant="caption" className="mt-2 text-text-tertiary">
+              Outcome does not determine decision quality. Separate what you knew then from what happened afterward.
             </Text>
             {revealBeats.map((beat) => (
               <View key={beat.untilIndex} className="mt-3">
@@ -699,6 +711,9 @@ export function ReplayTvSessionScreen() {
               />
             </View>
             <View className="mt-4 gap-2">
+              <Button variant="outline" onPress={() => router.push('/review' as never)}>
+                Open Review
+              </Button>
               <Button variant="outline" onPress={() => router.push('/decision/passport' as never)}>
                 Decision Passport
               </Button>

@@ -4,6 +4,7 @@ import type {
   MarketEventKind,
   MarketEventTraining,
 } from '../types/events.types';
+import { EVENT_CONCEPT_MAP } from './event-concept-map';
 
 export interface EventEducation {
   kind: MarketEventKind;
@@ -21,6 +22,9 @@ export interface EventEducation {
     why: string;
   };
   concepts: string[];
+  conceptIds: string[];
+  riskConceptIds: string[];
+  psychologyConceptIds: string[];
   relatedAssets: string[];
   relatedSectors: string[];
   practiceId?: string;
@@ -87,9 +91,22 @@ const SEC_EDGAR: MarketEventArticle = {
   url: 'https://www.sec.gov/edgar',
 };
 
-function education(partial: EventEducation): EventEducation {
+type EventEducationInput = Omit<
+  EventEducation,
+  'conceptIds' | 'riskConceptIds' | 'psychologyConceptIds' | 'concepts' | 'article'
+> & {
+  concepts?: string[];
+  article?: EventEducation['article'];
+};
+
+function education(partial: EventEducationInput): EventEducation {
+  const mapping = EVENT_CONCEPT_MAP[partial.kind];
   return {
     ...partial,
+    concepts: mapping.displayConcepts,
+    conceptIds: [...mapping.conceptIds],
+    riskConceptIds: [...mapping.riskConceptIds],
+    psychologyConceptIds: [...mapping.psychologyConceptIds],
     article: partial.article ?? (partial.articles[0]
       ? {
           title: partial.articles[0].headline,
@@ -122,7 +139,7 @@ export const EVENT_EDUCATION: Record<MarketEventKind, EventEducation> = {
     kind: 'interest_rate',
     category: 'interest_rate',
     whyTradersCare:
-      'Policy rates change the discount rate on cash flows and the cost of leverage. Markets reprice expectations, not just the decision.',
+      'A policy decision is a classroom for interest rates, macro uncertainty, volatility, and event preparation. Markets may reprice a path of rates. Historical tendency is not a rule for the next meeting, and this is not an instruction to enter or exit.',
     relatedLessonId: 'fund-economy',
     relatedLessonTitle: 'Economic environment: the weather around the name',
     practiceId: 'rate-decision-uncertainty',
@@ -145,7 +162,7 @@ export const EVENT_EDUCATION: Record<MarketEventKind, EventEducation> = {
     kind: 'inflation',
     category: 'inflation',
     whyTradersCare:
-      'Inflation prints move real yields and policy odds. The surprise versus consensus usually matters more than the level.',
+      'An inflation print (CPI and related) is a classroom for inflation, event risk, volatility, uncertainty, and scenario planning. The surprise versus a consensus guess often matters more than the level. Possible paths are scenarios — not a forecast of equity direction.',
     relatedLessonId: 'fund-calendar',
     relatedLessonTitle: 'Economic calendar and event risk',
     practiceId: 'inflation-asset-effects',
@@ -212,7 +229,7 @@ export const EVENT_EDUCATION: Record<MarketEventKind, EventEducation> = {
     kind: 'earnings',
     category: 'other',
     whyTradersCare:
-      'Earnings and guidance update cash-flow guesses for one name and sometimes a sector. The first reaction is often not the thesis.',
+      'Earnings update revenue, earnings quality, and valuation guesses for one name. Expectation risk and gap behavior are process problems: size, invalidation, and waiting. This is not a reason to enter ahead of a print or to treat the first tick as the thesis.',
     relatedLessonId: 'fund-statements',
     relatedLessonTitle: 'Reading statements without a story',
     practiceTitle: 'Guidance versus the print',

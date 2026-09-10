@@ -471,7 +471,7 @@ export const REPLAY_TV_EPISODES: ReplayTvEpisode[] = [
     contextBullets: [
       'Trust and custody risk can dominate price narratives.',
       'Skipping research is allowed when the question is poorly framed.',
-      'Document what you refuse to research until clarity improves.',
+      'Document what you refuse to study until clarity improves.',
     ],
     availableNews: [
       news('n1', 20, 'Venue trust questioned', 'Counterparty and custody narratives intensify.'),
@@ -950,6 +950,8 @@ export const REPLAY_TV_EPISODES: ReplayTvEpisode[] = [
     symbolLabel: 'Gold educational proxy',
     interval: '1d',
     difficulty: 'advanced',
+    practiceDifficulty: 'mixed',
+    concealCompetency: true,
     premiumOnly: true,
     skills: ['regime', 'risk', 'invalidation'],
     eraLabel: 'Macro metals (educational)',
@@ -1339,6 +1341,11 @@ export const REPLAY_TV_EPISODES: ReplayTvEpisode[] = [
 
 export function getReplayTvEpisode(id: string): ReplayTvEpisode | undefined {
   return REPLAY_TV_EPISODES.find((e) => e.id === id);
+}
+
+/** Home reads `?episode=` and starts the session. There is no `/decision/replay-tv/[id]` route. */
+export function replayTvEpisodeHref(episodeId: string): string {
+  return `/decision/replay-tv?episode=${encodeURIComponent(episodeId)}`;
 }
 
 export function listEpisodesForCollection(collectionId: string): ReplayTvEpisode[] {

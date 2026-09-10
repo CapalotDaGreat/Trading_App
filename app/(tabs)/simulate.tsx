@@ -4,6 +4,7 @@ import { Alert, View } from 'react-native';
 
 import { useAppendDecisionRecord } from '@/features/decision-log/hooks/useDecisionLog';
 import { LoopCtaRow } from '@/features/navigation/components/LoopCtaRow';
+import { TrainingHandoffBanner } from '@/features/learning-engine/components/TrainingHandoffBanner';
 import { SimulationCurrencyPanel } from '@/features/simulation/components/SimulationCurrencyPanel';
 import { SimulationCloseReviewCard } from '@/features/simulation/components/SimulationCloseReviewCard';
 import { SimulationDisclaimer } from '@/features/simulation/components/SimulationDisclaimer';
@@ -16,8 +17,11 @@ import { SimulationTradeTicket } from '@/features/simulation/components/Simulati
 import { SimulationTransactionList } from '@/features/simulation/components/SimulationTransactionList';
 import { SELECTABLE_CHALLENGES } from '@/features/simulation/constants/simulation.constants';
 import { useSimulation } from '@/features/simulation/hooks/useSimulation';
+import { PREP_TO_SCENARIO_KIND } from '@/features/events/services/event-simulation.service';
+import type { EventPrepKind } from '@/features/events/types/events.types';
+import { SCENARIO_DIFFICULTY_LABELS } from '@/features/simulation/services/scenario-difficulty.service';
 import { resetSnapshot } from '@/features/simulation/services/simulation-engine.service';
-import type { ScenarioEventKind, ScenarioStartOptions } from '@/features/simulation/types/scenario.types';
+import type { ScenarioDifficulty, ScenarioFocus, ScenarioStartOptions } from '@/features/simulation/types/scenario.types';
 import type {
   SimulationCloseReview,
   SimulationMode,
@@ -35,18 +39,23 @@ import { Text } from '@/shared/components/ui/Text';
 import { BRAND } from '@/shared/constants/brand';
 
 const MODE_OPTIONS: { value: SimulationMode; label: string }[] = [
-  { value: 'beginner', label: 'Beginner' },
+  { value: 'beginner', label: 'Beginner rails' },
   { value: 'standard', label: 'Standard' },
   { value: 'challenge', label: 'Challenge' },
 ];
 
-const PREP_EVENT_KIND: Record<string, ScenarioEventKind> = {
-  rates: 'rate_decision',
-  inflation: 'inflation',
-  employment: 'employment',
-  earnings: 'earnings',
-  macro: 'rate_decision',
-};
+const DIFFICULTY_OPTIONS: { value: ScenarioDifficulty; label: string }[] = [
+  { value: 'beginner', label: SCENARIO_DIFFICULTY_LABELS.beginner },
+  { value: 'intermediate', label: SCENARIO_DIFFICULTY_LABELS.intermediate },
+  { value: 'advanced', label: SCENARIO_DIFFICULTY_LABELS.advanced },
+  { value: 'expert', label: SCENARIO_DIFFICULTY_LABELS.expert },
+];
+
+const PREP_EVENT_KIND = PREP_TO_SCENARIO_KIND;
+
+function isEventPrep(value?: string): value is EventPrepKind {
+  return Boolean(value && value in PREP_TO_SCENARIO_KIND);
+}
 
 const PREP_LABEL: Record<string, string> = {
   rates: 'an uncertain rate decision',
@@ -56,14 +65,37 @@ const PREP_LABEL: Record<string, string> = {
   macro: 'an uncertain macro event',
 };
 
-function eventPrepOptions(prep?: string): ScenarioStartOptions | undefined {
-  if (!prep || !PREP_EVENT_KIND[prep]) return undefined;
-  return { focus: 'event_adaptation', preferredEventKind: PREP_EVENT_KIND[prep] };
+const SCENARIO_FOCUS = new Set<ScenarioFocus>([
+  'position_sizing',
+  'false_breakouts',
+  'uncertainty',
+  'event_adaptation',
+  'correlation',
+  'thesis_discipline',
+]);
+
+function scenarioStartOptions(
+  prep?: string,
+  focus?: string,
+  difficulty?: ScenarioDifficulty,
+): ScenarioStartOptions | undefined {
+  const fromPrep = isEventPrep(prep)
+      ? { focus: 'event_adaptation' as const, preferredEventKind: PREP_EVENT_KIND[prep] }
+      : undefined;
+  const fromFocus =
+    focus && SCENARIO_FOCUS.has(focus as ScenarioFocus) ? { focus: focus as ScenarioFocus } : undefined;
+  if (!fromPrep && !fromFocus && !difficulty) return undefined;
+  return { ...fromFocus, ...fromPrep, ...(difficulty ? { difficulty } : {}) };
 }
 
 export default function SimulateScreen() {
   const router = useRouter();
-  const { start: startParam, prep: prepParam } = useLocalSearchParams<{ start?: string; prep?: string }>();
+  const { start: startParam, prep: prepParam, focus: focusParam, difficulty: difficultyParam } = useLocalSearchParams<{
+    start?: string;
+    prep?: string;
+    focus?: string;
+    difficulty?: string;
+  }>();
   const {
     account,
     archives,
@@ -88,8 +120,15 @@ export default function SimulateScreen() {
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    if (startParam === '1' && !account) start(eventPrepOptions(prepParam));
-  }, [account, prepParam, start, startParam]);
+    const difficulty =
+      difficultyParam === 'beginner' ||
+      difficultyParam === 'intermediate' ||
+      difficultyParam === 'advanced' ||
+      difficultyParam === 'expert'
+        ? difficultyParam
+        : undefined;
+    if (startParam === '1' && !account) start(scenarioStartOptions(prepParam, focusParam, difficulty));
+  }, [account, difficultyParam, focusParam, prepParam, start, startParam]);
 
   useEffect(() => {
     if (account) refresh();
@@ -148,6 +187,26 @@ export default function SimulateScreen() {
     setReviewDecisionId(null);
   };
 
+  const handleDifficulty = (difficulty: ScenarioDifficulty) => {
+    if (!account || account.scenario?.difficulty === difficulty) return;
+    const snap = resetSnapshot(account);
+    Alert.alert(
+      'Archive and open a new path?',
+      `Changing practice level archives this paper book and generates a new synthetic path. Equity ${snap.equity.toFixed(0)} ${snap.currency}. Simulated P/L is not the grade.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Archive and switch',
+          style: 'destructive',
+          onPress: () => {
+            reset(account.mode, account.challengeId, displayCurrency, { difficulty });
+            setStatusMessage('New synthetic path opened. Difficulty changes ambiguity, not expected profit.');
+          },
+        },
+      ],
+    );
+  };
+
   const handleMode = (mode: SimulationMode) => {
     if (!account || account.mode === mode) return;
     const snap = resetSnapshot(account);
@@ -160,7 +219,12 @@ export default function SimulateScreen() {
           text: 'Archive and switch',
           style: 'destructive',
           onPress: () => {
-            reset(mode, mode === 'challenge' ? account.challengeId ?? SELECTABLE_CHALLENGES[0]?.id : undefined);
+            reset(
+              mode,
+              mode === 'challenge' ? account.challengeId ?? SELECTABLE_CHALLENGES[0]?.id : undefined,
+              displayCurrency,
+              scenarioStartOptions(undefined, undefined, account.scenario?.difficulty),
+            );
             setStatusMessage('Simulation archived. New paper account opened for the selected mode.');
           },
         },
@@ -179,7 +243,12 @@ export default function SimulateScreen() {
           text: 'Archive and switch',
           style: 'destructive',
           onPress: () => {
-            reset('challenge', challengeId);
+            reset(
+              'challenge',
+              challengeId,
+              displayCurrency,
+              scenarioStartOptions(undefined, undefined, account.scenario?.difficulty),
+            );
             setStatusMessage('Simulation archived. Challenge measures process constraints, not return.');
           },
         },
@@ -190,14 +259,15 @@ export default function SimulateScreen() {
   return (
     <ScreenScaffold
       eyebrow={`${IA_GLOSSARY.simulate} · ${BRAND.simulatedLabel}`}
-      title="SIMULATED PORTFOLIO"
+      title="Practice with paper capital"
       subtitle="Practice managing simulated capital. The goal is process, not maximizing paper profit."
       contentClassName="pb-12"
       testID="simulate-screen"
     >
+      <TrainingHandoffBanner />
       <SimulationDisclaimer />
 
-      {prepParam && PREP_EVENT_KIND[prepParam] ? (
+      {isEventPrep(prepParam) ? (
         <Surface tone="accent" emphasis="outlined" className="mb-4" testID="simulate-event-prep">
           <Text variant="label" className="text-accent">
             Event-inspired book
@@ -221,7 +291,12 @@ export default function SimulateScreen() {
                       text: 'Archive and start',
                       style: 'destructive',
                       onPress: () => {
-                        reset(account.mode, account.challengeId, displayCurrency, eventPrepOptions(prepParam));
+                        reset(
+                          account.mode,
+                          account.challengeId,
+                          displayCurrency,
+                          scenarioStartOptions(prepParam, undefined, account.scenario?.difficulty),
+                        );
                         setStatusMessage('New fictional event book opened. The real-world print is not being forecast.');
                       },
                     },
@@ -240,7 +315,7 @@ export default function SimulateScreen() {
           title="Start with $100,000 in simulated capital"
           description="This opens a paper book. It is not a brokerage, not real money, and simulated P/L does not grade a decision."
           actionLabel="Start Simulation"
-          onAction={() => start(eventPrepOptions(prepParam))}
+          onAction={() => start(scenarioStartOptions(prepParam, focusParam))}
           iconName="briefcase-outline"
           className="px-4 py-10"
           testID="simulate-empty"
@@ -265,9 +340,6 @@ export default function SimulateScreen() {
           />
 
           <View className="mb-4 flex-row flex-wrap gap-2" testID="simulate-loop-actions">
-            <Button size="sm" accessibilityLabel="Trade in this simulated book">
-              Trade
-            </Button>
             <Button size="sm" variant="outline" onPress={() => router.push('/review' as never)}>
               Review
             </Button>
@@ -280,7 +352,12 @@ export default function SimulateScreen() {
             account={account}
             preferredCurrency={displayCurrency}
             onChangeAccountCurrency={(currency) => {
-              reset(account.mode, account.challengeId, currency);
+              reset(
+                account.mode,
+                account.challengeId,
+                currency,
+                scenarioStartOptions(undefined, undefined, account.scenario?.difficulty),
+              );
               setStatusMessage(`Simulation archived. New paper book opened in ${currency}.`);
             }}
           />
@@ -295,6 +372,19 @@ export default function SimulateScreen() {
             options={MODE_OPTIONS}
             value={account.mode}
             onChange={handleMode}
+          />
+
+          <Text variant="label" className="mb-2">
+            Scenario practice level
+          </Text>
+          <Text variant="caption" className="mb-2 text-text-tertiary">
+            Changes structure, uncertainty, and information — never a setting that forces losses.
+          </Text>
+          <SegmentedControl
+            className="mb-4"
+            options={DIFFICULTY_OPTIONS}
+            value={account.scenario?.difficulty ?? 'intermediate'}
+            onChange={handleDifficulty}
           />
 
           {account.mode === 'challenge' ? (
@@ -361,7 +451,12 @@ export default function SimulateScreen() {
             snapshot={resetSnapshot(account)}
             archiveCount={archives.length}
             onConfirm={() => {
-              reset(account.mode, account.challengeId);
+              reset(
+                account.mode,
+                account.challengeId,
+                displayCurrency,
+                scenarioStartOptions(undefined, undefined, account.scenario?.difficulty),
+              );
               setStatusMessage('Previous simulation archived. New paper capital is ready.');
             }}
           />

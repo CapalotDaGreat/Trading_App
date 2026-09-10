@@ -18,6 +18,7 @@ import {
 } from '../services/simulation-engine.service';
 import { migrateSimulationPersist } from '../services/simulation-persist.service';
 import { inferScenarioFocus } from '../services/scenario-adaptation.service';
+import { appendDecisionCheckpoint } from '../services/scenario-checkpoint.service';
 import { applyExecutionFriction } from '../services/scenario-friction.service';
 import {
   generateSimulationScenario,
@@ -104,6 +105,7 @@ function nextScenario(
     mode,
     focus: options?.focus ?? inferScenarioFocus(prior),
     preferredEventKind: options?.preferredEventKind,
+    difficulty: options?.difficulty,
   });
 }
 
@@ -254,10 +256,21 @@ export const useSimulationStore = create<SimulationState>()(
       answerDecision: (userId, windowId, option, reasoning) => {
         const account = get().ensureAccount(userId);
         if (!account.scenario) return account;
-        return writeLive(set, get, userId, {
+        const next = {
           ...account,
           scenario: answerDecisionWindow(account.scenario, windowId, option, reasoning),
-        });
+        };
+        return writeLive(
+          set,
+          get,
+          userId,
+          appendDecisionCheckpoint(next, {
+            kind: 'window',
+            windowId,
+            decision: option,
+            thesis: reasoning,
+          }),
+        );
       },
       reset: (userId, mode, challengeId, currency, options) => {
         const account = get().ensureAccount(userId, mode, challengeId, currency, options);

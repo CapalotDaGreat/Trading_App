@@ -1,10 +1,12 @@
 import { DEFAULT_SIMULATION_CURRENCY, SYNTHETIC_UNIVERSE } from '../constants/simulation.constants';
 import type { SimulationScenario } from '../types/scenario.types';
+import { isScenarioDifficulty } from './scenario-difficulty.service';
 import type {
   SimulationAccount,
   SimulationAssetType,
   SimulationCloseReview,
   SimulationDecision,
+  SimulationDecisionCheckpoint,
   SimulationMode,
   SimulationOrder,
   SimulationPosition,
@@ -112,6 +114,9 @@ function migrateDecision(raw: Record<string, unknown>, accountId: string): Simul
     invalidation: typeof raw.invalidation === 'string' ? raw.invalidation : undefined,
     expectedRisk: typeof raw.expectedRisk === 'string' ? raw.expectedRisk : undefined,
     intendedPositionSize: typeof raw.intendedPositionSize === 'string' ? raw.intendedPositionSize : undefined,
+    expectedScenarios: typeof raw.expectedScenarios === 'string' ? raw.expectedScenarios : undefined,
+    managementChange: typeof raw.managementChange === 'string' ? raw.managementChange : undefined,
+    exitReasoning: typeof raw.exitReasoning === 'string' ? raw.exitReasoning : undefined,
     reasonForEntry: typeof raw.reasonForEntry === 'string' ? raw.reasonForEntry : undefined,
     createdAt: asString(raw.createdAt),
     closedAt: typeof raw.closedAt === 'string' ? raw.closedAt : undefined,
@@ -200,6 +205,9 @@ export function migrateSimulationAccount(raw: Record<string, unknown>): Simulati
     lastChallengeViolation:
       typeof raw.lastChallengeViolation === 'string' ? raw.lastChallengeViolation : undefined,
     scenario: migrateScenario(raw.scenario),
+    checkpoints: Array.isArray(raw.checkpoints)
+      ? (raw.checkpoints.filter((item) => Boolean(item) && typeof item === 'object') as SimulationDecisionCheckpoint[])
+      : [],
   };
 }
 
@@ -210,6 +218,7 @@ function migrateScenario(raw: unknown): SimulationScenario | undefined {
   return {
     ...value,
     engineVersion: value.engineVersion === 2 ? 2 : 1,
+    difficulty: isScenarioDifficulty(value.difficulty) ? value.difficulty : 'intermediate',
     segments: Array.isArray(value.segments) ? value.segments : [],
     climate: value.climate ?? { macro: 'uncertain', sentiment: 'mixed', liquidity: 'normal' },
     friction: value.friction ?? { spreadBps: 4, slippageBps: 3, feeBps: 2, gapRisk: 0.15, executionUncertainty: 0.18 },

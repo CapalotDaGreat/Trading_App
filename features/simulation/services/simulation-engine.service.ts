@@ -24,6 +24,8 @@ import type {
   SimulationTradePreview,
   SimulationTransaction,
 } from '../types/simulation.types';
+import { unitPriceInAccountCurrency } from './fx-conversion.service';
+import { appendDecisionCheckpoint } from './scenario-checkpoint.service';
 import {
   fromQtyTicks,
   grossValueMinor,
@@ -32,7 +34,6 @@ import {
   toQtyTicks,
   weightedAveragePriceMajor,
 } from './simulation-money.service';
-import { unitPriceInAccountCurrency } from './fx-conversion.service';
 
 export function roundMoney(value: number): number {
   return toMajor(toMinor(value));
@@ -140,6 +141,7 @@ export function createSimulationAccount(input: {
     transactions: [],
     orders: [],
     decisions: [],
+    checkpoints: [],
     realizedPnL: 0,
     unrealizedPnL: 0,
     totalReturn: 0,
@@ -300,6 +302,9 @@ function attachDecision(
     invalidation: input.invalidation,
     expectedRisk: input.expectedRisk,
     intendedPositionSize: input.intendedPositionSize,
+    expectedScenarios: input.expectedScenarios,
+    managementChange: input.managementChange,
+    exitReasoning: input.exitReasoning,
     reasonForEntry: input.reason ?? thesis,
     createdAt: now,
   };
@@ -477,7 +482,26 @@ export function executeBuy(
     transactions: [...working.transactions, transaction],
   };
 
-  return ok(applyChallengeStatus(recompute(draft, now)));
+  const filled = applyChallengeStatus(recompute(draft, now));
+  return ok(
+    appendDecisionCheckpoint(
+      filled,
+      {
+        kind: existing ? 'management' : 'entry',
+        symbol,
+        thesis: thesisText(input) || input.reason,
+        evidence: input.evidence,
+        confidence: input.confidence,
+        invalidation: input.invalidation,
+        positionSize: input.intendedPositionSize,
+        risk: input.expectedRisk,
+        expectedScenarios: input.expectedScenarios,
+        managementChange: input.managementChange,
+        decision: existing ? 'add' : 'enter',
+      },
+      now,
+    ),
+  );
 }
 
 export function executeSell(
@@ -572,7 +596,27 @@ export function executeSell(
     decisions,
   };
 
-  return ok(applyChallengeStatus(recompute(draft, now)));
+  const filled = applyChallengeStatus(recompute(draft, now));
+  return ok(
+    appendDecisionCheckpoint(
+      filled,
+      {
+        kind: remainingQty === 0 ? 'exit' : 'management',
+        symbol,
+        thesis: input.thesis,
+        evidence: input.evidence,
+        confidence: input.confidence,
+        invalidation: input.invalidation,
+        positionSize: input.intendedPositionSize,
+        risk: input.expectedRisk,
+        expectedScenarios: input.expectedScenarios,
+        managementChange: input.managementChange,
+        exitReasoning: input.exitReasoning,
+        decision: remainingQty === 0 ? 'exit' : 'reduce',
+      },
+      now,
+    ),
+  );
 }
 
 export function recordCloseReview(

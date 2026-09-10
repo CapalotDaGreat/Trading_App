@@ -15,6 +15,19 @@ interface SimulationDecisionCardProps {
 
 export function SimulationDecisionCard({ window, onAnswer }: SimulationDecisionCardProps) {
   const [reasoning, setReasoning] = useState('');
+  const [invalidation, setInvalidation] = useState('');
+  const [size, setSize] = useState('');
+  const [expected, setExpected] = useState('');
+
+  const combinedReason = () => {
+    const parts = [
+      reasoning.trim(),
+      invalidation.trim() ? `Invalidation: ${invalidation.trim()}` : '',
+      size.trim() ? `Size: ${size.trim()}` : '',
+      expected.trim() ? `Expected: ${expected.trim()}` : '',
+    ].filter(Boolean);
+    return parts.join('\n') || undefined;
+  };
 
   return (
     <Surface className="mb-4" testID="simulate-decision-window">
@@ -27,9 +40,27 @@ export function SimulationDecisionCard({ window, onAnswer }: SimulationDecisionC
       </Text>
       <Input
         containerClassName="mt-3"
-        placeholder="Optional: why this choice (thesis, invalidation, size)"
+        placeholder="Why this choice (thesis, plan, uncertainty)"
         value={reasoning}
         onChangeText={setReasoning}
+      />
+      <Input
+        containerClassName="mt-2"
+        placeholder="Invalidation (optional)"
+        value={invalidation}
+        onChangeText={setInvalidation}
+      />
+      <Input
+        containerClassName="mt-2"
+        placeholder="Size / risk (optional)"
+        value={size}
+        onChangeText={setSize}
+      />
+      <Input
+        containerClassName="mt-2"
+        placeholder="What scenarios are you allowing for? (optional)"
+        value={expected}
+        onChangeText={setExpected}
       />
       <View className="mt-3 flex-row flex-wrap gap-2">
         {window.options.map((option) => (
@@ -37,7 +68,7 @@ export function SimulationDecisionCard({ window, onAnswer }: SimulationDecisionC
             key={option}
             size="sm"
             variant={option === 'reduce' || option === 'wait' ? 'outline' : 'ghost'}
-            onPress={() => onAnswer(option, reasoning)}
+            onPress={() => onAnswer(option, combinedReason())}
           >
             {DECISION_OPTION_LABELS[option]}
           </Button>

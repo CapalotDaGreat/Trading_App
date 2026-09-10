@@ -50,7 +50,9 @@ Fills use mid ± spread/slippage. Challenge books add fees and wider uncertainty
 
 ### Difficulty
 
-Not Easy/Medium/Hard as a market label. `beginner` / `standard` / `challenge` scale complexity (assets, events, incomplete information, psychological pressure). `inferScenarioFocus()` biases the **next** book toward sizing, false breakouts, uncertainty, or overlapping events.
+Account **rails** remain `beginner` / `standard` / `challenge` (concentration, 1% risk, thesis). Scenario **practice level** is separate: `beginner` | `intermediate` | `advanced` | `expert`. It scales ambiguity and information — never a forced-loss slider. Production books use a fresh internal seed; tests pass an explicit seed.
+
+See `docs/TRADEACADEMY_SIMULATION_SCENARIOS.md` for the scenario model, event contexts, checkpoints, and process evaluation.
 
 ### Outcome
 

@@ -13,6 +13,7 @@ import type {
 import { educationForKind, kindFromCalendarEvent, trainingFromEducation } from './event-education.service';
 import { scoreEventImportance } from './event-importance.service';
 import { composeEventTrainingPlan } from './event-personalization.service';
+import { selectBeginnerLearningCalendar } from './event-calendar.service';
 import { freshnessForSource, lifecycleForEvent, whatHappenedOrExpected } from './event-status.service';
 
 export interface ComposeMarketEventHubInput {
@@ -25,6 +26,7 @@ export interface ComposeMarketEventHubInput {
   preferredTopics?: LearningTopic[];
   struggles?: TradingStruggle[];
   weakness?: SkillDomain | null;
+  gapConceptIds?: string[];
 }
 
 function calendarCard(
@@ -155,7 +157,11 @@ export function composeMarketEventHub(input: ComposeMarketEventHubInput): Market
       cards,
       experience: input.experience,
       now,
+      weakness: input.weakness,
+      struggles: input.struggles,
+      gapConceptIds: input.gapConceptIds,
     }),
+    learningCalendar: selectBeginnerLearningCalendar(cards),
     calendarUnavailable: input.calendarUnavailable,
     freshnessNote,
     fetchedAt: input.fetchedAt,

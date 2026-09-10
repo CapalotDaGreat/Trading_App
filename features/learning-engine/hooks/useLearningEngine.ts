@@ -3,21 +3,31 @@ import { useMemo } from 'react';
 import { ALL_LESSONS } from '@/features/academy/content';
 import { useNextAcademyLesson } from '@/features/academy/hooks/useAcademy';
 import { useAcademyProgressStore } from '@/features/academy/stores/academy-progress.store';
+import { useAuth } from '@/features/auth/hooks/useAuth';
+import { scoreAllCompetencyMastery, useCompetencyEvidenceStore } from '@/features/competency';
 import { useReplayTvStore } from '@/features/decision-replay-tv/stores/replay-tv.store';
 import { useMarketEvents } from '@/features/events/hooks/useMarketEvents';
+import { collectPracticeGapConceptIds } from '@/features/events/services/event-personalization.service';
 import { useJournal } from '@/features/journal/hooks/useJournal';
 import { useCoachProfile } from '@/features/onboarding/hooks/useCoachProfile';
 import { usePracticeProgressStore } from '@/features/practice/stores/practice-progress.store';
 import { buildSkillModel } from '@/features/progress/services/skill-model.service';
 import { useSimulation } from '@/features/simulation/hooks/useSimulation';
 import { scoreSimulationProcess } from '@/features/simulation/services/scenario-process.service';
+import { DEMO_USER_UID } from '@/firebase/config';
 
+import { activityKey } from '../services/concept-handoff.service';
 import { buildLearningEvidence } from '../services/learning-evidence.service';
 import { nextAfterLesson } from '../services/lesson-next.service';
-import { composeTodaysTraining } from '../services/practice-queue.service';
+import { composeTodaysTraining } from '../services/today-training-engine.service';
 import { useLearningQueueStore } from '../stores/learning-queue.store';
+import type { TrainingHandoff, TrainingQueueItem } from '../types/learning-engine.types';
+
+const EMPTY_EVIDENCE: import('@/features/competency').CompetencyEvidenceRecord[] = [];
 
 export function useLearningEngine(options?: { lessonId?: string }) {
+  const { user } = useAuth();
+  const uid = user?.uid ?? DEMO_USER_UID;
   const { recommendation } = useNextAcademyLesson();
   const lessonProgress = useAcademyProgressStore((state) => state.lessons);
   const conceptResults = useAcademyProgressStore((state) => state.conceptResults);
@@ -27,9 +37,15 @@ export function useLearningEngine(options?: { lessonId?: string }) {
   const { account } = useSimulation();
   const { profile } = useCoachProfile();
   const dispositions = useLearningQueueStore((state) => state.dispositions);
-  const skip = useLearningQueueStore((state) => state.skip);
-  const defer = useLearningQueueStore((state) => state.defer);
+  const conceptDeferCounts = useLearningQueueStore((state) => state.conceptDeferCounts);
+  const recentActivityKeys = useLearningQueueStore((state) => state.recentActivityKeys);
+  const skipStore = useLearningQueueStore((state) => state.skip);
+  const deferStore = useLearningQueueStore((state) => state.defer);
   const bookmark = useLearningQueueStore((state) => state.bookmark);
+  const recordOpened = useLearningQueueStore((state) => state.recordOpened);
+  const setHandoff = useLearningQueueStore((state) => state.setHandoff);
+  const evidence =
+    useCompetencyEvidenceStore((state) => state.recordsByUser[uid]) ?? EMPTY_EVIDENCE;
 
   const skill = useMemo(
     () =>
@@ -43,7 +59,16 @@ export function useLearningEngine(options?: { lessonId?: string }) {
     [account?.decisions, attempts, entries.length, lessonProgress],
   );
 
-  const { trainingPlan } = useMarketEvents({ weakness: skill.weakest });
+  const gapConceptIds = useMemo(
+    () =>
+      collectPracticeGapConceptIds({
+        attempts,
+        mastery: scoreAllCompetencyMastery(evidence).map((item) => ({ conceptId: item.conceptId, state: item.state })),
+      }),
+    [attempts, evidence],
+  );
+
+  const { trainingPlan } = useMarketEvents({ weakness: skill.weakest, gapConceptIds });
 
   const snapshot = useMemo(() => {
     const process = account ? scoreSimulationProcess(account) : undefined;
@@ -81,17 +106,46 @@ export function useLearningEngine(options?: { lessonId?: string }) {
     trainingPlan,
   ]);
 
-  const today = useMemo(() => composeTodaysTraining(snapshot, dispositions), [dispositions, snapshot]);
+  const competency = useMemo(
+    () => scoreAllCompetencyMastery(evidence, snapshot.now),
+    [evidence, snapshot.now],
+  );
+
+  const today = useMemo(
+    () =>
+      composeTodaysTraining(snapshot, dispositions, {
+        competency,
+        evidence,
+        recentActivityKeys,
+        conceptDeferCounts,
+      }),
+    [competency, conceptDeferCounts, dispositions, evidence, recentActivityKeys, snapshot],
+  );
   const lessonChain = options?.lessonId ? nextAfterLesson(options.lessonId) : today.lessonChain;
+
+  const openItem = (item: TrainingQueueItem) => {
+    recordOpened(activityKey(item.href));
+    if (item.conceptId && item.loopStep && item.priority) {
+      const handoff: TrainingHandoff = {
+        conceptId: item.conceptId,
+        loopStep: item.loopStep,
+        concealConcept: Boolean(item.concealConcept),
+        priority: item.priority,
+        whyToday: item.whyToday ?? item.reason,
+      };
+      setHandoff(handoff);
+    }
+  };
 
   return {
     today,
     lessonChain,
     skill,
     snapshot,
-    skip,
-    defer,
+    skip: (id: string, conceptId?: string) => skipStore(id, Date.now(), conceptId),
+    defer: (id: string, conceptId?: string) => deferStore(id, Date.now(), conceptId),
     bookmark,
+    openItem,
     isBookmarked: (id: string) => Boolean(dispositions[id]?.bookmarked),
   };
 }

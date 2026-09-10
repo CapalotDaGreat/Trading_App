@@ -1,3 +1,4 @@
+import { gradeReplayProcess } from '@/features/decision-replay/services/replay-process-grade.service';
 import { mapMistakeToLesson } from '@/features/academy/services/curriculum.service';
 import { resolveAcademyLessonForTrait } from '@/features/decision/services/decision-reinforcement-academy.service';
 import type { ReinforcementTraitId } from '@/features/decision/types/decision-reinforcement.types';
@@ -269,6 +270,15 @@ export function scoreReplayTvSession(input: {
   });
   coaching.push(processComparison.practiceNext);
 
+  const processGrade = gradeReplayProcess({
+    episode: input.episode,
+    decisions: input.decisions,
+    checklist: input.checklist,
+    revealed: true,
+  });
+  coaching.push(processGrade.outcomeNote);
+  coaching.push(processGrade.reminder);
+
   const gapText = coaching.join(' ');
   const weakestToTrait: Record<string, ReinforcementTraitId> = {
     invalidation: 'invalidationDiscipline',
@@ -297,6 +307,9 @@ export function scoreReplayTvSession(input: {
     adaptability,
     consistency,
     researchEfficiency,
+    thesisQuality: processGrade.thesisQuality,
+    uncertaintyRecognition: processGrade.uncertainty,
+    hindsightHygiene: processGrade.hindsightHygiene,
     overall,
     coaching,
     journalPrompt: [
@@ -309,5 +322,8 @@ export function scoreReplayTvSession(input: {
       reason: academy?.reason ?? 'Practice the lesson that matches your process gap.',
     },
     processComparison,
+    knewThen: processGrade.knewThen,
+    happenedAfter: processGrade.happenedAfter,
+    outcomeNote: processGrade.outcomeNote,
   };
 }

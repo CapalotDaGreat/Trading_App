@@ -21,7 +21,7 @@ Every room has:
 | `informationCutoff` | What the user may know **now** |
 | `revealWindow` | How far the later tape may open after commit |
 
-If the cutoff is date *T*, the user must not see tape, news, fundamentals, indicators, or outcomes from *T+1* or later. Helpers: `replayInformationBoundary`, `getFrozenCandlesForSession`, `getVisibleNewsForSession`, `replayTvHasFutureLeak`.
+If the cutoff is date *T*, the user must not see tape, news, fundamentals, indicators, or outcomes from *T+1* or later. Helpers: `replayInformationBoundary`, `getFrozenCandlesForSession`, `getVisibleNewsForSession`, `replayTvHasFutureLeak`. Canonical package and leak scanner: `docs/TRADEACADEMY_REPLAY_ENGINE.md`.
 
 Educational tapes are **sample reconstructions**. Licensed exchange history is not assumed free to redistribute. Label `dataKind: sample`.
 

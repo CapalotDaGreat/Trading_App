@@ -48,8 +48,11 @@ export function MarketEventCard({ event }: { event: MarketEventCardModel }) {
         {event.lifecycle === 'released' || event.lifecycle === 'historical' ? 'What happened' : 'What is expected'}:{' '}
         {event.whatHappenedOrExpected}
       </Text>
-      <Text variant="body-sm" className="mt-2 text-text-secondary">
-        Why markets may care: {event.whyMarketsMayCare}
+      <Text variant="label" className="mt-3">
+        TradeAcademy interpretation
+      </Text>
+      <Text variant="body-sm" className="mt-1 text-text-secondary">
+        {event.whyMarketsMayCare} This is educational context, not a prediction and not copied from the source.
       </Text>
 
       <Text variant="caption" className="mt-3 text-text-tertiary">

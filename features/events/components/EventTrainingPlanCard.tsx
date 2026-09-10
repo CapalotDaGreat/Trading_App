@@ -12,14 +12,18 @@ export function EventTrainingPlanCard({ plan }: { plan: EventTrainingPlan }) {
   return (
     <Surface tone="accent" emphasis="outlined" className="mb-4" testID="event-training-plan">
       <Text variant="label" className="text-accent">
-        Recommended study stack
+        Training relevant to upcoming events
       </Text>
       <Text variant="h3" headingLevel={3} className="mt-2">
         {plan.headline}
       </Text>
+      {plan.practiceGapNote ? (
+        <Text variant="body-sm" className="mt-2 text-text-secondary">
+          {plan.practiceGapNote}
+        </Text>
+      ) : null}
       <Text variant="body-sm" className="mt-2 text-text-secondary">
-        Here is what to understand, a historical example, a practice exercise, then a fictional simulation. The actual
-        outcome of this event is not predicted.
+        Recommended study — not a trade alert, and not a prediction of this event.
       </Text>
       <View className="mt-3 gap-2">
         <Button size="sm" onPress={() => router.push(plan.lessonHref as never)}>

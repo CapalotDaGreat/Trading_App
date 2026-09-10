@@ -32,7 +32,12 @@ export interface MarketEventArticle {
 }
 
 export interface MarketEventTraining {
+  /** User-facing educational labels (inflation, event risk, …). */
   concepts: string[];
+  /** Canonical competency IDs. Event → concepts → lessons / practice / replay / sim. */
+  conceptIds: string[];
+  riskConceptIds: string[];
+  psychologyConceptIds: string[];
   lessonId: string;
   lessonTitle: string;
   practiceId?: string;
@@ -82,7 +87,11 @@ export interface MarketEventCardModel {
 export interface EventTrainingPlan {
   headline: string;
   eventTitle: string;
+  eventKind: MarketEventKind;
   daysUntil: number | null;
+  /** Recent practice / competency gap that overlaps this event. Training, not a trade alert. */
+  practiceGapNote: string | null;
+  gapConceptId: string | null;
   lessonTitle: string;
   lessonHref: string;
   practiceTitle: string;
@@ -119,6 +128,8 @@ export interface MarketEventHub {
   cards: MarketEventCardModel[];
   briefing: MarketEventCardModel | null;
   trainingPlan: EventTrainingPlan | null;
+  /** Curated learning calendar for beginners — not a news stream. */
+  learningCalendar: MarketEventCardModel[];
   calendarUnavailable: boolean;
   freshnessNote: string;
   fetchedAt: number;

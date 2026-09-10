@@ -15,14 +15,29 @@ jest.mock('@/features/academy/stores/checklist.store', () => ({
 jest.mock('@/features/academy/stores/academy-progress.store', () => ({
   useAcademyProgressStore: { getState: () => ({ resetProgress: mockResetAcademy }) },
 }));
-jest.mock('@/features/decision/stores/decision-ui.store', () => ({
-  useDecisionUiStore: { setState: jest.fn() },
-}));
 jest.mock('@/features/decision-lab/stores/lab.store', () => ({
   useDecisionLabStore: { getState: () => ({ resetAccount: mockResetLab }) },
 }));
 jest.mock('@/features/decision-simulator/stores/simulator.store', () => ({
   useSimulatorStore: { setState: jest.fn() },
+}));
+jest.mock('@/features/simulation/stores/simulation.store', () => ({
+  useSimulationStore: { setState: jest.fn() },
+}));
+jest.mock('@/features/practice/stores/practice-progress.store', () => ({
+  usePracticeProgressStore: { setState: jest.fn() },
+}));
+jest.mock('@/features/learning-engine/stores/learning-queue.store', () => ({
+  useLearningQueueStore: { setState: jest.fn(), getState: () => ({ reset: jest.fn() }) },
+}));
+jest.mock('@/features/competency/stores/competency-evidence.store', () => ({
+  useCompetencyEvidenceStore: { getState: () => ({ resetAll: jest.fn() }) },
+}));
+jest.mock('@/features/journal/stores/journal-draft.store', () => ({
+  useJournalDraftStore: { getState: () => ({ clearDraft: jest.fn() }) },
+}));
+jest.mock('@/features/decision-replay-tv/stores/replay-tv.store', () => ({
+  useReplayTvStore: { setState: jest.fn() },
 }));
 jest.mock('@/features/decision-passport/stores/passport.store', () => ({
   useDecisionPassportStore: { setState: jest.fn() },
@@ -84,6 +99,7 @@ describe('clearAllUserLocalState', () => {
       'tradevision:mentor-setup-draft:v2:user-1',
     ]);
     expect(result.removedAsyncStorageKeys).toContain('tradevision-decision-passport-v1');
+    expect(result.removedAsyncStorageKeys).toContain('tradevision-competency-evidence-v1');
     expect(result.removedAsyncStorageKeys).not.toContain('tradevision-theme-v2');
     expect(multiRemove).toHaveBeenCalledWith(result.removedAsyncStorageKeys);
     expect(mockResetRepository).toHaveBeenCalled();

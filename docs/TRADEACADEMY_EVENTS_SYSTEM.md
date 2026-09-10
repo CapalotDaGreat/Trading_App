@@ -2,7 +2,7 @@
 
 Market Events is **educational context**, not a signal feed, not a news terminal, and not personal financial advice.
 
-Purpose: help users understand what is happening in the world and **prepare** for situations traders encounter. The advanced path is:
+Purpose: help users understand what is happening in the world and **prepare** for situations traders encounter. The learning-system spec (categories, competency mappings, beginner calendar, advanced training personalization, simulation injection, licensing) is [TRADEACADEMY_EVENT_LEARNING.md](./TRADEACADEMY_EVENT_LEARNING.md).
 
 1. Here are the important things happening.
 2. Here is what to understand.
@@ -64,7 +64,7 @@ Simulation outcomes may be higher than expected, lower, exactly expected, or mix
 
 ## Personalization
 
-The four-step study stack (“FOMC in 3 days → lesson / practice / replay / sim”) is shown only for **advanced** and **professional** mentor profiles. Beginners are not given that stack.
+See [TRADEACADEMY_EVENT_LEARNING.md](./TRADEACADEMY_EVENT_LEARNING.md). Beginners get a **learning calendar**. Advanced / professional profiles may get a study stack for an upcoming event, optionally tuned to a practice gap. That stack is training, not a prediction.
 
 ## Importance
 

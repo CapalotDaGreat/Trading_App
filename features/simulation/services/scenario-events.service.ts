@@ -3,6 +3,7 @@ import type {
   ScenarioAssetConfig,
   ScenarioClimate,
   ScenarioComplexity,
+  ScenarioDifficulty,
   ScenarioEvent,
   ScenarioEventKind,
 } from '../types/scenario.types';
@@ -391,6 +392,21 @@ function reactionFor(rand: () => number, surprise: number): EventReactionStyle {
   return pick(rand, ['impulse_extend', 'gap_fade', 'delayed', 'vol_only']);
 }
 
+const BEGINNER_KINDS = new Set<ScenarioEventKind>([
+  'inflation',
+  'employment',
+  'earnings',
+  'false_breakout',
+]);
+
+const ADVANCED_PRESSURE_KINDS = new Set<ScenarioEventKind>([
+  'geopolitical',
+  'commodity_shock',
+  'banking_stress',
+  'liquidity_shock',
+  'rate_decision',
+]);
+
 export function generateScenarioEvents(input: {
   rand: () => number;
   assets: ScenarioAssetConfig[];
@@ -398,17 +414,32 @@ export function generateScenarioEvents(input: {
   climate: ScenarioClimate;
   horizonDays: number;
   preferredKind?: ScenarioEventKind;
+  difficulty?: ScenarioDifficulty;
 }): ScenarioEvent[] {
   const events: ScenarioEvent[] = [];
   const usedDays = new Set<number>();
   const count = input.complexity.eventCount;
+  const pool =
+    input.difficulty === 'beginner'
+      ? TEMPLATES.filter((item) => BEGINNER_KINDS.has(item.kind))
+      : TEMPLATES;
+  const templates = pool.length ? pool : TEMPLATES;
 
   for (let i = 0; i < count; i += 1) {
     const preferred =
       i === 0 && input.preferredKind
         ? TEMPLATES.find((item) => item.kind === input.preferredKind)
         : undefined;
-    const template = preferred ?? pick(input.rand, TEMPLATES);
+    const template =
+      preferred ??
+      (input.difficulty === 'expert' && i === 1
+        ? pick(
+            input.rand,
+            templates.filter((item) => ADVANCED_PRESSURE_KINDS.has(item.kind)).length
+              ? templates.filter((item) => ADVANCED_PRESSURE_KINDS.has(item.kind))
+              : templates,
+          )
+        : pick(input.rand, templates));
     let announceDay = preferred ? 2 : 2 + intIn(input.rand, 0, Math.max(2, input.horizonDays - 8));
     let guard = 0;
     while (usedDays.has(announceDay) && guard < 8) {
@@ -446,15 +477,22 @@ export function generateScenarioEvents(input: {
       sign * (35 + input.rand() * 160) * (0.55 + input.complexity.volatility) * (0.5 + Math.abs(actual.surprise)),
     );
 
+    const hideConsensus = (input.difficulty === 'advanced' || input.difficulty === 'expert') && input.rand() > 0.35;
+    const competing =
+      input.difficulty === 'expert'
+        ? ' More than one explanation fits this tape. The first move is not the answer.'
+        : input.difficulty === 'advanced'
+          ? ' Information is incomplete until the print.'
+          : '';
     events.push({
       id: `evt_${i + 1}`,
       announceDay,
       resolveDay,
       kind: template.kind,
       title: company ? `${company.name}: ${template.title}` : template.title,
-      briefing: template.briefing,
+      briefing: `${template.briefing}${competing}`.trim(),
       companyName: company?.name,
-      expectedValue: template.expectedValue,
+      expectedValue: hideConsensus ? undefined : template.expectedValue,
       actualValue: company ? `${company.name} — ${actual.actual}` : actual.actual,
       surpriseMagnitude: actual.surprise,
       marketRelevance: relevance,

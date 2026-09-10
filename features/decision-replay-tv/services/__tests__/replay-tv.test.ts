@@ -401,7 +401,7 @@ describe('Decision Replay TV', () => {
 
     const input = buildReplayTvJournalEntryInput(reflection, episode);
     expect(input.tags).toContain('replay-tv');
-    expect(input.linkedReplayHref).toContain(episode.id);
+    expect(input.linkedReplayHref).toBe(`/decision/replay-tv?episode=${episode.id}`);
     expect(input.notes.toLowerCase()).not.toMatch(/profit target|p&l contest/);
   });
 
@@ -475,6 +475,9 @@ describe('Decision Replay TV', () => {
     expect(inferReplayTvEpisodeKinds(getReplayTvEpisode('ecb-decision-week')!)).toContain(
       'macro_event',
     );
+    const mixed = filterReplayTvLibrary(REPLAY_TV_EPISODES, { difficulty: 'mixed' });
+    expect(mixed.some((ep) => ep.id === 'gold-regime-risk')).toBe(true);
+    expect(mixed.every((ep) => ep.practiceDifficulty === 'mixed')).toBe(true);
   });
 
   it('coaches process after a commit without leaking the future or buy/sell language', () => {

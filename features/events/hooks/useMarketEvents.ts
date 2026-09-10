@@ -7,7 +7,7 @@ import type { SkillDomain } from '@/shared/constants/skill-domains';
 import { composeMarketEventHub } from '../services/event-hub.service';
 import { useEventCacheStore } from '../stores/event-cache.store';
 
-export function useMarketEvents(options?: { weakness?: SkillDomain | null }) {
+export function useMarketEvents(options?: { weakness?: SkillDomain | null; gapConceptIds?: string[] }) {
   const calendar = useEconomicCalendar();
   const { profile } = useCoachProfile();
   const cached = useEventCacheStore((state) => state.events);
@@ -34,6 +34,7 @@ export function useMarketEvents(options?: { weakness?: SkillDomain | null }) {
         preferredTopics: profile.preferredTopics,
         struggles: profile.struggles,
         weakness: options?.weakness ?? null,
+        gapConceptIds: options?.gapConceptIds,
       }),
     [
       calendar.isError,
@@ -42,6 +43,7 @@ export function useMarketEvents(options?: { weakness?: SkillDomain | null }) {
       fetchedAt,
       fromCache,
       options?.weakness,
+      options?.gapConceptIds,
       profile.experience,
       profile.preferredTopics,
       profile.struggles,

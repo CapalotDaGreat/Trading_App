@@ -30,6 +30,8 @@ import {
 } from '@/features/decision-replay-tv/services/replay-tv-rank.service';
 import { deriveReplayTvSkillProgress } from '@/features/decision-replay-tv/services/replay-tv-skills.service';
 import type { ReplayTvEpisode } from '@/features/decision-replay-tv/types/replay-tv.types';
+import { LoopCtaRow } from '@/features/navigation/components/LoopCtaRow';
+import { TrainingHandoffBanner } from '@/features/learning-engine/components/TrainingHandoffBanner';
 import { EducationalModeBadge } from '@/features/educational/components/EducationalModeBadge';
 import { useCoachProfile } from '@/features/onboarding/hooks/useCoachProfile';
 import { usePersonalIntelligence } from '@/features/personal-intelligence/hooks/usePersonalIntelligence';
@@ -244,6 +246,7 @@ export function ReplayTvHomeScreen() {
     >
       <View className="gap-4">
         <EducationalModeBadge />
+        <TrainingHandoffBanner />
 
         {!isOnline ? (
           <Text variant="caption" className="text-text-tertiary">
@@ -360,6 +363,7 @@ export function ReplayTvHomeScreen() {
                   ['beginner', 'Beginner'],
                   ['intermediate', 'Intermediate'],
                   ['advanced', 'Advanced'],
+                  ['mixed', 'Unlabeled'],
                 ] as const
               ).map(([id, label]) => (
                 <FilterChip
@@ -491,7 +495,7 @@ export function ReplayTvHomeScreen() {
         ) : (
           <EpisodeRow
             title="Practice this skill"
-            description="Rooms mapped to your current Trading DNA growth edges."
+            description="Rooms mapped to your current Trading DNA growth areas."
             episodes={dnaEpisodes.length ? dnaEpisodes : beginner.slice(0, 3)}
             progress={progress}
             isStarting={isStarting}
@@ -598,6 +602,7 @@ export function ReplayTvHomeScreen() {
             })}
           </View>
         </CollapsibleSection>
+        <LoopCtaRow current="replay" title="After a historical room" />
       </View>
     </ScreenScaffold>
   );

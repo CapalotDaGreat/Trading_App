@@ -4,10 +4,15 @@ import type { QueryClient } from '@tanstack/react-query';
 import { useChecklistStore } from '@/features/academy/stores/checklist.store';
 import { useAcademyProgressStore } from '@/features/academy/stores/academy-progress.store';
 import { useDecisionPassportStore } from '@/features/decision-passport/stores/passport.store';
-import { useDecisionUiStore } from '@/features/decision/stores/decision-ui.store';
 import { useDecisionLabStore } from '@/features/decision-lab/stores/lab.store';
+import { useReplayTvStore } from '@/features/decision-replay-tv/stores/replay-tv.store';
 import { useSimulatorStore } from '@/features/decision-simulator/stores/simulator.store';
 import { useEducationalStore } from '@/features/educational/stores/educational.store';
+import { useJournalDraftStore } from '@/features/journal/stores/journal-draft.store';
+import { useCompetencyEvidenceStore } from '@/features/competency/stores/competency-evidence.store';
+import { useLearningQueueStore } from '@/features/learning-engine/stores/learning-queue.store';
+import { usePracticeProgressStore } from '@/features/practice/stores/practice-progress.store';
+import { useSimulationStore } from '@/features/simulation/stores/simulation.store';
 import { notificationService } from '@/features/notifications/services/notification.service';
 import { onboardingDraftStorageKey } from '@/features/onboarding/services/onboarding-draft.service';
 import { coachProfileStorageKey } from '@/features/onboarding/services/coach-profile.service';
@@ -52,6 +57,9 @@ export const USER_LOCAL_STORAGE_KEYS = [
   'tradevision-simulation-v1',
   'tradevision-practice-progress-v1',
   'tradevision-journal-draft-v1',
+  'tradevision-replay-tv-v2',
+  'tradevision-learning-queue-v1',
+  'tradevision-competency-evidence-v1',
 ] as const;
 
 export interface ClearUserLocalStateOptions {
@@ -99,9 +107,26 @@ export async function clearAllUserLocalState(
   useAcademyProgressStore.getState().resetProgress();
   useChecklistStore.setState({ checkedItems: {} });
   useDecisionLabStore.getState().resetAccount();
-  useDecisionUiStore.setState({ dqsExplainerDismissed: false });
   useOnboardingStore.getState().resetMemory();
   useSimulatorStore.setState({ activeSession: null, history: [] });
+  useSimulationStore.setState({ accountsByUser: {}, archivesByUser: {} });
+  usePracticeProgressStore.setState({ attempts: [] });
+  useLearningQueueStore.getState().reset();
+  useCompetencyEvidenceStore.getState().resetAll();
+  useJournalDraftStore.getState().clearDraft();
+  useReplayTvStore.setState({
+    activeSession: null,
+    progress: {
+      completedEpisodeIds: [],
+      attemptCount: 0,
+      streakDays: 0,
+      lastCompletedDayKey: null,
+      masteryByCollection: {},
+      bestProcessByEpisode: {},
+      monthlyKey: null,
+      monthlyCompletions: 0,
+    },
+  });
   useDecisionPassportStore.setState({
     credentials: [],
     processScores: [],

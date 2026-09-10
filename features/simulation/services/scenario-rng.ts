@@ -20,6 +20,11 @@ export function hashSeed(parts: Array<string | number>): number {
   return h >>> 0;
 }
 
+/** Production sessions vary. Tests pass an explicit seed instead. Never show this value. */
+export function createProductionScenarioSeed(userId: string, now = new Date().toISOString()): number {
+  return hashSeed([userId, now, Math.floor(Math.random() * 1e9), 'sim-session']);
+}
+
 export function pick<T>(rand: () => number, items: readonly T[]): T {
   return items[Math.min(items.length - 1, Math.floor(rand() * items.length))]!;
 }

@@ -1,11 +1,14 @@
 import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 
+import { useAuth } from '@/features/auth/hooks/useAuth';
+import { ingestKnowledgeCheck, ingestLessonCompletion, ingestLessonExercise } from '@/features/competency';
 import { useAppendDecisionRecord } from '@/features/decision-log/hooks/useDecisionLog';
 import { useRegime } from '@/features/decision/hooks/useDecision';
 import type { DecisionDebtSnapshot, TraderMemory } from '@/features/decision/types/decision.types';
 import { useDecisionLabStore } from '@/features/decision-lab/stores/lab.store';
 import { usePracticeProgressStore } from '@/features/practice/stores/practice-progress.store';
+import { DEMO_USER_UID } from '@/firebase/config';
 import { useSubscriptionStore } from '@/shared/stores/subscription.store';
 
 import { LEARNING_PATHS, type AcademyPathMeta } from '../content/paths-and-checklists';
@@ -186,6 +189,8 @@ export function useLearningPath(pathId: string) {
 }
 
 export function useLesson(lessonId: string) {
+  const { user } = useAuth();
+  const uid = user?.uid ?? DEMO_USER_UID;
   const query = useQuery({
     queryKey: ['academy-lesson', lessonId],
     queryFn: () => getLessonById(lessonId),
@@ -194,11 +199,11 @@ export function useLesson(lessonId: string) {
   });
 
   const markOpened = useAcademyProgressStore((s) => s.markOpened);
-  const markCompleted = useAcademyProgressStore((s) => s.markCompleted);
+  const storeMarkCompleted = useAcademyProgressStore((s) => s.markCompleted);
   const markPracticed = useAcademyProgressStore((s) => s.markPracticed);
-  const recordQuizScore = useAcademyProgressStore((s) => s.recordQuizScore);
-  const recordConceptResult = useAcademyProgressStore((s) => s.recordConceptResult);
-  const recordExerciseAttempt = useAcademyProgressStore((s) => s.recordExerciseAttempt);
+  const storeRecordQuizScore = useAcademyProgressStore((s) => s.recordQuizScore);
+  const storeRecordConceptResult = useAcademyProgressStore((s) => s.recordConceptResult);
+  const storeRecordExerciseAttempt = useAcademyProgressStore((s) => s.recordExerciseAttempt);
   const progress = useAcademyProgressStore((s) => s.getProgress(lessonId));
   const isCompleted = useAcademyProgressStore((s) => s.isCompleted(lessonId));
   const isRead = useAcademyProgressStore((s) => s.isRead(lessonId));
@@ -211,11 +216,23 @@ export function useLesson(lessonId: string) {
     isRead,
     isPracticed,
     markOpened,
-    markCompleted,
+    markCompleted: (id: string) => {
+      storeMarkCompleted(id);
+      ingestLessonCompletion(uid, id);
+    },
     markPracticed,
-    recordQuizScore,
-    recordConceptResult,
-    recordExerciseAttempt,
+    recordQuizScore: (id: string, scorePercent: number) => {
+      storeRecordQuizScore(id, scorePercent);
+      ingestKnowledgeCheck(uid, id, id, scorePercent >= 70);
+    },
+    recordConceptResult: (conceptId: string, correct: boolean) => {
+      storeRecordConceptResult(conceptId, correct);
+      ingestKnowledgeCheck(uid, lessonId, conceptId, correct);
+    },
+    recordExerciseAttempt: (id: string, correct?: boolean) => {
+      storeRecordExerciseAttempt(id, correct);
+      if (typeof correct === 'boolean') ingestLessonExercise(uid, id, undefined, correct);
+    },
     isLoading: query.isLoading,
     isError: query.isError,
     refetch: query.refetch,

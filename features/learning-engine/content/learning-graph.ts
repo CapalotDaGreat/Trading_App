@@ -1,7 +1,9 @@
 import type { LearningConceptNode } from '../types/learning-engine.types';
 
 /**
- * Concept graph. Edges are bidirectional in lookup helpers.
+ * Concept graph used by Today’s Training and spaced review.
+ * Canonical competency IDs and mastery states live in
+ * `features/competency` — this graph remains a navigation/recommendation layer.
  * IDs match Academy conceptIds / mastery maps where those exist.
  */
 export const LEARNING_CONCEPTS: LearningConceptNode[] = [

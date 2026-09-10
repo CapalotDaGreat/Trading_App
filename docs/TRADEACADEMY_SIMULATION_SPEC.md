@@ -26,7 +26,7 @@ Engine: `features/simulation/services/simulation-engine.service.ts` (pure functi
 
 ## Prices
 
-New books use a **structured scenario path** (`engineVersion: 2`) generated from an internal seed — see `docs/TRADEACADEMY_SIMULATION_ENGINE.md`. Quotes come from the visible clock only. Fallback `syntheticSimulationPriceProvider` remains for books without a scenario. **Does not import Finnhub.** Labelled `sample` / provider `synthetic`.
+New books use a **structured scenario path** (`engineVersion: 2`) generated from an internal seed — see `docs/TRADEACADEMY_SIMULATION_ENGINE.md` and `docs/TRADEACADEMY_SIMULATION_SCENARIOS.md`. Quotes come from the visible clock only. Fallback `syntheticSimulationPriceProvider` remains for books without a scenario. **Does not import Finnhub.** Labelled `sample` / provider `synthetic`.
 
 ## Modes and challenges
 

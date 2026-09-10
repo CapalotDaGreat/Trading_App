@@ -1,3 +1,4 @@
+import { gradeReplayProcess } from '@/features/decision-replay/services/replay-process-grade.service';
 import type {
   ReplayTvEpisode,
   ReplayTvScores,
@@ -34,6 +35,9 @@ export interface ReplayLabReview {
   counterfactuals: ReplayCounterfactual[];
   loop: ReplayLearningLoop;
   reminder: string;
+  knewThen: string;
+  happenedAfter: string;
+  outcomeNote: string;
 }
 
 function tone(score: number): string {
@@ -73,10 +77,18 @@ export function buildReplayLabReview(input: {
   const namedSize = Boolean(last?.structured?.intendedSize?.trim() || last?.structured?.expectedRisk?.trim());
   const namedRisk = Boolean(last?.structured?.riskAssessment?.trim());
   const namedMindChange = Boolean(last?.structured?.whatWouldChangeMind?.trim() || last?.structured?.invalidation?.trim());
+  const grade = gradeReplayProcess({
+    episode: input.episode,
+    decisions: input.session.decisions,
+    checklist: input.session.checklist,
+    revealed: input.session.revealed,
+  });
 
   return {
-    reminder:
-      'The later tape is context. It does not prove the process was good, and a fade does not prove it was poor.',
+    reminder: grade.reminder,
+    knewThen: scores?.knewThen ?? grade.knewThen,
+    happenedAfter: scores?.happenedAfter ?? grade.happenedAfter,
+    outcomeNote: scores?.outcomeNote ?? grade.outcomeNote,
     dimensions: [
       {
         id: 'outcome',

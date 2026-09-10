@@ -20,8 +20,8 @@ export function SimulationPositionList({ account }: SimulationPositionListProps)
         Positions
       </Text>
       <Text variant="caption" className="mb-3 text-text-secondary">
-        Allocation and concentration matter as much as simulated P/L. A large weight is a process signal,
-        not a trophy.
+        Allocation and concentration matter as much as simulated P/L. A large weight is a process
+        observation, not a trophy.
       </Text>
       {account.positions.map((position) => (
         <View key={position.symbol} className="mb-3 border-b border-border pb-3">

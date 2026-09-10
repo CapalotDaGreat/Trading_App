@@ -10,6 +10,7 @@ import { useAcademyProgressStore } from '@/features/academy/stores/academy-progr
 import { useDecisionLabStore } from '@/features/decision-lab/stores/lab.store';
 import { Header } from '@/shared/components/layout/Header';
 import { Screen } from '@/shared/components/layout/Screen';
+import { TrainingHandoffBanner } from '@/features/learning-engine/components/TrainingHandoffBanner';
 import { Text } from '@/shared/components/ui/Text';
 import { useTheme } from '@/shared/hooks/useTheme';
 
@@ -73,6 +74,7 @@ export default function AcademyPathScreen() {
       />
 
       <View className="mt-4 gap-4">
+        <TrainingHandoffBanner />
         <Text variant="body-sm">{path.description}</Text>
         {meta?.iaHint ? (
           <Text variant="caption" className="text-accent">

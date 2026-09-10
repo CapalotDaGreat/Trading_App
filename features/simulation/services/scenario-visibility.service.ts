@@ -9,6 +9,7 @@ import type {
   SimulationScenario,
 } from '../types/scenario.types';
 import { averageTrueRange, scenarioBars } from './scenario-path.service';
+import { SCENARIO_DIFFICULTY_HINTS } from './scenario-difficulty.service';
 
 export function visibleScenarioEvents(scenario: SimulationScenario): ScenarioEvent[] {
   return scenario.events.filter((event) => scenario.clockDay >= event.announceDay);
@@ -123,6 +124,7 @@ export function publicScenarioView(scenario: SimulationScenario): PublicScenario
     clockMode: scenario.clockMode ?? 'normal',
     observableTape: observableTapeSummary(scenario),
     climateHint: climateHint(scenario.climate),
+    practiceLevelHint: SCENARIO_DIFFICULTY_HINTS[scenario.difficulty ?? 'intermediate'],
     assets: scenario.assets.map((asset) => ({
       symbol: asset.symbol,
       name: asset.name ?? asset.symbol,

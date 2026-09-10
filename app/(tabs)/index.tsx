@@ -48,7 +48,7 @@ export default function HomeScreen() {
     [account?.decisions, attempts, entries.length, lessonProgress],
   );
 
-  const { today, skip, defer, bookmark, isBookmarked } = useLearningEngine();
+  const { today, skip, defer, bookmark, openItem, isBookmarked } = useLearningEngine();
   const { briefing } = useMarketEvents({ weakness: skill.weakest });
   const noAcademyProgress = completedCount === 0 && practicedCount === 0;
   const showEventCard = !hideEvents && Boolean(briefing);
@@ -73,7 +73,7 @@ export default function HomeScreen() {
               Start with the Foundations path
             </Text>
             <Text variant="body-sm" className="mt-2 text-text-secondary">
-              Literacy, risk, and simple charts first. Events and advanced rooms wait until you have a base.
+              Literacy, risk, and simple charts first. Events stay a small learning calendar, not a news feed.
             </Text>
             <Button
               className="mt-3"
@@ -90,6 +90,7 @@ export default function HomeScreen() {
           onSkip={skip}
           onDefer={defer}
           onBookmark={bookmark}
+          onOpen={openItem}
           isBookmarked={isBookmarked}
         />
 

@@ -4,14 +4,18 @@ import { useRouter } from 'expo-router';
 
 import { ALL_LESSONS } from '@/features/academy/content';
 import { useAcademyProgressStore } from '@/features/academy/stores/academy-progress.store';
+import { useAuth } from '@/features/auth/hooks/useAuth';
+import { scoreAllCompetencyMastery, useCompetencyEvidenceStore } from '@/features/competency';
 import { EventTrainingPlanCard } from '@/features/events/components/EventTrainingPlanCard';
 import { MarketEventCard } from '@/features/events/components/MarketEventCard';
 import { useMarketEvents } from '@/features/events/hooks/useMarketEvents';
 import { cardsForLifecycle } from '@/features/events/services/event-hub.service';
+import { collectPracticeGapConceptIds } from '@/features/events/services/event-personalization.service';
 import { LIFECYCLE_LABELS } from '@/features/events/services/event-status.service';
 import type { MarketEventLifecycle } from '@/features/events/types/events.types';
 import { useJournal } from '@/features/journal/hooks/useJournal';
 import { useCoachProfile } from '@/features/onboarding/hooks/useCoachProfile';
+import { TrainingHandoffBanner } from '@/features/learning-engine/components/TrainingHandoffBanner';
 import { LoopCtaRow } from '@/features/navigation/components/LoopCtaRow';
 import { buildSkillModel } from '@/features/progress/services/skill-model.service';
 import { usePracticeProgressStore } from '@/features/practice/stores/practice-progress.store';
@@ -22,13 +26,19 @@ import { Button } from '@/shared/components/ui/Button';
 import { Surface } from '@/shared/components/ui/Surface';
 import { Text } from '@/shared/components/ui/Text';
 import { formatRelativeTime } from '@/shared/utils/date';
+import { DEMO_USER_UID } from '@/firebase/config';
+
+const EMPTY_EVIDENCE: import('@/features/competency').CompetencyEvidenceRecord[] = [];
 
 const SECTIONS: MarketEventLifecycle[] = ['upcoming', 'developing', 'released', 'historical'];
 
 export default function EventsScreen() {
   const router = useRouter();
+  const { user } = useAuth();
+  const uid = user?.uid ?? DEMO_USER_UID;
   const lessonProgress = useAcademyProgressStore((state) => state.lessons);
   const attempts = usePracticeProgressStore((state) => state.attempts);
+  const evidence = useCompetencyEvidenceStore((state) => state.recordsByUser[uid]) ?? EMPTY_EVIDENCE;
   const { entries } = useJournal();
   const { account } = useSimulation();
   const { profile } = useCoachProfile();
@@ -44,34 +54,45 @@ export default function EventsScreen() {
       }).weakest,
     [account?.decisions, attempts, entries.length, lessonProgress],
   );
+  const gapConceptIds = useMemo(
+    () =>
+      collectPracticeGapConceptIds({
+        attempts,
+        mastery: scoreAllCompetencyMastery(evidence).map((item) => ({ conceptId: item.conceptId, state: item.state })),
+      }),
+    [attempts, evidence],
+  );
   const {
     cards,
     briefing,
     trainingPlan,
+    learningCalendar,
     calendarUnavailable,
     calendarDegraded,
     freshnessNote,
     fetchedAt,
     refetchCalendar,
-  } = useMarketEvents({ weakness });
+  } = useMarketEvents({ weakness, gapConceptIds });
 
   return (
     <ScreenScaffold
       title="Market Events"
-      subtitle="What is happening, what to understand, then practice — never a buy/sell call."
+      subtitle="What market event should I understand and practice? Never what to trade because of this event."
       contentClassName="pb-12"
       testID="events-screen"
     >
+      <TrainingHandoffBanner />
       {beginner ? (
         <Surface tone="accent" emphasis="outlined" className="mb-4" testID="events-beginner-path">
           <Text variant="label" className="text-accent">
-            Start here
+            Learning calendar
           </Text>
           <Text variant="h3" headingLevel={3} className="mt-2">
             Learn what an economic calendar is
           </Text>
           <Text variant="body-sm" className="mt-2 text-text-secondary">
-            The full event list can wait. First understand event risk, size, and why a headline is not a signal.
+            A few study objects — not a high-frequency news stream. First understand event risk, size, and why a
+            headline is not a signal.
           </Text>
           <Button className="mt-3" size="sm" onPress={() => router.push('/academy/lesson/fund-calendar' as never)}>
             Open the event-risk lesson
@@ -117,9 +138,21 @@ export default function EventsScreen() {
       {!beginner && trainingPlan ? <EventTrainingPlanCard plan={trainingPlan} /> : null}
 
       {beginner ? (
-        <Text variant="caption" className="mb-4 text-text-tertiary">
-          The full event desk waits until you have a foundations base. Learn, Practice, and Simulation still work.
-        </Text>
+        learningCalendar.length === 0 ? (
+          <EmptyState
+            title="Nothing on the learning calendar yet"
+            description="Waiting is a valid state. The event-risk lesson, Practice, and Simulation still work."
+          />
+        ) : (
+          <View className="mb-4" testID="events-learning-calendar">
+            <Text variant="label" className="mb-2">
+              Upcoming study objects
+            </Text>
+            {learningCalendar.map((event) => (
+              <MarketEventCard key={event.id} event={event} />
+            ))}
+          </View>
+        )
       ) : cards.length === 0 ? (
         <EmptyState
           title="Nothing to study yet"

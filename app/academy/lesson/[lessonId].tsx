@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { LessonLearningLoop } from '@/features/academy/components/LessonLearningLoop';
 import { LessonNextSteps } from '@/features/learning-engine/components/LessonNextSteps';
+import { TrainingHandoffBanner } from '@/features/learning-engine/components/TrainingHandoffBanner';
 import { nextAfterLesson } from '@/features/learning-engine/services/lesson-next.service';
 import { getLocalLessonById } from '@/features/academy/content';
 import { useLesson } from '@/features/academy/hooks/useAcademy';
@@ -122,6 +123,9 @@ export default function AcademyLessonScreen() {
       />
 
       <EducationalModeBadge className="mt-3" />
+      <View className="mt-3">
+        <TrainingHandoffBanner />
+      </View>
 
       <View className="mt-3 flex-row flex-wrap gap-2">
         <Badge

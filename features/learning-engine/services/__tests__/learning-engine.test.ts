@@ -170,7 +170,10 @@ describe('focus areas and queue', () => {
     const eventPlan = {
       headline: 'Sample earnings week in 3 days.',
       eventTitle: 'Sample earnings week',
+      eventKind: 'earnings' as const,
       daysUntil: 3,
+      practiceGapNote: null,
+      gapConceptId: null,
       lessonTitle: 'Reading statements',
       lessonHref: '/academy/lesson/fund-statements',
       practiceTitle: 'Practice',

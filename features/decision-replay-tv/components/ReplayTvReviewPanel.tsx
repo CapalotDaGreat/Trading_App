@@ -14,6 +14,21 @@ export function ReplayTvReviewPanel({ review }: { review: ReplayLabReview }) {
       <Text variant="caption" className="text-text-tertiary">
         {review.reminder}
       </Text>
+      <Surface emphasis="outlined" testID="replay-knew-then">
+        <Text variant="label">What you knew then</Text>
+        <Text variant="body-sm" className="mt-1 text-text-secondary">
+          {review.knewThen}
+        </Text>
+      </Surface>
+      <Surface emphasis="outlined" testID="replay-happened-after">
+        <Text variant="label">What happened afterward</Text>
+        <Text variant="body-sm" className="mt-1 text-text-secondary">
+          {review.happenedAfter}
+        </Text>
+        <Text variant="caption" className="mt-2 text-text-tertiary">
+          {review.outcomeNote}
+        </Text>
+      </Surface>
       {review.dimensions.map((item) => (
         <Surface key={item.id} emphasis="outlined">
           <Text variant="label">

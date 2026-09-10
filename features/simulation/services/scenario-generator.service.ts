@@ -5,13 +5,16 @@ import type {
   MarketSentiment,
   ScenarioAssetConfig,
   ScenarioClimate,
+  ScenarioComplexity,
   ScenarioDecisionOption,
   ScenarioDecisionWindow,
+  ScenarioDifficulty,
   ScenarioEventKind,
   SimulationScenario,
 } from '../types/scenario.types';
 import type { SimulationMode } from '../types/simulation.types';
-import { applyFocus, complexityForMode, inferScenarioFocus } from './scenario-adaptation.service';
+import { applyFocus, inferScenarioFocus } from './scenario-adaptation.service';
+import { complexityForDifficulty, defaultDifficultyForMode } from './scenario-difficulty.service';
 import { generateScenarioEvents } from './scenario-events.service';
 import { frictionForMode } from './scenario-friction.service';
 import {
@@ -20,7 +23,7 @@ import {
   generateStructuredPaths,
   pickPrimaryRegime,
 } from './scenario-path.service';
-import { hashSeed, mulberry32, pick, pickN } from './scenario-rng';
+import { createProductionScenarioSeed, mulberry32, pick, pickN } from './scenario-rng';
 import { pendingDecisionOnDay, unansweredDecisionWindow } from './scenario-visibility.service';
 
 export { complexityForMode } from './scenario-adaptation.service';
@@ -32,6 +35,33 @@ export {
 } from './scenario-visibility.service';
 
 const DEFAULT_OPTIONS: ScenarioDecisionWindow['options'] = ['wait', 'enter', 'reduce', 'ignore', 'research'];
+
+function clampComplexityForDifficulty(
+  complexity: ScenarioComplexity,
+  difficulty: ScenarioDifficulty,
+): ScenarioComplexity {
+  const assets =
+    difficulty === 'beginner'
+      ? { min: 3, max: 4 }
+      : difficulty === 'intermediate'
+        ? { min: 4, max: 6 }
+        : difficulty === 'advanced'
+          ? { min: 5, max: 7 }
+          : { min: 6, max: 8 };
+  const events =
+    difficulty === 'beginner'
+      ? { min: 1, max: 2 }
+      : difficulty === 'intermediate'
+        ? { min: 2, max: 4 }
+        : difficulty === 'advanced'
+          ? { min: 3, max: 5 }
+          : { min: 4, max: 7 };
+  return {
+    ...complexity,
+    assetCount: Math.min(assets.max, Math.max(assets.min, complexity.assetCount)),
+    eventCount: Math.min(events.max, Math.max(events.min, complexity.eventCount)),
+  };
+}
 
 function buildClimate(rand: () => number): ScenarioClimate {
   const macros: MacroClimate[] = ['easing', 'tightening', 'stable', 'uncertain'];
@@ -129,13 +159,15 @@ export function generateSimulationScenario(input: {
   seed?: number;
   focus?: ReturnType<typeof inferScenarioFocus>;
   preferredEventKind?: ScenarioEventKind;
+  difficulty?: ScenarioDifficulty;
 }): SimulationScenario {
   const now = input.now ?? new Date().toISOString();
-  const seed = input.seed ?? hashSeed([input.userId, now, Math.floor(Math.random() * 1e9)]);
+  const seed = input.seed ?? createProductionScenarioSeed(input.userId, now);
   const rand = mulberry32(seed);
   const mode = input.mode ?? 'standard';
+  const difficulty = input.difficulty ?? defaultDifficultyForMode(mode);
   const focus = input.focus;
-  const complexity = applyFocus(complexityForMode(mode), focus);
+  const complexity = clampComplexityForDifficulty(applyFocus(complexityForDifficulty(difficulty), focus), difficulty);
   const regime = pickPrimaryRegime(rand, focus);
   const horizonDays = DEFAULT_HORIZON_DAYS;
   const segments = buildRegimeSegments({
@@ -143,6 +175,7 @@ export function generateSimulationScenario(input: {
     primary: regime,
     horizon: horizonDays,
     uncertainty: complexity.regimeUncertainty,
+    difficulty,
   });
   const climate = buildClimate(rand);
   const assets = buildAssets(rand, complexity.assetCount);
@@ -153,6 +186,7 @@ export function generateSimulationScenario(input: {
     climate,
     horizonDays,
     preferredKind: input.preferredEventKind,
+    difficulty,
   });
   const { marketPath, paths } = generateStructuredPaths({
     seed,
@@ -164,11 +198,13 @@ export function generateSimulationScenario(input: {
     primary: regime,
     horizon: horizonDays,
     focus,
+    difficulty,
   });
   const draft: SimulationScenario = {
     id: `scn_${seed.toString(16)}`,
     seed,
     engineVersion: 2,
+    difficulty,
     regime,
     segments,
     climate,

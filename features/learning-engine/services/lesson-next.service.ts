@@ -1,6 +1,7 @@
 import { ALL_LESSONS } from '@/features/academy/content';
 import type { LessonNextChain, TargetComplexity, TrainingQueueItem } from '../types/learning-engine.types';
 import { pickDrillForConcept, pickReplayForConcept } from './adaptive-difficulty.service';
+import { withConceptHandoff } from './concept-handoff.service';
 import { drillTitle, getConcept, primaryConceptForLesson } from './learning-graph.service';
 
 export function nextAfterLesson(
@@ -20,9 +21,13 @@ export function nextAfterLesson(
       title: primary.title,
       reason: `Right after “${lesson.title}”, demonstrate the idea. Reading is not mastery.`,
       evidence: [`Linked exercise for ${concept.title}.`],
-      href: `/practice?drill=${primary.id}`,
+      href: withConceptHandoff(`/practice?drill=${primary.id}`, {
+        conceptId: concept.id,
+        loop: 'practice',
+      }),
       conceptId: concept.id,
       complexity: 'foundations',
+      loopStep: 'practice',
     });
   }
 
@@ -43,9 +48,13 @@ export function nextAfterLesson(
       title: secondary.title,
       reason: 'Then raise conceptual complexity — a related failure mode, not a longer article.',
       evidence: [`Next concept: ${failureMode?.title ?? concept.title}.`],
-      href: `/practice?drill=${secondary.id}`,
+      href: withConceptHandoff(`/practice?drill=${secondary.id}`, {
+        conceptId: failureMode?.id ?? concept.id,
+        loop: 'practice',
+      }),
       conceptId: failureMode?.id ?? concept.id,
       complexity: 'applied',
+      loopStep: 'practice',
     });
   }
 
@@ -57,9 +66,13 @@ export function nextAfterLesson(
       title: replayId === 'false-breakout-drill' ? 'Replay a historical breakout' : 'Replay a historical example',
       reason: 'Decide with only the information available at that freeze. The next event need not rhyme.',
       evidence: ['Historical room linked to this concept family.'],
-      href: `/decision/replay-tv?episode=${replayId}`,
+      href: withConceptHandoff(`/decision/replay-tv?episode=${replayId}`, {
+        conceptId: concept.id,
+        loop: 'apply',
+      }),
       conceptId: concept.id,
       complexity: 'applied',
+      loopStep: 'apply',
     });
   }
 
@@ -69,9 +82,10 @@ export function nextAfterLesson(
     title: 'Apply the concept in Simulation',
     reason: 'A unique fictional path. Simulated P/L does not grade the decision.',
     evidence: ['Paper book — process only.'],
-    href: concept.simulateHref,
+    href: withConceptHandoff(concept.simulateHref, { conceptId: concept.id, loop: 'apply' }),
     conceptId: concept.id,
     complexity: complexity === 'foundations' ? 'applied' : 'complex',
+    loopStep: 'apply',
   });
 
   return {

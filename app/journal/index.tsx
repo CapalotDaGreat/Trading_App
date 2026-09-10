@@ -10,6 +10,7 @@ import {
   JournalTimelinePanel,
 } from '@/features/journal/components/JournalLearningPanels';
 import { useJournal } from '@/features/journal/hooks/useJournal';
+import { TrainingHandoffBanner } from '@/features/learning-engine/components/TrainingHandoffBanner';
 import { useJournalLearningJourney } from '@/features/journal/hooks/useJournalLearningJourney';
 import { searchJournalEntries, type JournalQuickFilter } from '@/features/journal/services/journal-search.service';
 import type { JournalHubTab } from '@/features/journal/types/journal-learning-journey.types';
@@ -45,12 +46,21 @@ const JOURNAL_FILTERS: Array<{ value: JournalQuickFilter; label: string }> = [
 
 export default function JournalScreen() {
   const router = useRouter();
-  const { symbol, from, notes } = useLocalSearchParams<{ symbol?: string; from?: string; notes?: string }>();
+  const { symbol, from, notes, concept } = useLocalSearchParams<{
+    symbol?: string;
+    from?: string;
+    notes?: string;
+    concept?: string;
+  }>();
   const fromParam = typeof from === 'string' ? from : Array.isArray(from) ? from[0] : undefined;
   const notesParam = typeof notes === 'string' ? notes : Array.isArray(notes) ? notes[0] : undefined;
   const [tab, setTab] = useState<JournalHubTab>('timeline');
   const [showReflectionForm, setShowReflectionForm] = useState(
-    fromParam === 'onboarding' || fromParam === 'simulate' || fromParam === 'academy' || Boolean(notesParam),
+    fromParam === 'onboarding' ||
+      fromParam === 'simulate' ||
+      fromParam === 'academy' ||
+      Boolean(notesParam) ||
+      Boolean(concept),
   );
   const [journalQuery, setJournalQuery] = useState(symbol ?? '');
   const [journalFilter, setJournalFilter] = useState<JournalQuickFilter>('all');
@@ -86,6 +96,7 @@ export default function JournalScreen() {
       }
     >
       <View className="gap-4">
+        <TrainingHandoffBanner />
         {!isOnline ? (
           <Text variant="caption" className="text-text-tertiary">
             Journal stays on this device. You can keep writing and reviewing offline.

@@ -58,6 +58,9 @@ export function SimulationTradeTicket({
   const [invalidation, setInvalidation] = useState('');
   const [expectedRisk, setExpectedRisk] = useState('');
   const [intendedSize, setIntendedSize] = useState('');
+  const [expectedScenarios, setExpectedScenarios] = useState('');
+  const [managementChange, setManagementChange] = useState('');
+  const [exitReasoning, setExitReasoning] = useState('');
   const [confidence, setConfidence] = useState<'low' | 'medium' | 'high'>('medium');
   const [message, setMessage] = useState<string | null>(null);
   const [preview, setPreview] = useState<SimulationTradePreview | null>(null);
@@ -92,6 +95,9 @@ export function SimulationTradeTicket({
       invalidation: invalidation.trim() || undefined,
       expectedRisk: expectedRisk.trim() || undefined,
       intendedPositionSize: intendedSize.trim() || undefined,
+      expectedScenarios: expectedScenarios.trim() || undefined,
+      managementChange: managementChange.trim() || undefined,
+      exitReasoning: exitReasoning.trim() || undefined,
       confidence,
       reason: thesis.trim() || undefined,
     };
@@ -190,7 +196,9 @@ export function SimulationTradeTicket({
           variant="outline"
           accessibilityLabel={`Study the synthetic chart for ${symbol.toUpperCase()}`}
           onPress={() =>
-            router.push(`/asset/${encodeURIComponent(symbol.toUpperCase())}?tab=chart` as never)
+            router.push(
+              `/asset/${encodeURIComponent(symbol.toUpperCase())}?from=simulate` as never,
+            )
           }
         >
           Study this name
@@ -327,6 +335,33 @@ export function SimulationTradeTicket({
           value={intendedSize}
           onChangeText={setIntendedSize}
         />
+        <Input
+          containerClassName="mt-3"
+          label="Expected scenarios"
+          placeholder="What could go right, wrong, or sideways?"
+          value={expectedScenarios}
+          onChangeText={setExpectedScenarios}
+          multiline
+        />
+        {side === 'sell' ? (
+          <>
+            <Input
+              containerClassName="mt-3"
+              label="Management change"
+              placeholder="What did you change, and why?"
+              value={managementChange}
+              onChangeText={setManagementChange}
+            />
+            <Input
+              containerClassName="mt-3"
+              label="Exit reasoning"
+              placeholder="Why close or reduce now?"
+              value={exitReasoning}
+              onChangeText={setExitReasoning}
+              multiline
+            />
+          </>
+        ) : null}
         <Text variant="label" className="mb-2 mt-3">
           Confidence
         </Text>

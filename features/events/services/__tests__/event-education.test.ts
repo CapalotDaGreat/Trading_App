@@ -1,4 +1,5 @@
 import { EVENT_EDUCATION } from '../../content/event-education';
+import { EVENT_CONCEPT_MAP } from '../../content/event-concept-map';
 import { listCuratedMarketStories } from '../../content/event-stories';
 import { composeMarketEventHub } from '../event-hub.service';
 import { educationForCategory, eventTrainingCopy, kindFromTitle } from '../event-education.service';
@@ -6,7 +7,8 @@ import { scoreEventImportance } from '../event-importance.service';
 import { composeEventTrainingPlan, isEventPersonalizationEligible } from '../event-personalization.service';
 import { lifecycleForEvent } from '../event-status.service';
 
-const FORBIDDEN = /buy this|sell this|short this|should buy|should sell|guaranteed|buy now|sell now/i;
+const FORBIDDEN =
+  /buy this|sell this|short this|should buy|should sell|guaranteed|buy now|sell now|buy before earnings|sell before the fed|cpi will cause|stocks will fall|stocks will rise|price target|buy before|sell before the/i;
 
 function collectCopy(): string[] {
   const stories = listCuratedMarketStories(Date.parse('2026-09-10T00:00:00.000Z'));
@@ -30,8 +32,9 @@ describe('event education', () => {
     const education = educationForCategory('interest_rate');
     expect(education.relatedLessonId).toBe('fund-economy');
     expect(education.concepts).toEqual(
-      expect.arrayContaining(['interest rates', 'monetary policy', 'market expectations', 'volatility', 'risk management']),
+      expect.arrayContaining(['interest rates', 'macro uncertainty', 'volatility', 'event preparation']),
     );
+    expect(education.conceptIds).toEqual(expect.arrayContaining(EVENT_CONCEPT_MAP.interest_rate.conceptIds));
     expect(education.article?.url).toContain('federalreserve.gov');
     expect(education.replayId).toBe('fomc-decision-lab');
     const copy = eventTrainingCopy({
@@ -105,6 +108,8 @@ describe('event hub and personalization', () => {
     expect(hub.calendarUnavailable).toBe(true);
     expect(hub.freshnessNote).toContain('temporarily unavailable');
     expect(hub.cards.some((card) => card.origin === 'curated')).toBe(true);
+    expect(hub.learningCalendar.length).toBeGreaterThan(0);
+    expect(hub.learningCalendar.every((card) => card.lifecycle !== 'developing')).toBe(true);
     expect(hub.cards.some((card) => card.lifecycle === 'historical')).toBe(true);
     expect(hub.cards.some((card) => card.lifecycle === 'developing')).toBe(true);
   });
@@ -127,6 +132,8 @@ describe('event hub and personalization', () => {
     expect(plan?.replayHref).toContain('fomc-decision-lab');
     expect(plan?.simulateHref).toContain('prep=rates');
     expect(plan?.reminder.toLowerCase()).not.toMatch(FORBIDDEN);
+    expect(plan?.reminder.toLowerCase()).toContain('not a trade alert');
+    expect(plan?.eventKind).toBe('interest_rate');
   });
 
   it('never turns event copy into a signal', () => {

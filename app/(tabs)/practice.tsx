@@ -18,6 +18,10 @@ import {
   type PracticeLibraryFilters,
 } from '@/features/practice/services/practice-library.service';
 import { usePracticeProgressStore } from '@/features/practice/stores/practice-progress.store';
+import { ingestPracticeAttempt } from '@/features/competency';
+import { TrainingHandoffBanner } from '@/features/learning-engine/components/TrainingHandoffBanner';
+import { useAuth } from '@/features/auth/hooks/useAuth';
+import { DEMO_USER_UID } from '@/firebase/config';
 import { IA_GLOSSARY, PRACTICE_HUB_SECTIONS } from '@/features/navigation/config/navigation-ia.config';
 import { EmptyState } from '@/shared/components/feedback/EmptyState';
 import { ScreenScaffold } from '@/shared/components/layout/ScreenScaffold';
@@ -50,6 +54,8 @@ function FilterRow({
 
 function DrillCard({ drill }: { drill: PracticeDrill }) {
   const router = useRouter();
+  const { user } = useAuth();
+  const uid = user?.uid ?? DEMO_USER_UID;
   const recordAttempt = usePracticeProgressStore((state) => state.recordAttempt);
   const attempts = usePracticeProgressStore((state) => state.attempts);
   const [lastResult, setLastResult] = useState<{ correct: boolean } | null>(null);
@@ -102,6 +108,7 @@ function DrillCard({ drill }: { drill: PracticeDrill }) {
             correct: result.correct,
             selectedIndex: result.selectedIndex,
           });
+          ingestPracticeAttempt(uid, drill.id, result.correct);
         }}
       />
       {lastResult ? (
@@ -191,6 +198,8 @@ export default function PracticeScreen() {
       contentClassName="pb-12"
       testID="practice-screen"
     >
+      <TrainingHandoffBanner />
+
       {attempts.length === 0 ? (
         <Surface tone="subtle" className="mb-4" testID="practice-empty-intro">
           <Text variant="label" className="text-text-tertiary">

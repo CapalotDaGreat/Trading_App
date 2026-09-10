@@ -39,6 +39,12 @@ export function SimulationDebriefPanel({ debrief }: SimulationDebriefPanelProps)
         <Text variant="body-sm">
           Position sizing: {tone(process.positionSizing)} · Adaptation: {tone(process.adaptation)}
         </Text>
+        <Text variant="body-sm">
+          Invalidation: {tone(process.uncertainty)} · Evidence: {tone(process.evidence)}
+        </Text>
+        <Text variant="body-sm">
+          Information response: {tone(process.informationResponse)} · Behavioral patterns: {tone(process.behavioral)}
+        </Text>
         <Text variant="caption" className="mt-1 text-text-tertiary">
           Process composite {process.composite}. Simulated P/L is context, not the grade.
         </Text>

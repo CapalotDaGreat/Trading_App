@@ -1,4 +1,5 @@
 import type { DataSourceKind } from '@/features/markets/constants/data-source';
+import type { ReplayLicenseKind, ReplayPracticeDifficulty } from '@/features/decision-replay/types/replay-scenario.types';
 import type { Candle, CandleInterval } from '@/shared/types/market';
 
 export type ReplayTvDifficulty = 'foundation' | 'intermediate' | 'advanced' | 'expert';
@@ -191,6 +192,12 @@ export interface ReplayTvEpisode {
   revealWindowEndIndex?: number;
   fundamentals?: ReplayTvFundamentalNote[];
   revealBeats?: ReplayTvRevealBeat[];
+  /** Overlay for library filters. Defaults from `difficulty`. */
+  practiceDifficulty?: ReplayPracticeDifficulty;
+  /** Hide the competency being tested (advanced/mixed default). */
+  concealCompetency?: boolean;
+  conceptIds?: string[];
+  license?: ReplayLicenseKind;
 }
 
 export interface ReplayTvCollection {
@@ -219,6 +226,7 @@ export interface ReplayTvReasoning {
   riskAssessment?: string;
   intendedSize?: string;
   expectedRisk?: string;
+  alternatives?: string;
   freeText?: string;
 }
 
@@ -300,6 +308,8 @@ export interface ReplayTvDecisionRecord {
   structured?: ReplayTvReasoning;
   coach?: ReplayTvCoachNote;
   at: number;
+  /** True when the commit happened while later tape was still hidden. */
+  committedBlind?: boolean;
 }
 
 export interface ReplayTvScores {
@@ -314,12 +324,18 @@ export interface ReplayTvScores {
   adaptability: number;
   consistency: number;
   researchEfficiency: number;
+  thesisQuality: number;
+  uncertaintyRecognition: number;
+  hindsightHygiene: number;
   /** DQS-compatible composite — never a profitability score. */
   overall: number;
   coaching: string[];
   journalPrompt: string;
   academyHint?: { lessonId: string; reason: string };
   processComparison: ReplayTvProcessComparison;
+  knewThen: string;
+  happenedAfter: string;
+  outcomeNote: string;
 }
 
 export interface ReplayTvSession {

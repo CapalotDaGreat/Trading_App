@@ -58,6 +58,13 @@ export function ReplayTvReasoningForm({ value, onChange, section = 'thesis' }: R
             accessibilityLabel="Replay TV main uncertainty"
           />
           <Input
+            label="What alternative scenarios are you allowing for?"
+            value={value.alternatives ?? ''}
+            onChangeText={(alternatives) => patch({ alternatives })}
+            placeholder="Hold, fade, wait, or stand aside — name more than one."
+            accessibilityLabel="Replay TV alternative scenarios"
+          />
+          <Input
             label="What would change your mind?"
             value={value.whatWouldChangeMind ?? ''}
             onChangeText={(whatWouldChangeMind) => patch({ whatWouldChangeMind })}

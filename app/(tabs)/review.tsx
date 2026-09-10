@@ -4,6 +4,7 @@ import { View } from 'react-native';
 import { NextLessonCard } from '@/features/academy/components/CurriculumCards';
 import { useNextAcademyLesson } from '@/features/academy/hooks/useAcademy';
 import { useLearningEngine } from '@/features/learning-engine/hooks/useLearningEngine';
+import { TrainingHandoffBanner } from '@/features/learning-engine/components/TrainingHandoffBanner';
 import { useDecisionLog } from '@/features/decision-log/hooks/useDecisionLog';
 import { useReplayTvStore } from '@/features/decision-replay-tv/stores/replay-tv.store';
 import { useJournal } from '@/features/journal/hooks/useJournal';
@@ -59,6 +60,7 @@ export default function ReviewScreen() {
       contentClassName="pb-12"
       testID="review-screen"
     >
+      <TrainingHandoffBanner />
       <Surface tone="accent" emphasis="outlined" testID="review-insight-hero">
         <Text variant="label" className="text-accent">
           Your evidence
@@ -128,6 +130,19 @@ export default function ReviewScreen() {
           </View>
         </Surface>
       ) : null}
+
+      <Surface className="mt-4" testID="review-questions">
+        <Text variant="label" className="text-text-tertiary">
+          Review questions
+        </Text>
+        <Text variant="body-sm" className="mt-2 text-text-secondary">
+          What happened? What did you believe? What evidence did you have? What risk did you take?
+          What could you improve?
+        </Text>
+        <Text variant="caption" className="mt-2 text-text-tertiary">
+          Simulated P/L is context for those answers — not the grade.
+        </Text>
+      </Surface>
 
       <Surface className="mt-4" testID="review-journal">
         <Text variant="label" className="text-text-tertiary">

@@ -1,3 +1,5 @@
+import { canRevealReplay, revealCursorAfterCommit } from '@/features/decision-replay/services/replay-lifecycle.service';
+import { scanReplayInformationLeaks } from '@/features/decision-replay/services/replay-information-boundary.service';
 import { getReplayTvEpisode } from '@/features/decision-replay-tv/content/replay-tv.catalog';
 import {
   composeReplayTvCoachNote,
@@ -11,6 +13,7 @@ import {
   visibleCandlesAt,
 } from '@/features/decision-replay-tv/services/replay-tv-path.service';
 import { scoreReplayTvSession } from '@/features/decision-replay-tv/services/replay-tv-score.service';
+import { toReplayScenarioPackage } from '@/features/decision-replay-tv/services/replay-scenario.adapter';
 import type {
   ReplayTvChecklist,
   ReplayTvDecision,
@@ -35,7 +38,7 @@ export const REPLAY_TV_LOOP_STEPS: Array<{ phase: ReplayTvPhase; label: string }
   { phase: 'intro', label: 'Episode' },
   { phase: 'context', label: 'Context' },
   { phase: 'watching', label: 'Chart' },
-  { phase: 'research', label: 'Research' },
+  { phase: 'research', label: 'Study' },
   { phase: 'reasoning', label: 'Thesis' },
   { phase: 'risk', label: 'Risk' },
   { phase: 'sizing', label: 'Size' },
@@ -191,6 +194,16 @@ export function getBlindSafeEpisodeView(session: ReplayTvSession) {
   };
 }
 
+export function canRevealReplayTvSession(session: ReplayTvSession): boolean {
+  const episode = getReplayTvEpisode(session.episodeId);
+  if (!episode) return false;
+  return canRevealReplay({
+    committedDecisions: session.decisions.length,
+    requiredDecisions: episode.checkpoints.length,
+    alreadyRevealed: isReplayTvRevealed(session),
+  });
+}
+
 export function replayTvHasFutureLeak(session: ReplayTvSession): boolean {
   if (isReplayTvRevealed(session)) return false;
   const frozen = getFrozenCandlesForSession(session);
@@ -201,7 +214,34 @@ export function replayTvHasFutureLeak(session: ReplayTvSession): boolean {
   if (view.historicalOutcome) return true;
   if (view.teachingNotes.length > 0) return true;
   const freeze = currentFreezeIndex(session);
-  return getVisibleNewsForSession(session).some((n) => n.availableAtIndex > freeze);
+  if (getVisibleNewsForSession(session).some((n) => n.availableAtIndex > freeze)) return true;
+
+  const episode = getReplayTvEpisode(session.episodeId);
+  if (!episode) return false;
+  const scenario = toReplayScenarioPackage(episode);
+  const cutoff = scenario.bars[Math.min(scenario.bars.length - 1, freeze)]?.timestamp ?? freezeTs;
+  const leak = scanReplayInformationLeaks({
+    scenario,
+    cutoffTimestamp: cutoff,
+    revealed: false,
+    visibleBars: visible.map((bar) => ({
+      timestamp: bar.timestamp,
+      open: bar.open,
+      high: bar.high,
+      low: bar.low,
+      close: bar.close,
+      volume: bar.volume,
+    })),
+    visibleNews: view.news.map((item) => ({
+      id: item.id,
+      timestamp: cutoff,
+      availableAtTimestamp: scenario.news.find((n) => n.id === item.id)?.availableAtTimestamp ?? 0,
+      headline: item.headline,
+      summary: item.detail,
+    })),
+    publicBlob: JSON.stringify(view),
+  });
+  return !leak.ok;
 }
 
 export function advanceReplayTvPhase(session: ReplayTvSession): ReplayTvSession {
@@ -222,7 +262,10 @@ export function advanceReplayTvPhase(session: ReplayTvSession): ReplayTvSession 
       return { ...session, phase: 'decision' };
     case 'mentor': {
       const episode = getSessionEpisode(session);
-      const committedAll = session.decisions.length >= episode.checkpoints.length;
+      const committedAll = canRevealReplay({
+        committedDecisions: session.decisions.length,
+        requiredDecisions: episode.checkpoints.length,
+      });
       if (committedAll) {
         const cutoff = episode.checkpoints[episode.checkpoints.length - 1]?.freezeIndex ?? 0;
         return {
@@ -230,7 +273,10 @@ export function advanceReplayTvPhase(session: ReplayTvSession): ReplayTvSession 
           phase: 'reveal',
           revealed: true,
           mentorReply: undefined,
-          revealCursor: Math.min(episode.barCount - 1, cutoff + 6),
+          revealCursor: revealCursorAfterCommit({
+            cutoffIndex: cutoff,
+            horizon: episode.barCount,
+          }),
         };
       }
       return {
@@ -309,6 +355,7 @@ export function submitReplayTvDecision(input: {
         structured,
         coach,
         at: Date.now(),
+        committedBlind: !isReplayTvRevealed(session),
       },
     ],
     checkpointIndex: isLastCheckpoint ? session.checkpointIndex : session.checkpointIndex + 1,
@@ -372,6 +419,7 @@ export const REPLAY_TV_DECISION_ORDER: ReplayTvDecision[] = [
 
 export function advanceReplayTvReveal(session: ReplayTvSession, bars = 6): ReplayTvSession {
   if (!isReplayTvRevealed(session)) return session;
+  if (session.decisions.length === 0) return session;
   const episode = getSessionEpisode(session);
   const end = episode.revealWindowEndIndex ?? episode.barCount - 1;
   const current = session.revealCursor ?? currentFreezeIndex(session);
