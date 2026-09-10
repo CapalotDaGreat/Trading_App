@@ -30,7 +30,7 @@ const SECTIONS: {
   {
     title: 'Simulate',
     body: 'Paper capital is labelled simulated. Default starting cash is $100,000 USD. Simulated P/L does not grade the decision.',
-    icon: 'briefcase-outline',
+    icon: 'play-circle-outline',
   },
   {
     title: 'Review & Improve',

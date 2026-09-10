@@ -143,10 +143,50 @@ export const GLOSSARY_TERMS: GlossaryTerm[] = [
   {
     id: 'pe',
     term: 'P/E',
-    aliases: ['price to earnings', 'valuation'],
+    aliases: ['price to earnings', 'valuation', 'multiple'],
     short:
       'Price divided by earnings. A context number, not a buy or sell instruction. Compare with growth and cycle.',
-    lessonId: 'fund-basics',
+    lessonId: 'fund-valuation-quality',
+  },
+  {
+    id: 'revenue-growth',
+    term: 'Revenue growth',
+    aliases: ['top line', 'sales growth'],
+    short:
+      'How fast the business is selling more. Growth is not the same as quality, cash, or a reason to size.',
+    lessonId: 'fund-statements',
+  },
+  {
+    id: 'margins',
+    term: 'Operating margin',
+    aliases: ['margins', 'profitability', 'profit margin'],
+    short:
+      'How much of each dollar of sales is left after operating costs. Rising sales with falling margins is a quality question.',
+    lessonId: 'fund-statements',
+  },
+  {
+    id: 'cash-flow',
+    term: 'Cash flow',
+    aliases: ['free cash flow', 'fcf', 'cash conversion'],
+    short:
+      'Whether earnings became cash. A company can show profit while burning cash — that is a different risk file.',
+    lessonId: 'fund-statements',
+  },
+  {
+    id: 'balance-sheet',
+    term: 'Balance sheet',
+    aliases: ['leverage', 'debt', 'obligations'],
+    short:
+      'What is owned and owed. Cash buffers and refinancing windows live here — not on a single candle.',
+    lessonId: 'fund-statements',
+  },
+  {
+    id: 'moat',
+    term: 'Competitive advantage',
+    aliases: ['moat', 'advantage'],
+    short:
+      'A reason cash flows might persist (switching costs, network, cost advantage). Still a claim under uncertainty, not a badge.',
+    lessonId: 'fund-valuation-quality',
   },
   {
     id: 'beta',

@@ -57,7 +57,7 @@ export async function buildPrivacyDataExport(input: {
     schemaVersion: 1,
     purpose: 'data_subject_access_request',
     notice:
-      'This package contains data available to the signed-in session on this device. It is not a profitability report. Cloud Storage media and server-only logs may require a request to [PRIVACY EMAIL REQUIRED] for a complete archive.',
+      'This package contains data available to the signed-in session on this device. It is not a profitability report. Cloud Storage media and server-only logs may require a request through Settings → Privacy once Aithera has published a privacy mailbox. Template fields in the Privacy Policy are not live email addresses.',
     account: {
       uid,
       email: input.email ?? null,

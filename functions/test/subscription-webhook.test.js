@@ -42,9 +42,17 @@ test('maps purchase, cancellation, expiration, refund, grace, and product change
   const changed = mapRevenueCatEvent({
     ...baseEvent,
     type: 'PRODUCT_CHANGE',
-    new_product_id: 'monthly',
+    new_product_id: 'tradevision_premium_monthly',
   });
   assert.equal(changed.planId, 'monthly');
+
+  const catalogYearly = mapRevenueCatEvent({
+    ...baseEvent,
+    type: 'INITIAL_PURCHASE',
+    product_id: 'tradevision_premium_yearly',
+  });
+  assert.equal(catalogYearly.planId, 'yearly');
+  assert.equal(catalogYearly.isPremium, true);
 
   const lifetime = mapRevenueCatEvent({
     ...baseEvent,
@@ -63,6 +71,8 @@ test('verifies exact raw or bearer webhook authorization', () => {
   assert.equal(isValidWebhookAuthorization('Bearer webhook-secret', 'webhook-secret'), true);
   assert.equal(isValidWebhookAuthorization('wrong-secret', 'webhook-secret'), false);
   assert.equal(isValidWebhookAuthorization(undefined, 'webhook-secret'), false);
+  assert.equal(isValidWebhookAuthorization('webhook-secret', ''), false);
+  assert.equal(isValidWebhookAuthorization('', 'webhook-secret'), false);
 });
 
 test('requires the configured premium entitlement and fails closed without expiry', () => {

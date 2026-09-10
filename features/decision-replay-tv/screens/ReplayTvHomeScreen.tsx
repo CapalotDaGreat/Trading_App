@@ -25,6 +25,7 @@ import {
   inferWeakAreaFromProgress,
 } from '@/features/decision-replay-tv/services/replay-tv-filter.service';
 import {
+  catalogEntryForReplayEpisode,
   episodesForDnaGrowth,
   rankReplayTvEpisodes,
 } from '@/features/decision-replay-tv/services/replay-tv-rank.service';
@@ -33,9 +34,17 @@ import type { ReplayTvEpisode } from '@/features/decision-replay-tv/types/replay
 import { LoopCtaRow } from '@/features/navigation/components/LoopCtaRow';
 import { TrainingHandoffBanner } from '@/features/learning-engine/components/TrainingHandoffBanner';
 import { EducationalModeBadge } from '@/features/educational/components/EducationalModeBadge';
+import { useAuth } from '@/features/auth/hooks/useAuth';
+import { scoreAllCompetencyMastery, useCompetencyEvidenceStore } from '@/features/competency';
+import {
+  GENERIC_REPLAY_TRAINING_RATIONALE,
+  personalizeReplayTraining,
+} from '@/features/decision-replay/services/replay-personalization.service';
+import { REPLAY_CORE_QUESTION } from '@/features/decision-replay/types/replay-scenario.types';
 import { useCoachProfile } from '@/features/onboarding/hooks/useCoachProfile';
 import { usePersonalIntelligence } from '@/features/personal-intelligence/hooks/usePersonalIntelligence';
 import { PremiumPreviewCard } from '@/features/subscription/components/PremiumPreviewCard';
+import { DEMO_USER_UID } from '@/firebase/config';
 import { ScreenScaffold } from '@/shared/components/layout/ScreenScaffold';
 import { CollapsibleSection } from '@/shared/components/patterns/CollapsibleSection';
 import { Button } from '@/shared/components/ui/Button';
@@ -47,6 +56,7 @@ import { useOnlineStatus } from '@/shared/hooks/useOnlineStatus';
 import { trackEvent } from '@/shared/services/analytics';
 
 const EMPTY_GROWTH_EDGES: string[] = [];
+const EMPTY_EVIDENCE: import('@/features/competency').CompetencyEvidenceRecord[] = [];
 
 function EpisodeRow({
   title,
@@ -124,6 +134,10 @@ export function ReplayTvHomeScreen() {
     isPremium,
   } = useReplayTv();
   const { profile } = useCoachProfile();
+  const { user } = useAuth();
+  const uid = user?.uid ?? DEMO_USER_UID;
+  const evidence =
+    useCompetencyEvidenceStore((state) => state.recordsByUser[uid]) ?? EMPTY_EVIDENCE;
   const { isOnline } = useOnlineStatus();
   const intelligence = usePersonalIntelligence();
   const growthEdges = intelligence.data?.dna.growthEdges ?? EMPTY_GROWTH_EDGES;
@@ -139,6 +153,17 @@ export function ReplayTvHomeScreen() {
   const [completedFilter, setCompletedFilter] = useState<ReplayTvCompletedFilter>('all');
   const [weakAreaFilter, setWeakAreaFilter] = useState<ReplayTvWeakAreaFilter>('all');
 
+  const trainingPlan = useMemo(
+    () =>
+      personalizeReplayTraining({
+        records: evidence,
+        mastery: evidence.length ? scoreAllCompetencyMastery(evidence) : [],
+        catalog: REPLAY_TV_EPISODES.map(catalogEntryForReplayEpisode),
+        completedIds: progress.completedEpisodeIds,
+      }),
+    [evidence, progress.completedEpisodeIds],
+  );
+
   const rankInput = useMemo(
     () => ({
       markets: profile.markets,
@@ -152,6 +177,7 @@ export function ReplayTvHomeScreen() {
       growthEdges: rankEdges,
       completedIds: progress.completedEpisodeIds,
       practiceTraitId: reinforcementTrait ?? null,
+      trainingPlan,
     }),
     [
       profile.markets,
@@ -162,6 +188,7 @@ export function ReplayTvHomeScreen() {
       progress.completedEpisodeIds,
       progress.bestProcessByEpisode,
       reinforcementTrait,
+      trainingPlan,
     ],
   );
 
@@ -241,7 +268,7 @@ export function ReplayTvHomeScreen() {
   return (
     <ScreenScaffold
       title="Decision Replay TV"
-      subtitle="Can you make a good decision without knowing what happens next?"
+      subtitle={REPLAY_CORE_QUESTION}
       contentClassName="pb-12"
     >
       <View className="gap-4">
@@ -256,7 +283,7 @@ export function ReplayTvHomeScreen() {
 
         <Surface padding="md" tone="subtle" testID="replay-tv-intro">
           <Text variant="h3" headingLevel={2}>
-            The future stays hidden until you commit.
+            {REPLAY_CORE_QUESTION}
           </Text>
           <Text variant="body-sm" className="mt-2 leading-6 text-text-secondary">
             If the freeze is 10 January, you do not get the 11 January tape, headlines, or outcome.
@@ -318,6 +345,11 @@ export function ReplayTvHomeScreen() {
             <Text variant="body-sm" className="mt-2 text-text-secondary">
               {recommended[0].teaser}
             </Text>
+            {trainingPlan.personalized ? (
+              <Text variant="caption" className="mt-2 text-text-tertiary">
+                {trainingPlan.trainingRationale ?? GENERIC_REPLAY_TRAINING_RATIONALE}
+              </Text>
+            ) : null}
             <Button
               className="mt-4"
               disabled={isStarting}
@@ -513,7 +545,7 @@ export function ReplayTvHomeScreen() {
           <View className="gap-3">
             <EpisodeRow
               title="Recommended"
-              description="From Mentor Setup markets, styles, and struggles."
+              description="From current practice focus, Mentor Setup, and DNA — never a predicted winner."
               episodes={recommended}
               progress={progress}
               isStarting={isStarting}

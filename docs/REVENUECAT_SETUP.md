@@ -29,9 +29,9 @@ RevenueCat **public** app-specific keys belong in `.env` (gitignored) and EAS se
 # Sandbox / shared test key (Project → API keys → Public app-specific)
 EXPO_PUBLIC_REVENUECAT_API_KEY=test_…
 EXPO_PUBLIC_REVENUECAT_ENTITLEMENT_ID=Aithera Pro
-EXPO_PUBLIC_RC_PRODUCT_MONTHLY=monthly
-EXPO_PUBLIC_RC_PRODUCT_YEARLY=yearly
-EXPO_PUBLIC_RC_PRODUCT_LIFETIME=lifetime
+EXPO_PUBLIC_RC_PRODUCT_MONTHLY=tradevision_premium_monthly
+EXPO_PUBLIC_RC_PRODUCT_YEARLY=tradevision_premium_yearly
+EXPO_PUBLIC_RC_PRODUCT_LIFETIME=tradevision_premium_lifetime
 ```
 
 Production EAS profiles should use platform keys:
@@ -43,7 +43,7 @@ EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY=goog_…
 
 The client configures Purchases in `subscriptionService.configureForUser(uid)` with the **Firebase UID** as the App User ID. Demo/guest (`demo-guest`) and Expo Go never load the native module.
 
-`eas.json` already bakes the non-secret catalog IDs (`Aithera Pro`, `monthly`, `yearly`, `lifetime`). Platform SDK keys stay in EAS Environment / `.env`.
+`eas.json` already bakes the non-secret catalog IDs (`Aithera Pro`, `tradevision_premium_monthly`, `tradevision_premium_yearly`, `tradevision_premium_lifetime`). Platform SDK keys stay in EAS Environment / `.env`.
 
 ## 3. Dashboard — project, apps, entitlement, products
 
@@ -73,9 +73,9 @@ Product IDs must match both stores and RevenueCat:
 
 | Product ID | Store type | Trial |
 | --- | --- | --- |
-| `monthly` | Auto-renewing subscription | None |
-| `yearly` | Auto-renewing subscription | **7-day introductory offer** |
-| `lifetime` | **Non-consumable** (not a subscription) | None |
+| `tradevision_premium_monthly` | Auto-renewing subscription | None |
+| `tradevision_premium_yearly` | Auto-renewing subscription | **7-day introductory offer** |
+| `tradevision_premium_lifetime` | **Non-consumable** (not a subscription) | None |
 
 Attach **all three** to entitlement `Aithera Pro`.
 

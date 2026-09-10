@@ -26,7 +26,11 @@ export interface MarketEventArticle {
   headline: string;
   source: string;
   date: string;
+  /** Epoch ms when the source page was dated. Null when the source is an undated handbook/calendar. */
+  sourceTimestamp?: number | null;
+  /** Short paraphrase of the external source — never a copied article body. */
   summary: string;
+  /** TradeAcademy educational note. Distinct from the external source. */
   whyItMatters: string;
   url: string;
 }
@@ -84,11 +88,21 @@ export interface MarketEventCardModel {
   origin: 'calendar' | 'curated';
 }
 
+export type EventTrainingIntent =
+  | 'event_risk_lesson'
+  | 'uncertainty_exercise'
+  | 'fundamentals_application'
+  | 'general_prep';
+
+export type EventTrainingPrimary = 'lesson' | 'practice' | 'replay' | 'simulate';
+
 export interface EventTrainingPlan {
   headline: string;
   eventTitle: string;
   eventKind: MarketEventKind;
   daysUntil: number | null;
+  intent: EventTrainingIntent;
+  primary: EventTrainingPrimary;
   /** Recent practice / competency gap that overlaps this event. Training, not a trade alert. */
   practiceGapNote: string | null;
   gapConceptId: string | null;

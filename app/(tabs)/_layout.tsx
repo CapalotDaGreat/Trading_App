@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
 import { Platform, StyleSheet } from 'react-native';
 
-import { IA_GLOSSARY } from '@/features/navigation/config/navigation-ia.config';
+import { IA_GLOSSARY, SIMULATE_TAB_ICON } from '@/features/navigation/config/navigation-ia.config';
 import { ErrorBoundary } from '@/shared/components/feedback/ErrorBoundary';
 import { useTheme } from '@/shared/hooks/useTheme';
 
@@ -32,8 +32,9 @@ export default function TabLayout() {
             elevation: 0,
             shadowOpacity: 0,
           },
+          tabBarAllowFontScaling: true,
           tabBarLabelStyle: {
-            fontSize: 9,
+            fontSize: 11,
             fontWeight: '500',
             letterSpacing: 0,
           },
@@ -70,8 +71,8 @@ export default function TabLayout() {
           name="simulate"
           options={{
             title: IA_GLOSSARY.simulate,
-            tabBarAccessibilityLabel: 'Simulate tab',
-            tabBarIcon: ({ color }) => <TabIcon name="briefcase-outline" color={color} />,
+            tabBarAccessibilityLabel: 'Simulate tab. Paper classroom, not a brokerage.',
+            tabBarIcon: ({ color }) => <TabIcon name={SIMULATE_TAB_ICON} color={color} />,
           }}
         />
         <Tabs.Screen

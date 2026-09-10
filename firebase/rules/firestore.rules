@@ -274,6 +274,57 @@ service cloud.firestore {
         && data.resultingPositionQuantity >= 0;
     }
 
+    function isValidLearnerEvidence(ownerId) {
+      let data = request.resource.data;
+      return data.uid == ownerId
+        && data.uid == request.auth.uid
+        && data.eventKey is string
+        && data.eventKey.size() >= 8
+        && data.eventKey.size() <= 700
+        && data.conceptId is string
+        && data.conceptId.size() >= 1
+        && data.conceptId.size() <= 80
+        && data.sourceType in [
+          'lesson_completion', 'knowledge_check', 'calculation_exercise', 'practice_drill',
+          'applied_exercise', 'event_exercise', 'replay_decision', 'simulation_decision',
+          'simulation_checkpoint', 'journal_reflection', 'review_finding',
+          'remediation_exercise', 're_demonstration', 'transfer_exercise', 'surprise_assessment'
+        ]
+        && data.sourceId is string
+        && data.sourceId.size() >= 1
+        && data.sourceId.size() <= 120
+        && data.occurredAt is number
+        && data.result in ['pass', 'fail', 'partial', 'observed']
+        && !('notes' in data)
+        && !('lessonsLearned' in data)
+        && !('prompt' in data)
+        && !('equity' in data)
+        && !('cashBalance' in data)
+        && !('simulatedPnl' in data)
+        && (!('processMetrics' in data) || (
+          !('simulatedPnl' in data.processMetrics)
+          && !('simulatedProfitable' in data.processMetrics)
+        ));
+    }
+
+    function isValidLearnerProgress(ownerId) {
+      let data = request.resource.data;
+      return data.uid == ownerId
+        && data.uid == request.auth.uid
+        && data.schemaVersion is number
+        && data.schemaVersion == 1
+        && data.revision is number
+        && data.updatedAt is number
+        && data.academy is map
+        && data.queue is map
+        && data.replay is map
+        && !('notes' in data)
+        && !('lessonsLearned' in data)
+        && !('prompt' in data)
+        && !('equity' in data)
+        && !('cashBalance' in data);
+    }
+
     match /users/{userId} {
       allow read: if isOwner(userId);
       allow create: if isOwner(userId) && isVerifiedUser() && isValidUserProfile() && hasValidTimestamps();
@@ -364,6 +415,26 @@ service cloud.firestore {
             && hasValidTimestamps();
           allow update, delete: if false;
         }
+      }
+
+      match /learnerState/{docId} {
+        allow read: if isOwner(userId);
+        allow create, update: if isOwner(userId)
+          && isVerifiedUser()
+          && docId == 'progress'
+          && isValidLearnerProgress(userId);
+        allow delete: if isOwner(userId) && isVerifiedUser();
+      }
+
+      match /learnerEvidence/{eventKey} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) && isVerifiedUser() && isValidLearnerEvidence(userId);
+        allow update: if isOwner(userId)
+          && isVerifiedUser()
+          && isValidLearnerEvidence(userId)
+          && request.resource.data.uid == resource.data.uid
+          && request.resource.data.eventKey == resource.data.eventKey;
+        allow delete: if isOwner(userId) && isVerifiedUser();
       }
     }
 

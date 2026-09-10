@@ -96,6 +96,11 @@ describe('academy curriculum', () => {
     expect(auditLessonsWithoutSimulation()).toEqual([]);
   });
 
+  it('gives every lesson a Replay connection after the academy loop is applied', () => {
+    const missing = ALL_LESSONS.filter((lesson) => !lesson.replayLinks?.length).map((lesson) => lesson.id);
+    expect(missing).toEqual([]);
+  });
+
   it('keeps unique lesson ids and path membership', () => {
     const ids = ALL_LESSONS.map((lesson) => lesson.id);
     expect(new Set(ids).size).toBe(ids.length);

@@ -55,6 +55,10 @@ export function freshnessForSource(input: {
   };
 }
 
+export function isStaleCalendarSnapshot(kind: MarketEventFreshness): boolean {
+  return kind === 'cached';
+}
+
 export function whatHappenedOrExpected(input: {
   lifecycle: MarketEventLifecycle;
   actual?: string;

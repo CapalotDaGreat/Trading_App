@@ -56,7 +56,7 @@ export function LessonExerciseCard({ exercise, onComplete }: LessonExerciseCardP
   const submitExplain = () => {
     const min = exercise.minChars ?? 16;
     if (written.trim().length < min) return;
-    reveal(undefined);
+    reveal(true);
   };
 
   return (
@@ -192,7 +192,7 @@ export function LessonExerciseCard({ exercise, onComplete }: LessonExerciseCardP
           onPress={() => {
             if (exercise.kind === 'rank') return submitRank();
             if (exercise.kind === 'calculate') return submitCalculate();
-            if (exercise.kind === 'explain') return submitExplain();
+            if (exercise.kind === 'explain' || exercise.kind === 'annotate') return submitExplain();
             return submitChoice();
           }}
         >

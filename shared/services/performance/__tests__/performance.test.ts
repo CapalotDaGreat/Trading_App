@@ -45,4 +45,12 @@ describe('performance diagnostics', () => {
     expect(diagnostics.snapshot().events.some((event) => event.name === 'dna.build.end')).toBe(true);
     expect(JSON.stringify(diagnostics.snapshot())).not.toContain('EURUSD');
   });
+
+  it('records sim.generate without leaking the seed', () => {
+    const diagnostics = new PerformanceDiagnostics(true);
+    const value = diagnostics.measure('sim.generate', () => 9);
+    expect(value).toBe(9);
+    expect(diagnostics.snapshot().events.some((event) => event.name === 'sim.generate.end')).toBe(true);
+    expect(JSON.stringify(diagnostics.snapshot())).not.toContain('seed');
+  });
 });

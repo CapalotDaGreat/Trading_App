@@ -42,6 +42,7 @@ export function useJournal() {
     queryFn: () => getJournalEntries(uid!),
     enabled: Boolean(uid),
     staleTime: 60_000,
+    networkMode: 'offlineFirst',
   });
 
   const entries = entriesQuery.data ?? [];
@@ -57,6 +58,13 @@ export function useJournal() {
           occurredAt: Date.parse(entry.createdAt) || Date.now(),
           mistakeCategory: entry.mistakeCategory,
           planAdhered: entry.planAdhered,
+          strategy: entry.strategy,
+          stopLoss: entry.stopLoss,
+          takeProfit: entry.takeProfit,
+          quantity: entry.quantity,
+          regimeNote: entry.regimeNote,
+          lessonsLearned: entry.lessonsLearned,
+          improvementCommitment: entry.improvementCommitment,
         });
       }
       void appendDecision.mutateAsync({
@@ -130,7 +138,7 @@ export function useJournal() {
     entries,
     stats,
     canExport,
-    isLoading: entriesQuery.isLoading,
+    isLoading: entriesQuery.isLoading && entries.length === 0,
     isError: entriesQuery.isError,
     error: entriesQuery.error,
     refetch: entriesQuery.refetch,

@@ -13,9 +13,9 @@
       },
       "env": {
         "EXPO_PUBLIC_REVENUECAT_ENTITLEMENT_ID": "Aithera Pro",
-        "EXPO_PUBLIC_RC_PRODUCT_MONTHLY": "monthly",
-        "EXPO_PUBLIC_RC_PRODUCT_YEARLY": "yearly",
-        "EXPO_PUBLIC_RC_PRODUCT_LIFETIME": "lifetime"
+        "EXPO_PUBLIC_RC_PRODUCT_MONTHLY": "tradevision_premium_monthly",
+        "EXPO_PUBLIC_RC_PRODUCT_YEARLY": "tradevision_premium_yearly",
+        "EXPO_PUBLIC_RC_PRODUCT_LIFETIME": "tradevision_premium_lifetime"
       }
     },
     "internal": {
@@ -27,9 +27,9 @@
       },
       "env": {
         "EXPO_PUBLIC_REVENUECAT_ENTITLEMENT_ID": "Aithera Pro",
-        "EXPO_PUBLIC_RC_PRODUCT_MONTHLY": "monthly",
-        "EXPO_PUBLIC_RC_PRODUCT_YEARLY": "yearly",
-        "EXPO_PUBLIC_RC_PRODUCT_LIFETIME": "lifetime"
+        "EXPO_PUBLIC_RC_PRODUCT_MONTHLY": "tradevision_premium_monthly",
+        "EXPO_PUBLIC_RC_PRODUCT_YEARLY": "tradevision_premium_yearly",
+        "EXPO_PUBLIC_RC_PRODUCT_LIFETIME": "tradevision_premium_lifetime"
       }
     },
     "preview": {
@@ -38,9 +38,9 @@
       "env": {
         "EXPO_PUBLIC_MARKET_DATA_DIRECT": "false",
         "EXPO_PUBLIC_REVENUECAT_ENTITLEMENT_ID": "Aithera Pro",
-        "EXPO_PUBLIC_RC_PRODUCT_MONTHLY": "monthly",
-        "EXPO_PUBLIC_RC_PRODUCT_YEARLY": "yearly",
-        "EXPO_PUBLIC_RC_PRODUCT_LIFETIME": "lifetime"
+        "EXPO_PUBLIC_RC_PRODUCT_MONTHLY": "tradevision_premium_monthly",
+        "EXPO_PUBLIC_RC_PRODUCT_YEARLY": "tradevision_premium_yearly",
+        "EXPO_PUBLIC_RC_PRODUCT_LIFETIME": "tradevision_premium_lifetime"
       }
     },
     "beta": {
@@ -50,9 +50,9 @@
       "env": {
         "EXPO_PUBLIC_MARKET_DATA_DIRECT": "false",
         "EXPO_PUBLIC_REVENUECAT_ENTITLEMENT_ID": "Aithera Pro",
-        "EXPO_PUBLIC_RC_PRODUCT_MONTHLY": "monthly",
-        "EXPO_PUBLIC_RC_PRODUCT_YEARLY": "yearly",
-        "EXPO_PUBLIC_RC_PRODUCT_LIFETIME": "lifetime"
+        "EXPO_PUBLIC_RC_PRODUCT_MONTHLY": "tradevision_premium_monthly",
+        "EXPO_PUBLIC_RC_PRODUCT_YEARLY": "tradevision_premium_yearly",
+        "EXPO_PUBLIC_RC_PRODUCT_LIFETIME": "tradevision_premium_lifetime"
       }
     },
     "production": {
@@ -61,9 +61,9 @@
       "env": {
         "EXPO_PUBLIC_MARKET_DATA_DIRECT": "false",
         "EXPO_PUBLIC_REVENUECAT_ENTITLEMENT_ID": "Aithera Pro",
-        "EXPO_PUBLIC_RC_PRODUCT_MONTHLY": "monthly",
-        "EXPO_PUBLIC_RC_PRODUCT_YEARLY": "yearly",
-        "EXPO_PUBLIC_RC_PRODUCT_LIFETIME": "lifetime"
+        "EXPO_PUBLIC_RC_PRODUCT_MONTHLY": "tradevision_premium_monthly",
+        "EXPO_PUBLIC_RC_PRODUCT_YEARLY": "tradevision_premium_yearly",
+        "EXPO_PUBLIC_RC_PRODUCT_LIFETIME": "tradevision_premium_lifetime"
       }
     }
   },

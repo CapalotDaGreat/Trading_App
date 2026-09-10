@@ -1,4 +1,4 @@
-/** Visible primary tabs — training loop plus Market Events and You. Ask stays a route. */
+/** Visible primary tabs — training loop plus Market Events and You. Ask stays a route, not a tab. */
 export const PRIMARY_TAB_LABELS = [
   'Home',
   'Learn',
@@ -8,6 +8,41 @@ export const PRIMARY_TAB_LABELS = [
   'Events',
   'You',
 ] as const;
+
+export const PRIMARY_TAB_HREFS = [
+  '/',
+  '/learn',
+  '/practice',
+  '/simulate',
+  '/review',
+  '/events',
+  '/you',
+] as const;
+
+/** Still routed for deep links — never a tab and never a Home/loop primary CTA. */
+export const HIDDEN_TAB_ROUTES = ['/ai', '/research', '/portfolio', '/markets', '/more'] as const;
+
+/** Quote-board / broker leftovers that must not appear as primary CTAs. */
+export const FORBIDDEN_PRIMARY_CTA_HREFS = [
+  '/markets',
+  '/portfolio',
+  '/alerts',
+  '/watchlist',
+] as const;
+
+/** Competence loop — sequential next steps, not a terminal hub. */
+export const PRODUCT_LOOP_STEPS = [
+  { id: 'learn' as const, href: '/learn', label: 'Learn' },
+  { id: 'practice' as const, href: '/practice', label: 'Practice' },
+  { id: 'replay' as const, href: '/decision/replay-tv', label: 'Replay' },
+  { id: 'simulate' as const, href: '/simulate', label: 'Simulate' },
+  { id: 'journal' as const, href: '/journal', label: 'Journal' },
+  { id: 'review' as const, href: '/review', label: 'Review' },
+];
+
+export const SIMULATE_TAB_ICON = 'play-circle-outline' as const;
+
+export type ProductLoopStep = (typeof PRODUCT_LOOP_STEPS)[number]['id'];
 
 export const IA_GLOSSARY = {
   home: 'Home',
@@ -21,7 +56,7 @@ export const IA_GLOSSARY = {
   ask: 'Ask',
   you: 'You',
   setups: 'Training recommendations',
-  markets: 'Markets',
+  markets: 'Study names',
   marketCondition: 'Market condition',
   portfolioRisk: 'Portfolio risk',
   mentor: 'Mentor',
@@ -45,7 +80,6 @@ export const IA_GLOSSARY = {
 export type NavigationIconName =
   | 'analytics-outline'
   | 'book-outline'
-  | 'briefcase-outline'
   | 'calendar-outline'
   | 'card-outline'
   | 'compass-outline'
@@ -55,6 +89,7 @@ export type NavigationIconName =
   | 'flask-outline'
   | 'grid-outline'
   | 'notifications-outline'
+  | 'play-circle-outline'
   | 'pulse-outline'
   | 'radio-outline'
   | 'school-outline'
@@ -85,7 +120,7 @@ export const RESEARCH_HUB_SECTIONS: readonly NavigationHubSection[] = [
       {
         href: '/search',
         title: 'Search',
-        description: 'Find lessons, drills, glossary terms, and educational charts.',
+        description: 'Find lessons, drills, glossary terms, names to study, and educational charts.',
         accessibilityLabel: 'Open unified educational search',
         icon: 'search-outline',
         testID: 'research-search',
@@ -110,14 +145,6 @@ export const RESEARCH_HUB_SECTIONS: readonly NavigationHubSection[] = [
         accessibilityLabel: 'Open Market Events',
         icon: 'calendar-outline',
         testID: 'research-events',
-      },
-      {
-        href: '/markets',
-        title: 'Study names',
-        description: 'Browse sample or synthetic names before opening an educational chart.',
-        accessibilityLabel: 'Open study names',
-        icon: 'grid-outline',
-        testID: 'research-markets',
       },
       {
         href: '/decision/radar',
@@ -211,9 +238,9 @@ export const REVIEW_HUB_SECTIONS: readonly NavigationHubSection[] = [
       {
         href: '/simulate',
         title: 'Simulation history',
-        description: 'Paper-trading ledger. P&L is context, not a grade.',
-        accessibilityLabel: 'Open simulated portfolio history',
-        icon: 'briefcase-outline',
+        description: 'Review simulated decisions and process. P/L is context, not a grade.',
+        accessibilityLabel: 'Open simulation history',
+        icon: 'play-circle-outline',
         testID: 'review-simulation',
       },
       {

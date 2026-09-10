@@ -53,10 +53,17 @@ export function AddToWatchlistSheet({
 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <Pressable className="flex-1 justify-end bg-black/60" onPress={onClose}>
+      <Pressable
+        className="flex-1 justify-end bg-black/60"
+        onPress={onClose}
+        accessibilityRole="button"
+        accessibilityLabel="Dismiss study list"
+      >
         <Pressable
           className="max-h-[80%] rounded-t-3xl border-t border-border bg-background px-4 pb-8 pt-4"
           onPress={(e) => e.stopPropagation()}
+          accessibilityViewIsModal
+          accessibilityLabel="Add to study list"
         >
           <View className="mb-4 h-1 w-10 self-center rounded-full bg-border" />
           <Text variant="h3" className="mb-1">
@@ -80,8 +87,15 @@ export function AddToWatchlistSheet({
                   key={list.id}
                   onPress={() => !hasSymbol && handleAddToExisting(list.id)}
                   disabled={hasSymbol}
+                  accessibilityRole="button"
+                  accessibilityLabel={
+                    hasSymbol
+                      ? `${list.name} already includes ${symbol}`
+                      : `Add ${symbol} to ${list.name}`
+                  }
+                  accessibilityState={{ disabled: hasSymbol }}
                   className={cn(
-                    'mb-2 flex-row items-center justify-between rounded-xl border border-border p-3',
+                    'mb-2 min-h-11 flex-row items-center justify-between rounded-xl border border-border p-3',
                     hasSymbol && 'opacity-50',
                   )}
                 >

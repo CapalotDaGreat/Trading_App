@@ -1,17 +1,19 @@
 # TradeAcademy long-term deliberate practice
 
-Hundreds of sessions are not a spaced-mastery contract. TradeAcademy already had a competency ledger, demonstration recipes, and Today’s Training. This layer makes the **journey** explicit without adding a dashboard or extra tab.
+TradeAcademy is not a lesson-completion counter. The long-term layer is how a disciplined user can keep practicing **for months** without grinding quizzes, hoarding streaks, or treating simulated P/L as skill.
 
 Mastery still means only:
 
 > The user has demonstrated the competency sufficiently within TradeAcademy’s educational and simulated environment.
 
-It never means certified, live-ready, or good at trading. Simulated P/L does not grade practice. Opening the app does not.
+It never means certified, live-ready, or good at trading. Opening the app does not. Hours do not. Streak length does not. A pile of multiple-choice answers does not.
 
 Engine: `features/learning-engine/services/deliberate-practice.service.ts`  
-Surfaces: Today’s Training on Home / Research (same card). Destinations stay Academy, Practice, Replay, Simulate, Journal, Review.
+Ranker: Training Planner (`composeTrainingPlan`)  
+Profile: Learner model `longitudinal` (`composeLongitudinalProfile`)  
+Surfaces: Today’s Training on Home / Research. Destinations stay Academy, Practice, Replay, Simulate, Journal, Review.
 
-Related: [TRADEACADEMY_TODAY_TRAINING_ENGINE.md](./TRADEACADEMY_TODAY_TRAINING_ENGINE.md), [TRADEACADEMY_MASTERY_SYSTEM.md](./TRADEACADEMY_MASTERY_SYSTEM.md).
+Related: [TRADEACADEMY_TODAY_TRAINING_ENGINE.md](./TRADEACADEMY_TODAY_TRAINING_ENGINE.md), [TRADEACADEMY_TRAINING_PLANNER.md](./TRADEACADEMY_TRAINING_PLANNER.md), [TRADEACADEMY_MASTERY_SYSTEM.md](./TRADEACADEMY_MASTERY_SYSTEM.md), [TRADEACADEMY_LEARNER_MODEL.md](./TRADEACADEMY_LEARNER_MODEL.md).
 
 ---
 
@@ -19,89 +21,88 @@ Related: [TRADEACADEMY_TODAY_TRAINING_ENGINE.md](./TRADEACADEMY_TODAY_TRAINING_E
 
 Derived from evidence. Shown as a caption on Today’s Training — not a new screen.
 
-| Stage | Intent | Typical evidence |
-| --- | --- | --- |
-| **Foundation** | Learn core market concepts | Lessons, named skills, hints, examples |
-| **Application** | Apply concepts in guided exercises | Drills and checks; concept still named |
-| **Integration** | Combine concepts in simulation and replay | Application across more than one concept |
-| **Deliberate practice** | Mixed scenarios without being told the skill | Independent application, concealed prompts |
-| **Maintenance** | Re-demonstrate important competencies over time | Due re-demo, recency decay, low variety |
+A **new** concept for an otherwise advanced user still starts at Foundation for *that* concept. User stage and concept stage are combined: the more conservative scaffolding, difficulty, and transfer floor win (`conservativePracticeStage`).
 
-Beginners stay on Foundation / Application scaffolding (hints, concept names, guided questions) even if they self-report as advanced without process evidence.
+| Stage | Intent | Scaffolding | Difficulty | Typical next activity | Review | Transfer |
+| --- | --- | --- | --- | --- | --- | --- |
+| **Foundation** | Learn core ideas | Named skill, hints, examples, guided questions | Foundations | Lesson / named drill | Sooner (×0.8) | Same format |
+| **Application** | Use the idea in a guided exercise | Named skill, hints, examples | Applied | Practice drill | Slightly sooner (×0.9) | New example |
+| **Integration** | Combine ideas in replay / simulation | Named, no hints, mixed concepts, incomplete information | Applied | Replay or paper path | Base interval | New condition |
+| **Deliberate practice** | Mixed scenarios without being told the skill | Concealed prompt, competing explanations | Complex | Mixed / concealed scenario | Slightly later (×1.15, still ≤45d) | Mixed concepts |
+| **Maintenance** | Re-demonstrate important competencies | Concealed, unfamiliar context | Complex | Spaced re-demo | Base interval, **must return** | Concealed scenario |
 
-A **new** concept for an otherwise advanced user still starts at Foundation for *that* concept. User stage and concept stage are combined: the more conservative scaffolding wins.
+`practiceStagePolicy(stage)` is the contract. Beginners stay on Foundation / Application scaffolding even if they self-report as advanced without process evidence.
 
----
-
-## Reducing scaffolding
-
-| | Foundation / Application | Integration | Deliberate / Maintenance |
-| --- | --- | --- | --- |
-| Concept name | Yes (“Apply position sizing.”) | Yes | No |
-| Hints / examples / guided questions | Yes | No | No |
-| Mixed concepts | No | Yes | Yes |
-| Incomplete information | No | Yes | Yes |
-| Competing explanations | No | No | Yes |
-
-The prompt shifts from **Apply position sizing.** to **Assess this situation and make your decision.**
-
-`conceal=1` on the existing concept handoff keeps the banner from naming the skill.
+The prompt shifts from **Apply position sizing.** to **Assess this situation and make your decision.** (`conceal=1` on the concept handoff).
 
 ---
 
 ## Spaced practice
 
-Uses the existing mastery scheduler (`computeRedemonstrationDueAt`):
+`computeRedemonstrationDueAt` returns a concept when it is due — not because a calendar streak broke.
 
-- Weak / inconsistent / low-variety concepts return **sooner**
-- Consistently strong, independently demonstrated concepts return **later** (still inside 7–45 days)
-- `due_for_redemonstration` is Maintenance, not a trophy
+Inputs:
 
-Previously demonstrated skills still appear in **unfamiliar contexts** (maintenance sampler on Today’s Training). Old success does not permanently freeze mastery.
+- **Importance** — core 14d, supporting 21d, specialist 28d
+- **Demonstrated strength** — weak/inconsistent ×0.55; strong independent ×1.45
+- **Evidence age / forgetting risk** — `forgettingRiskFromQuality` (mostly recency, with variety and consistency). High risk shortens the interval
+- **Transfer weakness** — low variety or unproven transfer ×0.7
+- **Recent errors** — two graded fails in 14 days ×0.6; one fail ×0.85
+- **Last difficulty** — complex +4d, foundations −3d
+- **Clamp** — 7–45 days. Strong skills still return. They do not disappear
+
+Previously demonstrated skills appear in **unfamiliar contexts** (maintenance sampler on Today’s Training). Old success does not permanently freeze mastery.
 
 ---
 
 ## Interleaving
 
-Today’s Training keeps the priority **lead** (remediation still wins), then fills supporting items so consecutive tasks are not the same competency family.
+The planner keeps the priority **lead** (remediation still wins), then fills supporting items so consecutive tasks are not the same competency family (cap: two).
 
-Example mix:
+When the learner is in Integration / Deliberate / Maintenance, it also prefers **related neighbors** from the learning graph — trend with momentum, volume, invalidation, and risk — instead of a 30-session RSI block.
 
-```text
-Position sizing → psychology → event risk → chart structure → invalidation → mixed scenario
-```
+The last two weeks of graded attempts on the same concept are penalized in ranking (`recentConceptActivityCount`). Completions, hours, and streaks are not a bonus.
 
-The goal is to test whether the user can identify what matters without a long single-concept block.
+---
+
+## Reduced scaffolding
+
+| | Foundation / Application | Integration | Deliberate / Maintenance |
+| --- | --- | --- | --- |
+| Concept name | Yes | Yes | No |
+| Hints / examples / guided questions | Yes | No | No |
+| Mixed concepts | No | Yes | Yes |
+| Incomplete information | No | Yes | Yes |
+| Competing explanations | No | No | Yes |
+
+Two recent fails restore support. Three independent passes in a row can fade it for non-beginners.
 
 ---
 
 ## Transfer
 
-A principle is not one exercise. Position sizing is re-tested in:
+A principle is not one exercise. Position sizing is re-tested in low vol, high vol, event risk, a losing book, a concentrated book, an ambiguous setup.
 
-- low volatility
-- high volatility
-- event risk
-- a losing book
-- a concentrated portfolio
-- an ambiguous setup
-
-`selectTransferContext` prefers a context that is **not** the last one used. Scenario context is stored on competency evidence and feeds the **variety** quality dimension.
+`selectTransferContext` prefers a context that is **not** the last one used. Stage policy raises the minimum transfer step as the learner advances. Scenario context feeds variety.
 
 ---
 
-## Long-term profile
+## Longitudinal profile
 
-Internal evidence quality (not a user-facing percentage):
+Derived on read (`composeLongitudinalProfile`). Not a trophy dashboard. Not sent to analytics as labels.
 
-- recency
-- consistency
-- difficulty
-- variety (distinct independent contexts)
-- independence
-- knowledge / application
+For each active concept, and for the learner:
 
-These inform scheduling and Today’s Training. They are not shown as “you are 72% mastered.”
+- first evidence
+- strongest evidence (independent pass with highest reliability)
+- most recent evidence
+- evidence diversity (contexts, formats, asset classes, source ids)
+- recurring weaknesses (structured process flags, never diagnoses)
+- improvement (early vs late independent pass rate: improving / stable / slipping / insufficient)
+- transfer proven
+- retention (previously demonstrated, due for re-demo, recency)
+
+The history is the competency ledger. Strength still uses recency half-life. The model does not look only at the last session.
 
 ---
 
@@ -109,23 +110,21 @@ These inform scheduling and Today’s Training. They are not shown as “you are
 
 The queue does **not** reward:
 
+- number of questions
+- streak length
+- hours spent
+- number of simulations
 - opening the app
-- completing many easy lessons
-- generating simulated trades
-- accumulating paper P/L
+- paper P/L
 
-`detectEasySessionGrinding` flags a window of easy lesson / foundations drills (or noisy simulations) with almost no independent application. Today’s Training then prefers a mixed decision scenario over another easy lesson. Completing those lessons remains **exposure**, not demonstration.
+`detectEasySessionGrinding` flags a 14-day window of easy lessons, **≥10 knowledge checks**, or noisy simulations with almost no independent application (replay, simulation, transfer, or applied exercise). Today’s Training then prefers mixed independent practice over another easy lesson. Completing those lessons remains **exposure**, not demonstration.
+
+Two identical evidence ledgers produce the same plan whether a UI streak is 1 day or 90 days. Streak displays elsewhere are ritual, not ranking.
 
 ---
 
 ## Tests
 
-`features/learning-engine/services/__tests__/deliberate-practice.test.ts` covers:
+`features/learning-engine/services/__tests__/deliberate-practice.test.ts` — stages, hints, interleaving, transfer, grinding, stale mastery.
 
-- stage progression
-- reduced hints
-- interleaving
-- transfer
-- spaced re-demonstration / stale mastery
-- long-term variety
-- easy-session grinding
+`features/learning-engine/services/__tests__/longitudinal-practice.test.ts` — **months of activity**: spaced review, interleaving, maintenance, remediation, transfer, reduced scaffolding, no infinite RSI quizzes, no streak dependency.

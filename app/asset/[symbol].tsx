@@ -16,6 +16,8 @@ import {
   INSTRUMENT_RESOLUTION_COPY,
   isUsableMarketPrice,
 } from '@/features/markets/types/instrument.types';
+import { TrainingHandoffBanner } from '@/features/learning-engine/components/TrainingHandoffBanner';
+import { LoopCtaRow } from '@/features/navigation/components/LoopCtaRow';
 import { AssetStudyNextSteps } from '@/features/research/components/AssetStudyNextSteps';
 import { LearnFromChartSection } from '@/features/research/components/LearnFromChartSection';
 import {
@@ -107,6 +109,7 @@ export default function AssetStudyScreen() {
       testID="asset-detail-screen"
     >
       <View className="gap-4">
+        <TrainingHandoffBanner />
         <Surface padding="sm" testID="asset-identity">
           <Text variant="h3" headingLevel={3}>
             {asset.name}
@@ -207,7 +210,7 @@ export default function AssetStudyScreen() {
 
           <CollapsibleSection
             title="Indicator overlays"
-            description="Readings on labelled data. They describe the recent tape — they do not tell you what to buy."
+            description="Readings on labelled data. They describe the recent tape — they do not tell you what to trade."
             defaultExpanded={false}
           >
             <IndicatorPanel active={activeIndicators} onToggle={toggleIndicator} />
@@ -222,8 +225,11 @@ export default function AssetStudyScreen() {
           replayEpisodes={replayEpisodes}
           fromSimulation={fromSimulation}
           hasSimulationAccount={Boolean(account)}
+          lessonId={selectedConcept.lessonId}
+          conceptTitle={selectedConcept.title}
           onSaveStudyList={() => setStudyListVisible(true)}
         />
+        <LoopCtaRow current="learn" title="Then continue" testID="asset-loop-cta" />
       </View>
 
       <AddToWatchlistSheet

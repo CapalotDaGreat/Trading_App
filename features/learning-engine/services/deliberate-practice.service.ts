@@ -1,4 +1,4 @@
-import { getCompetencyConcept, isExposureOnlySource } from '@/features/competency';
+import { getCompetencyConcept, isExposureOnlyRecord, isIndependentEvidence } from '@/features/competency';
 import type {
   CompetencyEvidenceRecord,
   CompetencyFamily,
@@ -9,9 +9,14 @@ import type { MentorExperienceLevel } from '@/features/onboarding/types/mentor-s
 import type {
   EasySessionGrinding,
   PracticeStage,
+  PracticeStagePolicy,
+  PracticeTransferStep,
   ScaffoldingPolicy,
+  TargetComplexity,
+  TrainingLoopStep,
   TrainingQueueItem,
 } from '../types/learning-engine.types';
+import { getConcept } from './learning-graph.service';
 
 const DAY = 24 * 60 * 60 * 1000;
 const BEGINNER = new Set<MentorExperienceLevel>(['completely_new', 'beginner']);
@@ -34,6 +39,99 @@ export const PRACTICE_STAGE_LABELS: Record<PracticeStage, string> = {
 };
 
 const ASSESS_COPY = 'Assess this situation and make your decision.';
+
+const TRANSFER_LADDER: PracticeTransferStep[] = [
+  'same_format',
+  'new_example',
+  'new_condition',
+  'new_asset',
+  'mixed_concept',
+  'concealed_scenario',
+];
+
+const COMPLEXITY_RANK: Record<TargetComplexity, number> = {
+  foundations: 0,
+  applied: 1,
+  complex: 2,
+};
+
+export function conservativePracticeStage(user: PracticeStage, concept: PracticeStage): PracticeStage {
+  return STAGE_RANK[concept] < STAGE_RANK[user] ? concept : user;
+}
+
+export function practiceStagePolicy(stage: PracticeStage): PracticeStagePolicy {
+  switch (stage) {
+    case 'foundation':
+      return {
+        stage,
+        complexity: 'foundations',
+        preferredLoop: 'learn',
+        reviewIntervalMultiplier: 0.8,
+        minTransferStep: 'same_format',
+        interleaveRelated: false,
+        concealByDefault: false,
+      };
+    case 'application':
+      return {
+        stage,
+        complexity: 'applied',
+        preferredLoop: 'practice',
+        reviewIntervalMultiplier: 0.9,
+        minTransferStep: 'new_example',
+        interleaveRelated: false,
+        concealByDefault: false,
+      };
+    case 'integration':
+      return {
+        stage,
+        complexity: 'applied',
+        preferredLoop: 'apply',
+        reviewIntervalMultiplier: 1,
+        minTransferStep: 'new_condition',
+        interleaveRelated: true,
+        concealByDefault: false,
+      };
+    case 'deliberate':
+      return {
+        stage,
+        complexity: 'complex',
+        preferredLoop: 'apply',
+        reviewIntervalMultiplier: 1.15,
+        minTransferStep: 'mixed_concept',
+        interleaveRelated: true,
+        concealByDefault: true,
+      };
+    case 'maintenance':
+    default:
+      return {
+        stage: 'maintenance',
+        complexity: 'complex',
+        preferredLoop: 'redemonstrate',
+        reviewIntervalMultiplier: 1,
+        minTransferStep: 'concealed_scenario',
+        interleaveRelated: true,
+        concealByDefault: true,
+      };
+  }
+}
+
+export function minComplexity(a: TargetComplexity, b: TargetComplexity): TargetComplexity {
+  return COMPLEXITY_RANK[a] <= COMPLEXITY_RANK[b] ? a : b;
+}
+
+export function laterTransferStep(
+  current: PracticeTransferStep | undefined,
+  floor: PracticeTransferStep,
+): PracticeTransferStep {
+  const currentRank = current ? TRANSFER_LADDER.indexOf(current) : -1;
+  const floorRank = TRANSFER_LADDER.indexOf(floor);
+  if (currentRank < 0) return floor;
+  return TRANSFER_LADDER[Math.max(currentRank, floorRank)] ?? floor;
+}
+
+export function preferredLoopForStage(stage: PracticeStage): TrainingLoopStep {
+  return practiceStagePolicy(stage).preferredLoop;
+}
 
 export function isBeginnerExperience(experience: MentorExperienceLevel | null | undefined): boolean {
   return !experience || BEGINNER.has(experience);
@@ -68,12 +166,13 @@ export function overallPracticeStage(input: {
 
   const independentApps = input.evidence.filter(
     (item) =>
-      !isExposureOnlySource(item.sourceType) &&
-      item.independent &&
-      !item.hintsUsed &&
+      !isExposureOnlyRecord(item) &&
+      isIndependentEvidence(item) &&
       (item.sourceType === 'replay_decision' ||
         item.sourceType === 'simulation_decision' ||
-        item.sourceType === 're_demonstration') &&
+        item.sourceType === 're_demonstration' ||
+        item.sourceType === 'transfer_exercise' ||
+        item.sourceType === 'applied_exercise') &&
       item.result === 'pass',
   ).length;
   const demonstrated = active.filter((row) => row.state === 'demonstrated' || row.state === 'due_for_redemonstration');
@@ -96,6 +195,7 @@ export function scaffoldingFor(input: {
   stage: PracticeStage;
   conceptStage?: PracticeStage;
   experience?: MentorExperienceLevel | null;
+  recentRecords?: CompetencyEvidenceRecord[];
 }): ScaffoldingPolicy {
   const beginner = isBeginnerExperience(input.experience);
   const conceptRank = input.conceptStage ? STAGE_RANK[input.conceptStage] : STAGE_RANK[input.stage];
@@ -103,9 +203,45 @@ export function scaffoldingFor(input: {
   const rank = Math.min(conceptRank, userRank);
   const stage = (Object.keys(STAGE_RANK) as PracticeStage[]).find((key) => STAGE_RANK[key] === rank) ?? 'foundation';
 
+  const recent = input.recentRecords ?? [];
+  const independentStreak = recent
+    .filter((item) => !isExposureOnlyRecord(item) && (item.result === 'pass' || item.result === 'fail'))
+    .slice(-4)
+    .filter((item) => item.result === 'pass' && isIndependentEvidence(item)).length;
+  const recentFails = recent.filter((item) => item.result === 'fail').slice(-3).length;
+  const fade = independentStreak >= 3 && recentFails === 0;
+  const support = recentFails >= 2;
+
+  const withPressure = (policy: ScaffoldingPolicy): ScaffoldingPolicy => {
+    if (support) {
+      return {
+        ...policy,
+        showHints: true,
+        showExamples: true,
+        guidedQuestions: policy.stage === 'foundation' || policy.stage === 'application' ? true : policy.guidedQuestions,
+        concealConcept: false,
+        incompleteInformation: false,
+        competingExplanations: false,
+        timePressure: 'none',
+      };
+    }
+    if (fade && !beginner) {
+      return {
+        ...policy,
+        showHints: false,
+        showExamples: false,
+        guidedQuestions: false,
+        incompleteInformation: true,
+        competingExplanations: policy.stage === 'deliberate' || policy.stage === 'maintenance' || policy.stage === 'integration',
+        timePressure: policy.stage === 'deliberate' || policy.stage === 'maintenance' ? 'educational' : 'soft',
+      };
+    }
+    return policy;
+  };
+
   if (beginner && rank < STAGE_RANK.deliberate) {
     if (stage === 'foundation') {
-      return {
+      return withPressure({
         stage,
         nameConcept: true,
         showHints: true,
@@ -115,9 +251,10 @@ export function scaffoldingFor(input: {
         mixedConcepts: false,
         incompleteInformation: false,
         competingExplanations: false,
-      };
+        timePressure: 'none',
+      });
     }
-    return {
+    return withPressure({
       stage: 'application',
       nameConcept: true,
       showHints: true,
@@ -127,11 +264,12 @@ export function scaffoldingFor(input: {
       mixedConcepts: false,
       incompleteInformation: false,
       competingExplanations: false,
-    };
+      timePressure: 'none',
+    });
   }
 
   if (stage === 'foundation') {
-    return {
+    return withPressure({
       stage,
       nameConcept: true,
       showHints: true,
@@ -141,10 +279,11 @@ export function scaffoldingFor(input: {
       mixedConcepts: false,
       incompleteInformation: false,
       competingExplanations: false,
-    };
+      timePressure: 'none',
+    });
   }
   if (stage === 'application') {
-    return {
+    return withPressure({
       stage,
       nameConcept: true,
       showHints: true,
@@ -154,10 +293,11 @@ export function scaffoldingFor(input: {
       mixedConcepts: false,
       incompleteInformation: false,
       competingExplanations: false,
-    };
+      timePressure: 'none',
+    });
   }
   if (stage === 'integration') {
-    return {
+    return withPressure({
       stage,
       nameConcept: true,
       showHints: false,
@@ -167,11 +307,12 @@ export function scaffoldingFor(input: {
       mixedConcepts: true,
       incompleteInformation: true,
       competingExplanations: false,
-    };
+      timePressure: 'soft',
+    });
   }
 
   const advanced = Boolean(input.experience && ADVANCED.has(input.experience));
-  return {
+  return withPressure({
     stage,
     nameConcept: false,
     showHints: false,
@@ -181,7 +322,8 @@ export function scaffoldingFor(input: {
     mixedConcepts: true,
     incompleteInformation: true,
     competingExplanations: true,
-  };
+    timePressure: 'educational',
+  });
 }
 
 export function deliberateTitle(scaffolding: ScaffoldingPolicy, namedTitle: string): string {
@@ -207,22 +349,58 @@ export function familyForConcept(conceptId: string | undefined): CompetencyFamil
 }
 
 /**
- * Keep the priority lead, then avoid long same-family blocks.
+ * Keep the priority lead, then avoid long same-concept / same-family blocks.
+ * When the learner is ready, prefer mixing related neighbors (trend with momentum,
+ * volume, invalidation, risk) instead of a 30-session RSI block.
  */
-export function interleaveByFamily<T extends { conceptId?: string }>(items: T[]): T[] {
+export function interleaveByFamily<T extends { conceptId?: string }>(
+  items: T[],
+  options?: { mixRelated?: boolean },
+): T[] {
   if (items.length <= 2) return items;
   const lead = items[0]!;
   const rest = items.slice(1);
   const out: T[] = [lead];
   const remaining = [...rest];
+  const mixRelated = Boolean(options?.mixRelated);
+
   while (remaining.length) {
-    const prevFamily = familyForConcept(out[out.length - 1]?.conceptId);
-    const mixedIndex = remaining.findIndex((item) => familyForConcept(item.conceptId) !== prevFamily);
-    const next = remaining.splice(mixedIndex >= 0 ? mixedIndex : 0, 1)[0];
+    const prevId = out[out.length - 1]?.conceptId;
+    const prevFamily = familyForConcept(prevId);
+    const run = consecutiveTailFamily(out);
+    const relatedIds = new Set(relatedConceptIds(prevId));
+
+    const pickIndex = remaining.findIndex((item) => {
+      const id = item.conceptId;
+      const family = familyForConcept(id);
+      const related = Boolean(id && relatedIds.has(id));
+      const sameFamily = family === prevFamily && family !== 'unknown';
+      if (run >= 2 && sameFamily) return false;
+      if (mixRelated && related && id !== prevId) return true;
+      return family !== prevFamily;
+    });
+    const next = remaining.splice(pickIndex >= 0 ? pickIndex : 0, 1)[0];
     if (!next) break;
     out.push(next);
   }
   return out;
+}
+
+function relatedConceptIds(conceptId: string | undefined): string[] {
+  if (!conceptId) return [];
+  const node = getConcept(conceptId);
+  return node?.relatedIds ?? [];
+}
+
+function consecutiveTailFamily<T extends { conceptId?: string }>(items: T[]): number {
+  if (items.length === 0) return 0;
+  const family = familyForConcept(items[items.length - 1]?.conceptId);
+  let run = 1;
+  for (let i = items.length - 2; i >= 0; i -= 1) {
+    if (familyForConcept(items[i]?.conceptId) !== family) break;
+    run += 1;
+  }
+  return run;
 }
 
 export function detectEasySessionGrinding(
@@ -237,32 +415,44 @@ export function detectEasySessionGrinding(
       (item.difficulty === 'foundations' &&
         (item.sourceType === 'practice_drill' || item.sourceType === 'knowledge_check')),
   ).length;
+  const questionSessions = recent.filter((item) => item.sourceType === 'knowledge_check').length;
   const independentApplications = recent.filter(
     (item) =>
-      item.independent &&
-      !item.hintsUsed &&
+      isIndependentEvidence(item) &&
+      item.result === 'pass' &&
       (item.sourceType === 'replay_decision' ||
         item.sourceType === 'simulation_decision' ||
-        item.sourceType === 're_demonstration') &&
-      item.result === 'pass',
+        item.sourceType === 're_demonstration' ||
+        item.sourceType === 'transfer_exercise' ||
+        item.sourceType === 'applied_exercise'),
   ).length;
+  const simulationSessions = recent.filter((item) => item.sourceType === 'simulation_decision').length;
   const simNoise = recent.filter(
     (item) =>
       item.sourceType === 'simulation_decision' &&
       (item.processMetrics?.processQuality == null || (item.processMetrics.simulatedProfitable && item.result === 'fail')),
   ).length;
 
-  const grinding = easySessions >= 8 && independentApplications < 2;
-  const tradeGrinding = simNoise >= 8 && independentApplications < 2;
-  if (!grinding && !tradeGrinding) {
-    return { grinding: false, easySessions, independentApplications, reason: null };
+  const grinding =
+    independentApplications < 2 && (easySessions >= 8 || questionSessions >= 10 || simNoise >= 8);
+  if (!grinding) {
+    return {
+      grinding: false,
+      easySessions,
+      questionSessions,
+      simulationSessions,
+      independentApplications,
+      reason: null,
+    };
   }
   return {
     grinding: true,
     easySessions,
+    questionSessions,
+    simulationSessions,
     independentApplications,
     reason:
-      'Completing many easy sessions or generating simulated trades is not spaced mastery. Mixed, independent practice is the next step.',
+      'Completing many questions, easy lessons, or noisy simulations is not spaced mastery. Mixed, independent practice is the next step.',
   };
 }
 

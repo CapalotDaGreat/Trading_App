@@ -10,6 +10,7 @@ import { useSimulatorStore } from '@/features/decision-simulator/stores/simulato
 import { useEducationalStore } from '@/features/educational/stores/educational.store';
 import { useJournalDraftStore } from '@/features/journal/stores/journal-draft.store';
 import { useCompetencyEvidenceStore } from '@/features/competency/stores/competency-evidence.store';
+import { useLearnerBehaviorStore } from '@/features/learner-model/stores/learner-behavior.store';
 import { useLearningQueueStore } from '@/features/learning-engine/stores/learning-queue.store';
 import { usePracticeProgressStore } from '@/features/practice/stores/practice-progress.store';
 import { useSimulationStore } from '@/features/simulation/stores/simulation.store';
@@ -60,6 +61,8 @@ export const USER_LOCAL_STORAGE_KEYS = [
   'tradevision-replay-tv-v2',
   'tradevision-learning-queue-v1',
   'tradevision-competency-evidence-v1',
+  'tradevision-learner-behavior-v1',
+  'tradevision-learner-sync-queue-v1',
 ] as const;
 
 export interface ClearUserLocalStateOptions {
@@ -113,19 +116,11 @@ export async function clearAllUserLocalState(
   usePracticeProgressStore.setState({ attempts: [] });
   useLearningQueueStore.getState().reset();
   useCompetencyEvidenceStore.getState().resetAll();
+  useLearnerBehaviorStore.getState().resetAll();
   useJournalDraftStore.getState().clearDraft();
   useReplayTvStore.setState({
-    activeSession: null,
-    progress: {
-      completedEpisodeIds: [],
-      attemptCount: 0,
-      streakDays: 0,
-      lastCompletedDayKey: null,
-      masteryByCollection: {},
-      bestProcessByEpisode: {},
-      monthlyKey: null,
-      monthlyCompletions: 0,
-    },
+    progressByUser: {},
+    activeSessionByUser: {},
   });
   useDecisionPassportStore.setState({
     credentials: [],

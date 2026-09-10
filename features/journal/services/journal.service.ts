@@ -12,6 +12,7 @@ import {
 } from 'firebase/firestore';
 
 import { requireDb } from '@/firebase/config';
+import { getLastReachability } from '@/shared/services/network/reachability';
 import { getLocalUserRepository, resolveUserDataBackend } from '@/shared/services/user-data';
 
 import type {
@@ -172,14 +173,44 @@ export function calculateJournalStats(entries: JournalEntry[]): JournalStats {
   };
 }
 
-export async function getJournalEntries(uid: string): Promise<JournalEntry[]> {
-  if (resolveUserDataBackend(uid) === 'local') {
-    const entries = await getLocalUserRepository(uid).list<JournalEntry>('journal');
-    return entries.map(toLocalJournalEntry).sort((a, b) => b.tradedAt.localeCompare(a.tradedAt));
+async function listLocalJournal(uid: string): Promise<JournalEntry[]> {
+  const entries = await getLocalUserRepository(uid).list<JournalEntry>('journal');
+  return entries.map(toLocalJournalEntry).sort((a, b) => b.tradedAt.localeCompare(a.tradedAt));
+}
+
+async function cacheJournalLocally(uid: string, entries: JournalEntry[]): Promise<void> {
+  try {
+    await getLocalUserRepository(uid).replaceAll({ journal: entries as never });
+  } catch {
+    // Cache is best-effort. Reading still falls back to whatever is on disk.
   }
-  const q = query(journalCollection(uid), orderBy('tradedAt', 'desc'));
-  const snapshot = await getDocs(q);
-  return snapshot.docs.map((docSnap) => toJournalEntry(docSnap.id, docSnap.data()));
+}
+
+function mergeJournalEntries(remote: JournalEntry[], local: JournalEntry[]): JournalEntry[] {
+  const byId = new Map<string, JournalEntry>();
+  for (const entry of remote) byId.set(entry.id, entry);
+  for (const entry of local) {
+    const existing = byId.get(entry.id);
+    if (!existing || entry.updatedAt > existing.updatedAt) byId.set(entry.id, entry);
+  }
+  return Array.from(byId.values()).sort((a, b) => b.tradedAt.localeCompare(a.tradedAt));
+}
+
+export async function getJournalEntries(uid: string): Promise<JournalEntry[]> {
+  if (resolveUserDataBackend(uid) === 'local' || !getLastReachability()) {
+    return listLocalJournal(uid);
+  }
+  try {
+    const q = query(journalCollection(uid), orderBy('tradedAt', 'desc'));
+    const snapshot = await getDocs(q);
+    const remote = snapshot.docs.map((docSnap) => toJournalEntry(docSnap.id, docSnap.data()));
+    const local = await listLocalJournal(uid);
+    const merged = mergeJournalEntries(remote, local);
+    void cacheJournalLocally(uid, merged);
+    return merged;
+  } catch {
+    return listLocalJournal(uid);
+  }
 }
 
 export async function createJournalEntry(
@@ -235,18 +266,25 @@ export async function createJournalEntry(
     updatedAt: now,
   };
 
-  if (resolveUserDataBackend(uid) === 'local') {
+  if (resolveUserDataBackend(uid) === 'local' || !getLastReachability()) {
     return getLocalUserRepository(uid).create<JournalEntry>('journal', data);
   }
 
-  const ref = await addDoc(journalCollection(uid), {
-    ...data,
-    createdAt: serverTimestamp(),
-    updatedAt: serverTimestamp(),
-    tradedAt: tradedAt,
-  });
-
-  return { id: ref.id, ...data };
+  try {
+    const ref = await addDoc(journalCollection(uid), {
+      ...data,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+      tradedAt: tradedAt,
+    });
+    const created = { id: ref.id, ...data };
+    void getLocalUserRepository(uid)
+      .put<JournalEntry>('journal', created)
+      .catch(() => undefined);
+    return created;
+  } catch {
+    return getLocalUserRepository(uid).create<JournalEntry>('journal', data);
+  }
 }
 
 export async function updateJournalEntry(
@@ -254,25 +292,43 @@ export async function updateJournalEntry(
   entryId: string,
   updates: UpdateJournalEntryInput,
 ): Promise<void> {
-  if (resolveUserDataBackend(uid) === 'local') {
+  if (resolveUserDataBackend(uid) === 'local' || !getLastReachability()) {
     await getLocalUserRepository(uid).update<JournalEntry>('journal', entryId, {
       ...updates,
       updatedAt: new Date().toISOString(),
     });
     return;
   }
-  await updateDoc(journalDocRef(uid, entryId), {
-    ...updates,
-    updatedAt: serverTimestamp(),
-  });
+  try {
+    await updateDoc(journalDocRef(uid, entryId), {
+      ...updates,
+      updatedAt: serverTimestamp(),
+    });
+    await getLocalUserRepository(uid)
+      .update<JournalEntry>('journal', entryId, {
+        ...updates,
+        updatedAt: new Date().toISOString(),
+      })
+      .catch(() => undefined);
+  } catch {
+    await getLocalUserRepository(uid).update<JournalEntry>('journal', entryId, {
+      ...updates,
+      updatedAt: new Date().toISOString(),
+    });
+  }
 }
 
 export async function deleteJournalEntry(uid: string, entryId: string): Promise<void> {
-  if (resolveUserDataBackend(uid) === 'local') {
+  if (resolveUserDataBackend(uid) === 'local' || !getLastReachability()) {
     await getLocalUserRepository(uid).delete('journal', entryId);
     return;
   }
-  await deleteDoc(journalDocRef(uid, entryId));
+  try {
+    await deleteDoc(journalDocRef(uid, entryId));
+    await getLocalUserRepository(uid).delete('journal', entryId).catch(() => undefined);
+  } catch {
+    await getLocalUserRepository(uid).delete('journal', entryId);
+  }
 }
 
 export function entriesToExportRows(entries: JournalEntry[]): JournalExportRow[] {

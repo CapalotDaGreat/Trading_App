@@ -1,9 +1,12 @@
 import { canRevealReplay, revealCursorAfterCommit } from '@/features/decision-replay/services/replay-lifecycle.service';
 import { scanReplayInformationLeaks } from '@/features/decision-replay/services/replay-information-boundary.service';
+import { replayPracticeDifficulty } from '@/features/decision-replay/services/replay-practice-difficulty.service';
+import { REPLAY_TIMESTAMP_HONESTY } from '@/features/decision-replay/types/replay-scenario.types';
 import { getReplayTvEpisode } from '@/features/decision-replay-tv/content/replay-tv.catalog';
 import {
   composeReplayTvCoachNote,
   composeReplayTvReasoning,
+  emptyReplayTvReasoning,
   formatReplayTvCoachReply,
   reasoningHasSubstance,
 } from '@/features/decision-replay-tv/services/replay-tv-coach.service';
@@ -191,6 +194,24 @@ export function getBlindSafeEpisodeView(session: ReplayTvSession) {
           .filter((item) => item.freezeIndex <= currentFreezeIndex(session))
           .map((c) => c.teachingNote)
       : [],
+    informationLayers: {
+      historical: {
+        label: 'Historical information',
+        newsCount: getVisibleNewsForSession(session).length,
+        tapeBars: getVisibleCandlesForSession(session).length,
+      },
+      later: {
+        label: 'Later information',
+        hidden: !revealed,
+      },
+      educationalMetadata: {
+        label: 'Educational metadata',
+        provenanceNote: episode.provenanceNote,
+        timestampHonesty: REPLAY_TIMESTAMP_HONESTY,
+        practiceDifficulty: replayPracticeDifficulty(episode),
+      },
+    },
+    timestampHonesty: REPLAY_TIMESTAMP_HONESTY,
   };
 }
 
@@ -381,6 +402,32 @@ export function patchReplayTvDraftReasoning(
   draft: ReplayTvReasoning,
 ): ReplayTvSession {
   return { ...session, draftReasoning: draft };
+}
+
+/** Attach a post-reveal process reflection and rescore. Never uses later P/L. */
+export function attachReplayTvReflection(session: ReplayTvSession, reflection: string): ReplayTvSession {
+  const note = reflection.trim();
+  if (!note || session.decisions.length === 0) {
+    return { ...session, draftReasoning: { ...(session.draftReasoning ?? emptyReplayTvReasoning()), reflection: note } };
+  }
+  const last = session.decisions[session.decisions.length - 1]!;
+  const structured = {
+    ...emptyReplayTvReasoning(),
+    ...last.structured,
+    reflection: note,
+  };
+  const decisions = [...session.decisions.slice(0, -1), { ...last, structured }];
+  const episode = getSessionEpisode(session);
+  return {
+    ...session,
+    decisions,
+    draftReasoning: { ...(session.draftReasoning ?? emptyReplayTvReasoning()), reflection: note },
+    scores: scoreReplayTvSession({
+      episode,
+      decisions,
+      checklist: session.checklist,
+    }),
+  };
 }
 
 /** Observe / Research / Stay out / Form hypothesis mapped onto process enum. */

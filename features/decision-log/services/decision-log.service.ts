@@ -13,6 +13,7 @@ import {
 } from 'firebase/firestore';
 
 import { requireDb } from '@/firebase/config';
+import { getLastReachability } from '@/shared/services/network/reachability';
 import { getLocalUserRepository, resolveUserDataBackend } from '@/shared/services/user-data';
 
 export type DecisionAction =
@@ -99,38 +100,13 @@ function toRecord(id: string, data: DocumentData): DecisionRecord {
   };
 }
 
-export async function appendDecisionRecord(
-  uid: string | null | undefined,
-  input: Omit<DecisionRecord, 'id' | 'createdAt'>,
+async function writeLocalDecisionRecord(
+  uid: string,
+  record: DecisionRecord,
+  eventKey?: string,
 ): Promise<DecisionRecord> {
-  const record: DecisionRecord = {
-    ...input,
-    id: `local-${Date.now()}`,
-    createdAt: Date.now(),
-  };
-
-  if (uid && resolveUserDataBackend(uid) === 'firestore') {
-    if (input.eventKey) {
-      const stableId = input.eventKey.replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 180);
-      const stableRef = doc(requireDb(), USERS, uid, LOG, stableId);
-      const existing = await getDoc(stableRef);
-      if (existing.exists()) return toRecord(existing.id, existing.data());
-      await setDoc(stableRef, {
-        ...input,
-        createdAt: serverTimestamp(),
-      });
-      return { ...record, id: stableId };
-    }
-    const ref = await addDoc(collection(requireDb(), USERS, uid, LOG), {
-      ...input,
-      createdAt: serverTimestamp(),
-    });
-    return { ...record, id: ref.id };
-  }
-
-  if (!uid) return record;
   const repository = getLocalUserRepository(uid);
-  if (input.eventKey) {
+  if (eventKey) {
     return repository.createUnique<DecisionRecord>(
       'decisionLog',
       'eventKey',
@@ -141,23 +117,81 @@ export async function appendDecisionRecord(
   return repository.create<DecisionRecord>('decisionLog', { ...record, id: record.id }, 200);
 }
 
+export async function appendDecisionRecord(
+  uid: string | null | undefined,
+  input: Omit<DecisionRecord, 'id' | 'createdAt'>,
+): Promise<DecisionRecord> {
+  const record: DecisionRecord = {
+    ...input,
+    id: `local-${Date.now()}`,
+    createdAt: Date.now(),
+  };
+
+  if (uid && resolveUserDataBackend(uid) === 'firestore' && getLastReachability()) {
+    try {
+      if (input.eventKey) {
+        const stableId = input.eventKey.replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 180);
+        const stableRef = doc(requireDb(), USERS, uid, LOG, stableId);
+        const existing = await getDoc(stableRef);
+        if (existing.exists()) return toRecord(existing.id, existing.data());
+        await setDoc(stableRef, {
+          ...input,
+          createdAt: serverTimestamp(),
+        });
+        const saved = { ...record, id: stableId };
+        void writeLocalDecisionRecord(uid, saved, input.eventKey).catch(() => undefined);
+        return saved;
+      }
+      const ref = await addDoc(collection(requireDb(), USERS, uid, LOG), {
+        ...input,
+        createdAt: serverTimestamp(),
+      });
+      const saved = { ...record, id: ref.id };
+      void writeLocalDecisionRecord(uid, saved).catch(() => undefined);
+      return saved;
+    } catch {
+      if (uid) return writeLocalDecisionRecord(uid, record, input.eventKey);
+    }
+  }
+
+  if (!uid) return record;
+  return writeLocalDecisionRecord(uid, record, input.eventKey);
+}
+
 export async function getDecisionRecords(
   uid: string | null | undefined,
   max = 50,
 ): Promise<DecisionRecord[]> {
-  if (uid && resolveUserDataBackend(uid) === 'firestore') {
-    const q = query(
-      collection(requireDb(), USERS, uid, LOG),
-      orderBy('createdAt', 'desc'),
-      limit(max),
-    );
-    const snap = await getDocs(q);
-    return snap.docs.map((d) => toRecord(d.id, d.data()));
+  if (!uid) return [];
+
+  const readLocal = async () => {
+    const local = await getLocalUserRepository(uid).list<DecisionRecord>('decisionLog');
+    return local.slice(0, max);
+  };
+
+  if (resolveUserDataBackend(uid) === 'firestore' && getLastReachability()) {
+    try {
+      const q = query(
+        collection(requireDb(), USERS, uid, LOG),
+        orderBy('createdAt', 'desc'),
+        limit(max),
+      );
+      const snap = await getDocs(q);
+      const remote = snap.docs.map((d) => toRecord(d.id, d.data()));
+      const local = await getLocalUserRepository(uid).list<DecisionRecord>('decisionLog');
+      const byId = new Map(local.map((item) => [item.id, item]));
+      for (const record of remote) byId.set(record.id, record);
+      const merged = Array.from(byId.values()).sort((a, b) => b.createdAt - a.createdAt);
+      void getLocalUserRepository(uid)
+        .replaceAll({ decisionLog: merged.slice(0, 200) as never })
+        .catch(() => undefined);
+      return merged.slice(0, max);
+    } catch {
+      return readLocal();
+    }
   }
 
-  if (!uid) return [];
-  const local = await getLocalUserRepository(uid).list<DecisionRecord>('decisionLog');
-  return local.slice(0, max);
+  return readLocal();
 }
 
 export function summarizeDecisionLog(records: DecisionRecord[]): DecisionLogSummary {

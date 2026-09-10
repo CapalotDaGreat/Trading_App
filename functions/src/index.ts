@@ -27,9 +27,9 @@ export { trackProductEvent } from './ops/analytics';
 export { opsHealthSnapshot, getOpsDashboard } from './ops/health';
 export { opsBackupExport } from './ops/backup';
 const PREMIUM_ENTITLEMENT_ID = process.env.REVENUECAT_ENTITLEMENT_ID ?? 'Aithera Pro';
-const MONTHLY_PRODUCT_ID = process.env.REVENUECAT_PRODUCT_MONTHLY ?? 'monthly';
-const YEARLY_PRODUCT_ID = process.env.REVENUECAT_PRODUCT_YEARLY ?? 'yearly';
-const LIFETIME_PRODUCT_ID = process.env.REVENUECAT_PRODUCT_LIFETIME ?? 'lifetime';
+const MONTHLY_PRODUCT_ID = process.env.REVENUECAT_PRODUCT_MONTHLY ?? 'tradevision_premium_monthly';
+const YEARLY_PRODUCT_ID = process.env.REVENUECAT_PRODUCT_YEARLY ?? 'tradevision_premium_yearly';
+const LIFETIME_PRODUCT_ID = process.env.REVENUECAT_PRODUCT_LIFETIME ?? 'tradevision_premium_lifetime';
 const DELETION_ATTEMPT_COOLDOWN_MS = 60 * 1000;
 const DELETION_AUDIT_RETENTION_MS = 30 * 24 * 60 * 60 * 1000;
 

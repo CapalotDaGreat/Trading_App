@@ -70,7 +70,7 @@ export default function AlertsScreen() {
   return (
     <ScreenScaffold
       title="Alerts"
-      subtitle="Optional study reminders. Prefer Events, Practice, and Journal — not a price-monitoring desk."
+      subtitle="Optional study reminders for named levels. Prefer Events, Practice, and Journal."
       showBack
       onBack={() => router.back()}
       contentClassName="pb-8"
@@ -92,7 +92,7 @@ export default function AlertsScreen() {
             color={colors.accent.primary}
           />
           <Text variant="caption" className="flex-1 leading-relaxed text-text-secondary">
-            {summary} Prefer Market Events, Practice, and Journal over watching prices.
+            {summary} Prefer Market Events, Practice, and Journal.
           </Text>
         </View>
         <Button size="sm" variant="outline" onPress={() => router.push('/events' as never)}>
@@ -127,7 +127,7 @@ export default function AlertsScreen() {
 
         {!canCreateAlert ? (
           <Text variant="caption" className="text-center text-text-secondary">
-            Free includes a small alert budget. Premium adds more without making the desk unusable.
+            Free includes a small reminder budget. Premium adds more without turning this into a quote board.
           </Text>
         ) : null}
 
@@ -138,7 +138,9 @@ export default function AlertsScreen() {
           {alerts.length === 0 ? (
             <EmptyState
               title="Nothing is waiting"
-              description="Waiting is a valid decision. Add a level only if you want a quiet reminder."
+              description="Waiting is a valid decision. Add a level only if you want a quiet reminder — or continue training instead."
+              actionLabel="Open Practice"
+              onAction={() => router.push('/practice' as never)}
             />
           ) : (
             alerts.map((alert) => (

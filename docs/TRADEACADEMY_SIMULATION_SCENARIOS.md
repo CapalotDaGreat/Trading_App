@@ -82,6 +82,34 @@ Generation runs in the Zustand store when a book is created or reset — **not**
 
 ---
 
+## Personalized training context
+
+`personalizeSimulationTraining()` chooses a **training context** from the learner’s competency evidence (guest uid included), then from the prior paper book’s process gaps. It never reads simulated P/L to pick a path.
+
+Personalization changes what the learner is asked to practice:
+
+| Weakness | Scenario focus | Context (still stochastic) |
+|---|---|---|
+| Repeated FOMO | `fomo_chase` | Rapid move after a missed area; complacent tape |
+| Weak invalidation | `invalidation_discipline` | Window that asks to name invalidation before proceeding |
+| Poor sizing | `position_sizing` | Wider ranges, thinner books, risk-aware sizing prompt |
+| Overconfidence | `overconfidence` | Early tape looks tidy, later information conflicts |
+| Event-risk | `event_adaptation` | Upcoming educational event (earnings, rates, …) |
+
+Dimensions that already vary, and that focus can bias, include regime, volatility, trend/chop, event proximity, liquidity, uncertainty, thesis clarity, risk complexity, psychological temptation, and information quality.
+
+An optional line may appear before a personalized book:
+
+> This scenario targets a skill you are currently practicing.
+
+It must **not** name the skill or the “correct” behavior. Explicit Simulate URL/handoff `focus` and event `prep` still win over inferred weakness.
+
+The engine does **not** generate guaranteed winners, guaranteed losers, or a hidden correct trade. Reaction styles and path noise stay probabilistic. Production books still use `createProductionScenarioSeed` (varied). Tests may pass a seed.
+
+Accounts stay keyed by user id (`demo-guest` vs signed-in). Persist key `tradevision-simulation-v1`.
+
+---
+
 ## Difficulty
 
 Practice level (`ScenarioDifficulty`) is independent of account **rails** (`beginner` / `standard` / `challenge`).
@@ -161,11 +189,14 @@ Invalid orders never append a checkpoint and never mutate cash, positions, or th
 
 After a completed path (and after recorded decisions), `scoreSimulationProcess()` grades:
 
-- risk discipline
-- thesis consistency
-- invalidation / uncertainty recognition
-- evidence quality
+- thesis quality
+- invalidation
+- risk reasoning
 - position sizing
+- uncertainty
+- evidence
+- discipline
+- reflection
 - adaptation and information response
 - behavioral patterns (for example high conviction without invalidation)
 
@@ -200,7 +231,9 @@ Primary suites:
 
 - `features/simulation/services/__tests__/scenario-randomization.test.ts`
 - `features/simulation/services/__tests__/scenario-generator.test.ts`
+- `features/simulation/services/__tests__/scenario-personalization.test.ts`
 - `features/simulation/services/__tests__/simulation-engine.test.ts`
+- `features/simulation/stores/__tests__/simulation.store.test.ts`
 
 They cover:
 
@@ -211,3 +244,8 @@ They cover:
 - fills keep cash + invested ≈ equity
 - invalid orders do not mutate state
 - process score is independent of simulated return
+- scenario selection from learner state (FOMO, invalidation, sizing, overconfidence, event-risk)
+- P/L does not pick the next book
+- no buy/sell signals in personalized copy
+- risk constraints and thesis requirement (challenge rails)
+- guest vs signed-in persistence

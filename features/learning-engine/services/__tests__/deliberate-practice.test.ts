@@ -14,6 +14,7 @@ import {
   detectEasySessionGrinding,
   interleaveByFamily,
   overallPracticeStage,
+  practiceStagePolicy,
   scaffoldingFor,
 } from '../deliberate-practice.service';
 import { composeTodaysTraining } from '../today-training-engine.service';
@@ -202,6 +203,14 @@ describe('reduced hints', () => {
     expect(deliberate.incompleteInformation).toBe(true);
     expect(deliberate.competingExplanations).toBe(true);
 
+    const policy = practiceStagePolicy('deliberate');
+    expect(policy.complexity).toBe('complex');
+    expect(policy.interleaveRelated).toBe(true);
+    expect(policy.concealByDefault).toBe(true);
+    expect(practiceStagePolicy('foundation').complexity).toBe('foundations');
+    expect(practiceStagePolicy('application').minTransferStep).toBe('new_example');
+    expect(practiceStagePolicy('maintenance').preferredLoop).toBe('redemonstrate');
+
     const plan = composeTodaysTraining(emptySnapshot({ experience: 'beginner' }));
     expect(plan.stage).toBe('foundation');
     expect(plan.items[0]?.title.toLowerCase()).not.toMatch(/assess this situation/);
@@ -223,6 +232,23 @@ describe('interleaving', () => {
     expect(consecutiveSameFamilyCount(interleaved)).toBeLessThanOrEqual(2);
     expect(interleaved.map((item) => item.conceptId)).toEqual(
       expect.arrayContaining(['fomo', 'event-risk', 'chart-interpretation', 'invalidation']),
+    );
+  });
+
+  it('mixes related neighbors instead of a long RSI block when the learner is ready', () => {
+    const items = [
+      { conceptId: 'rsi' },
+      { conceptId: 'momentum' },
+      { conceptId: 'volume' },
+      { conceptId: 'invalidation' },
+      { conceptId: 'position-sizing' },
+      { conceptId: 'fomo' },
+    ];
+    const mixed = interleaveByFamily(items, { mixRelated: true });
+    expect(mixed[0]?.conceptId).toBe('rsi');
+    expect(consecutiveSameFamilyCount(mixed)).toBeLessThanOrEqual(2);
+    expect(mixed.map((item) => item.conceptId).slice(0, 3)).toEqual(
+      expect.arrayContaining(['rsi', 'momentum']),
     );
   });
 });
@@ -303,5 +329,22 @@ describe('easy-session grinding', () => {
       /you mastered|ready to trade|good at trading/,
     );
     expect(plan.stage).toMatch(/foundation|application/);
+  });
+
+  it('treats a pile of multiple-choice answers as grinding, not mastery', () => {
+    const quizzes = Array.from({ length: 12 }, (_, index) =>
+      ev({
+        conceptId: 'rsi',
+        sourceType: 'knowledge_check',
+        sourceId: `q-${index}`,
+        occurredAt: NOW - index * 3600_000,
+        result: 'pass',
+        difficulty: 'applied',
+      }),
+    );
+    const grinding = detectEasySessionGrinding(quizzes, NOW);
+    expect(grinding.grinding).toBe(true);
+    expect(grinding.questionSessions).toBeGreaterThanOrEqual(10);
+    expect(grinding.independentApplications).toBe(0);
   });
 });

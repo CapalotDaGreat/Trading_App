@@ -4,7 +4,9 @@
 
 Replay is a **historical decision laboratory**, not a P/L guessing game and not a chart viewer.
 
-It answers: **What would you have done with the information available at that timestamp?**
+It answers: **How would you have reasoned with the information available at that exact point?**
+
+It must not become hindsight trivia.
 
 Related: `docs/TRADEACADEMY_REPLAY_SYSTEM.md`, `docs/DECISION_REPLAY_TV.md`.
 
@@ -14,7 +16,7 @@ Related: `docs/TRADEACADEMY_REPLAY_SYSTEM.md`, `docs/DECISION_REPLAY_TV.md`.
 
 Canonical package: `ReplayScenarioPackage` (`schemaVersion: 1`) in `features/decision-replay/types/replay-scenario.types.ts`.
 
-It is **provider-independent**. Replay TV episodes adapt into this shape (`toReplayScenarioPackage`). A future licensed tape can fill the same fields without rewriting the session machine.
+It is **provider-independent**. Replay TV episodes adapt into this shape (`toReplayScenarioPackage`). A future licensed tape can fill the same fields without rewriting the session machine. Do not bind the package to a vendor SDK.
 
 | Field | Role |
 |---|---|
@@ -25,10 +27,10 @@ It is **provider-independent**. Replay TV episodes adapt into this shape (`toRep
 | `indicatorSpecs` | SMA/RSI/range **specs only** — values are computed on the visible slice |
 | `events` | Historical event metadata with `availableAtTimestamp` |
 | `news` | Headlines gated the same way |
-| `meta` | Practice difficulty, license, concept ids (internal) |
+| `meta` | Practice difficulty, license, concept ids (internal), timestamp fidelity |
 | `reveal` | Later outcome, teaching notes — hidden until commit |
 
-Today’s library still lives in `features/decision-replay-tv/content/replay-tv.catalog.ts`. Paths remain **educational reconstructions** (`dataKind: sample`).
+Today’s library still lives in `features/decision-replay-tv/content/replay-tv.catalog.ts`. Paths remain **educational reconstructions** (`dataKind: sample`, `license: educational_sample`).
 
 The architecture is intended to cover, over time:
 
@@ -45,7 +47,17 @@ Each room teaches a **decision process**, not a memorable chart.
 
 ---
 
-## Information boundary
+## Information layers
+
+At every freeze, classify what is shown:
+
+| Layer | Meaning | When visible |
+|---|---|---|
+| **Historical information** | Tape, headlines, and notes available at cutoff *T* | Decision stage |
+| **Later information** | Subsequent bars, later headlines, historical outcome | After commit + reveal only |
+| **Educational metadata** | Teaser, era label, difficulty, provenance, timestamp honesty | Always (never an outcome spoiler) |
+
+`classifyReplayInformation` keeps the **later** bucket empty until reveal. `scanReplayInformationLeaks` fails the session if a public blob contains future bars, later news, event outcomes, or teaching notes.
 
 If the cutoff is time *T*, the user must not see:
 
@@ -57,11 +69,23 @@ If the cutoff is time *T*, the user must not see:
 
 Helpers:
 
-- `visibleReplaySlice` / `scanReplayInformationLeaks`
+- `visibleReplaySlice` / `classifyReplayInformation` / `scanReplayInformationLeaks`
 - `getFrozenCandlesForSession` / `getVisibleNewsForSession` / `getBlindSafeEpisodeView`
 - Chart tools (`visibleSma`, `visibleRsi`) run on the **visible slice only**
 
 Public library cards for **advanced** and **mixed** rooms conceal the competency under test.
+
+---
+
+## Timestamp honesty
+
+Catalog rooms use `timestampFidelity: 'educational'`. They are session-level reconstructions, not tick-accurate vendor data.
+
+Shown copy (verbatim):
+
+> Timestamps are educational (session-level reconstructions), not tick-accurate market data.
+
+Do not imply precision the data does not support. `tick_accurate` is reserved for a future licensed feed that actually is.
 
 ---
 
@@ -70,15 +94,26 @@ Public library cards for **advanced** and **mixed** rooms conceal the competency
 1. Inspect the market (visible tape only)
 2. Inspect permitted information (news, fundamentals at the freeze)
 3. Form a thesis
-4. Define invalidation
-5. Determine risk and optional size
+4. Name evidence, uncertainty, invalidation, risk, and an alternative interpretation
+5. Optional size
 6. **Commit** a simulated process decision (including no-trade / wait)
 7. Reveal subsequent action
-8. Review the process
+8. Reflect on the process (independent of the later path)
 
 `submitReplayTvDecision` records the commit with `committedBlind: true` while the later tape is hidden. Reveal is gated by `canRevealReplay` — later bars do not open without a commit.
 
 Doing nothing is a first-class decision.
+
+Checkpoints persist:
+
+- thesis
+- evidence
+- uncertainty
+- invalidation
+- risk
+- alternative interpretation
+- decision
+- reflection
 
 ---
 
@@ -112,15 +147,55 @@ Reminder (verbatim product rule):
 - alternative scenarios
 - reaction to information
 - hindsight hygiene (commits made while blind)
+- reflection (process note, not P/L)
 
 They do **not** say “you were wrong because price fell.”
+
+A historically losing decision can be high-quality. A historically winning decision can be poor-quality. Composite process scores stay equal when only the later print changes.
 
 Examples of allowed copy:
 
 - *The scenario moved against your thesis, but your original risk and invalidation were consistent with the plan.*
 - *The outcome was profitable, but the position exceeded your stated risk tolerance.*
 
-A favorable later path does not prove a strong process. A fade does not prove a weak one.
+---
+
+## Personalization
+
+`personalizeReplayTraining` chooses a **training context** from the competency ledger. It never selects a guaranteed historical winner or a “correct trade.”
+
+Intents:
+
+- weak competencies
+- recurring mistakes
+- transfer needs
+- event awareness
+- market-regime gaps
+- previously mastered concepts due for retention
+- psychology patterns
+
+Ranking (`rankReplayTvEpisodes`) **boosts** matching rooms. It never hides the rest of the library. User-facing rationale is generic: “This scenario targets a skill you are currently practicing.”
+
+---
+
+## Difficulty
+
+| Practice level | Meaning |
+|---|---|
+| Beginner | Clearer structure; skills may be named |
+| Intermediate | Conflicting evidence, moderate uncertainty |
+| Advanced | Ambiguous; competency under test is **not** advertised; independent reasoning |
+| Mixed / unlabeled | Same concealment; filter chip “Unlabeled” |
+
+`replayRequiresIndependentReasoning` is true for advanced and mixed rooms.
+
+Account rails and Premium gates are unchanged.
+
+---
+
+## Persistence
+
+Replay TV progress and the active session are stored **per uid** (`progressByUser`, `activeSessionByUser`) under AsyncStorage key `tradevision-replay-tv-v2`. Guest (`demo-guest`) and signed-in ledgers stay isolated. Legacy v2 `{ progress, activeSession }` migrates onto `demo-guest`.
 
 ---
 
@@ -134,22 +209,9 @@ Evidence is process-based. Simulated or historical P/L is not a pass/fail.
 
 ---
 
-## Difficulty
-
-| Practice level | Meaning |
-|---|---|
-| Beginner | Clearer structure; skills may be named |
-| Intermediate | Conflicting evidence, moderate uncertainty |
-| Advanced | Ambiguous; competency under test is **not** advertised |
-| Mixed / unlabeled | Same concealment; filter chip “Unlabeled” |
-
-Account rails and Premium gates are unchanged.
-
----
-
 ## Licensing assumptions
 
-This phase does **not** purchase or integrate a commercial historical vendor.
+This phase does **not** purchase, scrape, or redistribute unlicensed historical market data.
 
 | Kind | Use |
 |---|---|
@@ -157,19 +219,20 @@ This phase does **not** purchase or integrate a commercial historical vendor.
 | `educational_sample` | Labelled sample reconstructions (current catalog) |
 | `licensed_historical` | Reserved for an appropriately licensed feed later |
 
-Do not assume exchange history is free to redistribute. UI keeps `DataSourceBadge` (`sample`).
+Do not assume exchange history is free to redistribute. The replay package stays vendor-neutral so a licensed provider can be swapped in without changing the session machine. UI keeps `DataSourceBadge` (`sample`).
 
 ---
 
 ## Testing
 
-`features/decision-replay/services/__tests__/replay-engine.test.ts` plus Replay TV session tests cover:
+`features/decision-replay/services/__tests__/replay-engine.test.ts`, personalization tests, Replay TV session tests, and store isolation tests cover:
 
-- future information cannot leak
-- timestamps remain ordered
-- historical event availability vs cutoff
-- commits succeed and stay blind
-- reveal happens only after commitment
-- replay decisions generate competency evidence
-- process review is stable after losses and wins
-- scenario reset returns to a blind intro
+- point-in-time information isolation
+- future leakage
+- timestamp honesty (educational, not tick-accurate)
+- commits stay blind; reveal only after commitment
+- replay scoring and process/outcome separation
+- reflection grading
+- personalization intents and catalog match
+- difficulty / independent reasoning
+- guest vs signed-in persistence

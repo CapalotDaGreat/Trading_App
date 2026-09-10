@@ -41,7 +41,7 @@ export interface SimulationDebrief {
 function conceptFromGaps(process: SimulationProcessScore, scenario?: SimulationScenario): string[] {
   const concepts: string[] = [];
   if (process.risk < 60) concepts.push('Position sizing and risk per decision');
-  if (process.uncertainty < 60) concepts.push('Invalidation and incomplete information');
+  if (process.invalidation < 60 || process.uncertainty < 60) concepts.push('Invalidation and incomplete information');
   if (process.thesis < 60) concepts.push('Writing a thesis before size');
   if (scenario?.focus === 'false_breakouts' || scenario?.events.some((item) => item.kind === 'false_breakout')) {
     concepts.push('False breakouts and confirmation');

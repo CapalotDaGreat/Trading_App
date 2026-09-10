@@ -18,8 +18,16 @@ export function checkSourceAttribution(article: MarketEventArticle): Attribution
   if (article.url && !/^https:\/\//i.test(article.url)) issues.push('source url must be https');
   if (!article.headline?.trim()) issues.push('missing headline');
   if (!article.summary?.trim()) issues.push('missing summary');
+  if (!article.date?.trim()) issues.push('missing source date');
+  if (article.sourceTimestamp != null && !Number.isFinite(article.sourceTimestamp)) {
+    issues.push('source timestamp is not a real time');
+  }
   if (article.summary.length > MAX_SUMMARY_CHARS) issues.push('summary looks like a copied article body');
   if ((article.whyItMatters ?? '').length > MAX_WHY_CHARS) issues.push('why-it-matters is too long to be a paraphrase');
+  const blob = `${article.headline} ${article.summary}`.toLowerCase();
+  if (/tradeacademy original|our exclusive report|we reported first/.test(blob)) {
+    issues.push('third-party content presented as TradeAcademy original reporting');
+  }
   return { ok: issues.length === 0, issues };
 }
 

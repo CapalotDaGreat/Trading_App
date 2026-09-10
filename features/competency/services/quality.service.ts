@@ -1,5 +1,5 @@
 import type { CompetencyEvidenceRecord, EvidenceQuality } from '../types/competency.types';
-import { isExposureOnlySource } from './evidence.service';
+import { isExposureOnlyRecord, isIndependentEvidence } from './evidence.service';
 
 const DAY = 24 * 60 * 60 * 1000;
 
@@ -23,7 +23,12 @@ const KNOWLEDGE_SOURCES = new Set(['knowledge_check', 'practice_drill', 'calcula
 const APPLICATION_SOURCES = new Set([
   'replay_decision',
   'simulation_decision',
+  'simulation_checkpoint',
   're_demonstration',
+  'transfer_exercise',
+  'surprise_assessment',
+  'applied_exercise',
+  'event_exercise',
   'calculation_exercise',
 ]);
 
@@ -34,12 +39,12 @@ export function scoreEvidenceQuality(
   records: readonly CompetencyEvidenceRecord[],
   now: number,
 ): EvidenceQuality {
-  const graded = records.filter((item) => !isExposureOnlySource(item.sourceType) && outcome(item) != null);
+  const graded = records.filter((item) => !isExposureOnlyRecord(item) && outcome(item) != null);
 
   const knowledge = mean(
     graded
       .filter((item) => KNOWLEDGE_SOURCES.has(item.sourceType))
-      .map((item) => (item.independent && !item.hintsUsed ? outcome(item)! : outcome(item)! * 0.65)),
+      .map((item) => (isIndependentEvidence(item) ? outcome(item)! : outcome(item)! * 0.65)),
   );
 
   const application = mean(
@@ -47,11 +52,11 @@ export function scoreEvidenceQuality(
       .filter((item) => APPLICATION_SOURCES.has(item.sourceType))
       .map((item) => {
         const value = outcome(item)!;
-        return item.independent && !item.hintsUsed ? value : value * 0.65;
+        return isIndependentEvidence(item) ? value : value * 0.65;
       }),
   );
 
-  const independenceValues = graded.map((item) => (item.independent && !item.hintsUsed ? 1 : 0.35));
+  const independenceValues = graded.map((item) => (isIndependentEvidence(item) ? 1 : 0.35));
   const independence = independenceValues.length ? clamp(mean(independenceValues.map((value) => value)) ?? 0) : null;
 
   const recent = graded.slice(-4);
@@ -72,7 +77,7 @@ export function scoreEvidenceQuality(
 
   const contexts = new Set(
     graded
-      .filter((item) => item.independent && !item.hintsUsed && item.result === 'pass')
+      .filter((item) => isIndependentEvidence(item) && item.result === 'pass')
       .map((item) => item.scenarioContext)
       .filter((context): context is NonNullable<typeof context> => Boolean(context) && context !== 'standard'),
   );

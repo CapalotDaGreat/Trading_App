@@ -124,7 +124,7 @@ export function SimulationTradeTicket({
   const reviewOrder = () => {
     if (side === 'buy' && !thesis.trim()) {
       setPreview(null);
-      setMessage('Write a one-line thesis before a simulated buy. Process first — this is not a broker ticket.');
+      setMessage('Write a one-line thesis before recording a simulated entry. Process first — this is not a brokerage.');
       return;
     }
     const input = buildInput();
@@ -135,12 +135,12 @@ export function SimulationTradeTicket({
       return;
     }
     setPreview(result.value);
-    setMessage('Review the paper order. Nothing is filled until you confirm.');
+    setMessage('Review the decision. Nothing is recorded until you confirm.');
   };
 
   const confirmOrder = () => {
     if (side === 'buy' && !thesis.trim()) {
-      setMessage('Write a one-line thesis before a simulated buy. Process first — this is not a broker ticket.');
+      setMessage('Write a one-line thesis before recording a simulated entry. Process first — this is not a brokerage.');
       return;
     }
     const input = buildInput();
@@ -187,7 +187,7 @@ export function SimulationTradeTicket({
             id: `sim-study-${symbol.toUpperCase()}`,
             kind: 'candles',
             title: `${symbol.toUpperCase()} synthetic tape`,
-            caption: 'Educational sample for this paper name — not a live quote and not an order ticket.',
+            caption: 'Educational sample for this paper name — not a live quote and not an execution ticket.',
           }}
         />
         <Button
@@ -251,8 +251,8 @@ export function SimulationTradeTicket({
       <SegmentedControl
         className="mt-3"
         options={[
-          { value: 'buy', label: 'Buy' },
-          { value: 'sell', label: 'Sell / close' },
+          { value: 'buy', label: 'Add position' },
+          { value: 'sell', label: 'Reduce or close' },
         ]}
         value={side}
         onChange={(next) => {
@@ -304,7 +304,7 @@ export function SimulationTradeTicket({
       <CollapsibleSection
         className="mt-3"
         title="Record the decision"
-        description="A one-line thesis is required for simulated buys. Evidence and invalidation make the review useful later."
+        description="A one-line thesis is required for simulated entries. Evidence and invalidation make the review useful later."
         defaultExpanded
       >
         <Input
@@ -406,10 +406,10 @@ export function SimulationTradeTicket({
       ) : null}
 
       <Button className="mt-4" variant="outline" onPress={reviewOrder}>
-        Review paper order
+        Review decision
       </Button>
       <Button className="mt-2" onPress={confirmOrder} disabled={!preview}>
-        Confirm {side === 'buy' ? 'simulated buy' : 'simulated sell'}
+        Confirm {side === 'buy' ? 'simulated entry' : 'simulated exit'}
       </Button>
       {message ? (
         <Text

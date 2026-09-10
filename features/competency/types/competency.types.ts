@@ -25,29 +25,100 @@ export type CompetencyMasteryState =
   | 'needs_remediation'
   | 'due_for_redemonstration';
 
+/**
+ * Primary, label-first representation of demonstrated skill.
+ * Internal `CompetencyMasteryState` remains for planner transitions.
+ * Never a single mastery percentage.
+ */
+export type CompetenceState =
+  | 'not_started'
+  | 'learning'
+  | 'developing'
+  | 'demonstrated'
+  | 'strong'
+  | 'needs_revisit'
+  | 'transfer_unproven';
+
 export type CompetencyUserLabel =
   | 'Not started'
+  | 'Learning'
   | 'Developing'
   | 'Practiced'
   | 'Demonstrated'
+  | 'Strong'
+  | 'Needs Revisit'
+  | 'Transfer Unproven'
   | 'Needs more practice'
   | 'Due for review';
+
+/**
+ * Practice transfer ladder. Used when selecting the next activity.
+ * 1 same format → 2 new example → 3 new condition → 4 new asset → 5 mixed → 6 concealed.
+ */
+export type TransferKind =
+  | 'same_format'
+  | 'new_example'
+  | 'new_condition'
+  | 'new_asset'
+  | 'mixed_concept'
+  | 'concealed_scenario'
+  | 'new_presentation';
+
+export type RevisitKind = 'remediation' | 'retention' | 'transfer';
 
 export type CompetencyEvidenceType =
   | 'lesson_completion'
   | 'knowledge_check'
   | 'calculation_exercise'
   | 'practice_drill'
+  | 'applied_exercise'
+  | 'event_exercise'
   | 'replay_decision'
   | 'simulation_decision'
+  | 'simulation_checkpoint'
   | 'journal_reflection'
   | 'review_finding'
   | 'remediation_exercise'
-  | 're_demonstration';
+  | 're_demonstration'
+  | 'transfer_exercise'
+  | 'surprise_assessment';
+
+/**
+ * What kind of learning the record can support.
+ * Completion is never independent application. Historical records are not upgraded.
+ */
+export type EvidenceLayer =
+  | 'completion'
+  | 'recognition'
+  | 'guided_application'
+  | 'independent_application'
+  | 'repeated_application'
+  | 'transfer'
+  | 'retention'
+  | 'historical';
+
+export type TransferDistance = 'none' | 'near' | 'far';
+
+export type ThesisSpecificity = 'absent' | 'vague' | 'specific';
+
+/** Structured journal flags only — never free-form notes. */
+export interface JournalEvidenceSignals {
+  thesisPresent: boolean;
+  thesisSpecificity: ThesisSpecificity;
+  invalidationPresent: boolean;
+  riskConsidered: boolean;
+  uncertaintyAcknowledged: boolean;
+  reflectionCompleted: boolean;
+}
 
 export type EvidenceResult = 'pass' | 'fail' | 'partial' | 'observed';
 
 export type EvidenceDifficulty = 'foundations' | 'applied' | 'complex';
+
+/** Scaffolding used on an attempt. Never a shame signal. */
+export type HelpLevel = 'none' | 'hint' | 'example' | 'worked_solution' | 'repeated_explanation';
+
+export type CompetencyAssetClass = 'equity' | 'fx' | 'index' | 'commodity' | 'crypto' | 'unknown';
 
 export type EvidenceRole =
   | 'knowledge'
@@ -103,6 +174,12 @@ export interface ProcessMetrics {
   invalidation?: number;
   risk?: number;
   discipline?: number;
+  positionSizing?: number;
+  uncertainty?: number;
+  confirmation?: number;
+  eventAwareness?: number;
+  emotionalDiscipline?: number;
+  reflection?: number;
   /** Simulated P/L is context only and must not drive mastery. */
   simulatedPnl?: number;
   simulatedProfitable?: boolean;
@@ -118,9 +195,19 @@ export interface CompetencyEvidenceInput {
   result?: EvidenceResult;
   difficulty?: EvidenceDifficulty;
   hintsUsed?: boolean;
+  /** Richer than hintsUsed. Defaults to `hint` when hintsUsed is true, else `none`. */
+  helpLevel?: HelpLevel;
   independent?: boolean;
   processMetrics?: ProcessMetrics;
   scenarioContext?: CompetencyScenarioContext;
+  assetClass?: CompetencyAssetClass;
+  /** Other concepts active in the same exercise. Structured ids only. */
+  interactingConceptIds?: string[];
+  transferDistance?: TransferDistance;
+  evidenceLayer?: EvidenceLayer;
+  journalSignals?: JournalEvidenceSignals;
+  /** Prior independent passes on this concept — used to tag repeated application. */
+  priorIndependentCount?: number;
   /** 0–1 reliability override. Defaults from source type. */
   reliability?: number;
   score?: number;
@@ -139,12 +226,18 @@ export interface CompetencyEvidenceRecord {
   result: EvidenceResult;
   difficulty: EvidenceDifficulty;
   hintsUsed: boolean;
+  helpLevel: HelpLevel;
   independent: boolean;
   processMetrics?: ProcessMetrics;
   scenarioContext?: CompetencyScenarioContext;
+  assetClass?: CompetencyAssetClass;
+  interactingConceptIds?: string[];
+  transferDistance: TransferDistance;
+  evidenceLayer: EvidenceLayer;
+  journalSignals?: JournalEvidenceSignals;
   reliability: number;
   score?: number;
-  version: 1;
+  version: 1 | 2;
 }
 
 /** Internal 0–100 dimensions. Do not show as a single mastery percentage. */
@@ -180,12 +273,22 @@ export interface RemediationStep {
   href: string;
   sourceId?: string;
   concealConcept?: boolean;
+  /** Retry/application is expected after this step. */
+  requiresRetry?: boolean;
+}
+
+export interface MisconceptionHint {
+  conceptId: string;
+  label: string;
+  flags: string[];
 }
 
 export interface RemediationPlan {
   conceptId: string;
   diagnosis: string;
+  misconception?: MisconceptionHint;
   steps: RemediationStep[];
+  verifyInNewContext: boolean;
 }
 
 export interface DemonstrationPrompt {
@@ -195,17 +298,35 @@ export interface DemonstrationPrompt {
   href: string;
   concealConcept: boolean;
   reason: string;
+  transferKind?: TransferKind;
+  assetClass?: CompetencyAssetClass;
+}
+
+export interface TransferEvidenceSummary {
+  contexts: CompetencyScenarioContext[];
+  assetClasses: CompetencyAssetClass[];
+  formats: CompetencyEvidenceType[];
+  mixedConceptSourceIds: string[];
+  applicationCount: number;
+  proven: boolean;
 }
 
 export interface CompetencyMastery {
   conceptId: string;
   title: string;
   family: CompetencyFamily | null;
+  /** Machine transition used by the training planner. */
   state: CompetencyMasteryState;
+  /** Primary representation — labels, not a percentage. */
+  competenceState: CompetenceState;
   userLabel: CompetencyUserLabel;
+  revisitKind?: RevisitKind;
   /** Internal only. Null when the only evidence is exposure. Do not show as a user score. */
   strength: number | null;
   quality: EvidenceQuality;
+  transfer: TransferEvidenceSummary;
+  /** Familiar success with unfamiliar failure. Demonstrated is kept; transfer stays unproven. */
+  falseMastery: boolean;
   explanations: string[];
   demonstrationCount: number;
   independentDemonstrationCount: number;

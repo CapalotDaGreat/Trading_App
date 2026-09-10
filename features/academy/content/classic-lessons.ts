@@ -1,4 +1,9 @@
 import type { Lesson } from '../types/academy.types';
+import {
+  CEDAR_RETAIL,
+  FUNDAMENTAL_SAMPLE_DISCLAIMER,
+  formatCompanyCard,
+} from './fundamental-cases';
 
 const TS = '2026-01-01T00:00:00.000Z';
 
@@ -251,6 +256,13 @@ export const CLASSIC_LESSONS: Lesson[] = [
       },
     ],
     journalHref: '/journal?from=academy&notes=Cash%20risk%20and%20stop%20distance',
+    replayLinks: [
+      {
+        label: 'Gold regime-risk Replay TV',
+        href: '/decision/replay-tv?episode=gold-regime-risk',
+        description: 'Write invalidation, then size. Educational reconstruction — not a metals call.',
+      },
+    ],
     sections: [
       {
         heading: 'Risk first, size second',
@@ -368,12 +380,75 @@ export const CLASSIC_LESSONS: Lesson[] = [
     searchKeywords: ['support', 'resistance', 'higher high', 'retest', 'rejection'],
     prerequisiteIds: ['ta-candles'],
     relatedLessonIds: ['ta-trend-range', 'dec-invalidation', 'ta-mtf'],
+    conceptIds: ['support', 'chart-interpretation'],
+    learningObjectives: [
+      'Name swing structure before adding an indicator.',
+      'Treat support and resistance as zones of prior auction, not laser lines.',
+      'Tie invalidation to structural failure, then size to that distance.',
+    ],
+    whyItMatters:
+      'Stops and “breakout” claims are guesses until they sit on structure. Indicators decorate a map; they do not replace it.',
+    practicalExamples: [
+      'Higher highs and higher lows: an uptrend until a decisive break of that pattern.',
+      'A hold at a prior demand zone is a question — still needs acceptance and a killer if it fails.',
+      'The same zone that held last week can fail this week. The zone is a hypothesis.',
+    ],
+    limitations: [
+      'Zones are not guaranteed bounce machines. Acceptance beyond a zone is a different claim.',
+      'Educational charts here are labelled sample. They are not a live venue.',
+    ],
+    commonMistakes: [
+      'Drawing a hairline through a wick and treating a one-tick poke as a break.',
+      'Putting a stop where the loss feels OK instead of beyond the swing that defined the idea.',
+      'Adding oscillators because the structure read was uncomfortable.',
+    ],
+    whenItWorks: ['You can point at the swing that, if accepted beyond, kills the idea — then you size to that.'],
+    whenItFails: [
+      'When the market is one news print away from gapping the zone.',
+      'When you keep moving the zone to protect a story.',
+    ],
+    exercises: [
+      {
+        id: 'ex-structure-zone',
+        kind: 'select',
+        prompt: 'The labelled support zone is most useful as…',
+        choices: [
+          'An exact price that cannot break',
+          'An area of prior demand to watch for hold, failure, or retest',
+          'A buy signal',
+          'Proof the next breakout will work',
+        ],
+        correctIndex: 1,
+        explanation:
+          'Zones describe where auction previously changed. What happens next still needs acceptance and invalidation.',
+        conceptId: 'support',
+        askEvidence: true,
+      },
+    ],
     practiceLinks: [
-      { label: 'Chart Replay', href: '/decision/replay' },
+      {
+        label: 'Find support drill',
+        href: '/practice?drill=find-support',
+        description: 'Repeated tests from above beat a round number.',
+      },
       {
         label: 'Decision Lab · Levels',
         href: '/decision/lab?scenario=support_resistance',
         description: 'Thesis from structure with clear invalidation',
+      },
+    ],
+    simulationLinks: [
+      {
+        label: 'Paper a structure stop',
+        href: '/simulate?start=1',
+        description: 'Name the zone, write the killer, then size. Simulated P/L does not grade the read.',
+      },
+    ],
+    replayLinks: [
+      {
+        label: 'False-break Replay TV',
+        href: '/decision/replay-tv?episode=false-breakout-drill',
+        description: 'A poke through a level is not acceptance. Educational tape only.',
       },
     ],
     sections: [
@@ -439,7 +514,28 @@ export const CLASSIC_LESSONS: Lesson[] = [
     searchKeywords: ['candlestick', 'wick', 'body', 'bullish', 'bearish', 'doji'],
     prerequisiteIds: ['ta-structure'],
     relatedLessonIds: ['ta-structure', 'ta-volume', 'dec-regime'],
-    practiceLinks: [{ label: 'Chart Replay', href: '/decision/replay' }],
+    conceptIds: ['chart-interpretation'],
+    practiceLinks: [
+      {
+        label: 'Identify the trend',
+        href: '/practice?drill=identify-trend',
+        description: 'Location first. Pattern names are trivia without it.',
+      },
+    ],
+    simulationLinks: [
+      {
+        label: 'Read then size',
+        href: '/simulate?start=1',
+        description: 'A candle is a summary, not an order. Simulated P/L does not grade the read.',
+      },
+    ],
+    replayLinks: [
+      {
+        label: 'False-break Replay TV',
+        href: '/decision/replay-tv?episode=false-breakout-drill',
+        description: 'Wicks and pokes still need location. Educational tape only.',
+      },
+    ],
     sections: [
       {
         heading: 'Candles are compression of auction',
@@ -507,13 +603,78 @@ export const CLASSIC_LESSONS: Lesson[] = [
     tags: ['trend', 'range', 'playbook', 'breakout'],
     searchKeywords: ['higher high', 'breakout', 'failed breakout', 'pullback'],
     relatedLessonIds: ['dec-regime', 'ta-structure', 'ta-mtf'],
+    conceptIds: ['trend-identification', 'chart-interpretation'],
+    learningObjectives: [
+      'Say whether the working tape is trend, range, or unclear — in one sentence.',
+      'Pick the matching playbook (pullback vs fade extremes) or stand aside.',
+      'Treat the first break of a range as guilty until acceptance.',
+    ],
+    whyItMatters:
+      'Trend tools in a range, and range tools in a trend, are how people donate size. Naming the regime is the first applied chart skill.',
+    practicalExamples: [
+      'Higher highs / higher lows: wait for a pullback to structure, not a chase of the last close.',
+      'Overlapping swings: fade extremes only with invalidation just beyond the range.',
+      'Cannot tell in ten seconds: cut size or skip. Ambiguity is information.',
+    ],
+    limitations: [
+      'Regime labels lag. A range can become a trend on the next bar.',
+      'This is educational tape — not a live signal that the next break will hold.',
+    ],
+    commonMistakes: [
+      'Chasing the first tick through a range high.',
+      'Fading a clean trend because “it is extended” with no invalidation.',
+      'Switching playbooks mid-trade because the last candle was annoying.',
+    ],
+    whenItWorks: ['You named trend vs range first, then chose the matching entry style — or you stood aside.'],
+    whenItFails: [
+      'When a news gap rewrites the structure before your stop can exist as a fill.',
+      'When you force a playbook because you wanted a trade.',
+    ],
+    exercises: [
+      {
+        id: 'ex-trend-range',
+        kind: 'select',
+        prompt: 'The first labelled break of a range is most honestly described as…',
+        choices: [
+          'A confirmed trend that must be traded',
+          'A break that still needed acceptance — here it failed to hold',
+          'Proof breakouts never work',
+          'Live market data',
+        ],
+        correctIndex: 1,
+        explanation: 'Breaks fail often until price holds beyond the range. Process over prediction.',
+        conceptId: 'chart-interpretation',
+        askEvidence: true,
+      },
+    ],
     practiceLinks: [
-      { label: 'Market condition', href: '/decision/regime' },
-      { label: 'Chart Replay', href: '/decision/replay' },
+      {
+        label: 'Identify the trend',
+        href: '/practice?drill=identify-trend',
+        description: 'Name structure before predicting the next tick.',
+      },
+      {
+        label: 'Market condition',
+        href: '/decision/regime',
+      },
       {
         label: 'Decision Lab · Trend',
         href: '/decision/lab?scenario=trend_following',
         description: 'Practice a trend thesis with full invalidation',
+      },
+    ],
+    simulationLinks: [
+      {
+        label: 'Paper the matching playbook',
+        href: '/simulate?start=1',
+        description: 'If you cannot name trend vs range, skip. Simulated P/L is not the grade.',
+      },
+    ],
+    replayLinks: [
+      {
+        label: 'False-break Replay TV',
+        href: '/decision/replay-tv?episode=false-breakout-drill',
+        description: 'Pause before the poke. Acceptance is the claim — not the first tick.',
       },
     ],
     sections: [
@@ -679,42 +840,131 @@ export const CLASSIC_LESSONS: Lesson[] = [
   lesson({
     id: 'fund-basics',
     title: 'Fundamentals traders actually use',
-    description: 'Catalysts, narrative, and valuation — without becoming an analyst firm.',
+    description: 'Read a business file as evidence for a thesis — not as a buy or sell instruction.',
     category: 'fundamental_analysis',
     difficulty: 'beginner',
-    durationMinutes: 12,
+    durationMinutes: 14,
     track: 'classic',
     sortOrder: 28,
     isPremium: false,
-    tags: ['fundamentals', 'catalysts', 'narrative'],
-    relatedLessonIds: ['fund-calendar', 'dec-research-filter'],
-    practiceLinks: [
-      { label: 'Market Events', href: '/events' },
-      { label: 'Markets', href: '/markets' },
+    tags: ['fundamentals', 'earnings', 'valuation', 'quality'],
+    searchKeywords: ['fundamental', 'catalyst', 'earnings', 'valuation', 'revenue', 'margins'],
+    relatedLessonIds: ['fund-statements', 'fund-calendar', 'dec-research-filter'],
+    conceptIds: ['business-quality', 'fundamental-uncertainty', 'earnings'],
+    learningObjectives: [
+      'Explain what a simple business file is for: narrative, quality, and uncertainty — not a forecast.',
+      'Recognize a beat, a multiple, or a growth rate as incomplete evidence.',
+      'Refuse to treat any of this as an order to buy or sell.',
     ],
+    whyItMatters:
+      'Price can ignore a “good” print for a long time. Fundamentals change what you think you own. They do not replace invalidation or size.',
+    practicalExamples: [
+      'You write “Cedar’s margins held while growth was slow” as a quality note — then still name a stop.',
+      'You skip sizing into an earnings date because you have no gap playbook.',
+    ],
+    limitations: [
+      FUNDAMENTAL_SAMPLE_DISCLAIMER,
+      'Statements are lagged. One print is not a DCF and not a timing tool.',
+    ],
+    commonMistakes: [
+      'Equating an earnings beat with a long.',
+      'Calling a low multiple “cheap” without peers, growth, or leverage.',
+    ],
+    whenItWorks: ['You use the file to kill or keep a thesis, then size from risk.'],
+    whenItFails: ['When the driver is liquidity or a crowd, not the business. Then say so.'],
+    exercises: [
+      {
+        id: 'ex-fund-recognize',
+        kind: 'select',
+        prompt: 'What is the honest job of a short fundamental file before a simulated hold?',
+        choices: [
+          'To produce a buy or sell recommendation',
+          'To name what the business evidence supports, what it misses, and whether event risk is acceptable',
+          'To replace a stop because “quality compounds”',
+          'To guarantee that a beat will be bid',
+        ],
+        correctIndex: 1,
+        explanation:
+          'The file is evidence and uncertainty. It is not an order and not a substitute for invalidation.',
+        conceptId: 'business-quality',
+      },
+      {
+        id: 'ex-fund-guided',
+        kind: 'scenario',
+        guided: true,
+        conceptId: 'earnings',
+        interactingConceptIds: ['business-quality'],
+        scenarioContext: 'earnings',
+        situation: formatCompanyCard(CEDAR_RETAIL),
+        prompt: 'Which research note is honest?',
+        choices: [
+          'Buy Cedar — stable margins mean the next candle is up',
+          'Cedar looks like a slower, more cash-generative story than a hyper-growth name; that still does not define timing or size',
+          'Ignore the file; only the chart matters on every name',
+          'Triple size because quality never draws down',
+        ],
+        correctIndex: 1,
+        explanation:
+          'You can describe quality without issuing a recommendation. Timing and size stay separate.',
+        askEvidence: true,
+      },
+      {
+        id: 'ex-fund-independent',
+        kind: 'explain',
+        conceptId: 'fundamental-uncertainty',
+        scenarioContext: 'ambiguous_setup',
+        prompt:
+          'In one or two sentences, why is “the P/E is low so I should buy” incomplete? Do not name a ticker to purchase.',
+        minChars: 28,
+        modelAnswer:
+          'A multiple needs growth, risk, and peer context, and still does not define timing, size, or invalidation. It is not a buy instruction.',
+        explanation: 'Cheap is a comparison under uncertainty, not a thesis by itself.',
+        askEvidence: true,
+      },
+    ],
+    practiceLinks: [
+      {
+        label: 'Compare two educational businesses',
+        href: '/practice?drill=compare-two-businesses',
+        description: 'Quality versus growth. Not a stock pick.',
+      },
+      { label: 'Market Events as a classroom', href: '/events' },
+    ],
+    simulationLinks: [
+      {
+        label: 'Paper book — process only',
+        href: '/simulate?start=1&prep=earnings',
+        description: 'Simulated P/L does not grade the decision. This is not a recommendation.',
+      },
+    ],
+    journalHref: '/journal?from=academy&notes=Business%20file%20vs%20thesis',
     sections: [
       {
         heading: 'Enough fundamental to decide',
-        body: 'You rarely need a full DCF to trade. You do need: what is the live narrative, what catalysts can reprice it, and whether the market already priced the obvious.\n\nFor swing ideas, know earnings/events dates before sizing.',
+        body: 'You rarely need a full DCF to practice. You do need: what the live narrative is, whether the business file supports it, what catalysts can reprice it, and whether the auction already priced the obvious.\n\nFor a multi-day simulated hold, know earnings and event dates before sizing.',
       },
       {
         heading: 'Narrative vs numbers',
-        body: 'Price can ignore “cheap” for a long time. Use fundamentals to avoid blind spots and to set thesis invalidation (e.g. guidance break), not as a substitute for risk rules.',
+        body: 'Price can ignore “cheap” for a long time. Use fundamentals to avoid blind spots and to set thesis invalidation (for example a guidance break), not as a substitute for risk rules.',
         callout: {
           type: 'tip',
-          text: 'Add event dates to your checklist before any multi-day hold.',
+          text: 'Add event dates to your checklist before any multi-day simulated hold.',
         },
+      },
+      {
+        heading: 'Not a recommendation',
+        body: FUNDAMENTAL_SAMPLE_DISCLAIMER,
       },
     ],
     keyTakeaways: [
-      'Focus on narrative + catalysts + positioning.',
+      'A business file informs a thesis; it does not replace stops.',
       'Know event risk on holds.',
-      'Fundamentals inform thesis; they do not replace stops.',
+      'None of these exercises are buy or sell instructions.',
     ],
     quiz: [
       {
         id: 'q1',
-        prompt: 'Before holding through earnings, you should at least…',
+        prompt: 'Before holding a simulated position through earnings, you should at least…',
         choices: [
           'Ignore the date',
           'Know the date and decide if gap risk is acceptable',
@@ -722,7 +972,27 @@ export const CLASSIC_LESSONS: Lesson[] = [
           'Triple size',
         ],
         correctIndex: 1,
-        explanation: 'Event gap risk is a first-class decision input.',
+        explanation: 'Event gap risk is a first-class decision input. The print is not a signal.',
+        conceptId: 'fundamental-uncertainty',
+        choiceExplanations: [
+          'The calendar is part of the risk file.',
+          'You choose size or stand aside on purpose.',
+          'Removing the stop is denial of gap risk.',
+          'Size-up is not a hedge.',
+        ],
+      },
+      {
+        id: 'q2',
+        prompt: 'A simplified company snapshot in this academy is…',
+        choices: [
+          'A recommendation to buy that name',
+          'Educational sample data for practicing interpretation',
+          'Proof the next candle will follow earnings',
+          'A live fundamental feed',
+        ],
+        correctIndex: 1,
+        explanation: FUNDAMENTAL_SAMPLE_DISCLAIMER,
+        conceptId: 'business-quality',
       },
     ],
   }),
@@ -740,7 +1010,8 @@ export const CLASSIC_LESSONS: Lesson[] = [
     tags: ['calendar', 'macro', 'events'],
     searchKeywords: ['economic calendar', 'CPI', 'FOMC', 'event risk', 'news trading'],
     relatedLessonIds: ['fund-basics', 'dec-regime', 'risk-position-sizing', 'dec-uncertainty'],
-    conceptIds: ['event-risk', 'uncertainty'],
+    prerequisiteIds: ['fund-basics'],
+    conceptIds: ['event-risk', 'uncertainty', 'fundamental-uncertainty'],
     learningObjectives: [
       'Explain why a scheduled release can gap through a stop.',
       'Name a default action when you have no event playbook.',
@@ -780,6 +1051,8 @@ export const CLASSIC_LESSONS: Lesson[] = [
       {
         id: 'ex-event-default',
         kind: 'compare',
+        guided: true,
+        interactingConceptIds: ['fundamental-uncertainty'],
         prompt: 'No written event playbook. High-impact print in ten minutes. Full paper risk on. Which process is honest?',
         leftLabel: 'Hold — I already like the chart',
         rightLabel: 'Reduce or flatten per a pre-written rule',
@@ -787,6 +1060,25 @@ export const CLASSIC_LESSONS: Lesson[] = [
         explanation:
           'Liking the chart does not cancel gap risk. Without a playbook, the default is reduce. That is not a prediction that the print is bad.',
         conceptId: 'event-risk',
+        askEvidence: true,
+      },
+      {
+        id: 'ex-event-independent',
+        kind: 'scenario',
+        conceptId: 'fundamental-uncertainty',
+        interactingConceptIds: ['event-risk'],
+        scenarioContext: 'event_window',
+        prompt:
+          'A fictional earnings date is tomorrow. You like the chart. You have no written gap plan. Honest process?',
+        choices: [
+          'Full size — the story is strong',
+          'Cut or skip size, or accept gap risk in writing — the print is not a signal',
+          'Turn the stop off so you are not shaken out',
+          'Buy more because beats always rally',
+        ],
+        correctIndex: 1,
+        explanation:
+          'Unknown gap size is a size input. This academy does not recommend buying or selling the name.',
         askEvidence: true,
       },
     ],
@@ -801,7 +1093,19 @@ export const CLASSIC_LESSONS: Lesson[] = [
         href: '/practice?drill=inflation-asset-effects',
         description: 'Map a print to process, not to a ticker tip.',
       },
+      {
+        label: 'FOMC replay room',
+        href: '/decision/replay-tv?episode=fomc-decision-lab',
+        description: 'Historical tape. Not a prediction of the next meeting.',
+      },
       { label: 'High-vol checklist', href: '/academy/checklist/high-volatility' },
+    ],
+    replayLinks: [
+      {
+        label: 'Inflation-shock Replay TV',
+        href: '/decision/replay-tv?episode=inflation-shock-2022',
+        description: 'Update the thesis without treating a print as a signal.',
+      },
     ],
     simulationLinks: [
       {
@@ -938,7 +1242,7 @@ export const CLASSIC_LESSONS: Lesson[] = [
     tags: ['crypto', 'volatility', 'structure'],
     relatedLessonIds: ['dec-regime', 'risk-position-sizing', 'fund-calendar'],
     practiceLinks: [
-      { label: 'Markets', href: '/markets' },
+      { label: 'Study a name', href: '/search' },
       { label: 'High-vol checklist', href: '/academy/checklist/high-volatility' },
     ],
     sections: [

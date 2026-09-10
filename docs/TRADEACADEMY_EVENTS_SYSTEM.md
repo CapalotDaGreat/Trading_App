@@ -64,7 +64,7 @@ Simulation outcomes may be higher than expected, lower, exactly expected, or mix
 
 ## Personalization
 
-See [TRADEACADEMY_EVENT_LEARNING.md](./TRADEACADEMY_EVENT_LEARNING.md). Beginners get a **learning calendar**. Advanced / professional profiles may get a study stack for an upcoming event, optionally tuned to a practice gap. That stack is training, not a prediction.
+See [TRADEACADEMY_EVENT_LEARNING.md](./TRADEACADEMY_EVENT_LEARNING.md). Beginners get a **learning calendar** that answers “What is this event and why does it matter?” Advanced / professional profiles may get a study stack for an upcoming event, routed from weak event-risk, uncertainty, or fundamentals application. That stack is training, not a prediction.
 
 ## Importance
 

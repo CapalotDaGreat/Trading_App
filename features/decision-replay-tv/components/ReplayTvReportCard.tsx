@@ -16,7 +16,7 @@ export function ReplayTvReportCard({
     <Surface
       padding="md"
       testID="replay-tv-report"
-      accessibilityLabel={`Decision Replay Report. ${TRUST_LANGUAGE.dqs.short} ${scores.overall}. Process quality ${scores.processQuality}. Evidence quality ${scores.evidenceQuality}. Invalidation quality ${scores.invalidationClarity}. Adaptability ${scores.adaptability}. Patience ${scores.patience}. Consistency ${scores.consistency}. Research efficiency ${scores.researchEfficiency}. ${TRUST_LANGUAGE.dqs.meaning} Never a profitability score.`}
+      accessibilityLabel={`Decision Replay Report. ${TRUST_LANGUAGE.dqs.short} ${scores.overall}. Process quality ${scores.processQuality}. Evidence quality ${scores.evidenceQuality}. Invalidation quality ${scores.invalidationClarity}. Adaptability ${scores.adaptability}. Patience ${scores.patience}. Consistency ${scores.consistency}. Research efficiency ${scores.researchEfficiency}. Reflection quality ${scores.reflectionQuality}. ${TRUST_LANGUAGE.dqs.meaning} Never a profitability score.`}
     >
       <Text variant="caption" className="mb-1 font-medium text-text-tertiary">
         Decision Replay Report
@@ -35,6 +35,12 @@ export function ReplayTvReportCard({
       <MetricRow label="Patience" value={String(scores.patience)} />
       <MetricRow label="Consistency" value={String(scores.consistency)} />
       <MetricRow label="Research efficiency" value={String(scores.researchEfficiency)} />
+      <MetricRow label="Reflection quality" value={String(scores.reflectionQuality)} />
+      {scores.outcomeNote ? (
+        <Text variant="body-sm" className="mt-3 leading-6 text-text-secondary">
+          {scores.outcomeNote}
+        </Text>
+      ) : null}
       {process ? (
         <Text variant="caption" className="mt-3 leading-5 text-text-tertiary">
           Process comparison uses what you knew at each freeze. The historical reconstruction is

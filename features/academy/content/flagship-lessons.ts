@@ -1,4 +1,4 @@
-import { makeFlagshipLesson } from './lesson-factory';
+import { makeFlagshipLesson, replayEpisodeLink } from './lesson-factory';
 import type { Lesson } from '../types/academy.types';
 
 const PRACTICE_CHART = {
@@ -415,7 +415,7 @@ export const FLAGSHIP_LESSONS: Lesson[] = [
     searchKeywords: ['what is volatility', 'atr', 'how much does it move'],
     prerequisiteIds: ['foundations-price', 'ta-candles'],
     relatedLessonIds: ['risk-position-sizing', 'dec-regime', 'risk-drawdown'],
-    conceptIds: ['volatility'],
+    conceptIds: ['volatility-aware-risk'],
     objectives: [
       'Define volatility as movement, not as a buy/sell cue.',
       'Connect wider range to smaller size for the same cash risk.',
@@ -436,6 +436,9 @@ export const FLAGSHIP_LESSONS: Lesson[] = [
     ],
     mistakes: ['Widening stops instead of reducing size.', 'Treating implied vol as a direction forecast.'],
     limitations: ['Historical range is not a promise of next-week range.'],
+    whenItWorks: [
+      'You already have a structure stop, then you cut quantity so cash risk stays at the budget when range expands.',
+    ],
     whenItFails: ['Gaps through stops.', 'Regimes that shift faster than your lookback.'],
     exercise: {
       id: 'ex-vol',
@@ -445,7 +448,7 @@ export const FLAGSHIP_LESSONS: Lesson[] = [
       tolerance: 0.01,
       unit: 'units',
       explanation: 'Quantity = cash risk / stop distance = 1000 / 4 = 250. Wider stop, fewer units.',
-      conceptId: 'volatility',
+      conceptId: 'volatility-aware-risk',
       askEvidence: true,
     },
     quiz: [
@@ -465,12 +468,20 @@ export const FLAGSHIP_LESSONS: Lesson[] = [
           'R:R is a plan, not a gift from volatility.',
           'Larger risk usually means larger possible drawdown.',
         ],
-        'volatility',
+        'volatility-aware-risk',
       ),
     ],
     takeaways: ['Volatility sizes the stop, then size follows.', 'Movement is not a permission slip.'],
-    practice: [PRACTICE_RR],
+    practice: [
+      PRACTICE_RR,
+      {
+        label: 'Volatility size drill',
+        href: '/practice?drill=volatility-size',
+        description: 'Keep the cash-risk budget when range expands.',
+      },
+    ],
     simulation: [SIMULATE],
+    replay: [replayEpisodeLink('black-monday', 'Gap-risk room — size for range, not for the story')],
   }),
 
   makeFlagshipLesson({
@@ -740,8 +751,9 @@ export const FLAGSHIP_LESSONS: Lesson[] = [
       'A poke is not acceptance.',
       'Failed breaks are normal. Premature size is optional.',
     ],
-    practice: [{ label: 'Breakout quality drill', href: '/practice?drill=breakout-quality', description: 'Ask what would confirm a break.' }, REPLAY],
+    practice: [{ label: 'Breakout quality drill', href: '/practice?drill=breakout-quality', description: 'Ask what would confirm a break.' }],
     simulation: [SIMULATE],
+    replay: [replayEpisodeLink('false-breakout-drill', 'Name the failed hold before the next poke')],
   }),
 
   makeFlagshipLesson({
@@ -922,6 +934,7 @@ export const FLAGSHIP_LESSONS: Lesson[] = [
     ],
     mistakes: ['Risking 1% “unless this one is special”.', 'Measuring risk from a random round number instead of invalidation.'],
     limitations: ['Gaps can exceed planned cash risk. Budget is not a guarantee.'],
+    whenItWorks: ['Invalidation is written first, then cash risk is a cap — including on “obvious” ideas.'],
     whenItFails: ['Correlated positions that are secretly one bet.', 'Leverage (not used in TradeAcademy simulation v1).'],
     exercise: {
       id: 'ex-rpt',
@@ -957,6 +970,7 @@ export const FLAGSHIP_LESSONS: Lesson[] = [
     takeaways: ['No invalidation ⇒ no risk number.', 'Special ideas still pay the budget.'],
     practice: [PRACTICE_RR, { label: '1% size drill', href: '/practice?drill=position-size', description: 'Keep cash risk stable when the stop widens.' }],
     simulation: [{ ...SIMULATE, href: '/simulate' }],
+    replay: [replayEpisodeLink('gold-regime-risk', 'Regime-risk room — budget first, then size')],
   }),
 
   makeFlagshipLesson({
@@ -971,7 +985,7 @@ export const FLAGSHIP_LESSONS: Lesson[] = [
     searchKeywords: ['stop loss', 'where to put stop', 'invalidation'],
     prerequisiteIds: ['ta-structure', 'risk-per-trade'],
     relatedLessonIds: ['dec-invalidation', 'risk-position-sizing', 'ta-false-breakouts'],
-    conceptIds: ['stops', 'invalidation'],
+    conceptIds: ['invalidation', 'stop-logic'],
     objectives: [
       'Place a stop as thesis failure, then size to it.',
       'Avoid tightening a stop because of discomfort rather than new evidence.',
@@ -992,6 +1006,7 @@ export const FLAGSHIP_LESSONS: Lesson[] = [
     ],
     mistakes: ['Stop at a round number with no structure.', 'Widening after entry without a new thesis.'],
     limitations: ['Gaps can skip the stop. Plan for that in volatile names.'],
+    whenItWorks: ['The stop is the thesis-killer, then quantity is whatever that distance allows.'],
     whenItFails: ['When the thesis was never written, so any stop is arbitrary.'],
     exercise: {
       id: 'ex-stop',
@@ -1028,8 +1043,17 @@ export const FLAGSHIP_LESSONS: Lesson[] = [
       ),
     ],
     takeaways: ['Stop is where the idea dies.', 'Move size, not the story, when distance changes.'],
-    practice: [PRACTICE_RR, JOURNAL],
+    practice: [
+      PRACTICE_RR,
+      {
+        label: 'Name the thesis-killer',
+        href: '/practice?drill=name-invalidation',
+        description: 'A feeling is not invalidation.',
+      },
+      JOURNAL,
+    ],
     simulation: [SIMULATE],
+    replay: [replayEpisodeLink('failed-setup-patience', 'Write the killer, then skip if the case is not there')],
   }),
 
   makeFlagshipLesson({

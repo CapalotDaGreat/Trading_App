@@ -1,3 +1,5 @@
+import { performanceDiagnostics } from '@/shared/services/performance';
+
 import { FICTIONAL_UNIVERSE } from '../constants/fictional-universe';
 import type {
   LiquidityClimate,
@@ -10,10 +12,11 @@ import type {
   ScenarioDecisionWindow,
   ScenarioDifficulty,
   ScenarioEventKind,
+  ScenarioFocus,
   SimulationScenario,
 } from '../types/scenario.types';
 import type { SimulationMode } from '../types/simulation.types';
-import { applyFocus, inferScenarioFocus } from './scenario-adaptation.service';
+import { applyFocus, applyClimateFocus, inferScenarioFocus } from './scenario-adaptation.service';
 import { complexityForDifficulty, defaultDifficultyForMode } from './scenario-difficulty.service';
 import { generateScenarioEvents } from './scenario-events.service';
 import { frictionForMode } from './scenario-friction.service';
@@ -23,6 +26,7 @@ import {
   generateStructuredPaths,
   pickPrimaryRegime,
 } from './scenario-path.service';
+import { GENERIC_SIMULATION_TRAINING_RATIONALE } from './scenario-personalization.service';
 import { createProductionScenarioSeed, mulberry32, pick, pickN } from './scenario-rng';
 import { pendingDecisionOnDay, unansweredDecisionWindow } from './scenario-visibility.service';
 
@@ -98,6 +102,7 @@ function buildAssets(rand: () => number, count: number): ScenarioAssetConfig[] {
 function buildDecisionWindows(
   rand: () => number,
   scenario: Pick<SimulationScenario, 'events' | 'marketPath' | 'horizonDays' | 'complexity'>,
+  focus?: ScenarioFocus,
 ): ScenarioDecisionWindow[] {
   const windows: ScenarioDecisionWindow[] = [];
   const used = new Set<number>();
@@ -106,6 +111,50 @@ function buildDecisionWindows(
     used.add(window.day);
     windows.push({ ...window, id: `win_${windows.length + 1}` });
   };
+
+  if (focus === 'invalidation_discipline') {
+    push({
+      day: 4,
+      kind: 'invalidation_check',
+      prompt:
+        'Name what would prove the current idea wrong before adding risk. Waiting is a valid process choice.',
+      options: ['wait', 'enter', 'reduce', 'research'],
+    });
+  }
+  if (focus === 'fomo_chase') {
+    push({
+      day: 8,
+      kind: 'extended_move',
+      prompt:
+        'Price has already moved quickly through a level you did not participate in. Adding now, waiting, or standing aside are process choices — not a forecast.',
+      options: ['wait', 'enter', 'reduce', 'research'],
+    });
+  }
+  if (focus === 'overconfidence') {
+    push({
+      day: 6,
+      kind: 'thesis_check',
+      prompt:
+        'The first story looked tidy. Later information may not agree. How do you treat the written plan?',
+      options: DEFAULT_OPTIONS,
+    });
+  }
+  if (focus === 'position_sizing') {
+    push({
+      day: 5,
+      kind: 'vol_spike',
+      prompt: 'Ranges have widened. Size from the risk you named, not from how convincing the last close looked.',
+      options: ['wait', 'enter', 'reduce', 'research'],
+    });
+  }
+  if (focus === 'event_adaptation' && scenario.events[0]) {
+    push({
+      day: Math.max(2, scenario.events[0].resolveDay - 1),
+      kind: 'event_eve',
+      prompt: `${scenario.events[0].title} is due. You do not know the print. How do you manage risk?`,
+      options: DEFAULT_OPTIONS,
+    });
+  }
 
   for (const event of scenario.events) {
     if (rand() > 0.55) continue;
@@ -147,8 +196,15 @@ function buildDecisionWindows(
     }
   }
 
-  const target = Math.min(5, 2 + Math.round(scenario.complexity.timePressure * 3));
-  return windows.slice(0, target);
+  const requiredCount = windows.filter((item) =>
+    item.kind === 'invalidation_check' ||
+    (focus === 'fomo_chase' && item.kind === 'extended_move') ||
+    (focus === 'overconfidence' && item.kind === 'thesis_check') ||
+    (focus === 'position_sizing' && item.kind === 'vol_spike') ||
+    (focus === 'event_adaptation' && item.kind === 'event_eve'),
+  ).length;
+  const cap = Math.min(6, Math.max(requiredCount, 2 + Math.round(scenario.complexity.timePressure * 3)));
+  return windows.slice(0, cap);
 }
 
 export function generateSimulationScenario(input: {
@@ -160,7 +216,9 @@ export function generateSimulationScenario(input: {
   focus?: ReturnType<typeof inferScenarioFocus>;
   preferredEventKind?: ScenarioEventKind;
   difficulty?: ScenarioDifficulty;
+  trainingRationale?: string;
 }): SimulationScenario {
+  return performanceDiagnostics.measure('sim.generate', () => {
   const now = input.now ?? new Date().toISOString();
   const seed = input.seed ?? createProductionScenarioSeed(input.userId, now);
   const rand = mulberry32(seed);
@@ -177,7 +235,7 @@ export function generateSimulationScenario(input: {
     uncertainty: complexity.regimeUncertainty,
     difficulty,
   });
-  const climate = buildClimate(rand);
+  const climate = applyClimateFocus(buildClimate(rand), focus);
   const assets = buildAssets(rand, complexity.assetCount);
   const events = generateScenarioEvents({
     rand,
@@ -187,6 +245,7 @@ export function generateSimulationScenario(input: {
     horizonDays,
     preferredKind: input.preferredEventKind,
     difficulty,
+    focus,
   });
   const { marketPath, paths } = generateStructuredPaths({
     seed,
@@ -211,6 +270,7 @@ export function generateSimulationScenario(input: {
     complexity,
     friction: frictionForMode(mode, complexity.psychologicalPressure),
     focus,
+    trainingRationale: input.trainingRationale ?? (focus ? GENERIC_SIMULATION_TRAINING_RATIONALE : undefined),
     assets,
     events,
     decisionWindows: [],
@@ -222,8 +282,9 @@ export function generateSimulationScenario(input: {
     clockMode: 'normal',
     createdAt: now,
   };
-  draft.decisionWindows = buildDecisionWindows(rand, draft);
+  draft.decisionWindows = buildDecisionWindows(rand, draft, focus);
   return draft;
+  });
 }
 
 export function advanceScenarioClock(

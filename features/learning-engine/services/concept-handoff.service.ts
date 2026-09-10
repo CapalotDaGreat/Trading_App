@@ -1,4 +1,4 @@
-import type { TrainingHandoff, TrainingLoopStep, TrainingPriority } from '../types/learning-engine.types';
+import type { PracticeTransferStep, TrainingHandoff, TrainingLoopStep, TrainingPriority } from '../types/learning-engine.types';
 
 const LOOP_STEPS: TrainingLoopStep[] = [
   'learn',
@@ -10,13 +10,25 @@ const LOOP_STEPS: TrainingLoopStep[] = [
   'redemonstrate',
 ];
 
+const TRANSFER_STEPS: PracticeTransferStep[] = [
+  'same_format',
+  'new_example',
+  'new_condition',
+  'new_asset',
+  'mixed_concept',
+  'concealed_scenario',
+];
+
 const PRIORITIES: TrainingPriority[] = [
   'remediation',
   'redemonstration',
   'in_progress',
   'weak_competency',
+  'transfer_practice',
+  'event_driven',
   'curriculum',
   'varied_practice',
+  'optional_exploration',
 ];
 
 /** Stable key for anti-repetition — ignores concept/loop query noise. */
@@ -40,6 +52,9 @@ export function withConceptHandoff(
     loop?: TrainingLoopStep;
     conceal?: boolean;
     priority?: TrainingPriority;
+    transferStep?: string;
+    showHints?: boolean;
+    showExamples?: boolean;
   },
 ): string {
   if (!input.conceptId) return href;
@@ -49,6 +64,9 @@ export function withConceptHandoff(
   if (input.loop) params.set('loop', input.loop);
   if (input.conceal) params.set('conceal', '1');
   if (input.priority) params.set('priority', input.priority);
+  if (input.transferStep) params.set('transfer', input.transferStep);
+  if (input.showHints === false) params.set('hints', '0');
+  if (input.showExamples === false) params.set('examples', '0');
   const qs = params.toString();
   return qs ? `${path}?${qs}` : path;
 }
@@ -60,6 +78,7 @@ export function parseTrainingHandoff(
   if (!conceptId) return null;
   const loopRaw = firstParam(params.loop);
   const priorityRaw = firstParam(params.priority);
+  const transferRaw = firstParam(params.transfer);
   return {
     conceptId,
     loopStep: LOOP_STEPS.includes(loopRaw as TrainingLoopStep)
@@ -70,6 +89,11 @@ export function parseTrainingHandoff(
       ? (priorityRaw as TrainingPriority)
       : 'curriculum',
     whyToday: '',
+    transferStep: TRANSFER_STEPS.includes(transferRaw as PracticeTransferStep)
+      ? (transferRaw as PracticeTransferStep)
+      : undefined,
+    showHints: firstParam(params.hints) !== '0',
+    showExamples: firstParam(params.examples) !== '0',
   };
 }
 

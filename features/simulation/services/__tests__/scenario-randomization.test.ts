@@ -146,4 +146,21 @@ describe('simulation scenario randomization', () => {
     const blob = `${scenario.events.map((item) => `${item.briefing} ${item.outcome}`).join(' ')}`.toLowerCase();
     expect(blob).not.toMatch(/buy this|sell this|guaranteed|best trade|expected profit/);
   });
+
+  it('keeps fomo-context paths stochastic across seeds', () => {
+    const directions = [3, 9, 21, 33, 44, 55, 66, 77, 88, 99, 111, 123].map((seed) => {
+      const scenario = generateSimulationScenario({
+        userId: 'fomo',
+        now: NOW,
+        seed,
+        focus: 'fomo_chase',
+        difficulty: 'intermediate',
+      });
+      const first = scenario.marketPath[0]!.close;
+      const last = scenario.marketPath[scenario.marketPath.length - 1]!.close;
+      return last - first;
+    });
+    expect(directions.some((delta) => delta > 0)).toBe(true);
+    expect(directions.some((delta) => delta < 0)).toBe(true);
+  });
 });

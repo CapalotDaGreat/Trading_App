@@ -10,7 +10,9 @@ export type PerformanceMark =
   | 'dna.build.begin'
   | 'dna.build.end'
   | 'replay.checkpoint.begin'
-  | 'replay.checkpoint.end';
+  | 'replay.checkpoint.end'
+  | 'sim.generate.begin'
+  | 'sim.generate.end';
 
 export type PerformanceCounter =
   | 'market.request.started'
@@ -19,7 +21,13 @@ export type PerformanceCounter =
   | 'market.request.background_skipped'
   | 'market.request.direct';
 
-export type PerformanceWindow = 'brief.build' | 'chart.work' | 'chart.render' | 'dna.build' | 'replay.checkpoint';
+export type PerformanceWindow =
+  | 'brief.build'
+  | 'chart.work'
+  | 'chart.render'
+  | 'dna.build'
+  | 'replay.checkpoint'
+  | 'sim.generate';
 
 export interface PerformanceMetadata {
   requestType?: 'quote' | 'candles';

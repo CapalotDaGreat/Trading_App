@@ -1,4 +1,7 @@
 import { loadTraderMemory } from '@/features/decision/services/trader-intelligence.service';
+import { useCompetencyEvidenceStore } from '@/features/competency';
+import { composeLearnerModel, toMentorSafeLearnerSummary } from '@/features/learner-model';
+import { DEMO_USER_UID } from '@/firebase/config';
 
 import type { AiLearningMemory } from '../types/ai-trust.types';
 
@@ -38,6 +41,15 @@ export async function buildAiLearningMemory(uid?: string | null): Promise<AiLear
       ? 'Replay/psychology patterns are present in DNA — keep reflecting after sessions.'
       : 'Complete Decision Replay reflections to deepen behavioural memory.';
 
+  const learnerUid = uid?.trim() || DEMO_USER_UID;
+  const learnerRecords = useCompetencyEvidenceStore.getState().evidenceFor(learnerUid);
+  const learnerSummary = toMentorSafeLearnerSummary(
+    composeLearnerModel({ uid: learnerUid, records: learnerRecords }),
+  );
+  const learnerProcessHint = learnerSummary.practiceNext.length
+    ? `Train next (process labels): ${learnerSummary.practiceNext.slice(0, 3).join('; ')}. Not a mastery score, not journal text.`
+    : undefined;
+
   return {
     favoriteSetups: (dna?.bestSetups?.length ? dna.bestSetups : memory.bestSetups).slice(0, 5),
     learningStyleHint,
@@ -58,6 +70,7 @@ export async function buildAiLearningMemory(uid?: string | null): Promise<AiLear
       dna?.psychologyPatterns?.[0] ??
       memory.typicalMistakes[0] ??
       'Protect process over P&L — write invalidation first.',
+    learnerProcessHint,
     updatedAt: memory.updatedAt || Date.now(),
   };
 }

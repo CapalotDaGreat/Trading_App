@@ -10,6 +10,7 @@ import {
 } from 'firebase/firestore';
 
 import { isFirebaseConfigured, requireDb } from '@/firebase/config';
+import { getLastReachability } from '@/shared/services/network/reachability';
 
 import {
   getLocalChecklistById,
@@ -58,6 +59,11 @@ export type { CurriculumRecommendation, PathUnlockStatus } from './curriculum.se
 const LESSONS_COLLECTION = 'academy_lessons';
 const CHECKLISTS_COLLECTION = 'academy_checklists';
 
+/** Skip Firestore when the last probe said we are offline. Local catalog is the product. */
+export function shouldFetchRemoteAcademyCatalog(): boolean {
+  return isFirebaseConfigured() && getLastReachability();
+}
+
 function serializeTimestamp(value: unknown): string {
   if (
     value &&
@@ -104,6 +110,15 @@ function toLesson(id: string, data: DocumentData): Lesson {
     whenItWorks: (data.whenItWorks as string[] | undefined) ?? local?.whenItWorks,
     whenItFails: (data.whenItFails as string[] | undefined) ?? local?.whenItFails,
     educationalCharts: local?.educationalCharts,
+    learningObjectives: (data.learningObjectives as string[] | undefined) ?? local?.learningObjectives,
+    whyItMatters: (data.whyItMatters as string | undefined) ?? local?.whyItMatters,
+    practicalExamples: (data.practicalExamples as string[] | undefined) ?? local?.practicalExamples,
+    limitations: (data.limitations as string[] | undefined) ?? local?.limitations,
+    exercises: local?.exercises,
+    simulationLinks: (data.simulationLinks as PracticeLink[] | undefined) ?? local?.simulationLinks,
+    replayLinks: (data.replayLinks as PracticeLink[] | undefined) ?? local?.replayLinks,
+    journalHref: (data.journalHref as string | undefined) ?? local?.journalHref,
+    conceptIds: (data.conceptIds as string[] | undefined) ?? local?.conceptIds,
   };
 }
 
@@ -120,7 +135,7 @@ function toChecklist(id: string, data: DocumentData): TradingChecklist {
 
 export async function getLessons(includePremium = true): Promise<Lesson[]> {
   const fallback = getLocalLessons(includePremium);
-  if (!isFirebaseConfigured()) return fallback;
+  if (!shouldFetchRemoteAcademyCatalog()) return fallback;
 
   try {
     const q = query(collection(requireDb(), LESSONS_COLLECTION), orderBy('sortOrder', 'asc'));
@@ -155,7 +170,7 @@ export async function getLessonsByTrack(
 
 export async function getLessonById(lessonId: string): Promise<Lesson | null> {
   const local = getLocalLessonById(lessonId);
-  if (!isFirebaseConfigured()) return local;
+  if (!shouldFetchRemoteAcademyCatalog()) return local;
 
   try {
     const snapshot = await getDoc(doc(requireDb(), LESSONS_COLLECTION, lessonId));
@@ -192,7 +207,7 @@ export async function getTradingChecklist(
   checklistId = 'pre-trade-checklist',
 ): Promise<TradingChecklist> {
   const local = getLocalChecklistById(checklistId);
-  if (!isFirebaseConfigured()) return local;
+  if (!shouldFetchRemoteAcademyCatalog()) return local;
 
   try {
     const snapshot = await getDoc(doc(requireDb(), CHECKLISTS_COLLECTION, checklistId));
@@ -205,7 +220,7 @@ export async function getTradingChecklist(
 
 export async function getAllChecklists(): Promise<TradingChecklist[]> {
   const local = getLocalChecklists();
-  if (!isFirebaseConfigured()) return local;
+  if (!shouldFetchRemoteAcademyCatalog()) return local;
 
   try {
     const snapshot = await getDocs(collection(requireDb(), CHECKLISTS_COLLECTION));
@@ -224,7 +239,7 @@ export async function getLessonsByCategoryQuery(
   category: LessonCategory,
   includePremium = true,
 ): Promise<Lesson[]> {
-  if (!isFirebaseConfigured()) {
+  if (!shouldFetchRemoteAcademyCatalog()) {
     return getLocalLessons(includePremium).filter((l) => l.category === category);
   }
   try {

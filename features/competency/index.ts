@@ -1,4 +1,6 @@
 export type {
+  CompetenceState,
+  CompetencyAssetClass,
   CompetencyConcept,
   CompetencyEvidenceInput,
   CompetencyEvidenceRecord,
@@ -15,10 +17,19 @@ export type {
   EvidenceQuality,
   EvidenceResult,
   EvidenceRole,
+  EvidenceLayer,
+  HelpLevel,
+  JournalEvidenceSignals,
+  MisconceptionHint,
   ProcessMetrics,
   RecordEvidenceResult,
   RemediationPlan,
+  RevisitKind,
   TaxonomyValidation,
+  ThesisSpecificity,
+  TransferDistance,
+  TransferEvidenceSummary,
+  TransferKind,
 } from './types/competency.types';
 
 export {
@@ -29,6 +40,22 @@ export {
 } from './content/competency-taxonomy';
 
 export { recipeFor } from './content/demonstration-recipes';
+
+export {
+  DRILL_CONCEPT_IDS,
+  DRILL_TO_CONCEPT,
+  EVENT_DRILL_IDS,
+  LESSON_CONCEPT_IDS,
+  LESSON_PRIMARY_CONCEPT,
+  REVIEW_ACTION_CONCEPTS,
+  SURPRISE_REPLAY_IDS,
+  TRANSFER_DRILL_IDS,
+  conceptsForDrill,
+  conceptsForLesson,
+  isEventDrill,
+  isSurpriseReplay,
+  isTransferDrill,
+} from './content/activity-concept-map';
 
 export {
   allCompetencyConcepts,
@@ -44,9 +71,17 @@ export {
   createEvidenceForConcepts,
   createEvidenceRecord,
   defaultEventKey,
+  deriveEvidenceLayer,
+  deriveTransferDistance,
+  helpWasUsed,
   isApplicationSource,
+  isExposureOnlyRecord,
   isExposureOnlySource,
+  isIndependentEvidence,
+  journalSignalCount,
+  normalizeEvidenceRecord,
   resolveEvidenceResult,
+  resolveHelpLevel,
 } from './services/evidence.service';
 
 export {
@@ -58,9 +93,10 @@ export {
 } from './services/mastery.service';
 
 export { scoreEvidenceQuality } from './services/quality.service';
-export { computeRedemonstrationDueAt } from './services/schedule.service';
-export { inferScenarioContext, selectNextDemonstration, selectTransferContext, buildRemediationPlan } from './services/context.service';
-export { MASTERY_USER_LABELS, userLabelFor } from './services/copy.service';
+export { scoreTransferEvidence, strongestEvidenceNote, detectFalseMastery, isFamiliarRecord } from './services/transfer.service';
+export { computeRedemonstrationDueAt, forgettingRiskFromQuality } from './services/schedule.service';
+export { inferScenarioContext, selectNextDemonstration, selectTransferContext, buildRemediationPlan, inferMisconception } from './services/context.service';
+export { MASTERY_USER_LABELS, COMPETENCE_STATE_LABELS, userLabelFor } from './services/copy.service';
 
 export {
   evidenceFromJournalReflection,
@@ -69,9 +105,12 @@ export {
   evidenceFromPracticeDrill,
   evidenceFromReplayDecision,
   evidenceFromSimulationDecision,
+  journalSignalsFromFields,
+  sourceTypeForLessonExercise,
 } from './services/ingest.service';
 
 export {
+  ingestEventExercise,
   ingestJournalReflection,
   ingestKnowledgeCheck,
   ingestLessonCompletion,
@@ -79,7 +118,11 @@ export {
   ingestPracticeAttempt,
   ingestReplayDecision,
   ingestReplayCompletion,
+  ingestReviewFinding,
+  ingestSimulationCheckpoint,
   ingestSimulationDecision,
+  ingestSurpriseAssessment,
+  ingestTransferExercise,
 } from './services/producers.service';
 
 export {

@@ -52,4 +52,18 @@ describe('getLessonEducationalFraming', () => {
     expect(framing.learningObjective).toContain('invalidation');
     expect(framing.simulationRecommendation).toContain('skip');
   });
+
+  it('prefers replayLinks for suggested Replay', () => {
+    const framing = getLessonEducationalFraming({
+      ...sampleLesson,
+      replayLinks: [
+        {
+          label: 'Failed setup room',
+          href: '/decision/replay-tv?episode=failed-setup-patience',
+          description: 'Commit before the outcome is visible.',
+        },
+      ],
+    });
+    expect(framing.suggestedReplay).toContain('Commit before the outcome');
+  });
 });

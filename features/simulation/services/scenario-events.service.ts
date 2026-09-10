@@ -6,6 +6,7 @@ import type {
   ScenarioDifficulty,
   ScenarioEvent,
   ScenarioEventKind,
+  ScenarioFocus,
 } from '../types/scenario.types';
 import { intIn, pick, pickN } from './scenario-rng';
 
@@ -415,6 +416,7 @@ export function generateScenarioEvents(input: {
   horizonDays: number;
   preferredKind?: ScenarioEventKind;
   difficulty?: ScenarioDifficulty;
+  focus?: ScenarioFocus;
 }): ScenarioEvent[] {
   const events: ScenarioEvent[] = [];
   const usedDays = new Set<number>();
@@ -506,7 +508,15 @@ export function generateScenarioEvents(input: {
     });
   }
 
-  return events.sort((a, b) => a.announceDay - b.announceDay || a.id.localeCompare(b.id));
+  const ordered = events.sort((a, b) => a.announceDay - b.announceDay || a.id.localeCompare(b.id));
+  if (input.focus !== 'overconfidence' || !ordered.length) return ordered;
+  return ordered.map((event, index) => ({
+    ...event,
+    briefing:
+      index === 0
+        ? `${event.briefing} Early tape has been consistent with the educational consensus. That can change.`.trim()
+        : `${event.briefing} A later reading now conflicts with the first story. Neither print is a trade instruction.`.trim(),
+  }));
 }
 
 export { EVENT_KINDS };

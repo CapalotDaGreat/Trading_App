@@ -5,7 +5,6 @@ import { View } from 'react-native';
 import { CategoryChips, type CategoryFilter } from '@/features/academy/components/CategoryChips';
 import {
   AcademyDisciplineCard,
-  NextLessonCard,
 } from '@/features/academy/components/CurriculumCards';
 import { LessonCard } from '@/features/academy/components/LessonCard';
 import { PathCard } from '@/features/academy/components/PathCard';
@@ -14,17 +13,14 @@ import {
   useAcademy,
   useAcademyChecklists,
   useLearningPaths,
-  useNextAcademyLesson,
 } from '@/features/academy/hooks/useAcademy';
 import { searchEducation } from '@/features/academy/services/educational-search.service';
 import { useAcademyProgressStore } from '@/features/academy/stores/academy-progress.store';
-import { PremiumOsGate } from '@/features/decision/components/PremiumOsGate';
-import { useTraderMemory } from '@/features/decision/hooks/useDecision';
-import { usePersonalIntelligence } from '@/features/personal-intelligence/hooks/usePersonalIntelligence';
-import type { CurriculumRecommendation } from '@/features/academy/services/curriculum.service';
+import { TrainingHandoffBanner } from '@/features/learning-engine/components/TrainingHandoffBanner';
+import { useLearningEngine } from '@/features/learning-engine/hooks/useLearningEngine';
+import { PlannerNextCard } from '@/features/training-planner/components/PlannerNextCard';
 import type { LessonDifficulty } from '@/features/academy/types/academy.types';
-import { buildDecisionDebt } from '@/features/decision/services/decision-os.service';
-import { useDecisionLog } from '@/features/decision-log/hooks/useDecisionLog';
+import { PremiumOsGate } from '@/features/decision/components/PremiumOsGate';
 import { LoopCtaRow } from '@/features/navigation/components/LoopCtaRow';
 import { EducationalModeBadge } from '@/features/educational/components/EducationalModeBadge';
 import { StatusState } from '@/shared/components/feedback/StatusState';
@@ -47,50 +43,13 @@ export default function AcademyScreen() {
     'all',
   );
   const [query, setQuery] = useState('');
-  const { lessons, completedCount, practicedCount, totalCount, isLoading } = useAcademy();
-  const { paths, isLoading: pathsLoading } = useLearningPaths();
+  const { lessons, completedCount, practicedCount, isLoading, isError, refetch } = useAcademy();
+  const { paths } = useLearningPaths();
   const { checklists } = useAcademyChecklists();
-  const memoryQuery = useTraderMemory();
-  const { summary: logSummary } = useDecisionLog();
   const isPremium = useSubscriptionStore((s) => s.isPremium);
   const discipline = useAcademyProgressStore((s) => s.getDisciplineStreak());
   const savedLessonIds = useAcademyProgressStore((s) => s.savedLessonIds);
-
-  const debt = useMemo(
-    () =>
-      buildDecisionDebt({
-        unreviewedSetups: 0,
-        incompleteJournals: Math.max(
-          0,
-          (logSummary?.researched ?? 0) - (logSummary?.journaled ?? 0),
-        ),
-        unfinishedLessons: Math.max(0, totalCount - practicedCount),
-        unfinishedReplay: 0,
-        ignoredAlerts: 0,
-      }),
-    [logSummary, totalCount, practicedCount],
-  );
-
-  const { recommendation, isPersonalized } = useNextAcademyLesson({
-    memory: memoryQuery.data,
-    debt,
-  });
-  const intelligence = usePersonalIntelligence();
-  const reinforcementRec = useMemo((): CurriculumRecommendation | null => {
-    const mapped = intelligence.data?.reinforcement;
-    if (!mapped?.enabled || !mapped.academyLesson?.lessonId) return null;
-    const lesson = lessons.find((item) => item.id === mapped.academyLesson?.lessonId);
-    if (!lesson) return null;
-    return {
-      lesson,
-      reason: mapped.academyLesson.reason,
-      evidence: ['Decision reinforcement · existing Academy lesson'],
-      source: 'dna',
-      isPersonalized: true,
-    };
-  }, [intelligence.data?.reinforcement, lessons]);
-  const nextLesson =
-    recommendation?.source === 'weakness' ? recommendation : reinforcementRec ?? recommendation;
+  const { primary, openItem, defer } = useLearningEngine();
 
   const searchHits = useMemo(() => searchEducation(lessons, query), [lessons, query]);
   const savedLessons = useMemo(
@@ -124,7 +83,7 @@ export default function AcademyScreen() {
   const primaryPaths = paths.filter((p) => !p.isSupporting);
   const supportingPaths = paths.filter((p) => p.isSupporting);
 
-  if (isLoading || pathsLoading) {
+  if (isLoading && lessons.length === 0 && paths.length === 0) {
     return (
       <ScreenScaffold title="Learn" scrollable={false} contentClassName="justify-center">
         <StatusState
@@ -149,6 +108,23 @@ export default function AcademyScreen() {
     >
       <View className="gap-4">
         <EducationalModeBadge />
+        <TrainingHandoffBanner />
+        {!isOnline ? (
+          <Text variant="caption" className="text-text-tertiary" testID="academy-offline-caption">
+            Lessons, quizzes, and paths are on this device. Cloud extras will merge when you are back online.
+          </Text>
+        ) : null}
+        {isError ? (
+          <Surface padding="sm" tone="warning" testID="academy-catalog-retry">
+            <Text variant="label">Couldn’t refresh the cloud catalog</Text>
+            <Text variant="body-sm" className="mt-1 text-text-secondary">
+              Showing the on-device lessons. Nothing here is live market data.
+            </Text>
+            <Button size="sm" className="mt-2 self-start" onPress={() => refetch()}>
+              Retry
+            </Button>
+          </Surface>
+        ) : null}
 
         <Input
           accessibilityLabel="Search Academy lessons, exercises, and glossary"
@@ -268,7 +244,16 @@ export default function AcademyScreen() {
               </Text>
             </Surface>
 
-            {completedCount === 0 && practicedCount === 0 ? (
+            {primary ? (
+              <View testID="academy-recommended">
+                <PlannerNextCard
+                  recommendation={primary}
+                  onOpen={() => openItem(primary)}
+                  onDefer={defer}
+                  eyebrow="Train next"
+                />
+              </View>
+            ) : completedCount === 0 && practicedCount === 0 ? (
               <Surface tone="accent" emphasis="outlined" testID="academy-empty-start">
                 <Text variant="label" className="text-text-tertiary">
                   First path
@@ -287,23 +272,11 @@ export default function AcademyScreen() {
                   Start Learning
                 </Button>
               </Surface>
-            ) : nextLesson ? (
-              <View testID="academy-recommended">
-                <Text variant="label" className="mb-2 text-text-tertiary">
-                  {nextLesson.source === 'weakness' ? 'Recommended refresher' : 'Continue Learning'}
-                </Text>
-                <NextLessonCard
-                  recommendation={nextLesson}
-                  showPremiumBadge={
-                    isPersonalized && isPremium && !reinforcementRec && nextLesson.source !== 'weakness'
-                  }
-                />
-              </View>
             ) : null}
 
             <CollapsibleSection
               title="Learning paths"
-              description="Pick a course track. Foundations first, then charts, risk, psychology, research, decisions, and portfolio."
+              description="Paths ordered for learning: Foundations first, then charts, risk, psychology, research, and decisions."
               defaultExpanded
             >
               {primaryPaths.map((path) => (

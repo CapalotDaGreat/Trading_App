@@ -150,7 +150,8 @@ describe('evidence quality and scheduling', () => {
   it('marks a demonstrated concept due for review after its own interval', () => {
     const later = scoreCompetencyMastery('position-sizing', sizingPath(NOW), NOW + 40 * DAY);
     expect(later.state).toBe('due_for_redemonstration');
-    expect(later.userLabel).toBe('Due for review');
+    expect(later.competenceState).toBe('needs_revisit');
+    expect(later.userLabel).toBe('Needs Revisit');
     expect(later.previouslyDemonstrated).toBe(true);
   });
 
@@ -190,7 +191,8 @@ describe('remediation and recovery', () => {
     ];
     const mastery = scoreCompetencyMastery('position-sizing', repeated, NOW + 1000);
     expect(mastery.state).toBe('needs_remediation');
-    expect(mastery.userLabel).toBe('Needs more practice');
+    expect(mastery.competenceState).toBe('needs_revisit');
+    expect(mastery.userLabel).toBe('Needs Revisit');
     expect(mastery.remediation?.diagnosis).toMatch(/more risk than the written limit/i);
     expect(mastery.previouslyDemonstrated).toBe(true);
     expect(mastery.remediation?.steps.some((step) => step.kind === 'calculation')).toBe(true);
@@ -370,5 +372,277 @@ describe('producer isolation', () => {
     expect(useCompetencyEvidenceStore.getState().evidenceFor('alice')[0]?.sourceType).toBe(
       'calculation_exercise',
     );
+  });
+});
+
+describe('competence bands (primary representation)', () => {
+  it('does not use a single numeric score as the user-facing state', () => {
+    const mastery = scoreCompetencyMastery('position-sizing', sizingPath(), NOW);
+    expect(mastery.competenceState).toBe('demonstrated');
+    expect(mastery.userLabel).toBe('Demonstrated');
+    expect(mastery.explanations.join(' ')).toMatch(/you demonstrated this skill/i);
+    expect(mastery.explanations.join(' ')).not.toMatch(/ready to trade|advanced trader|safely trade/i);
+    expect(typeof mastery.strength === 'number' || mastery.strength === null).toBe(true);
+  });
+
+  it('treats repeated independent success as stronger than a single pass', () => {
+    const once = scoreCompetencyMastery(
+      'momentum',
+      [
+        ev({
+          conceptId: 'momentum',
+          sourceType: 'practice_drill',
+          sourceId: 'once',
+          result: 'pass',
+          occurredAt: NOW,
+        }),
+      ],
+      NOW,
+    );
+    const repeated = scoreCompetencyMastery(
+      'momentum',
+      [
+        ev({
+          conceptId: 'momentum',
+          sourceType: 'practice_drill',
+          sourceId: 'r1',
+          result: 'pass',
+          occurredAt: NOW - 3 * DAY,
+        }),
+        ev({
+          conceptId: 'momentum',
+          sourceType: 'practice_drill',
+          sourceId: 'r2',
+          result: 'pass',
+          occurredAt: NOW - 2 * DAY,
+        }),
+        ev({
+          conceptId: 'momentum',
+          sourceType: 'simulation_decision',
+          sourceId: 's1',
+          occurredAt: NOW,
+          scenarioContext: 'trend',
+          processMetrics: { processQuality: 80 },
+        }),
+      ],
+      NOW,
+    );
+    expect(once.competenceState).not.toBe('demonstrated');
+    expect(once.competenceState).not.toBe('strong');
+    expect(repeated.competenceState).toBe('demonstrated');
+    expect(repeated.independentDemonstrationCount).toBeGreaterThan(once.independentDemonstrationCount);
+    expect(repeated.transfer.proven).toBe(true);
+  });
+
+  it('does not require perfection — intermittent success can still develop without collapsing', () => {
+    const records = [
+      ...sizingPath(NOW - 4 * DAY),
+      ev({
+        conceptId: 'position-sizing',
+        sourceType: 'practice_drill',
+        sourceId: 'miss-once',
+        occurredAt: NOW,
+        result: 'fail',
+      }),
+    ];
+    const mastery = scoreCompetencyMastery('position-sizing', records, NOW);
+    expect(mastery.state).toBe('demonstrated');
+    expect(mastery.competenceState).toBe('demonstrated');
+    expect(mastery.quality.consistency).not.toBe(100);
+  });
+
+  it('treats a successful guided exercise as weaker than an independent one', () => {
+    const guided = [
+      ev({
+        conceptId: 'rsi',
+        sourceType: 'applied_exercise',
+        sourceId: 'guided',
+        result: 'pass',
+        independent: false,
+        hintsUsed: true,
+        helpLevel: 'example',
+        occurredAt: NOW,
+      }),
+    ];
+    const independent = [
+      ev({
+        conceptId: 'rsi',
+        sourceType: 'applied_exercise',
+        sourceId: 'solo',
+        result: 'pass',
+        independent: true,
+        helpLevel: 'none',
+        occurredAt: NOW,
+      }),
+    ];
+    const guidedMastery = scoreCompetencyMastery('rsi', guided, NOW);
+    const independentMastery = scoreCompetencyMastery('rsi', independent, NOW);
+    expect(guidedMastery.independentDemonstrationCount).toBe(0);
+    expect(independentMastery.independentDemonstrationCount).toBe(1);
+    expect(guidedMastery.competenceState).toBe('developing');
+    expect(independentMastery.competenceState).toBe('transfer_unproven');
+    expect((independentMastery.strength ?? 0)).toBeGreaterThan(guidedMastery.strength ?? 0);
+  });
+
+  it('marks stale demonstrated evidence as needs revisit for spaced re-demonstration', () => {
+    const later = scoreCompetencyMastery('position-sizing', sizingPath(NOW), NOW + 40 * DAY);
+    expect(later.competenceState).toBe('needs_revisit');
+    expect(later.revisitKind).toBe('retention');
+    expect(later.explanations.join(' ')).toMatch(/retention, not punishment/i);
+  });
+
+  it('marks transfer unproven after a single-context application and proven after a new context', () => {
+    const one = [
+      ev({
+        conceptId: 'invalidation',
+        sourceType: 'simulation_decision',
+        sourceId: 'sim-trend',
+        occurredAt: NOW,
+        scenarioContext: 'trend',
+        assetClass: 'equity',
+        interactingConceptIds: ['invalidation', 'thesis'],
+        processMetrics: { processQuality: 80 },
+      }),
+    ];
+    const two = [
+      ...one,
+      ev({
+        conceptId: 'invalidation',
+        sourceType: 'replay_decision',
+        sourceId: 'replay-fx',
+        occurredAt: NOW + 1000,
+        scenarioContext: 'high_volatility',
+        assetClass: 'fx',
+        interactingConceptIds: ['invalidation', 'event-risk'],
+        processMetrics: { processQuality: 81 },
+      }),
+    ];
+    expect(scoreCompetencyMastery('invalidation', one, NOW).competenceState).toBe('transfer_unproven');
+    expect(scoreCompetencyMastery('invalidation', one, NOW).transfer.proven).toBe(false);
+    const transferred = scoreCompetencyMastery('invalidation', two, NOW + 1000);
+    expect(transferred.transfer.proven).toBe(true);
+    expect(transferred.competenceState).not.toBe('transfer_unproven');
+    expect(transferred.transfer.assetClasses).toEqual(expect.arrayContaining(['equity', 'fx']));
+  });
+
+  it('reaches strong only after repeated independent, varied application — not a perfect score', () => {
+    const records = [
+      ...sizingPath(NOW - 6 * DAY),
+      ev({
+        conceptId: 'position-sizing',
+        sourceType: 're_demonstration',
+        sourceId: 're-1',
+        occurredAt: NOW - 2 * DAY,
+        scenarioContext: 'event_window',
+        assetClass: 'fx',
+        processMetrics: { processQuality: 76 },
+      }),
+      ev({
+        conceptId: 'position-sizing',
+        sourceType: 'replay_decision',
+        sourceId: 'rp-1',
+        occurredAt: NOW,
+        scenarioContext: 'losing_position',
+        assetClass: 'equity',
+        processMetrics: { processQuality: 74 },
+      }),
+    ];
+    const mastery = scoreCompetencyMastery('position-sizing', records, NOW);
+    expect(mastery.state).toBe('demonstrated');
+    expect(mastery.competenceState).toBe('strong');
+    expect(mastery.userLabel).toBe('Strong');
+    expect(mastery.explanations.join(' ')).toMatch(/evidence is strongest/i);
+  });
+
+  it('rotates remediation away from the same failed question and asks for a new-context verify', () => {
+    const records = [
+      ev({
+        conceptId: 'position-sizing',
+        sourceType: 'practice_drill',
+        sourceId: 'position-size',
+        occurredAt: NOW - DAY,
+        result: 'fail',
+        processMetrics: { flags: { exceededRiskLimit: true } },
+      }),
+      ev({
+        conceptId: 'position-sizing',
+        sourceType: 'practice_drill',
+        sourceId: 'position-size',
+        occurredAt: NOW,
+        result: 'fail',
+        processMetrics: { flags: { exceededRiskLimit: true } },
+      }),
+    ];
+    const mastery = scoreCompetencyMastery('position-sizing', records, NOW);
+    expect(mastery.competenceState).toBe('needs_revisit');
+    expect(mastery.remediation?.misconception?.label).toMatch(/more risk than the written limit/i);
+    expect(mastery.remediation?.verifyInNewContext).toBe(true);
+    expect(mastery.remediation?.steps.some((step) => step.sourceId === 'rr-compare')).toBe(true);
+    expect(mastery.remediation?.steps.some((step) => step.kind === 'redemonstration')).toBe(true);
+    expect(mastery.nextDemonstration?.context).not.toBe('standard');
+  });
+
+  it('keeps demonstrated skill when familiar application is strong and unfamiliar application is weak', () => {
+    const records = [
+      ev({
+        conceptId: 'position-sizing',
+        sourceType: 'knowledge_check',
+        sourceId: 'quiz',
+        occurredAt: NOW - 6 * DAY,
+        result: 'pass',
+      }),
+      ev({
+        conceptId: 'position-sizing',
+        sourceType: 'calculation_exercise',
+        sourceId: 'calc',
+        occurredAt: NOW - 5 * DAY,
+        result: 'pass',
+      }),
+      ev({
+        conceptId: 'position-sizing',
+        sourceType: 'simulation_decision',
+        sourceId: 'sim-trend',
+        occurredAt: NOW - 4 * DAY,
+        scenarioContext: 'trend',
+        assetClass: 'equity',
+        processMetrics: { processQuality: 82 },
+      }),
+      ev({
+        conceptId: 'position-sizing',
+        sourceType: 'simulation_decision',
+        sourceId: 'sim-standard',
+        occurredAt: NOW - 3 * DAY,
+        scenarioContext: 'standard',
+        assetClass: 'equity',
+        processMetrics: { processQuality: 80 },
+      }),
+      ev({
+        conceptId: 'position-sizing',
+        sourceType: 'replay_decision',
+        sourceId: 'replay-fx',
+        occurredAt: NOW - DAY,
+        scenarioContext: 'high_volatility',
+        assetClass: 'fx',
+        transferDistance: 'far',
+        processMetrics: { processQuality: 30 },
+      }),
+      ev({
+        conceptId: 'position-sizing',
+        sourceType: 'transfer_exercise',
+        sourceId: 'transfer-fx',
+        occurredAt: NOW,
+        scenarioContext: 'event_window',
+        assetClass: 'fx',
+        transferDistance: 'far',
+        processMetrics: { processQuality: 28 },
+      }),
+    ];
+    const mastery = scoreCompetencyMastery('position-sizing', records, NOW);
+    expect(mastery.falseMastery).toBe(true);
+    expect(mastery.state).toBe('demonstrated');
+    expect(mastery.competenceState).toBe('demonstrated');
+    expect(mastery.transfer.proven).toBe(false);
+    expect(mastery.explanations.join(' ')).toMatch(/unfamiliar contexts/i);
+    expect(mastery.nextDemonstration).not.toBeNull();
   });
 });

@@ -219,8 +219,9 @@ export function LegalSupportBody({ onEmail }: LegalSupportBodyProps) {
             Email
           </Text>
           <Text variant="body" className="mt-0.5 leading-6 text-text-primary">
-            Official support mailbox is listed as [SUPPORT EMAIL REQUIRED] in the Support policy
-            until Aithera activates it. Use the legal documents below until then.
+            Aithera has not published a production support mailbox yet. Use the in-app legal
+            documents below, or Settings → Privacy for deletion and data requests. Do not treat
+            bracketed template fields in the policies as live email addresses.
           </Text>
         </View>
       )}

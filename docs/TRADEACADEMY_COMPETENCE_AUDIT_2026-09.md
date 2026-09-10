@@ -1,6 +1,9 @@
 # TradeAcademy competence audit — September 2026
 
 **Date:** 10 September 2026  
+**Release architecture baseline (system map, duplicates, store blockers):** [TRADEACADEMY_RELEASE_BASELINE.md](./TRADEACADEMY_RELEASE_BASELINE.md)  
+**Canonical next-activity ranker:** [TRADEACADEMY_TRAINING_PLANNER.md](./TRADEACADEMY_TRAINING_PLANNER.md)
+
 **Standard (not “ready for real money”):**
 
 > The user has practiced, demonstrated, reviewed and re-demonstrated specific trading-related competencies under varied simulated and educational conditions.
@@ -37,7 +40,7 @@ These are not inflated. The machinery for demonstration, decay, and process-over
 | Journey / concept survival | **78** | Query + store handoff (`?concept=&loop=&conceal=`) now reaches Learn, Practice, Replay home **and session**, Simulate, Journal, Review, and Events. Asset/study pages still do not show it. |
 | Beginner path | **82** | Foundations first on Home. Events is a learning calendar, not a news feed (tab now visible). Event *prep stacks* stay off for beginners. |
 | Intermediate path | **76** | Charts, replay, sim, event study, journal. Transfer variety is real for sizing/invalidation/thesis, not for most chart IDs. |
-| Advanced path | **62** | Event personalization and mixed sim exist. Hundreds of sessions are not a spaced-mastery contract. Fundamentals rarely require application evidence. |
+| Advanced path | **64** | Event personalization and mixed sim exist. Hundreds of sessions are not a spaced-mastery contract. Fundamentals now require application evidence; transfer variety is still thinner than sizing. |
 | Simulation quality | **80** | USD 100k synthetic book, randomized scenarios, stochastic events, process eval, no broker. Thesis required in the buy UI; engine can still persist `Simulated entry`. Invalidation is encouraged, not hard-gated. |
 | Replay quality | **76** | Information boundary, commit-then-reveal, anti-hindsight grading, tested. Tapes remain educational reconstructions (`dataKind: sample`). Licensed years are a type, not a library. |
 | Events quality | **81** | Educational calendar, concept/lesson/replay/sim links, attribution, no-prediction tests. Not a news terminal. Advanced “training relevant to upcoming events” is training, not alerts. |
@@ -115,7 +118,11 @@ Chart lessons, drills (`identify-trend`, `find-support`, `breakout-quality`, …
 
 ### Fundamental research
 
-Lessons exist (earnings, valuation, etc.). Family default recipe is **knowledge + practice only** — **application is not required**. That is honest relative to content, and it means “demonstrated” fundamentals is a weaker claim than “demonstrated” sizing.
+Lessons exist for statements, valuation/advantage, calendar, and macro weather. Family default recipe is **knowledge + practice + application** (`applied_exercise`, replay, simulation, or transfer). Earnings and valuation also require **two application contexts** and conceal-on-retest.
+
+Multiple-choice (`choose` / `select`) is recognition only. Scenario, compare, and explain ingest as `applied_exercise` (or `transfer_exercise` when marked). Educational company files (Cedar, Harbor, Northline, BrightCanvas) are sample interpretation tasks — not recommendations.
+
+Coverage of revenue growth, earnings (including margins/cash-flow aliases), balance sheet, valuation, competitive position, business quality, and fundamental uncertainty now has the eight-step loop: explanation → recognition → guided interpretation → independent interpretation → comparison → unfamiliar scenario → mixed application → review.
 
 ### Event risk
 
@@ -301,7 +308,7 @@ No regressions were left unfixed. The Events-tab / handoff changes did not requi
 2. **Today’s Training is advice, not an assignment.** Skip/defer never force a demonstrated retry.
 3. **Named remediation is sparse.** Generic plans dump the user on `/academy` and `/practice` without a specific lesson/drill.
 4. **Simulation evidence over-tags** four concepts on every fill; engine thesis fallback (`Simulated entry`); invalidation not hard-required.
-5. **Fundamentals “demonstrated” without application.**
+5. **Fundamentals demonstration still needs two application contexts** for earnings/valuation; MCQ cannot close those recipes.
 6. **Replay library is not licensed history.** Architecture is ready; content is sample.
 7. **Dual mastery models** (legacy concept-mastery vs competency ledger).
 8. **Local-only competency ledger** — lost on reinstall; no cross-device continuity; not a server-of-record.

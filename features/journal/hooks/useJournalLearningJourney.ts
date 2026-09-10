@@ -1,4 +1,3 @@
-import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 
 import { useNextAcademyLesson } from '@/features/academy/hooks/useAcademy';
@@ -9,8 +8,8 @@ import { buildJournalLearningJourney } from '@/features/journal/services/journal
 import { usePersonalIntelligence } from '@/features/personal-intelligence/hooks/usePersonalIntelligence';
 
 export function useJournalLearningJourney() {
-  const { entries, stats, isLoading: journalLoading } = useJournal();
-  const { records, summary: logSummary } = useDecisionLog();
+  const { entries, stats, isLoading: journalLoading, isError: journalError, refetch } = useJournal();
+  const { records, summary: logSummary, isError: logError } = useDecisionLog();
   const coachQuery = useJournalCoach();
   const memoryQuery = useTraderMemory();
   const intelligence = usePersonalIntelligence('weekly');
@@ -18,30 +17,8 @@ export function useJournalLearningJourney() {
     memory: memoryQuery.data,
   });
 
-  const signature = useMemo(
+  const journey = useMemo(
     () =>
-      [
-        entries.length,
-        entries[0]?.updatedAt ?? 'none',
-        records?.length ?? 0,
-        logSummary?.processScore ?? 0,
-        coachQuery.dataUpdatedAt,
-        intelligence.dataUpdatedAt,
-        academyNext?.lesson.id ?? 'none',
-      ].join(':'),
-    [
-      entries,
-      records?.length,
-      logSummary?.processScore,
-      coachQuery.dataUpdatedAt,
-      intelligence.dataUpdatedAt,
-      academyNext?.lesson.id,
-    ],
-  );
-
-  const journeyQuery = useQuery({
-    queryKey: ['journal-learning-journey', signature],
-    queryFn: () =>
       buildJournalLearningJourney({
         entries,
         records: records ?? [],
@@ -59,15 +36,26 @@ export function useJournalLearningJourney() {
             }
           : null,
       }),
-    staleTime: 15_000,
-  });
+    [
+      academyNext,
+      coachQuery.data,
+      entries,
+      intelligence.data?.dna,
+      intelligence.data?.evolution,
+      intelligence.data?.graph,
+      logSummary,
+      memoryQuery.data,
+      records,
+    ],
+  );
 
   return {
-    journey: journeyQuery.data,
+    journey,
     stats,
     entries,
-    isLoading: journalLoading || journeyQuery.isLoading,
-    isError: journeyQuery.isError,
-    refetch: journeyQuery.refetch,
+    isLoading: journalLoading && entries.length === 0,
+    isError: (journalError || logError) && entries.length === 0,
+    isStale: Boolean((journalError || logError) && entries.length > 0),
+    refetch,
   };
 }

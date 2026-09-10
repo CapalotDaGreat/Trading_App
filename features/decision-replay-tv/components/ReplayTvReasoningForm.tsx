@@ -9,7 +9,7 @@ import { Text } from '@/shared/components/ui/Text';
 interface ReplayTvReasoningFormProps {
   value: ReplayTvReasoning;
   onChange: (next: ReplayTvReasoning) => void;
-  section?: 'thesis' | 'risk' | 'sizing';
+  section?: 'thesis' | 'risk' | 'sizing' | 'reflection';
 }
 
 export function ReplayTvReasoningForm({ value, onChange, section = 'thesis' }: ReplayTvReasoningFormProps) {
@@ -100,6 +100,16 @@ export function ReplayTvReasoningForm({ value, onChange, section = 'thesis' }: R
             accessibilityLabel="Replay TV expected risk"
           />
         </>
+      ) : null}
+      {section === 'reflection' ? (
+        <Input
+          label="Process reflection"
+          value={value.reflection ?? ''}
+          onChangeText={(reflection) => patch({ reflection })}
+          placeholder="What would you keep about the process, independent of the later path?"
+          multiline
+          accessibilityLabel="Replay TV process reflection"
+        />
       ) : null}
       {section === 'thesis' ? (
         <>

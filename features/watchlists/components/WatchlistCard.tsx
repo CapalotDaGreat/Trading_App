@@ -29,7 +29,11 @@ export function WatchlistCard({
 
   return (
     <GlassCard className={cn('p-4', className)}>
-      <Pressable onPress={() => onPress?.(watchlist)} accessibilityRole="button">
+      <Pressable
+        onPress={() => onPress?.(watchlist)}
+        accessibilityRole="button"
+        accessibilityLabel={`Open study list ${watchlist.name}`}
+      >
         <View className="mb-3 flex-row items-center justify-between">
           <View className="flex-1">
             <Text variant="h3" numberOfLines={1}>

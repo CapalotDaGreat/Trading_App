@@ -227,6 +227,8 @@ export interface ReplayTvReasoning {
   intendedSize?: string;
   expectedRisk?: string;
   alternatives?: string;
+  /** After-the-fact process note. Graded as reflection, never as P/L. */
+  reflection?: string;
   freeText?: string;
 }
 
@@ -327,6 +329,7 @@ export interface ReplayTvScores {
   thesisQuality: number;
   uncertaintyRecognition: number;
   hindsightHygiene: number;
+  reflectionQuality: number;
   /** DQS-compatible composite — never a profitability score. */
   overall: number;
   coaching: string[];

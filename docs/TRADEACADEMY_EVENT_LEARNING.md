@@ -63,19 +63,30 @@ Academy lessons, practice drills, Replay episodes, and `?prep=` simulations are 
 
 ## Beginner mode
 
-Beginners (`completely_new`, `beginner`, or unset) see **Market Events as a learning calendar**:
+Beginners (`completely_new`, `beginner`, or unset) see **Market Events as a learning calendar**. The question is:
 
-- A short “what is an economic calendar” path (`fund-calendar`)
+> What is this event and why does it matter?
+
+- A short event-risk path (`fund-calendar`)
 - At most a handful of upcoming *study objects* (CPI, rates, employment, GDP, earnings)
 - A couple of labelled historical classrooms
 - **No** high-frequency developing news stream
 - **No** advanced “training relevant to upcoming events” stack
+- Cards show what / why / related concepts — not a professional economic terminal
 
 The question remains educational. A headline is not a signal.
 
 ## Advanced personalization
 
-Advanced / professional mentor profiles can receive **training relevant to upcoming events**.
+Advanced / professional mentor profiles can receive **training relevant to upcoming events**. The stack may include a related lesson, a practice drill, an event-aware replay, and an event-aware simulation. That is training, not a market prediction.
+
+Routing from the competency ledger:
+
+| Learner state | Training intent |
+| --- | --- |
+| Weak event-risk | Event-risk lesson (`fund-calendar`) |
+| Strong event-risk, weak uncertainty | Uncertainty-focused event exercise |
+| Strong fundamentals, weak application | Event-driven fundamentals scenario |
 
 Example:
 
@@ -86,7 +97,7 @@ Example:
 Sources of the gap (intersected with the event’s concept IDs):
 
 - Recent incorrect practice drills (`DRILL_TO_CONCEPT`)
-- Competency states `needs_remediation` / `due_for_redemonstration`
+- Competency states `needs_revisit` / `transfer_unproven` / `needs_remediation` / `due_for_redemonstration`
 - Named skill-domain weakness and onboarding struggles
 
 This is **training personalization, not a trade alert**. Today’s Training may surface the same plan as `event_prep` for eligible users.

@@ -1,5 +1,14 @@
-import { makeFlagshipLesson } from './lesson-factory';
+import { makeFlagshipLesson, replayEpisodeLink } from './lesson-factory';
 import type { Lesson } from '../types/academy.types';
+import {
+  BRIGHTCANVAS,
+  CEDAR_RETAIL,
+  FUNDAMENTAL_SAMPLE_DISCLAIMER,
+  HARBOR_COMPONENTS,
+  NORTHLINE_UTILITIES,
+  formatCompanyCard,
+  formatCompanyPair,
+} from './fundamental-cases';
 
 const SIMULATE = {
   label: 'Apply in paper trading',
@@ -51,7 +60,7 @@ export const FLAGSHIP_PROCESS_LESSONS: Lesson[] = [
     searchKeywords: ['portfolio exposure', 'how much invested', 'concentration'],
     prerequisiteIds: ['risk-per-trade'],
     relatedLessonIds: ['port-diversification', 'dec-portfolio-risk', 'risk-correlation'],
-    conceptIds: ['exposure', 'concentration'],
+    conceptIds: ['concentration-risk'],
     objectives: [
       'Distinguish cash, invested, and equity.',
       'Treat a 20%+ single-name weight as a process observation, not a badge.',
@@ -205,6 +214,7 @@ export const FLAGSHIP_PROCESS_LESSONS: Lesson[] = [
     ],
     mistakes: ['Increasing size because you “already missed the easy part”.', 'Abandoning stops to stay in the story.'],
     limitations: ['You will still miss moves. That is not a process error by itself.'],
+    whenItWorks: ['You notice the urgency, write why-not, and keep size at zero until a killable thesis exists.'],
     whenItFails: ['When your playbook actually requires momentum continuation — then write that in advance, with size that survives being late.'],
     exercise: {
       id: 'ex-fomo',
@@ -242,8 +252,16 @@ export const FLAGSHIP_PROCESS_LESSONS: Lesson[] = [
       ),
     ],
     takeaways: ['A missed move is not a loss of self-worth.', 'No thesis, no trade — including paper trades.'],
-    practice: [{ label: 'Bias drill', href: '/practice?drill=confirmation-bias', description: 'Notice when you only collect agreeing evidence.' }, JOURNAL],
+    practice: [
+      {
+        label: 'FOMO chase drill',
+        href: '/practice?drill=fomo-chase',
+        description: 'Urgency from a move already in motion is not a thesis.',
+      },
+      JOURNAL,
+    ],
     simulation: [SIMULATE],
+    replay: [replayEpisodeLink('gamestop-squeeze', 'Crowd-pressure room — skip is a complete decision')],
   }),
 
   makeFlagshipLesson({
@@ -258,7 +276,7 @@ export const FLAGSHIP_PROCESS_LESSONS: Lesson[] = [
     searchKeywords: ['revenge trading', 'get it back', 'tilt'],
     prerequisiteIds: ['dec-psychology'],
     relatedLessonIds: ['psych-fomo', 'psych-loss-aversion', 'risk-per-trade'],
-    conceptIds: ['revenge'],
+    conceptIds: ['revenge-trading'],
     objectives: [
       'Name revenge as a size/frequency problem.',
       'Use a pause rule after a plan break.',
@@ -273,6 +291,7 @@ export const FLAGSHIP_PROCESS_LESSONS: Lesson[] = [
     ],
     mistakes: ['“I know this ticker now.”', 'Disabling the stop because it “wasn’t fair”.'],
     limitations: ['Feelings happen. The skill is not acting them out with size.'],
+    whenItWorks: ['After a plan break you pause, journal one sentence, and reset to planned size before any new risk.'],
     whenItFails: ['When you relabel revenge as “aggressiveness”.'],
     exercise: {
       id: 'ex-rev',
@@ -282,7 +301,7 @@ export const FLAGSHIP_PROCESS_LESSONS: Lesson[] = [
       modelAnswer:
         'No new simulated or live risk until I journal what broke and reset to planned size.',
       explanation: 'If your rule still allows immediate double-size, it is not a pause rule.',
-      conceptId: 'revenge',
+      conceptId: 'revenge-trading',
     },
     quiz: [
       mcq(
@@ -301,12 +320,20 @@ export const FLAGSHIP_PROCESS_LESSONS: Lesson[] = [
           'Challenges measure process caps, not recovery speed.',
           'Stops can be correct and still lose.',
         ],
-        'revenge',
+        'revenge-trading',
       ),
     ],
     takeaways: ['Outcome and process are different.', 'Pause rules are part of risk.'],
-    practice: [JOURNAL],
+    practice: [
+      {
+        label: 'Revenge interrupt drill',
+        href: '/practice?drill=revenge-interrupt',
+        description: 'The second trade after a loss is often the worst file.',
+      },
+      JOURNAL,
+    ],
     simulation: [SIMULATE],
+    replay: [replayEpisodeLink('failed-setup-patience', 'Stand down after a failed idea — do not chase size')],
   }),
 
   makeFlagshipLesson({
@@ -404,6 +431,7 @@ export const FLAGSHIP_PROCESS_LESSONS: Lesson[] = [
     ],
     mistakes: ['Adding indicators until one agrees.', 'Unfollowing people who disagree rather than stressing the idea.'],
     limitations: ['You still must decide. The point is a fairer file, not endless doubt.'],
+    whenItWorks: ['You write one disagreeing fact before size, and you would actually use it for the stop.'],
     whenItFails: ['When “against” is a token sentence you do not actually use for the stop.'],
     exercise: {
       id: 'ex-cb',
@@ -440,8 +468,12 @@ export const FLAGSHIP_PROCESS_LESSONS: Lesson[] = [
       ),
     ],
     takeaways: ['Against-evidence is part of the thesis.', 'Wins can still be biased.'],
-    practice: [{ label: 'Missing evidence drill', href: '/practice?drill=missing-evidence', description: 'Notice what is not in the file.' }],
+    practice: [
+      { label: 'Confirmation-bias drill', href: '/practice?drill=confirmation-bias', description: 'Protecting a story is the leak, not the P/L.' },
+      { label: 'Missing evidence drill', href: '/practice?drill=missing-evidence', description: 'Notice what is not in the file.' },
+    ],
     simulation: [SIMULATE],
+    replay: [replayEpisodeLink('failed-setup-patience', 'A tempting structure still needs contrary evidence')],
   }),
 
   makeFlagshipLesson({
@@ -471,6 +503,7 @@ export const FLAGSHIP_PROCESS_LESSONS: Lesson[] = [
     ],
     mistakes: ['Skipping journals on winners.', 'Adding markets you have not studied because “it’s working”.'],
     limitations: ['Confidence in a practiced skill is allowed. Unmeasured size jumps are not the same thing.'],
+    whenItWorks: ['Risk percent stays in the plan after a green patch, and winners get the same journal questions as losers.'],
     whenItFails: ['When markets changed and the streak was regime luck.'],
     exercise: {
       id: 'ex-oc',
@@ -504,8 +537,16 @@ export const FLAGSHIP_PROCESS_LESSONS: Lesson[] = [
       ),
     ],
     takeaways: ['Streaks are not a plan.', 'Review winners.'],
-    practice: [JOURNAL],
+    practice: [
+      {
+        label: 'Confidence-check drill',
+        href: '/practice?drill=confidence-check',
+        description: 'A paper streak is a path, not permission to inflate size.',
+      },
+      JOURNAL,
+    ],
     simulation: [SIMULATE],
+    replay: [replayEpisodeLink('failed-setup-patience', 'Feeling sharp is not a reason to force the next idea')],
   }),
 
   makeFlagshipLesson({
@@ -656,10 +697,11 @@ export const FLAGSHIP_PROCESS_LESSONS: Lesson[] = [
     searchKeywords: ['earnings', 'revenue', 'cash flow', 'balance sheet', 'margins'],
     prerequisiteIds: ['fund-basics'],
     relatedLessonIds: ['fund-valuation-quality', 'fund-calendar', 'fund-economy'],
-    conceptIds: ['revenue', 'earnings', 'margins', 'cash-flow', 'balance-sheet'],
+    conceptIds: ['revenue-growth', 'earnings', 'balance-sheet'],
     objectives: [
       'Map each statement to a question (growth, profitability, cash, obligations).',
-      'Refuse to treat a beat as an automatic long.',
+      'Interpret changing margins and cash conversion without treating a beat as a long.',
+      'Refuse to treat a simplified company file as an investment recommendation.',
     ],
     whyItMatters:
       'Price can ignore a “good” print. Fundamentals change what you think you own. They do not replace invalidation.',
@@ -670,23 +712,138 @@ export const FLAGSHIP_PROCESS_LESSONS: Lesson[] = [
       'Earnings beat, guidance poor, gap down — the tape is not obligated to celebrate.',
     ],
     mistakes: ['Equating EPS beat with a buy signal.', 'Ignoring debt because the chart is pretty.'],
-    limitations: ['Statements are lagged and accounting-based. Fraud and one-offs exist.'],
+    limitations: ['Statements are lagged and accounting-based. Fraud and one-offs exist.', FUNDAMENTAL_SAMPLE_DISCLAIMER],
+    whenItWorks: [
+      'You map growth, profitability, cash, and obligations as separate questions, then decide whether the file even deserves size.',
+    ],
     whenItFails: ['When the driver is liquidity or a meme, not the business. Then say so — and size as speculation, if at all.'],
     exercise: {
-      id: 'ex-fs',
+      id: 'ex-fs-recognize',
       kind: 'select',
-      prompt: 'Earnings rose but free cash flow fell and debt rose. The honest research note is…',
-      choices: [
-        'Automatic long — earnings are what matter',
-        'Quality of earnings is in question; do not skip the cash and leverage file',
-        'Ignore statements on that ticker forever',
-        'The candle already priced everything perfectly',
-      ],
+      prompt: 'Which statement is the first place to look for leverage and cash buffers?',
+      choices: ['The income statement only', 'The balance sheet', 'A single candle', 'The P/E ratio alone'],
       correctIndex: 1,
-      explanation: 'Earnings without cash and with more leverage is a different business story.',
-      conceptId: 'cash-flow',
-      askEvidence: true,
+      explanation: 'Obligations and cash live on the balance sheet. A beat is not that file.',
+      conceptId: 'balance-sheet',
     },
+    extraExercises: [
+      {
+        id: 'ex-fs-growth-recognize',
+        kind: 'select',
+        conceptId: 'revenue-growth',
+        prompt: 'Harbor’s revenue is up 28%. What does that number, by itself, tell you?',
+        choices: [
+          'That Harbor is the automatic long',
+          'Only that the top line grew — not whether growth is high-quality or a buy',
+          'That margins and cash must also have improved',
+          'That the next candle will follow revenue',
+        ],
+        correctIndex: 1,
+        explanation: 'Growth is one evidence pile. Quality, cash, and price paid are separate questions — and none of them are an order.',
+      },
+      {
+        id: 'ex-fs-earnings-recognize',
+        kind: 'select',
+        conceptId: 'earnings',
+        prompt: 'Positive earnings while free cash flow is negative most honestly means…',
+        choices: [
+          'The business is proven high quality',
+          'Earnings quality is in question until cash and leverage are read',
+          'You should buy the dip',
+          'Accounting profit always equals cash',
+        ],
+        correctIndex: 1,
+        explanation: 'Profitability is earnings, margins, and cash conversion together — not a headline EPS beat.',
+      },
+      {
+        id: 'ex-fs-leverage-guided',
+        kind: 'scenario',
+        guided: true,
+        conceptId: 'balance-sheet',
+        scenarioContext: 'concentrated_portfolio',
+        situation: formatCompanyPair(CEDAR_RETAIL, HARBOR_COMPONENTS),
+        prompt: 'Harbor’s debt/equity rose while Cedar’s stayed modest. Honest first read of the leverage file?',
+        choices: [
+          'Ignore Harbor’s debt because revenue grew',
+          'Rising leverage is a balance-sheet risk question, not a short recommendation',
+          'Buy Cedar automatically because debt is lower',
+          'A tight 5-minute stop replaces the obligations file',
+        ],
+        correctIndex: 1,
+        explanation: 'The balance sheet is where obligations live. This pair is educational sample data, not a pick list.',
+        askEvidence: true,
+      },
+      {
+        id: 'ex-fs-margins',
+        kind: 'scenario',
+        guided: true,
+        conceptId: 'earnings',
+        interactingConceptIds: ['revenue-growth'],
+        scenarioContext: 'earnings',
+        situation: formatCompanyCard(HARBOR_COMPONENTS),
+        prompt: 'Harbor’s revenue is up and the operating margin is down. Honest interpretation?',
+        choices: [
+          'Automatic long — growth is what matters',
+          'Growth is getting less efficient; read cash and leverage before treating earnings as quality',
+          'Ignore Harbor forever because one year disappointed',
+          'The chart already priced everything perfectly',
+        ],
+        correctIndex: 1,
+        explanation: 'Rising revenue with falling margins is a quality question, not a buy signal.',
+        askEvidence: true,
+      },
+      {
+        id: 'ex-fs-compare',
+        kind: 'compare',
+        conceptId: 'revenue-growth',
+        interactingConceptIds: ['business-quality', 'earnings', 'balance-sheet'],
+        scenarioContext: 'ambiguous_setup',
+        situation: formatCompanyPair(CEDAR_RETAIL, HARBOR_COMPONENTS),
+        prompt: 'Which reading separates growth from quality?',
+        leftLabel: 'Harbor is better because +28% revenue always wins',
+        rightLabel: 'Harbor grew faster; Cedar’s margins and cash look more durable — neither is a buy instruction',
+        correctIndex: 1,
+        explanation:
+          'Growth and quality can diverge. Naming that split is the skill. These names are educational samples.',
+        askEvidence: true,
+      },
+      {
+        id: 'ex-fs-balance',
+        kind: 'scenario',
+        conceptId: 'balance-sheet',
+        scenarioContext: 'concentrated_portfolio',
+        situation: formatCompanyCard(NORTHLINE_UTILITIES),
+        prompt: 'Northline converts earnings to cash but must refinance a large debt stack. Honest risk note?',
+        choices: [
+          'Ignore debt — utilities never fail',
+          'The balance sheet is the risk file: refinancing and leverage can dominate a pretty income line',
+          'Buy more because cash conversion is high',
+          'A tight stop on the 5-minute chart solves solvency',
+        ],
+        correctIndex: 1,
+        explanation: 'Cash generation does not erase a refinancing window. This is not a recommendation.',
+        askEvidence: true,
+      },
+      {
+        id: 'ex-fs-mixed',
+        kind: 'scenario',
+        asTransfer: true,
+        conceptId: 'earnings',
+        interactingConceptIds: ['balance-sheet', 'revenue-growth'],
+        scenarioContext: 'earnings',
+        situation: `${formatCompanyCard(HARBOR_COMPONENTS)}\n\nLater you see the same pattern on a fictional software name with a different multiple.`,
+        prompt: 'Earnings rose, free cash flow fell, and debt rose. The honest research note is…',
+        choices: [
+          'Automatic long — earnings are what matter',
+          'Quality of earnings is in question; do not skip the cash and leverage file',
+          'Ignore statements on that ticker forever',
+          'The candle already priced everything perfectly',
+        ],
+        correctIndex: 1,
+        explanation: 'Earnings without cash and with more leverage is a different business story — in any sector.',
+        askEvidence: true,
+      },
+    ],
     quiz: [
       mcq(
         'q1',
@@ -706,10 +863,71 @@ export const FLAGSHIP_PROCESS_LESSONS: Lesson[] = [
         ],
         'balance-sheet',
       ),
+      mcq(
+        'q2',
+        'Revenue up and operating margin down most honestly means…',
+        [
+          'Automatic long — growth is quality',
+          'Growth is getting less efficient; cash and leverage still belong in the file',
+          'Always short the name',
+          'The next candle must follow the income statement',
+        ],
+        1,
+        [
+          'A faster top line is not the same as a better business.',
+          'Efficiency and cash conversion are the quality questions.',
+          'This academy does not recommend shorts either.',
+          'Statements are lagged evidence, not a timing tool.',
+        ],
+        'revenue-growth',
+      ),
+      mcq(
+        'q3',
+        'An earnings beat with weaker cash conversion is…',
+        [
+          'A buy signal',
+          'A quality-of-earnings question — still not an order',
+          'Proof the multiple will expand',
+          'A reason to turn stops off',
+        ],
+        1,
+        [
+          'A beat is not a recommendation.',
+          'Profitability includes whether earnings became cash.',
+          'Valuation is a separate comparison.',
+          'Gap risk still needs a plan.',
+        ],
+        'earnings',
+      ),
     ],
-    takeaways: ['Know which statement answers which question.', 'A beat is not an order.'],
-    practice: [JOURNAL],
-    simulation: [SIMULATE],
+    takeaways: ['Know which statement answers which question.', 'A beat is not an order.', FUNDAMENTAL_SAMPLE_DISCLAIMER],
+    practice: [
+      {
+        label: 'Changing-margins drill',
+        href: '/practice?drill=changing-margins',
+        description: 'Interpret efficiency, not a ticker tip.',
+      },
+      {
+        label: 'Balance-sheet risk drill',
+        href: '/practice?drill=balance-sheet-risk',
+        description: 'Leverage as process context.',
+      },
+      {
+        label: 'Historical earnings room',
+        href: '/decision/replay-tv?episode=nvidia-earnings',
+        description: 'Decide with information available then. Outcome is not the grade.',
+      },
+      JOURNAL,
+    ],
+    simulation: [
+      {
+        label: 'Earnings-window paper path',
+        href: '/simulate?start=1&prep=earnings',
+        description: 'Process only. Simulated P/L is not the grade.',
+      },
+    ],
+    replay: [replayEpisodeLink('nvidia-earnings', 'Historical earnings room — then-available information only')],
+    journalHref: '/journal?from=academy&notes=Statements%20vs%20thesis',
   }),
 
   makeFlagshipLesson({
@@ -724,10 +942,11 @@ export const FLAGSHIP_PROCESS_LESSONS: Lesson[] = [
     searchKeywords: ['valuation', 'p/e', 'competitive advantage', 'moat'],
     prerequisiteIds: ['fund-statements'],
     relatedLessonIds: ['fund-economy', 'dec-uncertainty'],
-    conceptIds: ['valuation', 'moat'],
+    conceptIds: ['valuation', 'competitive-position', 'business-quality'],
     objectives: [
       'Treat multiples as comparisons with context, not as buy alarms.',
       'Separate “good company” from “good price” and from “good time to size”.',
+      'Name valuation uncertainty without turning a multiple into a recommendation.',
     ],
     whyItMatters:
       'Cheap can stay cheap. Wonderful businesses can be overpaid. Timing still needs a separate process.',
@@ -738,18 +957,107 @@ export const FLAGSHIP_PROCESS_LESSONS: Lesson[] = [
       'High multiple because growth is real — still can draw down 40%.',
     ],
     mistakes: ['Buying solely because P/E is lower than last year.', 'Calling every brand a moat.'],
-    limitations: ['This is literacy, not a DCF model.'],
+    limitations: ['This is literacy, not a DCF model.', FUNDAMENTAL_SAMPLE_DISCLAIMER],
+    whenItWorks: [
+      'You separate “good company”, “good price”, and “good time to size” — and refuse to treat a multiple as an order.',
+    ],
     whenItFails: ['When the market is not paying attention to fundamentals this month. Then you need a different playbook or to stand aside.'],
     exercise: {
-      id: 'ex-val',
-      kind: 'explain',
-      prompt: 'Why is “the P/E is low so I should buy” incomplete? (one or two sentences)',
-      minChars: 24,
-      modelAnswer:
-        'A multiple needs context (growth, risk, peers) and still does not define timing, size, or invalidation.',
-      explanation: 'Cheap is a comparison, not a thesis by itself.',
+      id: 'ex-val-recognize',
+      kind: 'select',
       conceptId: 'valuation',
+      prompt: 'A richer P/E than peers most honestly means…',
+      choices: [
+        'Buy before the multiple mean-reverts',
+        'You are paying more per unit of earnings — still not a timing or size instruction',
+        'Skip risk management because the business is wonderful',
+        'Short every rich multiple',
+      ],
+      correctIndex: 1,
+      explanation: 'A multiple is a comparison under uncertainty. It is not a buy or sell alarm.',
     },
+    extraExercises: [
+      {
+        id: 'ex-val-guided',
+        kind: 'scenario',
+        guided: true,
+        conceptId: 'valuation',
+        scenarioContext: 'ambiguous_setup',
+        situation: formatCompanyCard(BRIGHTCANVAS),
+        prompt: 'BrightCanvas grows faster and screens richer than Cedar. Honest first valuation note?',
+        choices: [
+          'The richer multiple is automatically a long',
+          'Price paid is a separate question from growth and advantage — this file is not an order',
+          'Ignore the multiple if the chart is trending',
+          'Guarantee simulated profit because software compounds',
+        ],
+        correctIndex: 1,
+        explanation: 'Wonderful businesses can be overpaid. Timing still needs its own process.',
+        askEvidence: true,
+      },
+      {
+        id: 'ex-val',
+        kind: 'explain',
+        conceptId: 'valuation',
+        scenarioContext: 'ambiguous_setup',
+        prompt: 'Why is “the P/E is low so I should buy” incomplete? (one or two sentences)',
+        minChars: 24,
+        modelAnswer:
+          'A multiple needs context (growth, risk, peers) and still does not define timing, size, or invalidation. It is not a buy instruction.',
+        explanation: 'Cheap is a comparison, not a thesis by itself.',
+      },
+      {
+        id: 'ex-val-compare',
+        kind: 'compare',
+        conceptId: 'business-quality',
+        interactingConceptIds: ['valuation', 'competitive-position'],
+        scenarioContext: 'ambiguous_setup',
+        situation: formatCompanyPair(CEDAR_RETAIL, BRIGHTCANVAS),
+        prompt: 'Cedar is slower and cheaper-looking. BrightCanvas is faster and richer. Honest split?',
+        leftLabel: 'Buy BrightCanvas — growth always deserves any multiple',
+        rightLabel: 'Quality, price paid, and timing are three different questions — neither card is an order',
+        correctIndex: 1,
+        explanation: 'A wonderful business can be overpaid. A slower one can still be the wrong time to size.',
+        askEvidence: true,
+      },
+      {
+        id: 'ex-val-moat',
+        kind: 'scenario',
+        guided: true,
+        conceptId: 'competitive-position',
+        scenarioContext: 'ambiguous_setup',
+        situation: formatCompanyCard(BRIGHTCANVAS),
+        prompt: 'BrightCanvas claims switching costs. A free rival just launched. Honest advantage note?',
+        choices: [
+          'The moat is proven — size up',
+          'Advantage is a claim under uncertainty; a free tier is a reason the claim might erode',
+          'Ignore competition if the P/E is high',
+          'Guarantee simulated profit because software compounds',
+        ],
+        correctIndex: 1,
+        explanation: 'A moat is a research question, not a badge. This is not a sell recommendation either.',
+        askEvidence: true,
+      },
+      {
+        id: 'ex-val-transfer',
+        kind: 'scenario',
+        asTransfer: true,
+        conceptId: 'valuation',
+        interactingConceptIds: ['fundamental-uncertainty', 'competitive-position'],
+        scenarioContext: 'event_window',
+        situation: formatCompanyCard(BRIGHTCANVAS),
+        prompt: 'Same BrightCanvas file, now two days before a fictional product event. Process?',
+        choices: [
+          'Full size — the multiple will mean-revert into the event',
+          'Name that valuation uncertainty plus event gap risk still need size and invalidation — this is not a trade call',
+          'Skip risk management because the moat is famous',
+          'Treat the event as a guaranteed beat',
+        ],
+        correctIndex: 1,
+        explanation: 'Unfamiliar calendar context does not turn a multiple into a signal.',
+        askEvidence: true,
+      },
+    ],
     quiz: [
       mcq(
         'q1',
@@ -767,12 +1075,55 @@ export const FLAGSHIP_PROCESS_LESSONS: Lesson[] = [
           'You still need size and invalidation.',
           'Nothing guarantees paper or live profit.',
         ],
-        'moat',
+        'competitive-position',
+      ),
+      mcq(
+        'q2',
+        'A low multiple, by itself, is…',
+        [
+          'A buy instruction',
+          'A comparison that still needs growth, risk, and peers — and still is not timing',
+          'Proof the next candle is up',
+          'A reason to skip invalidation',
+        ],
+        1,
+        [
+          'This academy does not turn multiples into orders.',
+          'Cheap is a research question under uncertainty.',
+          'Valuation is not a timing tool.',
+          'Size and invalidation stay separate.',
+        ],
+        'valuation',
       ),
     ],
-    takeaways: ['Price paid ≠ timing.', 'Advantage is a claim under uncertainty.'],
-    practice: [JOURNAL],
-    simulation: [SIMULATE],
+    takeaways: ['Price paid ≠ timing.', 'Advantage is a claim under uncertainty.', FUNDAMENTAL_SAMPLE_DISCLAIMER],
+    journalHref: '/journal?from=academy&notes=Valuation%20vs%20timing',
+    practice: [
+      {
+        label: 'Valuation uncertainty drill',
+        href: '/practice?drill=valuation-uncertainty',
+        description: 'Context for a multiple. Not a buy alarm.',
+      },
+      {
+        label: 'Growth versus quality',
+        href: '/practice?drill=growth-vs-quality',
+        description: 'Unfamiliar pair. Transfer, not a pick.',
+      },
+      {
+        label: 'Guidance-cut replay',
+        href: '/decision/replay-tv?episode=guidance-cut-lab',
+        description: 'Historical room. Outcome is one chapter.',
+      },
+      JOURNAL,
+    ],
+    simulation: [
+      {
+        label: 'Paper path — no correct trade',
+        href: '/simulate?start=1&prep=earnings',
+        description: 'Simulated P/L does not grade the decision.',
+      },
+    ],
+    replay: [replayEpisodeLink('guidance-cut-lab', 'Guidance-cut room — a multiple is not a timing tool')],
   }),
 
   makeFlagshipLesson({
@@ -787,7 +1138,7 @@ export const FLAGSHIP_PROCESS_LESSONS: Lesson[] = [
     searchKeywords: ['economic environment', 'interest rates', 'macro', 'inflation'],
     prerequisiteIds: ['fund-basics', 'fund-calendar'],
     relatedLessonIds: ['risk-correlation', 'dec-regime'],
-    conceptIds: ['economy'],
+    conceptIds: ['interest-rates', 'economic-releases', 'fundamental-uncertainty'],
     objectives: [
       'Name one macro driver that would hit several holdings together.',
       'Use the calendar as event risk, not as a crystal ball.',
@@ -815,9 +1166,30 @@ export const FLAGSHIP_PROCESS_LESSONS: Lesson[] = [
       ],
       correctIndex: 1,
       explanation: 'Known event risk belongs in size. Removing the stop is not hedging — it is denial.',
-      conceptId: 'economy',
+      conceptId: 'interest-rates',
       askEvidence: true,
     },
+    extraExercises: [
+      {
+        id: 'ex-eco-scenario',
+        kind: 'scenario',
+        asTransfer: true,
+        conceptId: 'fundamental-uncertainty',
+        interactingConceptIds: ['interest-rates', 'event-risk'],
+        scenarioContext: 'event_window',
+        prompt:
+          'Inflation, rates, and a fictional earnings week land in the same window. Your book is duration-heavy. Honest process?',
+        choices: [
+          'Forecast the prints and size up',
+          'Treat the cluster as shared-risk weather: cut size or stand aside unless you have a written playbook',
+          'Assume the names are uncorrelated because they have different tickers',
+          'This academy’s calendar is a buy list for the week',
+        ],
+        correctIndex: 1,
+        explanation: 'Macro is scenario risk around the name, not a daily signal service.',
+        askEvidence: true,
+      },
+    ],
     quiz: [
       mcq(
         'q1',
@@ -835,12 +1207,30 @@ export const FLAGSHIP_PROCESS_LESSONS: Lesson[] = [
           'You still need the business file when that is the thesis.',
           'Price is still the object of execution.',
         ],
-        'economy',
+        'interest-rates',
       ),
     ],
     takeaways: ['Name the shared driver.', 'Event risk is a size input.'],
-    practice: [JOURNAL],
-    simulation: [SIMULATE],
+    practice: [
+      {
+        label: 'Rate-decision uncertainty',
+        href: '/practice?drill=rate-decision-uncertainty',
+        description: 'Two honest readings of the same print. Direction is not the grade.',
+      },
+      {
+        label: 'FOMC replay room',
+        href: '/decision/replay-tv?episode=fomc-decision-lab',
+        description: 'Historical tape. Not a prediction of the next meeting.',
+      },
+      JOURNAL,
+    ],
+    simulation: [
+      {
+        label: 'Fictional rate-decision path',
+        href: '/simulate?start=1&prep=rates',
+        description: 'Uncertain paper event. Simulated P/L is context.',
+      },
+    ],
   }),
 
   makeFlagshipLesson({
@@ -856,7 +1246,7 @@ export const FLAGSHIP_PROCESS_LESSONS: Lesson[] = [
     searchKeywords: ['trading thesis', 'what is evidence', 'assumptions'],
     prerequisiteIds: ['dec-research-filter'],
     relatedLessonIds: ['dec-invalidation', 'dec-uncertainty', 'psych-confirmation'],
-    conceptIds: ['thesis', 'evidence', 'assumptions'],
+    conceptIds: ['thesis', 'evidence-quality'],
     objectives: [
       'Write a one-sentence claim plus the assumption underneath it.',
       'List evidence for and against before simulated size.',
@@ -871,6 +1261,7 @@ export const FLAGSHIP_PROCESS_LESSONS: Lesson[] = [
     ],
     mistakes: ['Thesis after the fill.', 'Evidence that is only price going up.'],
     limitations: ['A good thesis can lose. That is uncertainty, not meaninglessness.'],
+    whenItWorks: ['The claim is killable in one sentence, evidence for and against is listed, and size waits on that file.'],
     whenItFails: ['When you rewrite the thesis after the fact to match the outcome.'],
     exercise: {
       id: 'ex-th',
@@ -900,12 +1291,17 @@ export const FLAGSHIP_PROCESS_LESSONS: Lesson[] = [
           'P/L is an outcome.',
           'Scenarios are later.',
         ],
-        'evidence',
+        'evidence-quality',
       ),
     ],
     takeaways: ['Claims must be killable.', 'Assumptions should be named.'],
-    practice: [JOURNAL, { label: 'Decision Lab', href: '/decision/lab', description: 'Write a full thesis before any simulated entry.' }],
+    practice: [
+      JOURNAL,
+      { label: 'Missing evidence drill', href: '/practice?drill=missing-evidence', description: 'A vibe is not a file.' },
+      { label: 'Decision Lab', href: '/decision/lab', description: 'Write a full thesis before any simulated entry.' },
+    ],
     simulation: [SIMULATE],
+    replay: [replayEpisodeLink('nvidia-earnings', 'Write the claim with only then-available information')],
   }),
 
   makeFlagshipLesson({
@@ -921,7 +1317,7 @@ export const FLAGSHIP_PROCESS_LESSONS: Lesson[] = [
     searchKeywords: ['trading probabilities', 'scenarios', 'uncertainty'],
     prerequisiteIds: ['dec-thesis'],
     relatedLessonIds: ['dec-quality', 'risk-per-trade', 'fund-economy'],
-    conceptIds: ['uncertainty', 'scenarios', 'probabilities'],
+    conceptIds: ['uncertainty', 'scenario-thinking'],
     objectives: [
       'List at least two scenarios besides your favourite.',
       'Use probabilities as humility, not as fake precision.',
@@ -936,6 +1332,7 @@ export const FLAGSHIP_PROCESS_LESSONS: Lesson[] = [
     ],
     mistakes: ['90% confidence on a chart with no file.', 'Refusing to trade ever because uncertainty exists — some uncertainty is the job. Size is the response.'],
     limitations: ['We are not running a Monte Carlo here. We are training language.'],
+    whenItWorks: ['At least two live paths exist, size is smaller because of that, and invalidation is written for each.'],
     whenItFails: ['When “scenarios” are written after the outcome.'],
     exercise: {
       id: 'ex-unc',
@@ -968,12 +1365,20 @@ export const FLAGSHIP_PROCESS_LESSONS: Lesson[] = [
           'This is not a social feed of signals.',
           'You still need a kill condition.',
         ],
-        'probabilities',
+        'uncertainty',
       ),
     ],
     takeaways: ['More than one path.', 'Precision theatre is not process.'],
-    practice: [JOURNAL],
+    practice: [
+      JOURNAL,
+      {
+        label: 'Rate-decision uncertainty drill',
+        href: '/practice?drill=rate-decision-uncertainty',
+        description: 'A known calendar event is not a forecast product.',
+      },
+    ],
     simulation: [SIMULATE],
+    replay: [replayEpisodeLink('fomc-decision-lab', 'The meeting is known. The path is not.')],
   }),
 
   makeFlagshipLesson({

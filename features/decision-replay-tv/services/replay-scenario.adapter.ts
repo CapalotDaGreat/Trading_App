@@ -7,6 +7,7 @@ import {
 } from '@/features/decision-replay/services/replay-practice-difficulty.service';
 import {
   REPLAY_SCENARIO_SCHEMA_VERSION,
+  REPLAY_TIMESTAMP_HONESTY,
   type ReplayEventCategory,
   type ReplayHistoricalEvent,
   type ReplayLicenseKind,
@@ -41,6 +42,7 @@ const SKILL_TO_CONCEPT: Record<string, string> = {
   regime: 'trend-identification',
   binary_event: 'event-risk',
   time_budget: 'discipline',
+  uncertainty: 'uncertainty',
 };
 
 function licenseFor(episode: ReplayTvEpisode): ReplayLicenseKind {
@@ -124,6 +126,8 @@ export function toReplayScenarioPackage(episode: ReplayTvEpisode): ReplayScenari
       license: licenseFor(episode),
       dataKind: episode.dataKind,
       provenanceNote: episode.provenanceNote,
+      timestampFidelity: 'educational',
+      timestampHonestyNote: REPLAY_TIMESTAMP_HONESTY,
       themes: episode.collectionIds.slice(),
     },
     reveal: {

@@ -26,6 +26,7 @@ export function useDecisionLog() {
     queryFn: () => getDecisionRecords(uid, 300),
     enabled: Boolean(uid),
     staleTime: 30_000,
+    networkMode: 'offlineFirst',
   });
 
   const summary = useMemo<DecisionLogSummary | undefined>(
@@ -38,6 +39,7 @@ export function useDecisionLog() {
     summary,
     isLoading: query.isLoading,
     isRefetching: query.isRefetching,
+    isError: query.isError,
     refetch: query.refetch,
   };
 }

@@ -26,18 +26,45 @@ export function EventTrainingPlanCard({ plan }: { plan: EventTrainingPlan }) {
         Recommended study — not a trade alert, and not a prediction of this event.
       </Text>
       <View className="mt-3 gap-2">
-        <Button size="sm" onPress={() => router.push(plan.lessonHref as never)}>
-          Lesson: {plan.lessonTitle}
-        </Button>
-        <Button size="sm" variant="outline" onPress={() => router.push(plan.practiceHref as never)}>
-          Practice: {plan.practiceTitle}
-        </Button>
-        <Button size="sm" variant="outline" onPress={() => router.push(plan.replayHref as never)}>
-          Replay: {plan.replayTitle}
-        </Button>
-        <Button size="sm" variant="ghost" onPress={() => router.push(plan.simulateHref as never)}>
-          Simulation: {plan.simulateTitle}
-        </Button>
+        {plan.primary === 'practice' ? (
+          <Button size="sm" onPress={() => router.push(plan.practiceHref as never)}>
+            Practice: {plan.practiceTitle}
+          </Button>
+        ) : null}
+        {plan.primary === 'simulate' ? (
+          <Button size="sm" onPress={() => router.push(plan.simulateHref as never)}>
+            Simulation: {plan.simulateTitle}
+          </Button>
+        ) : null}
+        {plan.primary === 'replay' ? (
+          <Button size="sm" onPress={() => router.push(plan.replayHref as never)}>
+            Replay: {plan.replayTitle}
+          </Button>
+        ) : null}
+        {plan.primary !== 'lesson' ? (
+          <Button size="sm" variant="outline" onPress={() => router.push(plan.lessonHref as never)}>
+            Lesson: {plan.lessonTitle}
+          </Button>
+        ) : (
+          <Button size="sm" onPress={() => router.push(plan.lessonHref as never)}>
+            Lesson: {plan.lessonTitle}
+          </Button>
+        )}
+        {plan.primary !== 'practice' ? (
+          <Button size="sm" variant="outline" onPress={() => router.push(plan.practiceHref as never)}>
+            Practice: {plan.practiceTitle}
+          </Button>
+        ) : null}
+        {plan.primary !== 'replay' ? (
+          <Button size="sm" variant="outline" onPress={() => router.push(plan.replayHref as never)}>
+            Replay: {plan.replayTitle}
+          </Button>
+        ) : null}
+        {plan.primary !== 'simulate' ? (
+          <Button size="sm" variant="ghost" onPress={() => router.push(plan.simulateHref as never)}>
+            Simulation: {plan.simulateTitle}
+          </Button>
+        ) : null}
       </View>
       <Text variant="caption" className="mt-3 text-text-tertiary">
         {plan.reminder}

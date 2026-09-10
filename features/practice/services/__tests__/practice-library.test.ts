@@ -17,6 +17,9 @@ describe('practice library', () => {
     const attempts = [{ drillId: 'identify-trend', at: '2026-01-01', correct: true, selectedIndex: 0 }];
     expect(filterPracticeDrills(PRACTICE_DRILLS, { ...all, topic: 'psychology' }, []).map((d) => d.id)).toEqual([
       'confirmation-bias',
+      'fomo-chase',
+      'revenge-interrupt',
+      'confidence-check',
     ]);
     expect(
       filterPracticeDrills(PRACTICE_DRILLS, { ...all, difficulty: 'intermediate' }, []).every(
@@ -44,5 +47,8 @@ describe('practice library', () => {
     expect(recommendPracticeDrill({ attempts: misses }).id).toBe('find-support');
     expect(recommendPracticeDrill({ attempts: [], nextLessonId: 'foundations-fx' }).id).toBe('fx-convert');
     expect(recommendPracticeDrill({ attempts: [] }).id).toBe(PRACTICE_DRILLS[0]!.id);
+    expect(recommendPracticeDrill({ attempts: [], preferredDrillIds: ['confirmation-bias'] }).id).toBe(
+      'confirmation-bias',
+    );
   });
 });

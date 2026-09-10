@@ -6,9 +6,45 @@ Mastery means only:
 
 > The user has demonstrated the competency sufficiently within TradeAcademy’s educational and simulated environment.
 
-Training labels: **demonstrated**, **practiced**, **developing**, **needs more practice**, **due for review**.
+The **primary representation** is a label (`competenceState`), not a percentage.
 
-Never used: certified, qualified, ready to trade, professional, guaranteed, expert, live-ready.
+| Label | Meaning |
+| --- | --- |
+| Not started | No evidence |
+| Learning | Lesson or unstructured reflection only — exposure |
+| Developing | Graded work exists; the demonstration recipe is not met, or work was guided |
+| Demonstrated | Recipe met with independent evidence. Process counts; simulated P/L does not |
+| Strong | Repeated independent application across more than one context/format/asset. Not a perfect score |
+| Needs Revisit | Recurring process misses (remediation) or spaced re-demonstration is due (retention, not punishment) |
+| Transfer Unproven | Independent application exists, but only in one format, condition, or asset class |
+
+Internal machine states (`practiced`, `needs_remediation`, `due_for_redemonstration`) still drive the training planner. User-facing copy uses the labels above.
+
+Never used: certified, qualified, ready to trade, advanced trader, safely trade, professional, guaranteed, expert, live-ready.
+
+Educational copy sounds like:
+
+- “You demonstrated this skill.”
+- “Your evidence is strongest in…”
+- “This area still needs practice.”
+
+---
+
+## Evidence the scorer considers
+
+Quality dimensions (internal 0–100 or `null`, never shown as “mastery %”):
+
+- knowledge, application, independence, consistency, difficulty, recency, variety
+
+Also:
+
+- **Independence** — hints / examples / worked solutions do not satisfy the independent bar
+- **Context diversity** — scenario conditions (`trend`, `high_volatility`, `event_window`, …)
+- **Time / recency** — 28-day half-life; spaced re-demonstration 7–45 days
+- **Transfer** — new examples, asset classes, market conditions, mixed concepts, presentation formats
+- **Repeated demonstration** — Strong needs several independent applications, not one lucky pass
+
+Perfection is not required. A single miss does not drop Demonstrated. Two or more fails in the last four graded events, at a miss rate ≥ 50%, moves the concept to Needs Revisit.
 
 ---
 
@@ -25,45 +61,14 @@ A record is assigned to **one** unfilled role at a time (knowledge → calculati
 | `invalidation` | knowledge + practice + application | Re-tests conceal the skill |
 | `thesis` | knowledge + practice + application | Core |
 | `fomo` | knowledge + practice + application | Behavioral language only |
-| `journaling` | **2 reflections** | No simulation required |
+| `journaling` | **2 structured reflections** | No simulation required |
 | Other risk | knowledge + calculation + application | Family default |
 | Other technical | knowledge + practice + application | Family default |
-| Fundamentals | knowledge + practice | Application not required |
+| Fundamentals | knowledge + **applied** (scenario / compare / explain, or sim / replay / transfer) | A multiple-choice lesson is not application |
 | Event risk | knowledge + application | Family default |
 | Review / process | 2 reflections | Family default |
 
 `recipeFor(conceptId)` lives in `features/competency/content/demonstration-recipes.ts`.
-
----
-
-## Evidence quality (internal)
-
-Dimensions, each 0–100 or `null`:
-
-- knowledge
-- application
-- independence
-- consistency
-- difficulty
-- recency
-
-These feed scheduling and explanations. They are **not** shown as a single mastery percentage. User-facing copy uses labels, not `strength is 72`.
-
----
-
-## Transitions
-
-```text
-not_started → learning → practiced → demonstrated
-demonstrated → needs_remediation     (repeated process misses)
-demonstrated → due_for_redemonstration  (interval elapsed)
-needs_remediation → practiced        (successful remediation_exercise)
-practiced → demonstrated             (fresh independent application / re-test)
-```
-
-Evidence history is **append-only**. Remediation does not wipe earlier demonstrations (`previouslyDemonstrated` stays true).
-
-A **single** miss does not drop `demonstrated`. Two or more fails in the last four graded events, at a miss rate ≥ 50%, does.
 
 ---
 
@@ -75,27 +80,25 @@ If `processMetrics.processQuality` is present:
 - < 45 → `fail` even when the simulation made money
 - otherwise `partial`
 
-A losing simulation with a written thesis, evidence, risk, and invalidation does not automatically reduce mastery.
+A sound process with an unfavorable simulated outcome does **not** reduce mastery.
 
-A profitable simulation with oversized risk, missing invalidation, or a FOMO-style entry is negative evidence.
+A profitable simulation with oversized risk, missing invalidation, or a chase entry is negative evidence and does **not** raise mastery.
 
 ---
 
 ## Remediation
 
-Repeated process misses produce `needs_remediation` and a `RemediationPlan`:
+Repeated process misses produce Needs Revisit (`needs_remediation`) and a `RemediationPlan`:
 
-1. diagnosis in **behavioral** language
-2. lesson
-3. calculation or recognition exercise
-4. constrained practice / replay
-5. later independent re-demonstration (often with the skill unnamed)
+1. Identify the underlying concept
+2. Name the likely process pattern (misconception) from structured flags — never a medical label
+3. Select an activity that is **not** the same question just missed
+4. Explain why that activity
+5. Require retry / application (`requiresRetry`)
+6. Keep history; a passing `remediation_exercise` returns the machine state to `practiced` (Developing)
+7. Verify improvement with independent re-demonstration in **another context**
 
-Implemented catalogs:
-
-- Position sizing — “recurring pattern of taking more risk than the written limit”
-- Invalidation — “recurring pattern of changing invalidation after entry”
-- FOMO — “recurring pattern of entering after rapid price movement” (explicitly not a medical diagnosis)
+Implemented catalogs: position sizing, risk-per-trade, invalidation / stop-logic, FOMO, emotional-decision-making, revenge-trading. Others get a generic lesson → practice → concealed re-test plan, still rotated off the last failed `sourceId` when an alternate exists.
 
 ---
 
@@ -107,34 +110,42 @@ Implemented catalogs:
 - Weak consistency / strength: × 0.55
 - Five or more independent successes with high consistency: × 1.45
 - Complex last demo: +4 days; foundations: −3
-- Clamped to 7–45 days
+- Low variety or unproven transfer: × 0.7
+- High forgetting risk (stale recency): × 0.75
+- Recent graded fails (14 days): × 0.6 if two or more, × 0.85 if one
+- Clamped to 7–45 days. Strong skills still return.
 
-When due, the next prompt uses `selectNextDemonstration`: a **different** scenario context than the last one (`trend`, `high_volatility`, `earnings`, `losing_position`, `concentrated_portfolio`, `regime_change`, `range`, `event_window`).
+When due, the next prompt uses `selectNextDemonstration`: a **different** scenario, and when possible a different asset class, presentation format, mixed-concept exercise, or new example. Concealed concepts (sizing, invalidation, FOMO) are not named.
 
-For concealed concepts (sizing, invalidation, FOMO), the prompt does not name the skill.
+The aim is **retention**, not punishment.
+
+---
+
+## Transfer
+
+A concept is **Transfer Unproven** when independent application exists but only in one setting.
+
+Transfer is **proven** (without requiring perfection) when there are **at least two** independent applications **and** at least one of:
+
+- two market conditions
+- two asset classes
+- two presentation formats
+- mixed-concept work in two different settings
+
+A single mixed-concept simulation does not prove transfer.
+
+`scoreTransferEvidence` lives in `features/competency/services/transfer.service.ts`.
 
 ---
 
 ## Producers (wired)
 
-| Source | Evidence type |
-| --- | --- |
-| Academy lesson complete | `lesson_completion` (exposure only) |
-| Quiz / concept check | `knowledge_check` |
-| Lesson exercise | `practice_drill` or `calculation_exercise` |
-| Practice drill | `practice_drill` or `calculation_exercise` (`position-size`, `rr-compare`, `fx-convert`) |
-| Replay TV finish | `replay_decision` (process quality, mixed context) |
-| Simulation fill / close review | `simulation_decision` (per-concept process, flags, context) |
-| Journal create | `journal_reflection` (structured flags only; no notes) |
-
-Uid-scoped. Empty uid is rejected. Duplicate `eventKey` is ignored.
+See `docs/TRADEACADEMY_EVIDENCE_MODEL.md`. Uid-scoped. Empty uid is rejected. Duplicate `eventKey` is ignored.
 
 ---
 
 ## What is not implemented
 
 - Competency UI / dashboard
-- Today’s Training reading this ledger
-- Firestore sync
-- Automatic generation of unique paper scenarios beyond existing simulation seeds
+- Firestore sync of the evidence ledger
 - Medical or personality diagnosis

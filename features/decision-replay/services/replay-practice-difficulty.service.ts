@@ -27,3 +27,10 @@ export function replayConcealsCompetency(
   const level = replayPracticeDifficulty(episode);
   return level === 'advanced' || level === 'mixed';
 }
+
+/** Advanced and mixed rooms expect unaided reasoning from the tape. */
+export function replayRequiresIndependentReasoning(
+  episode: Pick<ReplayTvEpisode, 'difficulty' | 'practiceDifficulty' | 'concealCompetency'>,
+): boolean {
+  return replayConcealsCompetency(episode);
+}

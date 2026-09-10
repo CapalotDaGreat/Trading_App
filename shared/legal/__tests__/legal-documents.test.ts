@@ -1,3 +1,6 @@
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+
 import {
   LEGAL_ACCEPTANCE_VERSION,
   LEGAL_COUNSEL_NOTICE,
@@ -43,6 +46,7 @@ describe('legal compliance pack', () => {
     expect(privacy).toContain('cloud_ai_enabled');
     expect(privacy).toContain('12+');
     expect(privacy).toContain('does not mean a minor may legally trade');
+    expect(privacy).not.toMatch(/tradeinsight/i);
 
     const terms = LEGAL_DOCUMENT_TEXT.terms.toLowerCase();
     expect(terms).toContain('not');
@@ -52,6 +56,9 @@ describe('legal compliance pack', () => {
     expect(terms).toContain('guest/demo mode');
     expect(terms).toContain('store content rating is separate');
     expect(terms).toContain('lifetime is a one-time purchase');
+    expect(terms).toContain('tradevision_premium_monthly');
+    expect(terms).toContain('tradevision_premium_yearly');
+    expect(terms).not.toMatch(/tradeinsight/i);
 
     expect(privacy).toContain('general audience');
     expect(privacy).toContain('not directed toward young children');
@@ -95,5 +102,13 @@ describe('legal compliance pack', () => {
     const props = ANALYTICS_PROP_KEYS.join(' ');
     expect(events).not.toMatch(/journal|prompt|chat|holding|password|token/i);
     expect(props).not.toMatch(/journal|prompt|chat|holding|password|token/i);
+  });
+
+  it('keeps hosted legal pages on TradeAcademy until operator fields are filled', () => {
+    const hosted = readFileSync(join(__dirname, '../../../store/hosted/terms.html'), 'utf8');
+    expect(hosted).toContain('TradeAcademy');
+    expect(hosted).not.toMatch(/TradeInsight/);
+    expect(hosted).toContain('Template — not a live operator publication');
+    expect(hosted).toContain('[LEGAL ENTITY NAME REQUIRED]');
   });
 });

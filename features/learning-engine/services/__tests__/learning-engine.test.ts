@@ -172,6 +172,8 @@ describe('focus areas and queue', () => {
       eventTitle: 'Sample earnings week',
       eventKind: 'earnings' as const,
       daysUntil: 3,
+      intent: 'general_prep' as const,
+      primary: 'lesson' as const,
       practiceGapNote: null,
       gapConceptId: null,
       lessonTitle: 'Reading statements',

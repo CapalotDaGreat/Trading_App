@@ -159,10 +159,10 @@ export const LEARNING_PATHS: AcademyPathMeta[] = [
     iaHint: 'Optional depth — only if it changes a desk behavior',
     lessonIds: [
       'fund-basics',
+      'fund-calendar',
       'fund-statements',
       'fund-valuation-quality',
       'fund-economy',
-      'fund-calendar',
       'opt-basics',
       'crypto-structure',
     ],

@@ -20,6 +20,8 @@ export const BRAND = {
   /** Always-on simulated-trading label */
   simulatedLabel: 'SIMULATED',
   paperTradingLabel: 'PAPER TRADING',
+  educationalSimulationLabel: 'Educational Simulation',
+  paperSimulationLabel: 'Paper Simulation',
 } as const;
 
 /**

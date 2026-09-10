@@ -58,12 +58,29 @@ export type ScenarioFocus =
   | 'uncertainty'
   | 'event_adaptation'
   | 'correlation'
-  | 'thesis_discipline';
+  | 'thesis_discipline'
+  | 'fomo_chase'
+  | 'invalidation_discipline'
+  | 'overconfidence';
+
+export const ALL_SCENARIO_FOCI: readonly ScenarioFocus[] = [
+  'position_sizing',
+  'false_breakouts',
+  'uncertainty',
+  'event_adaptation',
+  'correlation',
+  'thesis_discipline',
+  'fomo_chase',
+  'invalidation_discipline',
+  'overconfidence',
+];
 
 export interface ScenarioStartOptions {
   focus?: ScenarioFocus;
   preferredEventKind?: ScenarioEventKind;
   difficulty?: ScenarioDifficulty;
+  /** Hide the named skill in training copy. Rationale stays generic. */
+  concealConcept?: boolean;
 }
 
 export type ScenarioClockMode = 'normal' | 'accelerated' | 'paused';
@@ -76,7 +93,8 @@ export type ScenarioDecisionKind =
   | 'event_eve'
   | 'thesis_check'
   | 'vol_spike'
-  | 'extended_move';
+  | 'extended_move'
+  | 'invalidation_check';
 
 export type MacroClimate = 'easing' | 'tightening' | 'stable' | 'uncertain';
 export type MarketSentiment = 'risk_on' | 'risk_off' | 'mixed' | 'complacent';
@@ -196,6 +214,11 @@ export interface SimulationScenario {
   complexity: ScenarioComplexity;
   friction: ScenarioFriction;
   focus?: ScenarioFocus;
+  /**
+   * Optional learner-facing note before a personalized book.
+   * Must not name the exact “correct” behavior or leak a buy/sell instruction.
+   */
+  trainingRationale?: string;
   assets: ScenarioAssetConfig[];
   events: ScenarioEvent[];
   decisionWindows: ScenarioDecisionWindow[];
@@ -219,6 +242,8 @@ export interface PublicScenarioView {
   climateHint: string;
   /** Practice level copy — not “this market will be easy/hard to profit from”. */
   practiceLevelHint: string;
+  /** Generic training context only. Never a named skill or a trade instruction. */
+  trainingRationale?: string;
   assets: Array<{ symbol: string; name: string; sector: string; assetType: SimulationAssetType }>;
   visibleBars: Record<string, Array<Omit<SimulationBar, 'phase'>>>;
   visibleEvents: PublicScenarioEvent[];

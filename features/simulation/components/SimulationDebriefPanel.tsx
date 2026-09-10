@@ -40,7 +40,10 @@ export function SimulationDebriefPanel({ debrief }: SimulationDebriefPanelProps)
           Position sizing: {tone(process.positionSizing)} · Adaptation: {tone(process.adaptation)}
         </Text>
         <Text variant="body-sm">
-          Invalidation: {tone(process.uncertainty)} · Evidence: {tone(process.evidence)}
+          Invalidation: {tone(process.invalidation)} · Evidence: {tone(process.evidence)}
+        </Text>
+        <Text variant="body-sm">
+          Uncertainty: {tone(process.uncertainty)} · Reflection: {tone(process.reflection)}
         </Text>
         <Text variant="body-sm">
           Information response: {tone(process.informationResponse)} · Behavioral patterns: {tone(process.behavioral)}

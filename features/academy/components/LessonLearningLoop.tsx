@@ -8,8 +8,9 @@ import { LessonQuiz } from '@/features/academy/components/LessonQuiz';
 import { LessonSections } from '@/features/academy/components/LessonSections';
 import { TermHint } from '@/features/academy/components/TermHint';
 import { getLocalLessonById } from '@/features/academy/content';
+import { getCompetencyConcept } from '@/features/competency/services/taxonomy.service';
 import { glossaryForTags } from '@/features/academy/content/glossary';
-import type { Lesson } from '@/features/academy/types/academy.types';
+import type { Lesson, LessonExerciseKind } from '@/features/academy/types/academy.types';
 import { CollapsibleSection } from '@/shared/components/patterns/CollapsibleSection';
 import { Button } from '@/shared/components/ui/Button';
 import { Text } from '@/shared/components/ui/Text';
@@ -26,7 +27,16 @@ interface LessonLearningLoopProps {
   onPracticeLink: (href: string) => void;
   onQuizComplete: (score: number) => void;
   onQuizAnswer: (input: { questionId: string; correct: boolean; conceptId?: string }) => void;
-  onExerciseComplete: (input: { correct?: boolean; conceptId?: string }) => void;
+  onExerciseComplete: (input: {
+    correct?: boolean;
+    conceptId?: string;
+    kind?: LessonExerciseKind;
+    exerciseId?: string;
+    guided?: boolean;
+    asTransfer?: boolean;
+    scenarioContext?: import('@/features/academy/types/academy.types').LessonExercise['scenarioContext'];
+    interactingConceptIds?: string[];
+  }) => void;
 }
 
 export function LessonLearningLoop({
@@ -102,7 +112,16 @@ export function LessonLearningLoop({
               key={exercise.id}
               exercise={exercise}
               onComplete={(result) =>
-                onExerciseComplete({ correct: result.correct, conceptId: exercise.conceptId })
+                onExerciseComplete({
+                  correct: result.correct,
+                  conceptId: exercise.conceptId,
+                  kind: exercise.kind,
+                  exerciseId: exercise.id,
+                  guided: exercise.guided,
+                  asTransfer: exercise.asTransfer,
+                  scenarioContext: exercise.scenarioContext,
+                  interactingConceptIds: exercise.interactingConceptIds,
+                })
               }
             />
           ))
@@ -176,6 +195,31 @@ export function LessonLearningLoop({
             <Ionicons name="arrow-forward" size={16} color={colors.accent.primary} />
           </Pressable>
         ))}
+        {(lesson.replayLinks ?? [])
+          .filter(
+            (link) =>
+              !lesson.practiceLinks.some((existing) => existing.href === link.href) &&
+              !(lesson.simulationLinks ?? []).some((existing) => existing.href === link.href),
+          )
+          .map((link) => (
+            <Pressable
+              key={`replay-${link.href}-${link.label}`}
+              onPress={() => onPracticeLink(withLessonQuery(link.href, lesson.id))}
+              className="mb-2 flex-row items-center rounded-2xl bg-surface px-4 py-3"
+            >
+              <View className="flex-1">
+                <Text variant="body" className="font-semibold">
+                  {link.label}
+                </Text>
+                {link.description ? (
+                  <Text variant="caption" className="mt-0.5">
+                    {link.description}
+                  </Text>
+                ) : null}
+              </View>
+              <Ionicons name="arrow-forward" size={16} color={colors.accent.primary} />
+            </Pressable>
+          ))}
         <Button
           variant="ghost"
           onPress={() =>
@@ -191,6 +235,11 @@ export function LessonLearningLoop({
         description="Knowledge check, takeaways, and related lessons."
         defaultExpanded
       >
+        {typeof quizBestScore === 'number' ? (
+          <Text variant="caption" className="mb-3 text-text-tertiary">
+            Knowledge check best: {quizBestScore}% — reading a lesson is not demonstration.
+          </Text>
+        ) : null}
         {lesson.whenItWorks?.length ? (
           <View className="mb-4">
             <Text variant="label">When this helps</Text>
@@ -261,6 +310,21 @@ export function LessonLearningLoop({
                     {related?.title ?? id}
                   </Text>
                 </Pressable>
+              );
+            })}
+          </View>
+        ) : null}
+        {(lesson.conceptIds ?? []).length ? (
+          <View className="mt-4">
+            <Text variant="h3" className="mb-2">
+              Related concepts
+            </Text>
+            {(lesson.conceptIds ?? []).map((id) => {
+              const concept = getCompetencyConcept(id);
+              return (
+                <Text key={id} variant="body-sm" className="mb-1 text-text-secondary">
+                  {concept?.title ?? id.replace(/-/g, ' ')}
+                </Text>
               );
             })}
           </View>

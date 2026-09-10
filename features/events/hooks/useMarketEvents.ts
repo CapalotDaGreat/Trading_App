@@ -3,11 +3,16 @@ import { useEffect, useMemo } from 'react';
 import { useEconomicCalendar } from '@/features/calendar/hooks/useEconomicCalendar';
 import { useCoachProfile } from '@/features/onboarding/hooks/useCoachProfile';
 import type { SkillDomain } from '@/shared/constants/skill-domains';
+import type { CompetencyMastery } from '@/features/competency';
 
 import { composeMarketEventHub } from '../services/event-hub.service';
 import { useEventCacheStore } from '../stores/event-cache.store';
 
-export function useMarketEvents(options?: { weakness?: SkillDomain | null; gapConceptIds?: string[] }) {
+export function useMarketEvents(options?: {
+  weakness?: SkillDomain | null;
+  gapConceptIds?: string[];
+  mastery?: Array<Pick<CompetencyMastery, 'conceptId' | 'state' | 'competenceState' | 'falseMastery'>>;
+}) {
   const calendar = useEconomicCalendar();
   const { profile } = useCoachProfile();
   const cached = useEventCacheStore((state) => state.events);
@@ -35,6 +40,7 @@ export function useMarketEvents(options?: { weakness?: SkillDomain | null; gapCo
         struggles: profile.struggles,
         weakness: options?.weakness ?? null,
         gapConceptIds: options?.gapConceptIds,
+        mastery: options?.mastery,
       }),
     [
       calendar.isError,
@@ -44,6 +50,7 @@ export function useMarketEvents(options?: { weakness?: SkillDomain | null; gapCo
       fromCache,
       options?.weakness,
       options?.gapConceptIds,
+      options?.mastery,
       profile.experience,
       profile.preferredTopics,
       profile.struggles,

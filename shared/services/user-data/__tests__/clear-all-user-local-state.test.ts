@@ -33,6 +33,9 @@ jest.mock('@/features/learning-engine/stores/learning-queue.store', () => ({
 jest.mock('@/features/competency/stores/competency-evidence.store', () => ({
   useCompetencyEvidenceStore: { getState: () => ({ resetAll: jest.fn() }) },
 }));
+jest.mock('@/features/learner-model/stores/learner-behavior.store', () => ({
+  useLearnerBehaviorStore: { getState: () => ({ resetAll: jest.fn() }) },
+}));
 jest.mock('@/features/journal/stores/journal-draft.store', () => ({
   useJournalDraftStore: { getState: () => ({ clearDraft: jest.fn() }) },
 }));
@@ -100,6 +103,7 @@ describe('clearAllUserLocalState', () => {
     ]);
     expect(result.removedAsyncStorageKeys).toContain('tradevision-decision-passport-v1');
     expect(result.removedAsyncStorageKeys).toContain('tradevision-competency-evidence-v1');
+    expect(result.removedAsyncStorageKeys).toContain('tradevision-learner-behavior-v1');
     expect(result.removedAsyncStorageKeys).not.toContain('tradevision-theme-v2');
     expect(multiRemove).toHaveBeenCalledWith(result.removedAsyncStorageKeys);
     expect(mockResetRepository).toHaveBeenCalled();

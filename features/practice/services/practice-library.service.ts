@@ -55,9 +55,11 @@ export function filterPracticeDrills(
   });
 }
 
+/** Library helper for browsing drills. The Training Planner ranks the next activity. */
 export function recommendPracticeDrill(input: {
   attempts: PracticeAttempt[];
   nextLessonId?: string;
+  preferredDrillIds?: string[];
 }): PracticeDrill {
   const misses = new Map<string, number>();
   for (const attempt of input.attempts) {
@@ -67,6 +69,11 @@ export function recommendPracticeDrill(input: {
   const repeatedId = [...misses.entries()].sort((a, b) => b[1] - a[1]).find(([, count]) => count >= 2)?.[0];
   const repeated = PRACTICE_DRILLS.find((drill) => drill.id === repeatedId);
   if (repeated) return repeated;
+
+  const preferred = (input.preferredDrillIds ?? [])
+    .map((id) => PRACTICE_DRILLS.find((drill) => drill.id === id))
+    .find((drill): drill is PracticeDrill => Boolean(drill));
+  if (preferred) return preferred;
 
   if (input.nextLessonId) {
     const linked = PRACTICE_DRILLS.find((drill) => drill.lessonId === input.nextLessonId);

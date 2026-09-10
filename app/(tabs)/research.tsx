@@ -20,8 +20,8 @@ export default function ResearchScreen() {
   return (
     <ScreenScaffold
       eyebrow="Educational context"
-      title="Study the market, then practice"
-      subtitle="Context for learning. Not a scanner, not a signal queue, not a brokerage."
+      title="Choose what to study next"
+      subtitle="Connect a concept, event, or asset study to your next practice. This is not a scanner."
       contentClassName="pb-12 pt-2"
       testID="research-screen"
     >
@@ -51,7 +51,7 @@ export default function ResearchScreen() {
 
         <CollapsibleSection
           title="Explore and context"
-          description="Events, study names, market condition, and paper risk."
+          description="Events, names to study, market condition, and paper risk."
           testID="research-context-disclosure"
           defaultExpanded
         >

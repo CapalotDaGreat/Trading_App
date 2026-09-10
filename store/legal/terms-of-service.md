@@ -73,7 +73,7 @@ Refunds are handled by Apple, Google, or the payment provider under their polici
 
 ### Illustrative plan identifiers
 
-Product IDs (subject to store configuration): `monthly`, `yearly`, and `lifetime` (entitlement **Aithera Pro**). Lifetime is a one-time purchase and does not auto-renew. Displayed prices control over any marketing copy. A seven-day trial, if offered, applies only to the yearly product when shown on the store purchase sheet.
+Product IDs (subject to store configuration): `tradevision_premium_monthly`, `tradevision_premium_yearly`, and `tradevision_premium_lifetime` (entitlement **Aithera Pro**). Lifetime is a one-time purchase and does not auto-renew. Displayed prices control over any marketing copy. A seven-day trial, if offered, applies only to the yearly product when shown on the store purchase sheet.
 
 ---
 

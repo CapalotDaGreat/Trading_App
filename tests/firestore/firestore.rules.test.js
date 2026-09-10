@@ -352,3 +352,68 @@ test('isolates simulation ledgers by authenticated uid and keeps transactions ap
     }),
   );
 });
+
+test('syncs structured learner state to the owner and rejects cross-user and sensitive fields', async () => {
+  const db = ownerDb();
+  const other = ownerDb('other');
+  const progress = {
+    schemaVersion: 1,
+    uid: 'owner',
+    revision: 1,
+    updatedAt: Date.now(),
+    academy: { lessons: {}, conceptResults: {}, savedLessonIds: [] },
+    queue: { dispositions: {}, conceptDeferCounts: {}, sessionLength: null },
+    replay: { completedEpisodeIds: [], attemptCount: 0, bestProcessByEpisode: {}, masteryByCollection: {} },
+  };
+  const evidence = {
+    id: 'ev1',
+    eventKey: 'owner:practice_drill:d1:invalidation:1',
+    uid: 'owner',
+    conceptId: 'invalidation',
+    sourceType: 'practice_drill',
+    sourceId: 'd1',
+    occurredAt: Date.now(),
+    result: 'pass',
+  };
+
+  await assertSucceeds(setDoc(doc(db, 'users/owner/learnerState/progress'), progress));
+  await assertFails(getDoc(doc(other, 'users/owner/learnerState/progress')));
+  await assertFails(
+    setDoc(doc(db, 'users/owner/learnerState/notes'), { ...progress, uid: 'owner' }),
+  );
+  await assertFails(
+    setDoc(doc(other, 'users/owner/learnerState/progress'), { ...progress, uid: 'other' }),
+  );
+  await assertSucceeds(setDoc(doc(db, 'users/owner/learnerEvidence/ev1'), evidence));
+  await assertFails(
+    setDoc(doc(db, 'users/owner/learnerEvidence/ev-bad'), {
+      ...evidence,
+      eventKey: 'short',
+      notes: 'journal prose',
+    }),
+  );
+  await assertFails(
+    setDoc(doc(db, 'users/owner/learnerEvidence/ev-pnl'), {
+      ...evidence,
+      eventKey: 'owner:practice_drill:d2:invalidation:2',
+      processMetrics: { simulatedPnl: 5000 },
+    }),
+  );
+  await assertFails(
+    setDoc(doc(db, 'users/owner/learnerEvidence/ev-forged'), { ...evidence, uid: 'other' }),
+  );
+});
+
+test('keeps ops admin allowlist server-owned', async () => {
+  const db = ownerDb();
+  const other = ownerDb('other');
+
+  await testEnv.withSecurityRulesDisabled(async (context) => {
+    await setDoc(doc(context.firestore(), 'opsAdmins/owner'), { role: 'ops' });
+  });
+
+  await assertSucceeds(getDoc(doc(db, 'opsAdmins/owner')));
+  await assertFails(getDoc(doc(other, 'opsAdmins/owner')));
+  await assertFails(setDoc(doc(db, 'opsAdmins/owner'), { role: 'ops' }));
+  await assertFails(setDoc(doc(db, 'opsAdmins/forged'), { role: 'ops' }));
+});

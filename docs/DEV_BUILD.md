@@ -118,7 +118,7 @@ rates — do not treat task-manager alone as the final reliability answer.
 
 ## IAP checklist (Dev Client / production)
 
-1. RevenueCat `Aithera Pro` entitlement + `monthly` / `yearly` products (see [MONETIZATION.md](./MONETIZATION.md)). Do not create Lifetime at launch.
+1. RevenueCat `Aithera Pro` entitlement + `tradevision_premium_monthly` / `tradevision_premium_yearly` products (see [MONETIZATION.md](./MONETIZATION.md)).
 2. Platform SDK keys: `EXPO_PUBLIC_REVENUECAT_IOS_API_KEY` / `_ANDROID_…` (or shared `EXPO_PUBLIC_REVENUECAT_API_KEY` for test keys). Never put secret API keys in `EXPO_PUBLIC_*`.
 3. Configure a Paywall + Customer Center on the current offering in the RevenueCat dashboard.
 4. Sandbox (iOS) / license testers (Android): purchase → Aithera Pro unlocks (RC customerInfo optimistic + webhook Firestore).
@@ -128,9 +128,10 @@ rates — do not treat task-manager alone as the final reliability answer.
 ## App Check
 
 1. Enable App Check in Firebase Console.
-2. In `__DEV__`, copy the debug token into Firebase Console (or set `EXPO_PUBLIC_APPCHECK_DEBUG_TOKEN`).
-3. Functions `requireAppCheck` soft-fails when `APP_CHECK_ENFORCE=false`.
-4. Production EAS builds should move to DeviceCheck / Play Integrity before hard enforce.
+2. In `__DEV__`, copy the debug token into Firebase Console (or set `EXPO_PUBLIC_APPCHECK_DEBUG_TOKEN`). Debug tokens are never attached in production builds.
+3. Functions **enforce** App Check unless `FUNCTIONS_EMULATOR=true` or an explicit staging waiver `APP_CHECK_SOFT=true`. Leftover `APP_CHECK_ENFORCE=false` is ignored outside the emulator.
+4. Production native builds still need DeviceCheck / Play Integrity. Until those tokens exist, callables fail closed (no fake `expo-ios-debug` token). **Never set `APP_CHECK_SOFT=true` on production Functions.**
+5. Production web uses ReCaptcha v3 when `EXPO_PUBLIC_RECAPTCHA_SITE_KEY` is set.
 
 ## Vendor API secrets (Functions only)
 
@@ -140,7 +141,7 @@ never as `EXPO_PUBLIC_*` in production EAS profiles. Guest/demo uses sample/publ
 ## RevenueCat subscriptions
 
 1. Set platform-specific public SDK keys (above).
-2. Configure the `Aithera Pro` entitlement and attach `monthly` and `yearly`.
+2. Configure the `Aithera Pro` entitlement and attach `tradevision_premium_monthly` and `tradevision_premium_yearly`.
 3. Attach a Paywall to the current offering; enable Customer Center for management.
 4. Webhook → `revenueCatWebhook` with `REVENUECAT_WEBHOOK_AUTH_TOKEN`.
    Set Functions `REVENUECAT_ENTITLEMENT_ID=Aithera Pro` to match.

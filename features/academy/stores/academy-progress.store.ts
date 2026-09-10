@@ -53,6 +53,11 @@ interface AcademyProgressState {
   recordConceptResult: (conceptId: string, correct: boolean) => void;
   recordExerciseAttempt: (lessonId: string, correct?: boolean) => void;
   toggleSaved: (lessonId: string) => void;
+  mergeFromRemote: (input: {
+    lessons: Record<string, LessonProgress>;
+    conceptResults: Record<string, ConceptResult>;
+    savedLessonIds: string[];
+  }) => void;
   isSaved: (lessonId: string) => boolean;
   markDisciplineAction: (action: 'brief' | 'lesson' | 'journal') => void;
   isCompleted: (lessonId: string) => boolean;
@@ -218,6 +223,13 @@ export const useAcademyProgressStore = create<AcademyProgressState>()(
           savedLessonIds: current.includes(lessonId)
             ? current.filter((id) => id !== lessonId)
             : [...current, lessonId],
+        });
+      },
+      mergeFromRemote: (input) => {
+        set({
+          lessons: input.lessons,
+          conceptResults: input.conceptResults,
+          savedLessonIds: input.savedLessonIds,
         });
       },
       isSaved: (lessonId) => get().savedLessonIds.includes(lessonId),

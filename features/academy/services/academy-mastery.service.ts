@@ -1,5 +1,6 @@
-import { ALL_LESSONS } from '../content';
+import { DRILL_TO_CONCEPT } from '@/features/competency/content/activity-concept-map';
 import { PRACTICE_DRILLS } from '@/features/practice/content/practice-drills';
+import { ALL_LESSONS } from '../content';
 import type { Lesson } from '../types/academy.types';
 
 export type MasteryLabel = 'Not started' | 'Starting' | 'Developing' | 'Improving' | 'Strong';
@@ -39,6 +40,7 @@ export const CONCEPT_TO_LESSON: Record<string, string> = {
   'risk-per-trade': 'risk-per-trade',
   drawdown: 'risk-drawdown',
   volatility: 'foundations-volatility',
+  'volatility-aware-risk': 'foundations-volatility',
   liquidity: 'foundations-liquidity',
   timeframes: 'foundations-timeframes',
   'asset-classes': 'foundations-asset-classes',
@@ -64,17 +66,21 @@ export const CONCEPT_TO_LESSON: Record<string, string> = {
   'risk-of-ruin': 'risk-ruin',
   stops: 'risk-stops',
   invalidation: 'risk-stops',
-};
-
-const DRILL_TO_CONCEPT: Record<string, string> = {
-  'breakout-quality': 'false-breakouts',
-  'identify-trend': 'momentum',
-  'find-support': 'liquidity',
-  'rr-compare': 'risk-per-trade',
-  'position-size': 'position-sizing',
-  'fx-convert': 'fx',
-  'missing-evidence': 'confirmation-bias',
-  'confirmation-bias': 'confirmation-bias',
+  'trend-identification': 'ta-trend-range',
+  support: 'ta-structure',
+  'revenge-trading': 'psych-revenge',
+  volume: 'ta-volume',
+  'moving-averages': 'ta-moving-averages',
+  'event-risk': 'fund-calendar',
+  inflation: 'fund-economy',
+  'interest-rates': 'fund-economy',
+  earnings: 'fund-statements',
+  'revenue-growth': 'fund-statements',
+  'balance-sheet': 'fund-statements',
+  valuation: 'fund-valuation-quality',
+  'competitive-position': 'fund-valuation-quality',
+  'business-quality': 'fund-basics',
+  'fundamental-uncertainty': 'fund-basics',
 };
 
 function lessonTitle(id: string): string {

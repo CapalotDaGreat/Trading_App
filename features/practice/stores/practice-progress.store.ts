@@ -14,6 +14,7 @@ export interface PracticeAttempt {
 interface PracticeProgressState {
   attempts: PracticeAttempt[];
   recordAttempt: (attempt: Omit<PracticeAttempt, 'at'> & { at?: string }) => void;
+  mergeAttempts: (attempts: PracticeAttempt[]) => void;
   statsFor: (drillId: string) => { attempts: number; accuracy: number; lastCorrect?: boolean };
   repeatedMistakes: () => string[];
 }
@@ -31,6 +32,16 @@ export const usePracticeProgressStore = create<PracticeProgressState>()(
           at: attempt.at ?? new Date().toISOString(),
         };
         set({ attempts: [...get().attempts, next].slice(-200) });
+      },
+      mergeAttempts: (attempts) => {
+        const byKey = new Map(get().attempts.map((row) => [`${row.drillId}:${row.at}`, row]));
+        for (const row of attempts) {
+          const key = `${row.drillId}:${row.at}`;
+          if (!byKey.has(key)) byKey.set(key, row);
+        }
+        set({
+          attempts: [...byKey.values()].sort((a, b) => Date.parse(a.at) - Date.parse(b.at)).slice(-200),
+        });
       },
       statsFor: (drillId) => {
         const rows = get().attempts.filter((item) => item.drillId === drillId);

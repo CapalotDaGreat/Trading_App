@@ -1,4 +1,5 @@
 import type { EducationalChartSpec } from './educational-chart.types';
+import type { CompetencyScenarioContext } from '@/features/competency/types/competency.types';
 
 export type LessonDifficulty = 'beginner' | 'intermediate' | 'advanced';
 
@@ -72,6 +73,12 @@ export interface LessonExercise {
   leftLabel?: string;
   rightLabel?: string;
   chart?: EducationalChartSpec;
+  /** Guided interpretation still counts as applied, not as independent demonstration. */
+  guided?: boolean;
+  /** Mixed / unfamiliar prompt — recorded as transfer, not as the same example twice. */
+  asTransfer?: boolean;
+  scenarioContext?: CompetencyScenarioContext;
+  interactingConceptIds?: string[];
 }
 
 export interface PracticeLink {
@@ -112,6 +119,7 @@ export interface Lesson {
   limitations?: string[];
   exercises?: LessonExercise[];
   simulationLinks?: PracticeLink[];
+  replayLinks?: PracticeLink[];
   journalHref?: string;
   conceptIds?: string[];
 }

@@ -41,6 +41,15 @@ describe('RevenueCat offering package mapping', () => {
     expect(plans.find((plan) => plan.id === 'lifetime')?.price).toBe('$249.00');
   });
 
+  it('uses the catalog product identifiers for Aithera Pro', () => {
+    expect(FALLBACK_SUBSCRIPTION_PLANS.find((plan) => plan.id === 'monthly')?.productId).toBe(
+      'tradevision_premium_monthly',
+    );
+    expect(FALLBACK_SUBSCRIPTION_PLANS.find((plan) => plan.id === 'yearly')?.productId).toBe(
+      'tradevision_premium_yearly',
+    );
+  });
+
   it('finds a lifetime package for a manual purchase', () => {
     const packages = [
       { identifier: '$rc_lifetime', packageType: 'LIFETIME', product: { identifier: 'lifetime' } },

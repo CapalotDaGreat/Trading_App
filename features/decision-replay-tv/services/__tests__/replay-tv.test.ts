@@ -142,6 +142,8 @@ describe('Decision Replay TV', () => {
     const blindView = getBlindSafeEpisodeView(session);
     expect(blindView.historicalOutcome).toBeNull();
     expect(blindView.teachingNotes).toEqual([]);
+    expect(blindView.informationLayers.later.hidden).toBe(true);
+    expect(blindView.timestampHonesty.toLowerCase()).toMatch(/educational/);
     expect(JSON.stringify(blindView).toLowerCase()).not.toContain(
       getReplayTvEpisode('nvidia-earnings')!.historicalOutcome.slice(0, 24).toLowerCase(),
     );
@@ -371,6 +373,24 @@ describe('Decision Replay TV', () => {
       practiced[0]?.scoringEmphasis.includes('invalidation') ||
         practiced[0]?.skills.includes('invalidation') ||
         practiced[0]?.collectionIds.includes('risk_management'),
+    ).toBe(true);
+
+    const trainingPlan = {
+      personalized: true,
+      intent: 'event_awareness' as const,
+      preferredConceptIds: ['event-risk'],
+      preferredCollections: ['earnings'],
+      preferredEventKinds: ['earnings'],
+      preferredDifficulty: 'intermediate' as const,
+      trainingRationale: 'This scenario targets a skill you are currently practicing.',
+      coreQuestion: 'How would you have reasoned with the information available at that exact point?',
+    };
+    const personalized = rankReplayTvEpisodes(REPLAY_TV_EPISODES, { trainingPlan });
+    expect(personalized).toHaveLength(REPLAY_TV_EPISODES.length);
+    expect(
+      personalized[0]?.collectionIds.includes('earnings') ||
+        personalized[0]?.collectionIds.includes('policy') ||
+        personalized[0]?.eventKind === 'earnings',
     ).toBe(true);
   });
 

@@ -8,6 +8,7 @@ import {
   requireAppCheck,
   requireAuth,
   requirePremium,
+  requireVerifiedUser,
   sanitizeVendorError,
 } from './security';
 import {
@@ -56,7 +57,7 @@ async function gate(
   assertConfigured?: () => void,
 ) {
   requireAppCheck(request);
-  const uid = requireAuth(request);
+  const uid = requireVerifiedUser(request);
   assertConfigured?.();
   const quota = await consumeQuota(uid, bucket);
   return { uid, quota };
@@ -266,7 +267,7 @@ async function loadAiLimits(): Promise<{ free: number; premium: number; model: s
 export const aiAnalysis = onCall(callableOpts, async (request) => {
   const started = Date.now();
   requireAppCheck(request);
-  const uid = requireAuth(request);
+  const uid = requireVerifiedUser(request);
   await requirePremium(uid);
   const limits = await loadAiLimits();
   await recordAiOps({

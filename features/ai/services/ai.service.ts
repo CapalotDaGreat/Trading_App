@@ -77,8 +77,18 @@ export async function getAiUsage(tier: SubscriptionTier): Promise<AiUsageStats> 
         isNearLimit: isNearAiDailyLimit(remote.usedToday, remote.limit),
         isAtLimit: hasReachedLimit(remote.usedToday, remote.limit),
       };
-    } catch {
-      // Fall back to local counter when the server quota cannot be read.
+    } catch (error) {
+      if (error instanceof ProxyError && error.isQuota) {
+        const limit = getLimit('aiDaily', tier);
+        return {
+          usedToday: limit,
+          limit,
+          resetsAt: nextResetTimestamp(),
+          isNearLimit: false,
+          isAtLimit: true,
+        };
+      }
+      // App Check / offline: on-device engine continues with the local counter.
     }
   }
 
@@ -167,6 +177,7 @@ async function requestAnalysis(
   const accessError = checkAiAccess(tier, usageStats.usedToday, requiresPremium);
   if (accessError) throw accessError;
 
+  await recordServerAiUsage();
   const engineResult = await generateEngineAnalysis(type, enrichedContext);
   const enriched = enrichedContext.enriched;
   if (engineResult.metadata?.trust && enriched?.symbol) {
@@ -181,7 +192,6 @@ async function requestAnalysis(
       confidence: trust.confidence.overall,
     };
   }
-  await recordServerAiUsage();
   await incrementUsage();
   return engineResult;
 }
@@ -234,6 +244,7 @@ export const aiService = {
     const accessError = checkAiAccess(tier, usageStats.usedToday);
     if (accessError) throw accessError;
 
+    await recordServerAiUsage();
     const priorEvidenceLevel = priorEvidenceLevelFromHistory(request.history);
     const engineResponse = generateEngineChatResponse(prompt, {
       ...enrichedContext,
@@ -262,7 +273,6 @@ export const aiService = {
       },
     };
 
-    await recordServerAiUsage();
     await incrementUsage();
 
     return {

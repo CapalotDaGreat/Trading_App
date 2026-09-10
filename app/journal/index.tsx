@@ -15,6 +15,7 @@ import { useJournalLearningJourney } from '@/features/journal/hooks/useJournalLe
 import { searchJournalEntries, type JournalQuickFilter } from '@/features/journal/services/journal-search.service';
 import type { JournalHubTab } from '@/features/journal/types/journal-learning-journey.types';
 import { EmptyState } from '@/shared/components/feedback/EmptyState';
+import { RecoverableErrorState } from '@/shared/components/feedback/RecoverableErrorState';
 import { StatusState } from '@/shared/components/feedback/StatusState';
 import { ScreenScaffold } from '@/shared/components/layout/ScreenScaffold';
 import { CollapsibleSection } from '@/shared/components/patterns/CollapsibleSection';
@@ -66,13 +67,21 @@ export default function JournalScreen() {
   const [journalFilter, setJournalFilter] = useState<JournalQuickFilter>('all');
   const { canExport, createEntry, deleteEntry, exportJournal, isCreating } = useJournal();
   const { isOnline } = useOnlineStatus();
-  const { journey, stats, entries, isLoading } = useJournalLearningJourney();
+  const { journey, stats, entries, isLoading, isError, isStale, refetch } = useJournalLearningJourney();
   const visibleEntries = useMemo(
     () => searchJournalEntries(entries, journalQuery, journalFilter),
     [entries, journalQuery, journalFilter],
   );
 
-  if (isLoading || !journey) {
+  if (isError && entries.length === 0) {
+    return (
+      <ScreenScaffold title="Journal" scrollable={false} contentClassName="justify-center">
+        <RecoverableErrorState error={new Error('journal-unavailable')} onRetry={() => void refetch()} />
+      </ScreenScaffold>
+    );
+  }
+
+  if ((isLoading && entries.length === 0) || !journey) {
     return (
       <ScreenScaffold title="Journal" scrollable={false} contentClassName="justify-center">
         <StatusState
@@ -101,6 +110,17 @@ export default function JournalScreen() {
           <Text variant="caption" className="text-text-tertiary">
             Journal stays on this device. You can keep writing and reviewing offline.
           </Text>
+        ) : null}
+        {isStale ? (
+          <Surface padding="sm" tone="warning" testID="journal-stale-banner">
+            <Text variant="label">Showing saved reflections</Text>
+            <Text variant="body-sm" className="mt-1 text-text-secondary">
+              Cloud journal could not refresh. Nothing here is live market data.
+            </Text>
+            <Button size="sm" className="mt-2 self-start" onPress={() => void refetch()}>
+              Retry
+            </Button>
+          </Surface>
         ) : null}
 
         {fromParam === 'onboarding' ? (
@@ -173,10 +193,10 @@ export default function JournalScreen() {
               </Text>
               {entries.length === 0 ? (
                 <EmptyState
-                  title="Your decisions will appear here"
-                  description="A short note on thesis and what you would change is enough to start Review."
-                  actionLabel="Make Your First Decision"
-                  onAction={() => setShowReflectionForm(true)}
+                  title="No journal entries yet"
+                  description="Complete a practice drill or simulation first, then write what you noticed."
+                  actionLabel="Open Practice"
+                  onAction={() => router.push('/practice' as never)}
                   className="px-4 py-8"
                 />
               ) : (
@@ -232,9 +252,9 @@ export default function JournalScreen() {
                     ? 'Your decisions will appear here.'
                     : 'Try a ticker, a concept like RSI, or a filter such as Uncertain or Losses.'
                 }
-                actionLabel={entries.length === 0 ? 'Make Your First Decision' : 'Clear filters'}
+                actionLabel={entries.length === 0 ? 'Open Practice' : 'Clear filters'}
                 onAction={() => {
-                  if (entries.length === 0) setShowReflectionForm(true);
+                  if (entries.length === 0) router.push('/practice' as never);
                   else {
                     setJournalQuery('');
                     setJournalFilter('all');

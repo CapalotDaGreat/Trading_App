@@ -12,15 +12,38 @@ export function requireAuth(request: CallableRequest): string {
   return uid;
 }
 
+/** Vendor / paid-data callables require a verified, non-anonymous Firebase user. */
+export function isVerifiedCallableUser(token?: {
+  email_verified?: boolean;
+  firebase?: { sign_in_provider?: string };
+} | null): boolean {
+  if (!token) return false;
+  if (token.firebase?.sign_in_provider === 'anonymous') return false;
+  return token.email_verified === true;
+}
+
+export function requireVerifiedUser(request: CallableRequest): string {
+  const uid = requireAuth(request);
+  if (!isVerifiedCallableUser(request.auth?.token)) {
+    throw new functions.https.HttpsError(
+      'failed-precondition',
+      'Verify your email to use live market data.',
+    );
+  }
+  return uid;
+}
+
 /**
  * App Check is fail-closed by default.
  *
  * Soft (allow missing tokens, still log) only when:
  * - FUNCTIONS_EMULATOR=true
- * - APP_CHECK_SOFT=true (Expo Go / staging against deployed Functions)
- * - APP_CHECK_ENFORCE=false (legacy alias — do not set in production)
+ * - APP_CHECK_SOFT=true (explicit staging / Expo Go against deployed Functions)
  *
- * Platform `enforceAppCheck` stays false so the env flag remains the switch;
+ * `APP_CHECK_ENFORCE=false` is ignored outside the emulator so a leftover
+ * Functions env var cannot leave production in a weak development configuration.
+ *
+ * Platform `enforceAppCheck` stays false so this helper remains the switch;
  * native DeviceCheck / Play Integrity must still be wired for tokens to verify.
  */
 export function shouldEnforceAppCheck(
@@ -28,7 +51,6 @@ export function shouldEnforceAppCheck(
 ): boolean {
   if (env.FUNCTIONS_EMULATOR === 'true') return false;
   if (env.APP_CHECK_SOFT === 'true') return false;
-  if (env.APP_CHECK_ENFORCE === 'false') return false;
   return true;
 }
 

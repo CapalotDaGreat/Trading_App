@@ -52,6 +52,11 @@ export function SimulationScenarioPanel({
         <Text variant="caption" className="mt-1 text-text-tertiary">
           {view.practiceLevelHint}
         </Text>
+        {view.trainingRationale ? (
+          <Text variant="caption" className="mt-2 text-text-secondary">
+            {view.trainingRationale}
+          </Text>
+        ) : null}
         {view.visibleEvents.length ? (
           <View className="mt-3 gap-2">
             {view.visibleEvents.map((event) => (

@@ -198,11 +198,16 @@ export default function AcademyLessonScreen() {
         onQuizAnswer={({ correct, conceptId }) => {
           if (conceptId) recordConceptResult(conceptId, correct);
         }}
-        onExerciseComplete={({ correct, conceptId }) => {
-          recordExerciseAttempt(lesson.id, correct);
-          if (conceptId && typeof correct === 'boolean') {
-            recordConceptResult(conceptId, correct);
-          }
+        onExerciseComplete={({ correct, conceptId, kind, exerciseId, guided, asTransfer, scenarioContext, interactingConceptIds }) => {
+          recordExerciseAttempt(lesson.id, correct, {
+            conceptId,
+            kind,
+            exerciseId,
+            asTransfer,
+            scenarioContext,
+            interactingConceptIds,
+            helpLevel: guided ? 'example' : 'none',
+          });
         }}
       />
 
@@ -227,7 +232,7 @@ export default function AcademyLessonScreen() {
           variant="tip"
           title="Suggested Replay"
           body={framing.suggestedReplay}
-          learnMoreHref="/decision/decision-replay"
+          learnMoreHref={lesson.replayLinks?.[0]?.href ?? '/decision/replay-tv'}
         />
         <EducationalPanel
           variant="why"

@@ -4,6 +4,7 @@ import { persist } from 'zustand/middleware';
 import { createPersistedStorage } from '@/shared/stores/create-persisted-storage';
 
 import type { QueueDisposition, TrainingHandoff } from '../types/learning-engine.types';
+import type { TrainingSessionLength } from '@/features/training-planner/types/training-planner.types';
 
 const DAY = 24 * 60 * 60 * 1000;
 const RECENT_CAP = 12;
@@ -13,12 +14,19 @@ interface LearningQueueState {
   conceptDeferCounts: Record<string, number>;
   recentActivityKeys: string[];
   activeHandoff: TrainingHandoff | null;
+  sessionLength: TrainingSessionLength | null;
   skip: (id: string, now?: number, conceptId?: string) => void;
-  defer: (id: string, now?: number, conceptId?: string) => void;
+  defer: (id: string, now?: number, conceptId?: string, reason?: string) => void;
   bookmark: (id: string) => void;
   clear: (id: string) => void;
   recordOpened: (activityKey: string) => void;
   setHandoff: (handoff: TrainingHandoff | null) => void;
+  setSessionLength: (length: TrainingSessionLength | null) => void;
+  mergeFromRemote: (input: {
+    dispositions: Record<string, QueueDisposition>;
+    conceptDeferCounts: Record<string, number>;
+    sessionLength: TrainingSessionLength | null;
+  }) => void;
   reset: () => void;
 }
 
@@ -35,6 +43,7 @@ const EMPTY = {
   conceptDeferCounts: {} as Record<string, number>,
   recentActivityKeys: [] as string[],
   activeHandoff: null as TrainingHandoff | null,
+  sessionLength: null as TrainingSessionLength | null,
 };
 
 export const useLearningQueueStore = create<LearningQueueState>()(
@@ -53,7 +62,7 @@ export const useLearningQueueStore = create<LearningQueueState>()(
             : get().conceptDeferCounts,
         });
       },
-      defer: (id, now = Date.now(), conceptId) => {
+      defer: (id, now = Date.now(), conceptId, reason) => {
         const current = get().dispositions[id];
         const nextCount = (current?.deferCount ?? 0) + 1;
         const conceptDeferCounts = { ...get().conceptDeferCounts };
@@ -64,6 +73,8 @@ export const useLearningQueueStore = create<LearningQueueState>()(
           dispositions: merge(get().dispositions, id, {
             deferredUntil: now + DAY,
             deferCount: nextCount,
+            lastDeferredAt: now,
+            lastDeferReason: reason?.trim() ? reason.trim() : current?.lastDeferReason,
           }),
           conceptDeferCounts,
         });
@@ -84,12 +95,37 @@ export const useLearningQueueStore = create<LearningQueueState>()(
         set({ recentActivityKeys: recent });
       },
       setHandoff: (handoff) => set({ activeHandoff: handoff }),
+      setSessionLength: (length) => set({ sessionLength: length }),
+      mergeFromRemote: (input) => {
+        const dispositions = { ...get().dispositions };
+        for (const [id, row] of Object.entries(input.dispositions)) {
+          const current = dispositions[id];
+          dispositions[id] = {
+            ...row,
+            lastDeferReason: current?.lastDeferReason ?? row.lastDeferReason,
+            skipCount: Math.max(current?.skipCount ?? 0, row.skipCount ?? 0) || row.skipCount,
+            deferCount: Math.max(current?.deferCount ?? 0, row.deferCount ?? 0) || row.deferCount,
+            skippedUntil: Math.max(current?.skippedUntil ?? 0, row.skippedUntil ?? 0) || row.skippedUntil,
+            deferredUntil: Math.max(current?.deferredUntil ?? 0, row.deferredUntil ?? 0) || row.deferredUntil,
+            bookmarked: Boolean(current?.bookmarked || row.bookmarked) || undefined,
+          };
+        }
+        const conceptDeferCounts = { ...get().conceptDeferCounts };
+        for (const [id, count] of Object.entries(input.conceptDeferCounts)) {
+          conceptDeferCounts[id] = Math.max(conceptDeferCounts[id] ?? 0, count);
+        }
+        set({
+          dispositions,
+          conceptDeferCounts,
+          sessionLength: get().sessionLength ?? input.sessionLength,
+        });
+      },
       reset: () => set(EMPTY),
     }),
     {
       name: 'tradevision-learning-queue-v1',
       storage: createPersistedStorage(),
-      version: 2,
+      version: 3,
       migrate: (persisted) => {
         const state = (persisted ?? {}) as Partial<LearningQueueState>;
         return {
@@ -97,6 +133,7 @@ export const useLearningQueueStore = create<LearningQueueState>()(
           conceptDeferCounts: state.conceptDeferCounts ?? {},
           recentActivityKeys: state.recentActivityKeys ?? [],
           activeHandoff: state.activeHandoff ?? null,
+          sessionLength: state.sessionLength ?? null,
         };
       },
     },

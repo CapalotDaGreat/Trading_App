@@ -103,7 +103,7 @@ describe('evidence creation', () => {
     expect(record.result).toBe('pass');
     expect(record.independent).toBe(true);
     expect(record.reliability).toBe(DEFAULT_RELIABILITY.simulation_decision);
-    expect(record.version).toBe(1);
+    expect(record.version).toBe(2);
     expect(record).not.toHaveProperty('notes');
     expect(record).not.toHaveProperty('lessonsLearned');
   });

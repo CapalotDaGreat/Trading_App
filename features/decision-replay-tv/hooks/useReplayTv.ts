@@ -20,7 +20,7 @@ import {
   getVisibleNewsForSession,
   getBlindSafeEpisodeView,
 } from '@/features/decision-replay-tv/services/replay-tv-session.service';
-import { useReplayTvStore } from '@/features/decision-replay-tv/stores/replay-tv.store';
+import { EMPTY_REPLAY_TV_PROGRESS, useReplayTvStore } from '@/features/decision-replay-tv/stores/replay-tv.store';
 import type {
   ReplayTvChecklist,
   ReplayTvDecision,
@@ -39,14 +39,15 @@ export function useReplayTv() {
   const { isPremium } = useEntitlement('replaySessionsMonthly');
   const [accessBlock, setAccessBlock] = useState<ReplayTvAccessResult | null>(null);
 
-  const activeSession = useReplayTvStore((s) => s.activeSession);
-  const progress = useReplayTvStore((s) => s.progress);
+  const activeSession = useReplayTvStore((s) => s.activeSessionByUser[uid] ?? null);
+  const progress = useReplayTvStore((s) => s.progressByUser[uid] ?? EMPTY_REPLAY_TV_PROGRESS);
   const startEpisode = useReplayTvStore((s) => s.startEpisode);
   const restartEpisode = useReplayTvStore((s) => s.restartEpisode);
   const advancePhase = useReplayTvStore((s) => s.advancePhase);
   const updateChecklist = useReplayTvStore((s) => s.updateChecklist);
   const submitDecision = useReplayTvStore((s) => s.submitDecision);
   const updateDraftReasoning = useReplayTvStore((s) => s.updateDraftReasoning);
+  const commitReflection = useReplayTvStore((s) => s.commitReflection);
   const advanceReveal = useReplayTvStore((s) => s.advanceReveal);
   const updateAnnotations = useReplayTvStore((s) => s.updateAnnotations);
   const markComplete = useReplayTvStore((s) => s.markComplete);
@@ -87,7 +88,7 @@ export function useReplayTv() {
         episodeId: ep.id.slice(0, 64),
         difficulty: ep.difficulty,
       });
-      return startEpisode(episodeId);
+      return startEpisode(uid, episodeId);
     },
     onSuccess: () => {
       router.push('/decision/replay-tv/session' as never);
@@ -96,14 +97,15 @@ export function useReplayTv() {
 
   const finishMutation = useMutation({
     mutationFn: async () => {
-      const session = useReplayTvStore.getState().activeSession;
+      commitReflection(uid);
+      const session = useReplayTvStore.getState().sessionFor(uid);
       if (!session?.scores) {
         throw new Error('Replay TV session is not ready to finish.');
       }
       const ep = getReplayTvEpisode(session.episodeId);
       if (!ep) throw new Error('Episode missing.');
 
-      markComplete({
+      markComplete(uid, {
         episodeId: ep.id,
         collectionIds: ep.collectionIds,
         processScore: session.scores.processQuality,
@@ -196,7 +198,8 @@ export function useReplayTv() {
 
   const saveJournalMutation = useMutation({
     mutationFn: async () => {
-      const session = useReplayTvStore.getState().activeSession;
+      commitReflection(uid);
+      const session = useReplayTvStore.getState().sessionFor(uid);
       if (!session?.scores || !episode) {
         throw new Error('Nothing to save yet.');
       }
@@ -221,12 +224,12 @@ export function useReplayTv() {
     isPremium,
     beginEpisode: beginMutation.mutateAsync,
     isStarting: beginMutation.isPending,
-    advancePhase,
-    restartEpisode,
-    updateChecklist: (patch: Partial<ReplayTvChecklist>) => updateChecklist(patch),
+    advancePhase: () => advancePhase(uid),
+    restartEpisode: () => restartEpisode(uid),
+    updateChecklist: (patch: Partial<ReplayTvChecklist>) => updateChecklist(uid, patch),
     submitDecision: (decision: ReplayTvDecision, reasoning: string, structured?: ReplayTvReasoning) => {
-      submitDecision(decision, reasoning, structured);
-      const session = useReplayTvStore.getState().activeSession;
+      submitDecision(uid, decision, reasoning, structured);
+      const session = useReplayTvStore.getState().sessionFor(uid);
       const ep = session ? getReplayTvEpisode(session.episodeId) : episode;
       const last = session?.decisions[session.decisions.length - 1];
       if (!session || !ep || !last) return;
@@ -261,17 +264,17 @@ export function useReplayTv() {
     journalSaved: Boolean(saveJournalMutation.data),
     journalError: saveJournalMutation.error,
     nextPractice,
-    updateDraftReasoning,
-    advanceReveal,
-    updateAnnotations,
+    updateDraftReasoning: (draft: ReplayTvReasoning) => updateDraftReasoning(uid, draft),
+    advanceReveal: () => advanceReveal(uid),
+    updateAnnotations: (annotations: Parameters<typeof updateAnnotations>[1]) => updateAnnotations(uid, annotations),
     clearActive: () => {
-      const session = useReplayTvStore.getState().activeSession;
+      const session = useReplayTvStore.getState().sessionFor(uid);
       if (session && session.phase !== 'complete' && session.phase !== 'skill') {
         void trackEvent('replay_abandoned', {
           episodeId: session.episodeId.slice(0, 64),
         });
       }
-      clearActive();
+      clearActive(uid);
     },
   };
 }

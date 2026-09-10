@@ -10,7 +10,7 @@ Mastery means only:
 
 It does **not** mean the user is certified, qualified, live-ready, or ready for real-money trading. Scores must never become investment advice, buy/sell signals, or implied outcomes.
 
-This document describes the competency foundation. Demonstrated-skill rules, remediation, and spaced re-demonstration are specified in `docs/TRADEACADEMY_MASTERY_SYSTEM.md`.
+This document describes the competency foundation. Demonstrated-skill rules, remediation, and spaced re-demonstration are specified in `docs/TRADEACADEMY_MASTERY_SYSTEM.md`. How activities bind to concepts, and how completion is distinguished from application, is specified in `docs/TRADEACADEMY_EVIDENCE_MODEL.md`.
 
 There is still no competency dashboard. Scores must never become investment advice, buy/sell signals, or implied outcomes.
 
@@ -40,7 +40,7 @@ Demonstration
 Mastery state
 ```
 
-A completed lesson is **exposure**. It is never enough to mark `demonstrated`.
+A completed lesson is **exposure**. It is never enough to mark `demonstrated`. See `docs/TRADEACADEMY_EVIDENCE_MODEL.md`.
 
 ---
 
@@ -152,12 +152,17 @@ Free-form journal notes and `lessonsLearned` are **not** copied into evidence.
 | `knowledge_check` | In-lesson check | 0.45 |
 | `calculation_exercise` | Worked sizing / R:R style exercise | 0.55 |
 | `practice_drill` | Practice path drill | 0.55 |
+| `applied_exercise` | Scenario / compare / explain / annotate | 0.60 |
+| `event_exercise` | Event-aware drill | 0.60 |
 | `replay_decision` | Historical replay process | 0.75 |
 | `simulation_decision` | Simulation / lab process | 0.80 |
+| `simulation_checkpoint` | Simulation decision window (process, not P/L) | 0.75 |
 | `journal_reflection` | Structured flags only | 0.40 |
 | `review_finding` | Review-surface observation | 0.50 |
 | `remediation_exercise` | Targeted retry after misses | 0.60 |
 | `re_demonstration` | Scheduled re-test | 0.85 |
+| `transfer_exercise` | Far-context application | 0.80 |
+| `surprise_assessment` | Concealed / surprise re-test | 0.80 |
 
 Assisted work (`hintsUsed` or `independent === false`) multiplies reliability by `0.55`.
 
@@ -169,12 +174,16 @@ Ingest helpers live in `features/competency/services/ingest.service.ts`. Produce
 
 ## Mastery states
 
+Primary labels (`competenceState`) are documented in `docs/TRADEACADEMY_MASTERY_SYSTEM.md`: Not started, Learning, Developing, Demonstrated, Strong, Needs Revisit, Transfer Unproven. They are **not** a single numeric score.
+
+Internal machine states still used by the planner:
+
 | State | Meaning |
 | --- | --- |
 | `not_started` | No evidence |
 | `learning` | Lesson or unstructured reflection only |
 | `practiced` | Graded attempts exist; not yet demonstrated |
-| `demonstrated` | Repeated independent process evidence across contexts |
+| `demonstrated` | Recipe met with independent process evidence |
 | `needs_remediation` | Recent process misses dominate |
 | `due_for_redemonstration` | Previously demonstrated; independent evidence aged out |
 
@@ -293,6 +302,8 @@ Still not in this phase:
 
 Keep DQS, research quality, and simulation process scores as **evidence inputs**. Do not persist a second DNA snapshot as competency.
 
+The **learner model** (`docs/TRADEACADEMY_LEARNER_MODEL.md`, `features/learner-model`) is a derived view of this ledger (plus compact behavior events). It does not replace mastery scoring.
+
 ---
 
 ## Module map
@@ -302,7 +313,8 @@ Keep DQS, research quality, and simulation process scores as **evidence inputs**
 | `features/competency/content/competency-taxonomy.ts` | Registry |
 | `features/competency/types/competency.types.ts` | Types |
 | `features/competency/services/taxonomy.service.ts` | Lookup + validation |
-| `features/competency/services/evidence.service.ts` | Record factory + process result |
+| `features/competency/content/activity-concept-map.ts` | Lesson / drill → canonical concept IDs |
+| `features/competency/services/evidence.service.ts` | Record factory, layers, process result |
 | `features/competency/content/demonstration-recipes.ts` | Concept-specific demonstration bars |
 | `features/competency/content/remediation-catalog.ts` | Remediation plans and mixed contexts |
 | `features/competency/services/mastery.service.ts` | Transparent scorer and transitions |

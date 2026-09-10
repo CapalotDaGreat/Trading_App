@@ -16,6 +16,11 @@ describe('analytics allowlist', () => {
     expect(ANALYTICS_PROP_KEYS).not.toContain('dna');
     expect(ANALYTICS_PROP_KEYS).not.toContain('trait');
     expect(ANALYTICS_PROP_KEYS).not.toContain('score');
+    expect(ANALYTICS_PROP_KEYS).not.toContain('notes');
+    expect(ANALYTICS_PROP_KEYS).not.toContain('equity');
+    expect(ANALYTICS_PROP_KEYS).not.toContain('pnl');
+    expect(ANALYTICS_PROP_KEYS).not.toContain('simulatedPnl');
+    expect(ANALYTICS_PROP_KEYS).not.toContain('prompt');
   });
 
   it('includes core product funnel events', () => {

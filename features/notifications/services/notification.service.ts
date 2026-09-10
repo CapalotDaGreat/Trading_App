@@ -172,7 +172,6 @@ class NotificationServiceImpl implements NotificationService {
       );
       logger.debug('push.token_acquired', {
         projectIdPresent: Boolean(projectId),
-        tokenPrefix: token.data.slice(0, 12),
       });
       return token.data;
     } catch (error) {

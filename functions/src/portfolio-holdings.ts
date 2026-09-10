@@ -9,7 +9,7 @@ import {
   type ServerInstrument,
 } from './instruments-catalog';
 import { consumeQuota } from './quota';
-import { requireAppCheck, requireAuth, sanitizeVendorError } from './security';
+import { requireAppCheck, requireVerifiedUser, sanitizeVendorError } from './security';
 import { parseQuery, parseSymbol } from './validation';
 import { finnhubQuote, finnhubSearch } from './vendors';
 
@@ -51,7 +51,7 @@ function failedPrecondition(message: string): never {
 
 async function gate(request: CallableRequest, bucket: Parameters<typeof consumeQuota>[1]) {
   requireAppCheck(request);
-  const uid = requireAuth(request);
+  const uid = requireVerifiedUser(request);
   const quota = await consumeQuota(uid, bucket);
   return { uid, quota };
 }

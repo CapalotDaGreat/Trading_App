@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { memo, useCallback, useMemo, useState } from 'react';
 import { LayoutChangeEvent, View } from 'react-native';
 import Svg, { G, Line, Rect, Text as SvgText } from 'react-native-svg';
 
@@ -102,7 +102,7 @@ function scaleCandles(
   return { scaled, minPrice, maxPrice, candleWidth };
 }
 
-export function CandlestickChart({
+function CandlestickChartComponent({
   candles,
   height = 280,
   isLoading = false,
@@ -274,3 +274,6 @@ export function CandlestickChart({
     </View>
   );
 }
+
+export const CandlestickChart = memo(CandlestickChartComponent);
+CandlestickChart.displayName = 'CandlestickChart';

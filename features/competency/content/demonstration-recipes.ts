@@ -14,7 +14,18 @@ const PRACTICE: CompetencyEvidenceType[] = ['practice_drill', 'calculation_exerc
 const APPLICATION: CompetencyEvidenceType[] = [
   'replay_decision',
   'simulation_decision',
+  'simulation_checkpoint',
   're_demonstration',
+  'transfer_exercise',
+  'surprise_assessment',
+  'event_exercise',
+];
+const FUNDAMENTAL_APPLICATION: CompetencyEvidenceType[] = [
+  'applied_exercise',
+  'replay_decision',
+  'simulation_decision',
+  're_demonstration',
+  'transfer_exercise',
 ];
 const REFLECTION: CompetencyEvidenceType[] = ['journal_reflection', 'review_finding'];
 
@@ -54,6 +65,7 @@ function familyDefault(family: CompetencyFamily, conceptId: string): Demonstrati
       return recipe(conceptId, 'specialist', [
         req('knowledge', 1, KNOWLEDGE),
         req('practice', 1, PRACTICE),
+        req('application', 1, FUNDAMENTAL_APPLICATION),
       ]);
     case 'psychology':
       return recipe(conceptId, 'core', [
@@ -145,6 +157,51 @@ const RECIPE_OVERRIDES: Record<string, DemonstrationRecipe> = {
     req('practice', 1, PRACTICE),
     req('application', 1, APPLICATION),
   ]),
+  earnings: recipe(
+    'earnings',
+    'core',
+    [
+      req('knowledge', 1, KNOWLEDGE),
+      req('practice', 1, PRACTICE),
+      req('application', 1, FUNDAMENTAL_APPLICATION, 2),
+    ],
+    true,
+  ),
+  valuation: recipe(
+    'valuation',
+    'core',
+    [
+      req('knowledge', 1, KNOWLEDGE),
+      req('practice', 1, PRACTICE),
+      req('application', 1, FUNDAMENTAL_APPLICATION, 2),
+    ],
+    true,
+  ),
+  'revenue-growth': recipe('revenue-growth', 'supporting', [
+    req('knowledge', 1, KNOWLEDGE),
+    req('practice', 1, PRACTICE),
+    req('application', 1, FUNDAMENTAL_APPLICATION),
+  ]),
+  'balance-sheet': recipe('balance-sheet', 'supporting', [
+    req('knowledge', 1, KNOWLEDGE),
+    req('practice', 1, PRACTICE),
+    req('application', 1, FUNDAMENTAL_APPLICATION),
+  ]),
+  'business-quality': recipe('business-quality', 'supporting', [
+    req('knowledge', 1, KNOWLEDGE),
+    req('practice', 1, PRACTICE),
+    req('application', 1, FUNDAMENTAL_APPLICATION),
+  ]),
+  'competitive-position': recipe('competitive-position', 'supporting', [
+    req('knowledge', 1, KNOWLEDGE),
+    req('practice', 1, PRACTICE),
+    req('application', 1, FUNDAMENTAL_APPLICATION),
+  ]),
+  'fundamental-uncertainty': recipe('fundamental-uncertainty', 'supporting', [
+    req('knowledge', 1, KNOWLEDGE),
+    req('practice', 1, PRACTICE),
+    req('application', 1, FUNDAMENTAL_APPLICATION),
+  ]),
 };
 
 export function recipeFor(conceptId: string): DemonstrationRecipe {
@@ -164,7 +221,7 @@ export function sourcesForRole(role: EvidenceRole): CompetencyEvidenceType[] {
       return PRACTICE;
     case 'application':
     case 'redemonstration':
-      return APPLICATION;
+      return [...new Set([...APPLICATION, ...FUNDAMENTAL_APPLICATION])];
     case 'reflection':
       return REFLECTION;
     case 'remediation':

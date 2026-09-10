@@ -1,12 +1,15 @@
 import { useRouter } from 'expo-router';
+import { useMemo } from 'react';
 import { View } from 'react-native';
 
-import { NextLessonCard } from '@/features/academy/components/CurriculumCards';
-import { useNextAcademyLesson } from '@/features/academy/hooks/useAcademy';
+import { PlannerNextCard } from '@/features/training-planner/components/PlannerNextCard';
+import { ReviewProcessBrief } from '@/features/training-planner/components/ReviewProcessBrief';
+import { composeReviewBrief } from '@/features/training-planner/services/review-brief.service';
 import { useLearningEngine } from '@/features/learning-engine/hooks/useLearningEngine';
 import { TrainingHandoffBanner } from '@/features/learning-engine/components/TrainingHandoffBanner';
 import { useDecisionLog } from '@/features/decision-log/hooks/useDecisionLog';
-import { useReplayTvStore } from '@/features/decision-replay-tv/stores/replay-tv.store';
+import { useAuth } from '@/features/auth/hooks/useAuth';
+import { EMPTY_REPLAY_TV_PROGRESS, useReplayTvStore } from '@/features/decision-replay-tv/stores/replay-tv.store';
 import { useJournal } from '@/features/journal/hooks/useJournal';
 import { LoopCtaRow } from '@/features/navigation/components/LoopCtaRow';
 import {
@@ -14,10 +17,9 @@ import {
   REVIEW_HUB_SECTIONS,
   type NavigationHubSection,
 } from '@/features/navigation/config/navigation-ia.config';
-import { usePersonalIntelligence } from '@/features/personal-intelligence/hooks/usePersonalIntelligence';
-import { usePracticeProgressStore } from '@/features/practice/stores/practice-progress.store';
-import { PRACTICE_DRILLS } from '@/features/practice/content/practice-drills';
+import { MistakeLibraryCard } from '@/features/mistake-library';
 import { useSimulation } from '@/features/simulation/hooks/useSimulation';
+import { scoreSimulationProcess } from '@/features/simulation/services/scenario-process.service';
 import { EmptyState } from '@/shared/components/feedback/EmptyState';
 import { ScreenScaffold } from '@/shared/components/layout/ScreenScaffold';
 import { CollapsibleSection } from '@/shared/components/patterns/CollapsibleSection';
@@ -25,128 +27,133 @@ import { HubPathList } from '@/shared/components/patterns/HubPathList';
 import { Button } from '@/shared/components/ui/Button';
 import { Surface } from '@/shared/components/ui/Surface';
 import { Text } from '@/shared/components/ui/Text';
+import { useOnlineStatus } from '@/shared/hooks/useOnlineStatus';
+import { DEMO_USER_UID } from '@/firebase/config';
 import { formatPrice } from '@/shared/utils/format';
 
 const WORK = REVIEW_HUB_SECTIONS.filter((section) => section.title === 'Your work');
 const PATTERNS = REVIEW_HUB_SECTIONS.filter((section) => section.title === 'Patterns');
 const REPLAY = REVIEW_HUB_SECTIONS.filter((section) => section.title === 'Replay');
 
+function usableNote(text?: string | null): boolean {
+  return Boolean(text && text.trim().length >= 12);
+}
+
 export default function ReviewScreen() {
   const router = useRouter();
-  const { recommendation } = useNextAcademyLesson();
-  const { today } = useLearningEngine();
-  const focus = today.focusAreas[0];
-  const { entries } = useJournal();
-  const { records, summary } = useDecisionLog();
+  const { plan, learner, primary, openItem, defer } = useLearningEngine();
+  const { entries, isError: journalError, refetch: refetchJournal } = useJournal();
+  const { records, isError: logError, refetch: refetchLog } = useDecisionLog();
+  const { isOnline } = useOnlineStatus();
   const { account, archives } = useSimulation();
-  const intelligence = usePersonalIntelligence();
-  const replayProgress = useReplayTvStore((state) => state.progress);
-  const attempts = usePracticeProgressStore((state) => state.attempts);
+  const { user } = useAuth();
+  const uid = user?.uid ?? DEMO_USER_UID;
+  const replayProgress = useReplayTvStore((state) => state.progressByUser[uid] ?? EMPTY_REPLAY_TV_PROGRESS);
   const recentJournal = entries[0];
   const recentDecision = records?.length ? records[records.length - 1] : undefined;
   const lastSimClose = account?.decisions?.slice().reverse().find((item) => item.closedAt);
-  const dnaHeadline =
-    intelligence.data?.today.headline ?? intelligence.data?.mentorSummary?.becomingLabel;
-  const missId = attempts.filter((item) => !item.correct).at(-1)?.drillId;
-  const missTitle = PRACTICE_DRILLS.find((drill) => drill.id === missId)?.title;
+  const process = account ? scoreSimulationProcess(account) : undefined;
   const hasAnyReviewWork =
     entries.length > 0 || (records?.length ?? 0) > 0 || Boolean(account) || replayProgress.completedEpisodeIds.length > 0;
+
+  const brief = useMemo(
+    () =>
+      composeReviewBrief({
+        plan,
+        learner,
+        activity: {
+          journal: {
+            count: entries.length,
+            withUsableNotes: entries.filter((entry) => usableNote(entry.notes) || usableNote(entry.strategy)).length,
+            withReflection: entries.filter(
+              (entry) => usableNote(entry.lessonsLearned) || usableNote(entry.improvementCommitment),
+            ).length,
+            withProcessTag: entries.filter((entry) => Boolean(entry.mistakeCategory) && entry.mistakeCategory !== 'other')
+              .length,
+          },
+          simulation: account
+            ? {
+                decisionCount: account.decisions.length,
+                thesisBackedCount: account.decisions.filter((item) => item.thesis.trim().length >= 8).length,
+                closeReviewCount: account.decisions.filter((item) => item.closeReview).length,
+                processGaps: process?.gaps ?? [],
+                processStrengths: process?.strengths ?? [],
+                equityLabel: formatPrice(account.equity, account.currency),
+              }
+            : undefined,
+          replayCompletedCount: replayProgress.completedEpisodeIds.length,
+        },
+      }),
+    [account, entries, learner, plan, process?.gaps, process?.strengths, replayProgress.completedEpisodeIds.length],
+  );
 
   return (
     <ScreenScaffold
       eyebrow={IA_GLOSSARY.review}
-      title="What am I learning about my own decision-making?"
-      subtitle="Grade reasoning, risk, and plan adherence — not simulated profit."
+      title="What did I learn about my decision process?"
+      subtitle="Recurring patterns, evidence quality, and the next training step. Simulated P/L is context, not the grade."
       contentClassName="pb-12"
       testID="review-screen"
     >
       <TrainingHandoffBanner />
-      <Surface tone="accent" emphasis="outlined" testID="review-insight-hero">
-        <Text variant="label" className="text-accent">
-          Your evidence
+      {!isOnline ? (
+        <Text variant="caption" className="mb-3 text-text-tertiary" testID="review-offline-caption">
+          Review uses on-device journal, simulation, and replay. Simulated P/L is not the grade.
         </Text>
-        <Text variant="h2" headingLevel={2} className="mt-2">
-          {hasAnyReviewWork
-            ? dnaHeadline ??
-              summary?.insight ??
-              'Review the last decision, then name what you would repeat.'
-            : 'Your decisions will appear here'}
-        </Text>
-        <Text variant="body-sm" className="mt-2 text-text-secondary">
-          {hasAnyReviewWork
-            ? `${entries.length} journal note${entries.length === 1 ? '' : 's'} · ${summary?.journaled ?? 0} logged as journaled · ${replayProgress.completedEpisodeIds.length} replay${replayProgress.completedEpisodeIds.length === 1 ? '' : 's'} completed.`
-            : 'Journal, simulation history, and replay results become coaching only after you record a decision.'}
-        </Text>
-        {!hasAnyReviewWork ? (
-          <Button className="mt-3" size="sm" onPress={() => router.push('/journal' as never)}>
-            Make Your First Decision
+      ) : null}
+      {(journalError || logError) && hasAnyReviewWork ? (
+        <Surface padding="sm" tone="warning" className="mb-3" testID="review-stale-banner">
+          <Text variant="label">Some cloud history did not refresh</Text>
+          <Text variant="body-sm" className="mt-1 text-text-secondary">
+            Showing saved process notes. Retry does not invent live market data.
+          </Text>
+          <Button
+            size="sm"
+            className="mt-2 self-start"
+            onPress={() => {
+              void refetchJournal();
+              void refetchLog();
+            }}
+          >
+            Retry
           </Button>
-        ) : (
-          <View className="mt-3 flex-row flex-wrap gap-2">
-            <Button size="sm" onPress={() => router.push('/journal' as never)}>
-              Journal
-            </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              onPress={() => router.push((focus?.href ?? '/learn') as never)}
-            >
-              {focus ? 'Practice the area to improve' : 'Improve with a lesson'}
-            </Button>
-          </View>
-        )}
-      </Surface>
-
-      {focus ? (
-        <Surface className="mt-4" testID="review-learn-next">
-          <Text variant="label" className="text-text-tertiary">
-            From your recent work
-          </Text>
-          <Text variant="h3" headingLevel={3} className="mt-2">
-            {focus.title}
-          </Text>
-          <Text variant="body-sm" className="mt-2 text-text-secondary">
-            {focus.explanation}
-          </Text>
-          <Text variant="caption" className="mt-2 text-text-tertiary">
-            Evidence: {focus.evidence[0]}
-          </Text>
-          <Button className="mt-3" size="sm" onPress={() => router.push(focus.href as never)}>
-            Practice this next
-          </Button>
-          {recommendation ? (
-            <Button className="mt-2" size="sm" variant="ghost" onPress={() => router.push('/learn' as never)}>
-              Or continue the curriculum
-            </Button>
-          ) : null}
-        </Surface>
-      ) : recommendation ? (
-        <Surface className="mt-4" testID="review-learn-next">
-          <Text variant="label" className="text-text-tertiary">
-            Recommended next lesson
-          </Text>
-          <View className="mt-3">
-            <NextLessonCard recommendation={recommendation} />
-          </View>
         </Surface>
       ) : null}
+      <ReviewProcessBrief brief={brief} />
 
-      <Surface className="mt-4" testID="review-questions">
-        <Text variant="label" className="text-text-tertiary">
-          Review questions
-        </Text>
-        <Text variant="body-sm" className="mt-2 text-text-secondary">
-          What happened? What did you believe? What evidence did you have? What risk did you take?
-          What could you improve?
-        </Text>
-        <Text variant="caption" className="mt-2 text-text-tertiary">
-          Simulated P/L is context for those answers — not the grade.
-        </Text>
-      </Surface>
+      {!hasAnyReviewWork ? (
+        <Button
+          className="mt-4"
+          size="sm"
+          onPress={() => router.push('/practice' as never)}
+          testID="review-empty-cta"
+        >
+          Complete first practice
+        </Button>
+      ) : (
+        <View className="mt-4 flex-row flex-wrap gap-2">
+          <Button size="sm" onPress={() => router.push('/journal' as never)}>
+            Journal
+          </Button>
+        </View>
+      )}
+
+      {primary ? (
+        <View className="mt-4" testID="review-learn-next">
+          <PlannerNextCard
+            recommendation={primary}
+            onOpen={() => openItem(primary)}
+            onDefer={defer}
+            eyebrow="Next training"
+          />
+        </View>
+      ) : null}
+
+      <MistakeLibraryCard library={learner.mistakePatterns} />
 
       <Surface className="mt-4" testID="review-journal">
         <Text variant="label" className="text-text-tertiary">
-          Journal
+          Latest journal
         </Text>
         {recentJournal ? (
           <>
@@ -162,11 +169,12 @@ export default function ReviewScreen() {
           </>
         ) : (
           <EmptyState
-            title="Your decisions will appear here"
-            description="A short note on thesis, invalidation, and what you would change is enough."
-            actionLabel="Make Your First Decision"
-            onAction={() => router.push('/journal' as never)}
+            title="No review history yet"
+            description="Complete a practice drill or a simulation decision first. Then journal what you noticed."
+            actionLabel="Open Practice"
+            onAction={() => router.push('/practice' as never)}
             className="px-2 py-6"
+            testID="review-empty-history"
           />
         )}
       </Surface>
@@ -199,73 +207,40 @@ export default function ReviewScreen() {
         )}
       </Surface>
 
-      <Surface className="mt-4" testID="review-simulation-history">
-        <Text variant="label" className="text-text-tertiary">
-          Simulation history
-        </Text>
+      <CollapsibleSection
+        title="Simulated P/L context"
+        description="Paper equity is available here. It does not grade the decision."
+        defaultExpanded={false}
+        className="mt-4"
+        testID="review-simulation-history"
+      >
         {account ? (
-          <>
-            <Text variant="h3" headingLevel={3} className="mt-2">
-              {formatPrice(account.equity, account.currency)} equity
-            </Text>
-            <Text variant="body-sm" className="mt-2 text-text-secondary">
-              {lastSimClose
-                ? `Last close: ${lastSimClose.symbol}. Simulated P/L is context, not a grade.`
-                : `${archives.length} archived book${archives.length === 1 ? '' : 's'}. Open Simulate to size the next paper position.`}
+          <Surface>
+            <Text variant="body-sm" className="text-text-secondary">
+              {formatPrice(account.equity, account.currency)} simulated equity
+              {lastSimClose ? ` · last close ${lastSimClose.symbol}` : ` · ${archives.length} archived books`}. Simulated
+              P/L is context, not a grade.
             </Text>
             <Button className="mt-3" size="sm" variant="ghost" onPress={() => router.push('/simulate' as never)}>
               Open simulation
             </Button>
-          </>
+          </Surface>
         ) : (
           <EmptyState
             title="Start with $100,000 in simulated capital"
             description="Paper trading gives you something to review. It is not a brokerage."
             actionLabel="Start Simulation"
             onAction={() => router.push('/simulate' as never)}
+            iconName="play-circle-outline"
             className="px-2 py-6"
           />
         )}
-      </Surface>
-
-      <Surface className="mt-4" testID="review-replay-results">
-        <Text variant="label" className="text-text-tertiary">
-          Replay results
-        </Text>
-        {replayProgress.completedEpisodeIds.length > 0 ? (
-          <>
-            <Text variant="h3" headingLevel={3} className="mt-2">
-              {replayProgress.completedEpisodeIds.length} session
-              {replayProgress.completedEpisodeIds.length === 1 ? '' : 's'} completed
-            </Text>
-            <Text variant="body-sm" className="mt-2 text-text-secondary">
-              Streak {replayProgress.streakDays}d. Outcome is one chapter, not the grade.
-            </Text>
-            <Button
-              className="mt-3"
-              size="sm"
-              variant="ghost"
-              onPress={() => router.push('/decision/replay-tv' as never)}
-            >
-              Continue replay
-            </Button>
-          </>
-        ) : (
-          <Text variant="body-sm" className="mt-2 text-text-secondary">
-            Historical rooms live under Practice. Completing one adds a process note here.
-          </Text>
-        )}
-        {missTitle ? (
-          <Text variant="caption" className="mt-2 text-text-tertiary">
-            Latest practice miss: {missTitle}
-          </Text>
-        ) : null}
-      </Surface>
+      </CollapsibleSection>
 
       <CollapsibleSection
         title="Trading DNA & Personal Intelligence"
         description="Patterns only from records you kept."
-        defaultExpanded={Boolean(dnaHeadline)}
+        defaultExpanded={false}
         className="mt-4"
       >
         <HubPathList sections={PATTERNS as readonly NavigationHubSection[]} emphasizeFirst={false} />
@@ -273,7 +248,7 @@ export default function ReviewScreen() {
 
       <CollapsibleSection
         title="Your work"
-        description="Journal, simulated ledger, and process tape."
+        description="Journal, simulation history, and process tape."
         defaultExpanded={false}
       >
         <HubPathList sections={WORK as readonly NavigationHubSection[]} emphasizeFirst={false} />

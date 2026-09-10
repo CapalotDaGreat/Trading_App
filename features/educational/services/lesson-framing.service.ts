@@ -19,13 +19,18 @@ export function getLessonEducationalFraming(lesson: Lesson): LessonEducationalFr
     .filter((tag) => tag.length > 1 && tag.length < 28)
     .slice(0, 4)
     .map((tag) => tag.replace(/[-_]/g, ' '));
+  const skillsFromConcepts = (lesson.conceptIds ?? []).slice(0, 4);
 
   const skillsPracticed =
-    skillsFromTags.length > 0
-      ? skillsFromTags
-      : [CATEGORY_LABELS[lesson.category], lesson.track === 'decision' ? 'Decision process' : 'Market literacy'];
+    skillsFromConcepts.length > 0
+      ? skillsFromConcepts.map((id) => id.replace(/[-_]/g, ' '))
+      : skillsFromTags.length > 0
+        ? skillsFromTags
+        : [CATEGORY_LABELS[lesson.category], lesson.track === 'decision' ? 'Decision process' : 'Market literacy'];
 
-  const replayLink = lesson.practiceLinks.find((link) => /replay/i.test(link.href + link.label));
+  const replayLink =
+    lesson.replayLinks?.[0] ??
+    lesson.practiceLinks.find((link) => /replay/i.test(link.href + link.label));
   const labLink = lesson.practiceLinks.find((link) => /lab/i.test(link.href + link.label));
   const simulationLink = lesson.simulationLinks?.[0];
 

@@ -27,7 +27,7 @@ const PRINCIPLES = [
     body: 'Short drills and replay rooms train judgment. A simulated profit is not automatically a good decision.',
   },
   {
-    icon: 'briefcase-outline' as const,
+    icon: 'play-circle-outline' as const,
     title: 'Simulated money only',
     body: 'Paper trading with labelled synthetic prices. No brokerage. No live execution.',
   },

@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 
 import { useAuth } from '@/features/auth/hooks/useAuth';
-import { inferScenarioContext, ingestSimulationDecision } from '@/features/competency';
+import { inferScenarioContext, ingestSimulationCheckpoint, ingestSimulationDecision } from '@/features/competency';
 import { DEMO_USER_UID } from '@/firebase/config';
 import { useDisplayCurrency } from '@/shared/hooks/useDisplayCurrency';
 
@@ -59,10 +59,14 @@ export function useSimulation(options?: { autoStart?: boolean }) {
       processQuality: process.composite,
       thesis: process.thesis,
       evidence: process.evidence,
-      invalidation: process.uncertainty,
+      invalidation: process.invalidation,
       risk: process.risk,
       discipline: process.discipline,
       positionSizing: process.positionSizing,
+      uncertainty: process.uncertainty,
+      eventAwareness: process.informationResponse,
+      emotionalDiscipline: process.behavioral,
+      reflection: process.reflection,
       simulatedPnl: account.realizedPnL + account.unrealizedPnL,
       simulatedProfitable: account.totalReturn > 0,
       flags: {
@@ -120,8 +124,28 @@ export function useSimulation(options?: { autoStart?: boolean }) {
     refresh: () => refreshPrices(userId),
     advanceClock: () => advanceClock(userId),
     advanceToNextInformation: () => advanceToNextInformation(userId),
-    answerDecision: (windowId: string, option: ScenarioDecisionOption, reasoning?: string) =>
-      answerDecision(userId, windowId, option, reasoning),
+    answerDecision: (windowId: string, option: ScenarioDecisionOption, reasoning?: string) => {
+      const next = answerDecision(userId, windowId, option, reasoning);
+      const window = next.scenario?.decisionWindows.find((item) => item.id === windowId);
+      ingestSimulationCheckpoint({
+        uid: userId,
+        sourceId: windowId,
+        option,
+        reasoningPresent: Boolean(reasoning?.trim() && reasoning.trim().length >= 8),
+        windowKind: window?.kind,
+        occurredAt: Date.parse(next.updatedAt) || Date.now(),
+        scenarioContext: inferScenarioContext({
+          totalReturn: next.totalReturn,
+          maxWeight: Math.max(0, ...next.positions.map((item) => item.portfolioWeight)),
+          highVolatility: (next.scenario?.complexity?.volatility ?? 0) >= 0.6,
+          earningsEvent: next.scenario?.events.some((item) => item.kind === 'earnings') ?? false,
+          eventWindow: (next.scenario?.events.length ?? 0) > 0,
+        }),
+        simulatedPnl: next.realizedPnL + next.unrealizedPnL,
+        simulatedProfitable: next.totalReturn > 0,
+      });
+      return next;
+    },
     reset: (mode?: SimulationMode, challengeId?: string, currency?: string, options?: ScenarioStartOptions) =>
       reset(userId, mode, challengeId, currency ?? displayCurrency, options),
     displayCurrency,

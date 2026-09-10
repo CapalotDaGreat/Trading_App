@@ -1,11 +1,13 @@
 import type {
   ReplayBar,
+  ReplayClassifiedInformation,
   ReplayHistoricalEvent,
   ReplayLeakReport,
   ReplayNewsMeta,
   ReplayScenarioPackage,
   ReplayVisibleSlice,
 } from '@/features/decision-replay/types/replay-scenario.types';
+import { REPLAY_TIMESTAMP_HONESTY } from '@/features/decision-replay/types/replay-scenario.types';
 
 export function timestampsAreOrdered(bars: ReplayBar[]): boolean {
   for (let i = 1; i < bars.length; i += 1) {
@@ -40,6 +42,57 @@ export function visibleReplaySlice(
     events: eventsAvailableAt(scenario.events, cutoffTimestamp),
     news: newsAvailableAt(scenario.news, cutoffTimestamp),
     cutoffTimestamp,
+  };
+}
+
+function laterEvents(events: ReplayHistoricalEvent[], cutoffTimestamp: number, revealed: boolean): ReplayHistoricalEvent[] {
+  if (!revealed) return [];
+  return events.filter((event) => event.availableAtTimestamp > cutoffTimestamp);
+}
+
+function laterNews(news: ReplayNewsMeta[], cutoffTimestamp: number, revealed: boolean): ReplayNewsMeta[] {
+  if (!revealed) return [];
+  return news.filter((item) => item.availableAtTimestamp > cutoffTimestamp);
+}
+
+/**
+ * Splits a package into historical (available at T), later (after T), and educational metadata.
+ * Later facts are empty until reveal.
+ */
+export function classifyReplayInformation(
+  scenario: ReplayScenarioPackage,
+  cutoffTimestamp: number,
+  revealed = false,
+): ReplayClassifiedInformation {
+  const historical = visibleReplaySlice(scenario, cutoffTimestamp);
+  return {
+    cutoffTimestamp,
+    historical: {
+      bars: historical.bars,
+      events: historical.events,
+      news: historical.news,
+    },
+    later: {
+      bars: revealed ? scenario.bars.filter((bar) => bar.timestamp > cutoffTimestamp) : [],
+      events: laterEvents(scenario.events, cutoffTimestamp, revealed),
+      news: laterNews(scenario.news, cutoffTimestamp, revealed),
+      outcomes: revealed
+        ? [
+            scenario.reveal.historicalOutcome,
+            ...scenario.reveal.teachingNotes,
+            ...scenario.reveal.laterEventOutcomes.map((item) => item.outcome),
+          ].filter(Boolean)
+        : [],
+    },
+    educationalMetadata: {
+      teaser: scenario.meta.teaser,
+      eraLabel: scenario.meta.eraLabel,
+      practiceDifficulty: scenario.meta.practiceDifficulty,
+      provenanceNote: scenario.meta.provenanceNote,
+      license: scenario.meta.license,
+      timestampFidelity: scenario.meta.timestampFidelity ?? 'educational',
+      timestampHonestyNote: scenario.meta.timestampHonestyNote ?? REPLAY_TIMESTAMP_HONESTY,
+    },
   };
 }
 

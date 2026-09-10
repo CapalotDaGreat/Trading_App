@@ -238,5 +238,7 @@ export interface AiLearningMemory {
   journalConsistencyHint: string;
   replayBehaviourHint: string;
   psychologyReminder: string;
+  /** On-device learner-model labels only. Never journal prose or a mastery percentage. */
+  learnerProcessHint?: string;
   updatedAt: number;
 }

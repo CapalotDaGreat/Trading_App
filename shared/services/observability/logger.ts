@@ -8,6 +8,8 @@ export interface StructuredLog {
 }
 
 function write(level: ObservabilityLevel, entry: StructuredLog): void {
+  if (level === 'debug' && !__DEV__) return;
+
   const safeContext = redactContext(entry.context);
   addBreadcrumb(entry.event, safeContext, level);
 

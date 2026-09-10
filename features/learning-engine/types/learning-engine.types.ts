@@ -38,8 +38,11 @@ export type TrainingPriority =
   | 'redemonstration'
   | 'in_progress'
   | 'weak_competency'
+  | 'transfer_practice'
+  | 'event_driven'
   | 'curriculum'
-  | 'varied_practice';
+  | 'varied_practice'
+  | 'optional_exploration';
 
 /** Conceptual challenge — not longer copy. */
 export type TargetComplexity = 'foundations' | 'applied' | 'complex';
@@ -81,12 +84,43 @@ export interface FocusArea {
   conceptId: string;
 }
 
+export type AdaptiveStage =
+  | 'guided_recognition'
+  | 'independent_application'
+  | 'unfamiliar_application'
+  | 'mixed_complexity'
+  | 'deliberate_practice';
+
+/** Same ladder as competency TransferKind, without the legacy `new_presentation` alias. */
+export type PracticeTransferStep =
+  | 'same_format'
+  | 'new_example'
+  | 'new_condition'
+  | 'new_asset'
+  | 'mixed_concept'
+  | 'concealed_scenario';
+
+export interface DifficultyDimensions {
+  scaffolding: 'full' | 'hints' | 'examples_only' | 'none';
+  information: 'obvious' | 'partial' | 'ambiguous';
+  competingConcepts: 0 | 1 | 2;
+  timePressure: 'none' | 'soft' | 'educational';
+  eventContext: boolean;
+  conflictingEvidence: boolean;
+  unfamiliarAsset: boolean;
+  regimeShift: boolean;
+  simultaneousRisks: 1 | 2 | 3;
+}
+
 export interface TrainingHandoff {
   conceptId: string;
   loopStep: TrainingLoopStep;
   concealConcept: boolean;
   priority: TrainingPriority;
   whyToday: string;
+  transferStep?: PracticeTransferStep;
+  showHints?: boolean;
+  showExamples?: boolean;
 }
 
 export type TrainingEmptyState =
@@ -114,13 +148,26 @@ export interface ScaffoldingPolicy {
   mixedConcepts: boolean;
   incompleteInformation: boolean;
   competingExplanations: boolean;
+  timePressure: 'none' | 'soft' | 'educational';
 }
 
 export interface EasySessionGrinding {
   grinding: boolean;
   easySessions: number;
+  questionSessions: number;
+  simulationSessions: number;
   independentApplications: number;
   reason: string | null;
+}
+
+export interface PracticeStagePolicy {
+  stage: PracticeStage;
+  complexity: TargetComplexity;
+  preferredLoop: TrainingLoopStep;
+  reviewIntervalMultiplier: number;
+  minTransferStep: PracticeTransferStep;
+  interleaveRelated: boolean;
+  concealByDefault: boolean;
 }
 
 export interface TrainingQueueItem {
@@ -137,6 +184,19 @@ export interface TrainingQueueItem {
   loopStep?: TrainingLoopStep;
   priority?: TrainingPriority;
   concealConcept?: boolean;
+  estimatedMinutes?: number;
+  expectedTrainingValue?: number;
+  prerequisiteReady?: boolean;
+  isRemediation?: boolean;
+  isRedemonstration?: boolean;
+  isTransferPractice?: boolean;
+  isEventDriven?: boolean;
+  isOptional?: boolean;
+  deferralEligible?: boolean;
+  dueAt?: number;
+  transferStep?: PracticeTransferStep;
+  showHints?: boolean;
+  showExamples?: boolean;
 }
 
 export interface LessonNextChain {
@@ -162,4 +222,7 @@ export interface QueueDisposition {
   bookmarked?: boolean;
   deferCount?: number;
   skipCount?: number;
+  /** Why the learner deferred — never treated as a failure. */
+  lastDeferReason?: string;
+  lastDeferredAt?: number;
 }

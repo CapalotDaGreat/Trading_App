@@ -21,7 +21,7 @@ import { PREP_TO_SCENARIO_KIND } from '@/features/events/services/event-simulati
 import type { EventPrepKind } from '@/features/events/types/events.types';
 import { SCENARIO_DIFFICULTY_LABELS } from '@/features/simulation/services/scenario-difficulty.service';
 import { resetSnapshot } from '@/features/simulation/services/simulation-engine.service';
-import type { ScenarioDifficulty, ScenarioFocus, ScenarioStartOptions } from '@/features/simulation/types/scenario.types';
+import { ALL_SCENARIO_FOCI, type ScenarioDifficulty, type ScenarioFocus, type ScenarioStartOptions } from '@/features/simulation/types/scenario.types';
 import type {
   SimulationCloseReview,
   SimulationMode,
@@ -36,6 +36,7 @@ import { Button } from '@/shared/components/ui/Button';
 import { SegmentedControl } from '@/shared/components/ui/SegmentedControl';
 import { Surface } from '@/shared/components/ui/Surface';
 import { Text } from '@/shared/components/ui/Text';
+import { useOnlineStatus } from '@/shared/hooks/useOnlineStatus';
 import { BRAND } from '@/shared/constants/brand';
 
 const MODE_OPTIONS: { value: SimulationMode; label: string }[] = [
@@ -65,14 +66,7 @@ const PREP_LABEL: Record<string, string> = {
   macro: 'an uncertain macro event',
 };
 
-const SCENARIO_FOCUS = new Set<ScenarioFocus>([
-  'position_sizing',
-  'false_breakouts',
-  'uncertainty',
-  'event_adaptation',
-  'correlation',
-  'thesis_discipline',
-]);
+const SCENARIO_FOCUS = new Set<ScenarioFocus>(ALL_SCENARIO_FOCI);
 
 function scenarioStartOptions(
   prep?: string,
@@ -90,6 +84,7 @@ function scenarioStartOptions(
 
 export default function SimulateScreen() {
   const router = useRouter();
+  const { isOnline } = useOnlineStatus();
   const { start: startParam, prep: prepParam, focus: focusParam, difficulty: difficultyParam } = useLocalSearchParams<{
     start?: string;
     prep?: string;
@@ -265,6 +260,11 @@ export default function SimulateScreen() {
       testID="simulate-screen"
     >
       <TrainingHandoffBanner />
+      {!isOnline ? (
+        <Text variant="caption" className="mb-3 text-text-tertiary" testID="simulate-offline-caption">
+          This path is synthetic and generated on-device. Quotes are sample, not live.
+        </Text>
+      ) : null}
       <SimulationDisclaimer />
 
       {isEventPrep(prepParam) ? (
@@ -316,7 +316,7 @@ export default function SimulateScreen() {
           description="This opens a paper book. It is not a brokerage, not real money, and simulated P/L does not grade a decision."
           actionLabel="Start Simulation"
           onAction={() => start(scenarioStartOptions(prepParam, focusParam))}
-          iconName="briefcase-outline"
+          iconName="play-circle-outline"
           className="px-4 py-10"
           testID="simulate-empty"
         />

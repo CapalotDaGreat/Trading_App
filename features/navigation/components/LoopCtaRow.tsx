@@ -1,20 +1,12 @@
 import { useRouter } from 'expo-router';
 import { View } from 'react-native';
 
+import { PRODUCT_LOOP_STEPS, type ProductLoopStep } from '@/features/navigation/config/navigation-ia.config';
 import { Button } from '@/shared/components/ui/Button';
 import { Text } from '@/shared/components/ui/Text';
 import { BRAND } from '@/shared/constants/brand';
 
-export type ProductLoopStep = 'learn' | 'practice' | 'replay' | 'simulate' | 'journal' | 'review' | 'ask';
-
-const LOOP_STEPS: { id: ProductLoopStep; href: string; label: string }[] = [
-  { id: 'learn', href: '/learn', label: 'Learn' },
-  { id: 'practice', href: '/practice', label: 'Practice' },
-  { id: 'replay', href: '/decision/replay-tv', label: 'Replay' },
-  { id: 'simulate', href: '/simulate', label: 'Simulate' },
-  { id: 'journal', href: '/journal', label: 'Journal' },
-  { id: 'review', href: '/review', label: 'Review' },
-];
+export type { ProductLoopStep };
 
 interface LoopCtaRowProps {
   current?: ProductLoopStep;
@@ -31,10 +23,12 @@ export function LoopCtaRow({
   followUp,
 }: LoopCtaRowProps) {
   const router = useRouter();
-  const index = current ? LOOP_STEPS.findIndex((step) => step.id === current) : -1;
+  const index = current ? PRODUCT_LOOP_STEPS.findIndex((step) => step.id === current) : -1;
   const sequential =
-    index >= 0 ? LOOP_STEPS.slice(index + 1, index + 4) : LOOP_STEPS.slice(0, 3);
-  const next = followUp ? [{ id: 'follow' as const, href: followUp.href, label: followUp.label }, ...sequential] : sequential;
+    index >= 0 ? PRODUCT_LOOP_STEPS.slice(index + 1, index + 4) : PRODUCT_LOOP_STEPS.slice(0, 3);
+  const next = followUp
+    ? [{ id: 'follow' as const, href: followUp.href, label: followUp.label }, ...sequential]
+    : sequential;
 
   return (
     <View className="mt-2" testID={testID}>

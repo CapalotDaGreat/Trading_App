@@ -1,3 +1,4 @@
+import type { CompetencyMastery } from '@/features/competency';
 import type { EconomicEvent } from '@/features/calendar/services/economic-calendar.service';
 import type { LearningTopic } from '@/shared/constants/learning-topics';
 import type { SkillDomain } from '@/shared/constants/skill-domains';
@@ -27,6 +28,7 @@ export interface ComposeMarketEventHubInput {
   struggles?: TradingStruggle[];
   weakness?: SkillDomain | null;
   gapConceptIds?: string[];
+  mastery?: Array<Pick<CompetencyMastery, 'conceptId' | 'state' | 'competenceState' | 'falseMastery'>>;
 }
 
 function calendarCard(
@@ -160,6 +162,7 @@ export function composeMarketEventHub(input: ComposeMarketEventHubInput): Market
       weakness: input.weakness,
       struggles: input.struggles,
       gapConceptIds: input.gapConceptIds,
+      mastery: input.mastery,
     }),
     learningCalendar: selectBeginnerLearningCalendar(cards),
     calendarUnavailable: input.calendarUnavailable,

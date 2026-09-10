@@ -1,18 +1,24 @@
 import { ingestReplayDecision, useCompetencyEvidenceStore } from '@/features/competency';
 import {
+  classifyReplayInformation,
   eventsAvailableAt,
   scanReplayInformationLeaks,
   timestampsAreOrdered,
   visibleReplaySlice,
 } from '../replay-information-boundary.service';
 import { canRevealReplay, resetReplaySessionState } from '../replay-lifecycle.service';
-import { replayConcealsCompetency, replayPracticeDifficulty } from '../replay-practice-difficulty.service';
+import {
+  replayConcealsCompetency,
+  replayPracticeDifficulty,
+  replayRequiresIndependentReasoning,
+} from '../replay-practice-difficulty.service';
 import { gradeReplayProcess } from '../replay-process-grade.service';
 import { toReplayScenarioPackage } from '@/features/decision-replay-tv/services/replay-scenario.adapter';
 import { getReplayTvEpisode } from '@/features/decision-replay-tv/content/replay-tv.catalog';
 import {
   advanceReplayTvPhase,
   advanceReplayTvReveal,
+  attachReplayTvReflection,
   canRevealReplayTvSession,
   createReplayTvSession,
   getBlindSafeEpisodeView,
@@ -20,6 +26,7 @@ import {
   replayTvHasFutureLeak,
   submitReplayTvDecision,
 } from '@/features/decision-replay-tv/services/replay-tv-session.service';
+import { REPLAY_TIMESTAMP_HONESTY } from '@/features/decision-replay/types/replay-scenario.types';
 import { scoreReplayTvSession } from '@/features/decision-replay-tv/services/replay-tv-score.service';
 import { buildReplayLabReview } from '@/features/decision-replay-tv/services/replay-tv-review.service';
 
@@ -273,5 +280,93 @@ describe('TradeAcademy replay engine', () => {
     expect(review.happenedAfter.toLowerCase()).toContain('what happened afterward');
     expect(review.reminder).toBe('Outcome does not determine decision quality.');
     expect(JSON.stringify(review).toLowerCase()).not.toMatch(/you were wrong because price fell/);
+  });
+
+  it('classifies historical, later, and educational layers without leaking before reveal', () => {
+    const episode = getReplayTvEpisode('nvidia-earnings')!;
+    const scenario = toReplayScenarioPackage(episode);
+    const blind = classifyReplayInformation(scenario, scenario.informationCutoff, false);
+    expect(blind.historical.bars.every((bar) => bar.timestamp <= scenario.informationCutoff)).toBe(true);
+    expect(blind.later.bars).toEqual([]);
+    expect(blind.later.events).toEqual([]);
+    expect(blind.later.news).toEqual([]);
+    expect(blind.later.outcomes).toEqual([]);
+    expect(blind.educationalMetadata.timestampFidelity).toBe('educational');
+    expect(blind.educationalMetadata.timestampHonestyNote).toBe(REPLAY_TIMESTAMP_HONESTY);
+    expect(scenario.meta.timestampFidelity).toBe('educational');
+    expect(JSON.stringify(blind).toLowerCase()).not.toContain(episode.historicalOutcome.slice(0, 24).toLowerCase());
+
+    const revealed = classifyReplayInformation(scenario, scenario.informationCutoff, true);
+    expect(revealed.later.outcomes.join(' ')).toContain(episode.historicalOutcome.slice(0, 12));
+    expect(revealed.later.bars.some((bar) => bar.timestamp > scenario.informationCutoff)).toBe(true);
+  });
+
+  it('grades reflection independently of the later print', () => {
+    const episode = getReplayTvEpisode('false-breakout-drill')!;
+    const base = {
+      checkpointId: 'c1',
+      decision: 'wait' as const,
+      reasoning: 'Incomplete evidence. Invalidation is a close through the freeze low.',
+      structured: {
+        thesis: 'No case until acceptance',
+        evidence: 'Wick without hold',
+        invalidation: 'A close through the freeze low',
+        confidence: 2,
+        mainUncertainty: 'Whether the next freeze confirms',
+        alternatives: 'Skip or wait',
+        intendedSize: 'Zero',
+        expectedRisk: 'No capital at risk',
+        riskAssessment: 'Gap through any tight stop',
+      },
+      at: Date.now(),
+      committedBlind: true,
+    };
+    const without = gradeReplayProcess({
+      episode,
+      decisions: [base],
+      checklist: PLAN,
+      freezeClose: 100,
+      laterClose: 80,
+      revealed: true,
+    });
+    const withNote = gradeReplayProcess({
+      episode,
+      decisions: [
+        {
+          ...base,
+          structured: {
+            ...base.structured,
+            reflection: 'Keep naming invalidation before size. The later path does not grade the process.',
+          },
+        },
+      ],
+      checklist: PLAN,
+      freezeClose: 100,
+      laterClose: 80,
+      revealed: true,
+    });
+    expect(withNote.reflection).toBeGreaterThan(without.reflection);
+    expect(withNote.composite).toBeGreaterThan(without.composite);
+    expect(withNote.outcomeNote).toBe(without.outcomeNote);
+  });
+
+  it('requires independent reasoning on advanced and mixed rooms', () => {
+    expect(replayRequiresIndependentReasoning(getReplayTvEpisode('gold-regime-risk')!)).toBe(true);
+    expect(replayRequiresIndependentReasoning(getReplayTvEpisode('lehman-weekend')!)).toBe(true);
+    expect(replayRequiresIndependentReasoning(getReplayTvEpisode('tesla-rally')!)).toBe(false);
+  });
+
+  it('attaches reflection after reveal without changing the historical tape', () => {
+    let session = advanceToDecision(createReplayTvSession('tesla-rally'));
+    session = submitReplayTvDecision({
+      session,
+      decision: 'wait',
+      reasoning: 'Need a named invalidation before size.',
+    });
+    const barsBefore = session.fullCandles.length;
+    const next = attachReplayTvReflection(session, 'I would keep waiting until invalidation is written.');
+    expect(next.scores?.reflectionQuality).toBeGreaterThan(0);
+    expect(next.fullCandles.length).toBe(barsBefore);
+    expect(next.decisions[0]?.structured?.reflection).toMatch(/waiting/i);
   });
 });

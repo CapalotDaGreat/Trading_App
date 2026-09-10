@@ -77,12 +77,12 @@ export const REVENUECAT_ENTITLEMENT_ID =
 /**
  * Store product identifiers configured in App Store Connect / Play Console
  * and attached to the current RevenueCat offering.
- * Current offering: monthly, yearly, and lifetime — all attached to Aithera Pro.
+ * Current offering: tradevision_premium_monthly, tradevision_premium_yearly, and lifetime — all attached to Aithera Pro.
  */
 export const PREMIUM_PRODUCT_IDS = {
-  monthly: process.env.EXPO_PUBLIC_RC_PRODUCT_MONTHLY ?? 'monthly',
-  yearly: process.env.EXPO_PUBLIC_RC_PRODUCT_YEARLY ?? 'yearly',
-  lifetime: process.env.EXPO_PUBLIC_RC_PRODUCT_LIFETIME ?? 'lifetime',
+  monthly: process.env.EXPO_PUBLIC_RC_PRODUCT_MONTHLY ?? 'tradevision_premium_monthly',
+  yearly: process.env.EXPO_PUBLIC_RC_PRODUCT_YEARLY ?? 'tradevision_premium_yearly',
+  lifetime: process.env.EXPO_PUBLIC_RC_PRODUCT_LIFETIME ?? 'tradevision_premium_lifetime',
 } as const;
 
 export function getTierLimits(tier: SubscriptionTier): TierLimits {

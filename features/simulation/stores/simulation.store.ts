@@ -1,10 +1,12 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-import { createPersistedStorage } from '@/shared/stores/create-persisted-storage';
+import { scoreAllCompetencyMastery } from '@/features/competency';
+import { useCompetencyEvidenceStore } from '@/features/competency/stores/competency-evidence.store';
+import { getDisplayCurrency } from '@/shared/hooks/useDisplayCurrency';
+import { createDebouncedPersistedStorage } from '@/shared/stores/create-persisted-storage';
 
 import { DEFAULT_STARTING_BALANCE } from '../constants/simulation.constants';
-import { getDisplayCurrency } from '@/shared/hooks/useDisplayCurrency';
 import {
   archiveSimulationAccount,
   createSimulationAccount,
@@ -16,8 +18,12 @@ import {
   recordCloseReview,
   resetSimulationAccount,
 } from '../services/simulation-engine.service';
-import { migrateSimulationPersist } from '../services/simulation-persist.service';
-import { inferScenarioFocus } from '../services/scenario-adaptation.service';
+import {
+  hydrateScenarioTape,
+  migrateSimulationPersist,
+  slimSimulationPersist,
+} from '../services/simulation-persist.service';
+import { personalizeSimulationTraining } from '../services/scenario-personalization.service';
 import { appendDecisionCheckpoint } from '../services/scenario-checkpoint.service';
 import { applyExecutionFriction } from '../services/scenario-friction.service';
 import {
@@ -100,12 +106,20 @@ function nextScenario(
   prior?: SimulationAccount,
   options?: ScenarioStartOptions,
 ): ReturnType<typeof generateSimulationScenario> {
+  const records = useCompetencyEvidenceStore.getState().evidenceFor(userId);
+  const plan = personalizeSimulationTraining({
+    records,
+    mastery: records.length ? scoreAllCompetencyMastery(records) : [],
+    prior,
+    explicit: options,
+  });
   return generateSimulationScenario({
     userId,
     mode,
-    focus: options?.focus ?? inferScenarioFocus(prior),
-    preferredEventKind: options?.preferredEventKind,
+    focus: plan.focus,
+    preferredEventKind: plan.preferredEventKind,
     difficulty: options?.difficulty,
+    trainingRationale: plan.trainingRationale,
   });
 }
 
@@ -156,6 +170,10 @@ export const useSimulationStore = create<SimulationState>()(
               ...existing,
               scenario: nextScenario(userId, existing.mode, existing, options),
             });
+          }
+          const hydrated = hydrateScenarioTape(existing.scenario);
+          if (hydrated !== existing.scenario) {
+            return writeLive(set, get, userId, { ...existing, scenario: hydrated });
           }
           return existing;
         }
@@ -291,12 +309,13 @@ export const useSimulationStore = create<SimulationState>()(
     }),
     {
       name: 'tradevision-simulation-v1',
-      storage: createPersistedStorage(),
+      storage: createDebouncedPersistedStorage(),
       version: 3,
-      partialize: (state) => ({
-        accountsByUser: state.accountsByUser,
-        archivesByUser: state.archivesByUser,
-      }),
+      partialize: (state) =>
+        slimSimulationPersist({
+          accountsByUser: state.accountsByUser,
+          archivesByUser: state.archivesByUser,
+        }),
       migrate: (persisted) => migrateSimulationPersist(persisted),
     },
   ),

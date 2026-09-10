@@ -11,7 +11,7 @@ import { ReplayTvReportCard } from '@/features/decision-replay-tv/components/Rep
 import { ReplayTvReviewPanel } from '@/features/decision-replay-tv/components/ReplayTvReviewPanel';
 import { ReplayTvSkillProgressCard } from '@/features/decision-replay-tv/components/ReplayTvSkillProgressCard';
 import { ReplayTvTapeTools } from '@/features/decision-replay-tv/components/ReplayTvTapeTools';
-import { replayConcealsCompetency, replayPracticeDifficulty, REPLAY_PRACTICE_DIFFICULTY_LABELS } from '@/features/decision-replay/services/replay-practice-difficulty.service';
+import { replayPracticeDifficulty, replayRequiresIndependentReasoning, REPLAY_PRACTICE_DIFFICULTY_LABELS } from '@/features/decision-replay/services/replay-practice-difficulty.service';
 import { replayInformationBoundary, visibleFundamentalsAt, visibleRevealBeats } from '@/features/decision-replay-tv/services/replay-tv-boundary.service';
 import { resampleVisibleCandles, type ReplayTapeTimeframe } from '@/features/decision-replay-tv/services/replay-tv-chart-tools.service';
 import { buildReplayLabReview } from '@/features/decision-replay-tv/services/replay-tv-review.service';
@@ -22,6 +22,7 @@ import {
   composeReplayPhaseAnnouncement,
 } from '@/features/decision-replay-tv/services/replay-tv-session.service';
 import type { ReplayTvDecision, ReplayTvReasoning } from '@/features/decision-replay-tv/types/replay-tv.types';
+import { REPLAY_CORE_QUESTION, REPLAY_TIMESTAMP_HONESTY } from '@/features/decision-replay/types/replay-scenario.types';
 import { TrainingHandoffBanner } from '@/features/learning-engine/components/TrainingHandoffBanner';
 import { DataSourceBadge } from '@/features/markets/components/DataSourceBadge';
 import { RecoverableErrorState } from '@/shared/components/feedback/RecoverableErrorState';
@@ -220,6 +221,22 @@ export function ReplayTvSessionScreen() {
             {blindView.provenanceNote}
           </Text>
         </View>
+        <Text variant="caption" className="text-text-tertiary" testID="replay-tv-timestamp-honesty">
+          {blindView.timestampHonesty ?? REPLAY_TIMESTAMP_HONESTY}
+        </Text>
+        <View className="flex-row flex-wrap gap-2">
+          <Text variant="caption" className="rounded-full bg-surface px-2 py-1 text-text-tertiary">
+            Historical information
+          </Text>
+          <Text variant="caption" className="rounded-full bg-surface px-2 py-1 text-text-tertiary">
+            {blind
+              ? 'Later information hidden'
+              : 'Later information (teaching review)'}
+          </Text>
+          <Text variant="caption" className="rounded-full bg-surface px-2 py-1 text-text-tertiary">
+            Educational metadata
+          </Text>
+        </View>
 
         <View className="flex-row flex-wrap gap-2">
           <Button variant="outline" onPress={onRestart} accessibilityLabel="Restart episode">
@@ -236,7 +253,7 @@ export function ReplayTvSessionScreen() {
               Episode
             </Text>
             <Text variant="h3" headingLevel={2} className="mt-2">
-              Can you make a good decision without knowing what happens next?
+              {REPLAY_CORE_QUESTION}
             </Text>
             <Text variant="body" className="mt-2 text-text-secondary">
               {blindView.subtitle}. {blindView.teaser}
@@ -250,7 +267,7 @@ export function ReplayTvSessionScreen() {
               Waiting or skipping is a legitimate expert decision. You will only see information
               that would have been available at each freeze.
             </Text>
-            {replayConcealsCompetency(episode) ? (
+            {replayRequiresIndependentReasoning(episode) ? (
               <Text variant="caption" className="mt-2 text-text-tertiary">
                 This room does not advertise the competency under test. Decide from the tape, not from a label.
               </Text>
@@ -609,6 +626,9 @@ export function ReplayTvSessionScreen() {
                   <RecoverableErrorState error={finishError} onRetry={() => void onFinish()} />
                 </View>
               ) : null}
+              <View className="mt-4">
+                <ReplayTvReasoningForm value={reasoning} onChange={persistReasoning} section="reflection" />
+              </View>
               <Button
                 className="mt-4"
                 loading={isFinishing}
@@ -633,6 +653,9 @@ export function ReplayTvSessionScreen() {
             <Text variant="caption" className="mt-3 text-text-tertiary">
               {activeSession.scores.journalPrompt}
             </Text>
+            <View className="mt-4">
+              <ReplayTvReasoningForm value={reasoning} onChange={persistReasoning} section="reflection" />
+            </View>
             {journalError ? (
               <View className="mt-3">
                 <RecoverableErrorState

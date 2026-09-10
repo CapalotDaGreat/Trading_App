@@ -96,9 +96,9 @@ export function NotificationsScreen() {
           onToggle={(value) => void updateNotifications({ marketNews: value })}
         />
         <SettingsRow
-          icon="briefcase-outline"
-          label="Portfolio context"
-          description="Concentration notes, not P&L alerts"
+          icon="play-circle-outline"
+          label="Simulation book"
+          description="Reminders about your paper classroom — not P/L alerts"
           toggle
           toggleValue={notifications.portfolioUpdates}
           onToggle={(value) => void updateNotifications({ portfolioUpdates: value })}

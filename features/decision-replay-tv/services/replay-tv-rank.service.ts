@@ -1,4 +1,11 @@
 import type { ReplayTvEpisode } from '@/features/decision-replay-tv/types/replay-tv.types';
+import { conceptIdsForReplayEpisode } from '@/features/decision-replay-tv/services/replay-scenario.adapter';
+import { replayPracticeDifficulty } from '@/features/decision-replay/services/replay-practice-difficulty.service';
+import {
+  scoreReplayCatalogMatch,
+  type ReplayCatalogEntry,
+  type ReplayTrainingPlan,
+} from '@/features/decision-replay/services/replay-personalization.service';
 import { marketAffinityScore } from '@/features/onboarding/services/coach-personalisation.service';
 import type {
   MentorExperienceLevel,
@@ -24,6 +31,18 @@ const EXPERIENCE_DIFFICULTY: Record<
   advanced: ['intermediate', 'advanced', 'expert'],
   professional: ['advanced', 'expert', 'intermediate'],
 };
+
+function catalogEntryFor(episode: ReplayTvEpisode): ReplayCatalogEntry {
+  return {
+    id: episode.id,
+    conceptIds: conceptIdsForReplayEpisode(episode),
+    collections: episode.collectionIds,
+    skills: episode.skills,
+    eventKind: episode.eventKind,
+    topics: episode.topics,
+    practiceDifficulty: replayPracticeDifficulty(episode),
+  };
+}
 
 function growthEdgeBoost(episode: ReplayTvEpisode, growthEdges: string[]): number {
   if (!growthEdges.length) return 0;
@@ -102,6 +121,8 @@ export function rankReplayTvEpisodes(
     completedIds?: string[];
     /** Current reinforcement practice trait — ranks a matching room first, never hides others. */
     practiceTraitId?: string | null;
+    /** Competency-based training context. Soft-ranks; never hides the library. */
+    trainingPlan?: ReplayTrainingPlan | null;
   },
 ): ReplayTvEpisode[] {
   const markets = input?.markets ?? [];
@@ -113,6 +134,7 @@ export function rankReplayTvEpisodes(
     ? new Set(EXPERIENCE_DIFFICULTY[input.experience])
     : null;
   const practiceTraitId = input?.practiceTraitId ?? null;
+  const trainingPlan = input?.trainingPlan ?? null;
 
   return [...episodes].sort((a, b) => {
     const score = (ep: ReplayTvEpisode) => {
@@ -146,6 +168,7 @@ export function rankReplayTvEpisodes(
 
       value += growthEdgeBoost(ep, growthEdges);
       value += practiceTraitBoost(ep, practiceTraitId);
+      if (trainingPlan) value += scoreReplayCatalogMatch(catalogEntryFor(ep), trainingPlan);
 
       if (preferredDifficulties?.has(ep.difficulty)) value += 2;
       if (completed.has(ep.id)) value -= 8;
@@ -154,6 +177,10 @@ export function rankReplayTvEpisodes(
     };
     return score(b) - score(a);
   });
+}
+
+export function catalogEntryForReplayEpisode(episode: ReplayTvEpisode): ReplayCatalogEntry {
+  return catalogEntryFor(episode);
 }
 
 export function episodesForDnaGrowth(

@@ -1,6 +1,7 @@
 import { DEFAULT_SIMULATION_CURRENCY, SYNTHETIC_UNIVERSE } from '../constants/simulation.constants';
 import type { SimulationScenario } from '../types/scenario.types';
 import { isScenarioDifficulty } from './scenario-difficulty.service';
+import { generateSimulationScenario } from './scenario-generator.service';
 import type {
   SimulationAccount,
   SimulationAssetType,
@@ -275,4 +276,72 @@ export function migrateSimulationPersist(persisted: unknown): SimulationPersistS
   }
 
   return { accountsByUser, archivesByUser };
+}
+
+export const SIMULATION_TRANSACTION_PERSIST_CAP = 80;
+export const SIMULATION_CHECKPOINT_PERSIST_CAP = 40;
+
+/** Drop regenerated tape so AsyncStorage does not hold ~32-day multi-asset paths. */
+export function slimScenarioForPersist(scenario: SimulationScenario): SimulationScenario {
+  return { ...scenario, paths: {}, marketPath: [] };
+}
+
+export function estimatedScenarioTapeBytes(scenario: SimulationScenario): number {
+  return JSON.stringify({ paths: scenario.paths, marketPath: scenario.marketPath }).length;
+}
+
+/**
+ * Rebuild paths from the internal seed. Clock, answered windows, and book state stay as persisted.
+ * Seed is never shown in the UI.
+ */
+export function hydrateScenarioTape(scenario: SimulationScenario): SimulationScenario {
+  const hasTape =
+    Array.isArray(scenario.marketPath) &&
+    scenario.marketPath.length > 0 &&
+    Boolean(scenario.paths) &&
+    Object.keys(scenario.paths).length > 0;
+  if (hasTape) return scenario;
+
+  const regenerated = generateSimulationScenario({
+    userId: 'hydrate',
+    seed: scenario.seed,
+    difficulty: scenario.difficulty,
+    focus: scenario.focus,
+    now: scenario.createdAt,
+  });
+  return {
+    ...scenario,
+    engineVersion: regenerated.engineVersion,
+    paths: regenerated.paths,
+    marketPath: regenerated.marketPath,
+    assets: scenario.assets?.length ? scenario.assets : regenerated.assets,
+    events: scenario.events?.length ? scenario.events : regenerated.events,
+    segments: scenario.segments?.length ? scenario.segments : regenerated.segments,
+  };
+}
+
+export function slimSimulationAccountForPersist(account: SimulationAccount): SimulationAccount {
+  return {
+    ...account,
+    scenario: account.scenario ? slimScenarioForPersist(account.scenario) : undefined,
+    transactions: (account.transactions ?? []).slice(-SIMULATION_TRANSACTION_PERSIST_CAP),
+    checkpoints: (account.checkpoints ?? []).slice(-SIMULATION_CHECKPOINT_PERSIST_CAP),
+  };
+}
+
+export function slimSimulationPersist(state: SimulationPersistState): SimulationPersistState {
+  return {
+    accountsByUser: Object.fromEntries(
+      Object.entries(state.accountsByUser).map(([userId, account]) => [
+        userId,
+        slimSimulationAccountForPersist(account),
+      ]),
+    ),
+    archivesByUser: Object.fromEntries(
+      Object.entries(state.archivesByUser).map(([userId, accounts]) => [
+        userId,
+        accounts.map(slimSimulationAccountForPersist),
+      ]),
+    ),
+  };
 }

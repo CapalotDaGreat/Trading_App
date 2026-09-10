@@ -35,10 +35,10 @@ export function OfflineBanner() {
         <Ionicons name="cloud-offline-outline" size={18} color={colors.warning.primary} />
         <View className="flex-1">
           <Text variant="caption" className="font-semibold text-warning">
-            Offline — local demo & journal still work
+            Offline — training stays on this device
           </Text>
           <Text variant="caption" className="text-text-secondary">
-            Tap to retry live market and cloud sync
+            Academy, Practice, Simulation, Journal, and Review do not need a network. Tap to retry live market and cloud sync.
           </Text>
         </View>
       </Pressable>

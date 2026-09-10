@@ -1,50 +1,32 @@
 export type RootStackParamList = {
   '(tabs)': undefined;
-  modal: undefined;
   '+not-found': undefined;
 };
 
 export type TabParamList = {
   index: undefined;
-  markets: undefined;
-  watchlist: undefined;
-  portfolio: undefined;
-  profile: undefined;
-};
-
-export type AuthStackParamList = {
-  login: undefined;
-  register: undefined;
-  'forgot-password': undefined;
-  onboarding: undefined;
-};
-
-export type MarketStackParamList = {
-  '[symbol]': { symbol: string };
-  chart: { symbol: string; interval?: string };
-  analysis: { symbol: string };
-};
-
-export type SettingsStackParamList = {
-  index: undefined;
-  notifications: undefined;
-  subscription: undefined;
-  'trading-preferences': undefined;
-  security: undefined;
-  about: undefined;
+  learn: undefined;
+  practice: undefined;
+  simulate: undefined;
+  review: undefined;
+  events: undefined;
+  you: undefined;
 };
 
 export type AppRoutes =
   | '/'
-  | '/markets'
-  | '/watchlist'
-  | '/portfolio'
-  | '/profile'
+  | '/learn'
+  | '/practice'
+  | '/simulate'
+  | '/review'
+  | '/events'
+  | '/you'
+  | '/search'
+  | '/journal'
   | '/login'
   | '/register'
   | '/onboarding'
-  | '/settings'
-  | '/settings/subscription';
+  | '/settings';
 
 export interface DeepLinkParams {
   symbol?: string;

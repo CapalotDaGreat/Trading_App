@@ -9,6 +9,7 @@ export interface ReplayProcessGrade {
   alternatives: number;
   informationResponse: number;
   hindsightHygiene: number;
+  reflection: number;
   composite: number;
   /** Process vs tape — never “you were wrong because price fell.” */
   outcomeNote: string;
@@ -52,6 +53,12 @@ function exceededStatedRisk(decisions: ReplayTvDecisionRecord[]): boolean {
   if (risk.includes('too large') || risk.includes('exceed')) return true;
   if (!hasText(last.structured?.intendedSize) && !hasText(last.structured?.expectedRisk)) return true;
   return false;
+}
+
+function reviewsNamedProcess(decisions: ReplayTvDecisionRecord[]): boolean {
+  return decisions.some((item) =>
+    /process|plan|invalidation|risk|wait|evidence/i.test(item.structured?.reflection ?? ''),
+  );
 }
 
 function pathMovedAgainst(
@@ -122,9 +129,22 @@ export function gradeReplayProcess(input: {
       ? 0
       : (decisions.filter((item) => item.committedBlind !== false).length / decisions.length) * 100,
   );
+  const reflection = clamp(
+    (hasText(last?.structured?.reflection) ? 70 : 15) +
+      (reviewsNamedProcess(decisions) ? 30 : 0),
+  );
 
   const composite = clamp(
-    (thesisQuality + evidence + invalidation + risk + uncertainty + alternatives + informationResponse + hindsightHygiene) / 8,
+    (thesisQuality +
+      evidence +
+      invalidation +
+      risk +
+      uncertainty +
+      alternatives +
+      informationResponse +
+      hindsightHygiene +
+      reflection) /
+      9,
   );
 
   const against = pathMovedAgainst(episode, decisions, input.freezeClose, input.laterClose);
@@ -159,6 +179,7 @@ export function gradeReplayProcess(input: {
     alternatives,
     informationResponse,
     hindsightHygiene,
+    reflection,
     composite,
     outcomeNote,
     knewThen: `What you knew then: ${knewBits.join(' · ')}.`,

@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { memo, useCallback, useMemo, useState } from 'react';
 import { LayoutChangeEvent, View } from 'react-native';
 import Svg, { G, Line, Rect, Text as SvgText } from 'react-native-svg';
 
@@ -38,7 +38,7 @@ function toneColor(
   return colors.text.tertiary;
 }
 
-export function EducationalChart({ spec, height = 220 }: EducationalChartProps) {
+function EducationalChartComponent({ spec, height = 220 }: EducationalChartProps) {
   const { colors } = useTheme();
   const model = useMemo(() => buildEducationalChart(spec.kind), [spec.kind]);
   const [width, setWidth] = useState(0);
@@ -319,3 +319,6 @@ export function EducationalChart({ spec, height = 220 }: EducationalChartProps) 
     </View>
   );
 }
+
+export const EducationalChart = memo(EducationalChartComponent);
+EducationalChart.displayName = 'EducationalChart';

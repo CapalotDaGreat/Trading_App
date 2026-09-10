@@ -1,7 +1,11 @@
 const assert = require('node:assert/strict');
 const test = require('node:test');
 
-const { hasServerPremiumAccess, shouldEnforceAppCheck } = require('../lib/security');
+const {
+  hasServerPremiumAccess,
+  isVerifiedCallableUser,
+  shouldEnforceAppCheck,
+} = require('../lib/security');
 const { clampAiDailyLimit, readLedgerCount } = require('../lib/quota');
 const {
   sanitizeFlagsPayload,
@@ -9,12 +13,37 @@ const {
   mergeRemoteConfig,
 } = require('../lib/ops/bootstrap');
 
+test('vendor callables reject anonymous and unverified users', () => {
+  assert.equal(isVerifiedCallableUser(null), false);
+  assert.equal(isVerifiedCallableUser({}), false);
+  assert.equal(isVerifiedCallableUser({ email_verified: false }), false);
+  assert.equal(
+    isVerifiedCallableUser({
+      email_verified: true,
+      firebase: { sign_in_provider: 'anonymous' },
+    }),
+    false,
+  );
+  assert.equal(
+    isVerifiedCallableUser({
+      email_verified: true,
+      firebase: { sign_in_provider: 'password' },
+    }),
+    true,
+  );
+});
+
 test('App Check fails closed unless emulator or explicit soft mode', () => {
   assert.equal(shouldEnforceAppCheck({}), true);
   assert.equal(shouldEnforceAppCheck({ APP_CHECK_ENFORCE: 'true' }), true);
   assert.equal(shouldEnforceAppCheck({ FUNCTIONS_EMULATOR: 'true' }), false);
   assert.equal(shouldEnforceAppCheck({ APP_CHECK_SOFT: 'true' }), false);
-  assert.equal(shouldEnforceAppCheck({ APP_CHECK_ENFORCE: 'false' }), false);
+  // Leftover production env must not disable enforcement.
+  assert.equal(shouldEnforceAppCheck({ APP_CHECK_ENFORCE: 'false' }), true);
+  assert.equal(
+    shouldEnforceAppCheck({ APP_CHECK_ENFORCE: 'false', FUNCTIONS_EMULATOR: 'true' }),
+    false,
+  );
 });
 
 test('premium access fails closed without expiry unless lifetime or promotional', () => {

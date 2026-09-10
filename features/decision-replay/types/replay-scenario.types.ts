@@ -9,6 +9,20 @@ export const REPLAY_SCENARIO_SCHEMA_VERSION = 1 as const;
 
 export type ReplayLicenseKind = 'synthetic' | 'licensed_historical' | 'educational_sample';
 
+/**
+ * How honest the timestamps are.
+ * Catalog rooms are educational reconstructions — never imply tick-accurate vendor data.
+ */
+export type ReplayTimestampFidelity = 'educational' | 'tick_accurate';
+
+export type ReplayInformationLayer = 'historical' | 'later' | 'educational_metadata';
+
+export const REPLAY_TIMESTAMP_HONESTY =
+  'Timestamps are educational (session-level reconstructions), not tick-accurate market data.';
+
+export const REPLAY_CORE_QUESTION =
+  'How would you have reasoned with the information available at that exact point?';
+
 /** Practice level shown in the library. Mixed rooms conceal the competency under test. */
 export type ReplayPracticeDifficulty = 'beginner' | 'intermediate' | 'advanced' | 'mixed';
 
@@ -81,6 +95,8 @@ export interface ReplayScenarioMeta {
   license: ReplayLicenseKind;
   dataKind: DataSourceKind;
   provenanceNote: string;
+  timestampFidelity: ReplayTimestampFidelity;
+  timestampHonestyNote: string;
   themes: string[];
 }
 
@@ -109,6 +125,31 @@ export interface ReplayVisibleSlice {
   events: ReplayHistoricalEvent[];
   news: ReplayNewsMeta[];
   cutoffTimestamp: number;
+}
+
+/** Point-in-time classification. Later facts stay empty until reveal. */
+export interface ReplayClassifiedInformation {
+  cutoffTimestamp: number;
+  historical: {
+    bars: ReplayBar[];
+    events: ReplayHistoricalEvent[];
+    news: ReplayNewsMeta[];
+  };
+  later: {
+    bars: ReplayBar[];
+    events: ReplayHistoricalEvent[];
+    news: ReplayNewsMeta[];
+    outcomes: string[];
+  };
+  educationalMetadata: {
+    teaser: string;
+    eraLabel: string;
+    practiceDifficulty: ReplayPracticeDifficulty;
+    provenanceNote: string;
+    license: ReplayLicenseKind;
+    timestampFidelity: ReplayTimestampFidelity;
+    timestampHonestyNote: string;
+  };
 }
 
 export interface ReplayLeakReport {

@@ -310,6 +310,7 @@ export function scoreReplayTvSession(input: {
     thesisQuality: processGrade.thesisQuality,
     uncertaintyRecognition: processGrade.uncertainty,
     hindsightHygiene: processGrade.hindsightHygiene,
+    reflectionQuality: processGrade.reflection,
     overall,
     coaching,
     journalPrompt: [

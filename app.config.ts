@@ -33,6 +33,7 @@ function assertStoreLikeClientEnv(): void {
     'EXPO_PUBLIC_NEWS_API_KEY',
     'EXPO_PUBLIC_APPCHECK_DEBUG_TOKEN',
     'EXPO_PUBLIC_AI_API_KEY',
+    'EXPO_PUBLIC_AI_API_URL',
   ].filter((key) => Boolean(process.env[key]?.trim()));
 
   if (process.env.EXPO_PUBLIC_MARKET_DATA_DIRECT?.trim() === 'true') {
@@ -46,7 +47,15 @@ function assertStoreLikeClientEnv(): void {
   }
 }
 
+const sentryOrg = process.env.SENTRY_ORG?.trim();
+const sentryProject = process.env.SENTRY_PROJECT?.trim();
+
 assertStoreLikeClientEnv();
+
+const sentryPlugin: NonNullable<ExpoConfig['plugins']> =
+  sentryOrg && sentryProject
+    ? [['@sentry/react-native', { organization: sentryOrg, project: sentryProject }]]
+    : [];
 
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
@@ -130,7 +139,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   plugins: [
     'expo-router',
     'expo-apple-authentication',
-    '@sentry/react-native',
+    ...sentryPlugin,
     'expo-secure-store',
     [
       'expo-local-authentication',

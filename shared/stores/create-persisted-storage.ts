@@ -27,3 +27,49 @@ function isWebServer(): boolean {
 export function createPersistedStorage() {
   return createJSONStorage(() => (isWebServer() ? createMemoryStorage() : AsyncStorage));
 }
+
+/**
+ * Coalesce rapid Zustand persist writes (clock ticks, evidence ingest).
+ * `setItem` is fire-and-forget after the delay so callers are not blocked.
+ * Tests / Metro keep delay 0 via `__DEV__` unless an explicit delay is passed.
+ */
+function createDebouncedAdapter(base: StateStorage, delayMs: number): StateStorage {
+  if (delayMs <= 0) return base;
+  const timers = new Map<string, ReturnType<typeof setTimeout>>();
+  const pending = new Map<string, string>();
+  return {
+    getItem: (name) => {
+      const queued = pending.get(name);
+      if (queued != null) return queued;
+      return base.getItem(name);
+    },
+    setItem: (name, value) => {
+      pending.set(name, value);
+      const existing = timers.get(name);
+      if (existing) clearTimeout(existing);
+      timers.set(
+        name,
+        setTimeout(() => {
+          timers.delete(name);
+          const next = pending.get(name);
+          pending.delete(name);
+          if (next != null) void Promise.resolve(base.setItem(name, next));
+        }, delayMs),
+      );
+    },
+    removeItem: (name) => {
+      const existing = timers.get(name);
+      if (existing) clearTimeout(existing);
+      timers.delete(name);
+      pending.delete(name);
+      return base.removeItem(name);
+    },
+  };
+}
+
+export function createDebouncedPersistedStorage(delayMs = __DEV__ ? 0 : 400) {
+  return createJSONStorage(() => {
+    const base = isWebServer() ? createMemoryStorage() : AsyncStorage;
+    return createDebouncedAdapter(base, delayMs);
+  });
+}

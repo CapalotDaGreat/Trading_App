@@ -1,3 +1,4 @@
+import { LESSON_CONCEPT_IDS } from '@/features/competency/content/activity-concept-map';
 import type { Lesson, LearningPath, PracticeLink, TradingChecklist } from '../types/academy.types';
 
 import { CHART_LESSONS } from './chart-lessons';
@@ -20,19 +21,36 @@ const DEFAULT_SIMULATION: PracticeLink = {
   description: 'Paper capital only. Simulated P/L does not grade the decision.',
 };
 
+const DEFAULT_REPLAY: PracticeLink = {
+  label: 'Replay a historical decision',
+  href: '/decision/replay-tv',
+  description: 'Commit before the outcome is visible. Process is the grade — not the next print.',
+};
+
 function ensureAcademyLoop(lesson: Lesson): Lesson {
   const practiceLinks = lesson.practiceLinks.length ? lesson.practiceLinks : [DEFAULT_PRACTICE];
   const hasSimulate =
     Boolean(lesson.simulationLinks?.length) ||
     practiceLinks.some((link) => /simulate/i.test(`${link.href} ${link.label}`));
+  const hasReplay =
+    Boolean(lesson.replayLinks?.length) ||
+    practiceLinks.some((link) => /replay/i.test(`${link.href} ${link.label}`));
+  const conceptIds =
+    lesson.conceptIds?.length ? lesson.conceptIds : [...(LESSON_CONCEPT_IDS[lesson.id] ?? [])];
   return {
     ...lesson,
+    conceptIds,
     practiceLinks,
     simulationLinks: hasSimulate
       ? lesson.simulationLinks?.length
         ? lesson.simulationLinks
         : [DEFAULT_SIMULATION]
       : [DEFAULT_SIMULATION],
+    replayLinks: hasReplay
+      ? lesson.replayLinks?.length
+        ? lesson.replayLinks
+        : practiceLinks.filter((link) => /replay/i.test(`${link.href} ${link.label}`))
+      : [DEFAULT_REPLAY],
     journalHref: lesson.journalHref ?? '/journal?from=academy',
     learningObjectives: lesson.learningObjectives?.length ? lesson.learningObjectives : [lesson.description],
     whyItMatters: lesson.whyItMatters ?? lesson.description,

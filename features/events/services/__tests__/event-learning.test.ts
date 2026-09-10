@@ -3,7 +3,7 @@ import { resolveCompetencyId } from '@/features/competency';
 import { EVENT_CONCEPT_MAP, LEARNING_CALENDAR_KINDS } from '../../content/event-concept-map';
 import { EVENT_EDUCATION } from '../../content/event-education';
 import { listCuratedMarketStories } from '../../content/event-stories';
-import { allArticlesAttributed } from '../event-attribution.service';
+import { allArticlesAttributed, checkSourceAttribution } from '../event-attribution.service';
 import { selectBeginnerLearningCalendar, selectUpcomingStudyEvent } from '../event-calendar.service';
 import { eventConceptChain, mappingForEventKind } from '../event-concept.service';
 import { educationForKind } from '../event-education.service';
@@ -12,15 +12,17 @@ import {
   collectPracticeGapConceptIds,
   composeEventTrainingPlan,
   isEventPersonalizationEligible,
+  resolveEventTrainingIntent,
 } from '../event-personalization.service';
 import { generateEventAwareSimulation } from '../event-simulation.service';
+import { freshnessForSource, isStaleCalendarSnapshot } from '../event-status.service';
 import type { MarketEventKind } from '../../types/events.types';
 
 const NOW = Date.parse('2026-09-10T12:00:00.000Z');
 const NOW_ISO = '2026-09-10T12:00:00.000Z';
 
 const PREDICTION =
-  /buy this|sell this|short this|should buy|should sell|guaranteed|buy now|sell now|buy before earnings|sell before the fed|cpi will cause|stocks will fall|stocks will rise|price target|expected price/i;
+  /buy this|sell this|short this|should buy|should sell|guaranteed|buy now|sell now|buy before earnings|sell before the fed|cpi will cause|stocks will fall|stocks will rise|price target|expected price|enter now|this is a signal|long this/i;
 
 const KINDS = Object.keys(EVENT_CONCEPT_MAP) as MarketEventKind[];
 
@@ -156,6 +158,88 @@ describe('beginner vs advanced behavior', () => {
     expect(plan?.reminder.toLowerCase()).toContain('not a trade alert');
     expect(`${plan?.headline} ${plan?.practiceGapNote} ${plan?.reminder}`).not.toMatch(PREDICTION);
   });
+
+  it('routes weak event-risk to an event-risk lesson', () => {
+    const hub = composeMarketEventHub({
+      calendarEvents: [cpi],
+      calendarUnavailable: false,
+      fetchedAt: NOW,
+      now: NOW,
+      experience: 'advanced',
+      mastery: [
+        {
+          conceptId: 'event-risk',
+          state: 'needs_remediation',
+          competenceState: 'needs_revisit',
+          falseMastery: false,
+        },
+      ],
+    });
+    expect(hub.trainingPlan?.intent).toBe('event_risk_lesson');
+    expect(hub.trainingPlan?.primary).toBe('lesson');
+    expect(hub.trainingPlan?.lessonHref).toContain('fund-calendar');
+    expect(hub.trainingPlan?.practiceGapNote).toMatch(/event-risk/i);
+    expect(JSON.stringify(hub.trainingPlan)).not.toMatch(PREDICTION);
+  });
+
+  it('routes strong event-risk and weak uncertainty to an uncertainty exercise', () => {
+    const resolved = resolveEventTrainingIntent({
+      eventKind: 'interest_rate',
+      mastery: [
+        { conceptId: 'event-risk', state: 'demonstrated', competenceState: 'demonstrated', falseMastery: false },
+        { conceptId: 'uncertainty', state: 'needs_remediation', competenceState: 'needs_revisit', falseMastery: false },
+      ],
+    });
+    expect(resolved.intent).toBe('uncertainty_exercise');
+    const hub = composeMarketEventHub({
+      calendarEvents: [fomc],
+      calendarUnavailable: false,
+      fetchedAt: NOW,
+      now: NOW,
+      experience: 'advanced',
+      mastery: [
+        { conceptId: 'event-risk', state: 'demonstrated', competenceState: 'demonstrated', falseMastery: false },
+        { conceptId: 'uncertainty', state: 'needs_remediation', competenceState: 'needs_revisit', falseMastery: false },
+      ],
+    });
+    expect(hub.trainingPlan?.intent).toBe('uncertainty_exercise');
+    expect(hub.trainingPlan?.primary).toBe('practice');
+    expect(hub.trainingPlan?.practiceHref).toContain('rate-decision-uncertainty');
+    expect(hub.trainingPlan?.lessonHref).toContain('dec-uncertainty');
+    expect(hub.trainingPlan?.replayHref).toContain('replay');
+    expect(hub.trainingPlan?.simulateHref).toContain('/simulate');
+    expect(`${hub.trainingPlan?.headline} ${hub.trainingPlan?.reminder}`).not.toMatch(PREDICTION);
+  });
+
+  it('routes strong fundamentals with weak application to an event-driven scenario', () => {
+    const hub = composeMarketEventHub({
+      calendarEvents: [
+        {
+          id: 'us-earnings',
+          title: 'MegaCap earnings',
+          country: 'United States',
+          countryCode: 'US',
+          category: 'other',
+          impact: 'high',
+          scheduledAt: NOW + 3 * 86400000,
+          source: 'mock',
+        },
+      ],
+      calendarUnavailable: false,
+      fetchedAt: NOW,
+      now: NOW,
+      experience: 'professional',
+      mastery: [
+        { conceptId: 'earnings', state: 'demonstrated', competenceState: 'demonstrated', falseMastery: true },
+      ],
+    });
+    expect(hub.trainingPlan?.intent).toBe('fundamentals_application');
+    expect(hub.trainingPlan?.primary).toBe('simulate');
+    expect(hub.trainingPlan?.simulateTitle).toMatch(/fundamentals scenario/i);
+    expect(hub.trainingPlan?.simulateHref).toContain('prep=earnings');
+    expect(hub.trainingPlan?.practiceHref).toContain('fundamentals');
+    expect(hub.trainingPlan?.reminder.toLowerCase()).not.toMatch(/signal|buy|sell/);
+  });
 });
 
 describe('no prediction language', () => {
@@ -228,6 +312,42 @@ describe('source attribution', () => {
     for (const article of articles) {
       expect(article.summary.length).toBeLessThanOrEqual(400);
       expect(article.url).toMatch(/^https:\/\//);
+      expect(article.date.trim().length).toBeGreaterThan(0);
     }
+  });
+
+  it('rejects third-party text presented as TradeAcademy original reporting', () => {
+    const check = checkSourceAttribution({
+      headline: 'TradeAcademy original: CPI explainer',
+      source: 'Someone',
+      date: '2026-09-10',
+      summary: 'Our exclusive report on the print.',
+      whyItMatters: 'Context only.',
+      url: 'https://example.com/cpi',
+    });
+    expect(check.ok).toBe(false);
+    expect(check.issues.join(' ')).toMatch(/original reporting/i);
+  });
+});
+
+describe('stale-data labeling', () => {
+  it('marks a cached calendar snapshot as stale, not live', () => {
+    const freshness = freshnessForSource({ source: 'finnhub', fromCache: true });
+    expect(freshness.kind).toBe('cached');
+    expect(isStaleCalendarSnapshot(freshness.kind)).toBe(true);
+    expect(freshness.note.toLowerCase()).toMatch(/stale/);
+    expect(freshness.note.toLowerCase()).toContain('not a live tape');
+
+    const hub = composeMarketEventHub({
+      calendarEvents: [cpi],
+      calendarUnavailable: false,
+      fetchedAt: NOW - 6 * 60 * 60 * 1000,
+      fromCache: true,
+      now: NOW,
+    });
+    const calendarCard = hub.cards.find((card) => card.origin === 'calendar');
+    expect(calendarCard?.freshness.kind).toBe('cached');
+    expect(calendarCard?.freshness.note.toLowerCase()).toMatch(/stale/);
+    expect(hub.freshnessNote.toLowerCase()).toMatch(/stale/);
   });
 });

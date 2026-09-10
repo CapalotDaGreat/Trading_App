@@ -1,8 +1,12 @@
+import { useCompetencyEvidenceStore } from '@/features/competency/stores/competency-evidence.store';
+
+import { GENERIC_SIMULATION_TRAINING_RATIONALE } from '../../services/scenario-personalization.service';
 import { useSimulationStore } from '../simulation.store';
 
 describe('simulation store isolation', () => {
   beforeEach(() => {
     useSimulationStore.setState({ accountsByUser: {}, archivesByUser: {} });
+    useCompetencyEvidenceStore.getState().resetAll();
   });
 
   it('keeps two users on separate ledgers', () => {
@@ -48,5 +52,59 @@ describe('simulation store isolation', () => {
     expect(second.scenario?.difficulty).toBe('expert');
     expect(second.scenario?.seed).not.toBe(first.scenario?.seed);
     expect(second.checkpoints).toEqual([]);
+  });
+
+  it('personalizes guest and signed-in books independently', () => {
+    useCompetencyEvidenceStore.getState().recordEvidence({
+      uid: 'demo-guest',
+      conceptId: 'fomo',
+      sourceType: 'simulation_decision',
+      sourceId: 'g1',
+      occurredAt: Date.parse('2026-09-10T00:00:00.000Z'),
+      independent: true,
+      processMetrics: { processQuality: 28, flags: { fomoEntry: true } },
+    });
+    useCompetencyEvidenceStore.getState().recordEvidence({
+      uid: 'demo-guest',
+      conceptId: 'fomo',
+      sourceType: 'simulation_decision',
+      sourceId: 'g2',
+      occurredAt: Date.parse('2026-09-10T00:00:01.000Z'),
+      independent: true,
+      processMetrics: { processQuality: 30, flags: { fomoEntry: true } },
+    });
+    useCompetencyEvidenceStore.getState().recordEvidence({
+      uid: 'alice',
+      conceptId: 'event-risk',
+      sourceType: 'event_exercise',
+      sourceId: 'a1',
+      occurredAt: Date.parse('2026-09-10T00:00:00.000Z'),
+      independent: true,
+      scenarioContext: 'earnings',
+      processMetrics: { processQuality: 30 },
+    });
+    useCompetencyEvidenceStore.getState().recordEvidence({
+      uid: 'alice',
+      conceptId: 'event-risk',
+      sourceType: 'event_exercise',
+      sourceId: 'a2',
+      occurredAt: Date.parse('2026-09-10T00:00:01.000Z'),
+      independent: true,
+      scenarioContext: 'earnings',
+      processMetrics: { processQuality: 27 },
+    });
+
+    const guest = useSimulationStore.getState().ensureAccount('demo-guest');
+    const alice = useSimulationStore.getState().ensureAccount('alice');
+    expect(guest.accountId).not.toBe(alice.accountId);
+    expect(guest.cashBalance).toBe(100_000);
+    expect(alice.cashBalance).toBe(100_000);
+    expect(guest.scenario?.focus).toBe('fomo_chase');
+    expect(alice.scenario?.focus).toBe('event_adaptation');
+    expect(alice.scenario?.events[0]?.kind).toBe('earnings');
+    expect(guest.scenario?.trainingRationale).toBe(GENERIC_SIMULATION_TRAINING_RATIONALE);
+    expect(alice.scenario?.trainingRationale).toBe(GENERIC_SIMULATION_TRAINING_RATIONALE);
+    expect(useSimulationStore.getState().accountFor('demo-guest')?.scenario?.focus).toBe('fomo_chase');
+    expect(useSimulationStore.getState().accountFor('alice')?.scenario?.focus).toBe('event_adaptation');
   });
 });

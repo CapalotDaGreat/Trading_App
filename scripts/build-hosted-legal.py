@@ -148,13 +148,25 @@ def md_to_simple_html(md: str) -> str:
     return "\n".join(out)
 
 
+def template_notice(md: str) -> str:
+    if "REQUIRED]" not in md:
+        return ""
+    return (
+        '<p role="note" style="background:#fef3c7;border:1px solid #d97706;padding:0.75rem 1rem;'
+        'border-radius:0.5rem"><strong>Template — not a live operator publication.</strong> '
+        'Bracketed fields (legal entity, VAT/UID, emails, official domain) are not production '
+        'values. Do not paste this URL into App Store Connect or Play Console until those fields '
+        'are replaced and this notice is gone.</p>\n'
+    )
+
+
 def wrap_page(title: str, body: str) -> str:
     return f"""<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>{html.escape(title)} · TradeInsight by Aithera</title>
+  <title>{html.escape(title)} · TradeAcademy by Aithera</title>
   <style>
     body {{ font-family: system-ui, sans-serif; max-width: 48rem; margin: 2rem auto; padding: 0 1rem; line-height: 1.55; color: #111; }}
     h1, h2, h3 {{ line-height: 1.25; }}
@@ -166,7 +178,7 @@ def wrap_page(title: str, body: str) -> str:
 </head>
 <body>
   <nav>
-    <a href="/">TradeInsight</a> ·
+    <a href="/">TradeAcademy</a> ·
     <a href="/privacy">Privacy</a> ·
     <a href="/terms">Terms</a> ·
     <a href="/risk">Risk</a> ·
@@ -186,7 +198,7 @@ def main() -> None:
 
     for slug, (filename, title) in PAGES.items():
         md = (LEGAL / filename).read_text(encoding="utf-8")
-        page = wrap_page(title, md_to_simple_html(md))
+        page = wrap_page(title, template_notice(md) + md_to_simple_html(md))
         (HOSTED / f"{slug}.html").write_text(page, encoding="utf-8")
         # Clean path without .html for static hosts that map folders / index
         folder = HOSTED / slug

@@ -70,12 +70,12 @@ describe('navigation information architecture', () => {
     expect(reviewHrefs).toContain('/decision/intelligence');
   });
 
-  it('keeps Research educational and Markets secondary', () => {
+  it('keeps Research educational and study names on search, not a quote board', () => {
     const researchHrefs = RESEARCH_HUB_SECTIONS.flatMap((section) =>
       section.items.map((item) => item.href),
     );
     expect(researchHrefs).toContain('/academy');
-    expect(researchHrefs).toContain('/markets');
+    expect(researchHrefs).not.toContain('/markets');
     expect(researchHrefs).toContain('/search');
     expect(researchHrefs).toContain('/events');
     expect(researchHrefs).toContain('/ai?source=research');
@@ -92,6 +92,7 @@ describe('navigation information architecture', () => {
       you: '/you',
       ask: '/ai',
       events: '/events',
+      markets: '/search',
     });
     expect(buildLegacyRouteRedirect('/you')).toEqual({ pathname: '/you', params: {} });
     expect(buildLegacyRouteRedirect('/research')).toEqual({ pathname: '/research', params: {} });

@@ -56,7 +56,7 @@ export const COMPETENCY_CONCEPTS: CompetencyConcept[] = [
     'decision_making',
     ['position-sizing', 'thesis', 'support', 'stop-logic'],
     {
-      aliases: ['stops'],
+      aliases: ['stops', 'stop-loss', 'stoploss'],
       secondaryFamilies: ['risk_management'],
       description: 'Naming what would prove the idea wrong, then respecting that line.',
     },
@@ -91,7 +91,7 @@ export const COMPETENCY_CONCEPTS: CompetencyConcept[] = [
     'risk_management',
     'portfolio_management',
     ['position-sizing', 'diversification', 'drawdown-management'],
-    { aliases: ['concentration'], description: 'Seeing when one name or theme dominates the book.' },
+    { aliases: ['concentration', 'exposure'], description: 'Seeing when one name or theme dominates the book.' },
   ),
   concept(
     'volatility-aware-risk',
@@ -128,7 +128,7 @@ export const COMPETENCY_CONCEPTS: CompetencyConcept[] = [
     'technical_analysis',
     'chart_reading',
     ['chart-interpretation', 'momentum', 'moving-averages'],
-    { description: 'Saying whether price is trending, ranging, or transitioning — and why.' },
+    { aliases: ['trend'], description: 'Saying whether price is trending, ranging, or transitioning — and why.' },
   ),
   concept(
     'support',
@@ -136,7 +136,7 @@ export const COMPETENCY_CONCEPTS: CompetencyConcept[] = [
     'technical_analysis',
     'chart_reading',
     ['chart-interpretation', 'breakouts', 'false-breakouts', 'invalidation'],
-    { aliases: ['find-support'], description: 'Locating levels that mattered before, and treating them as hypotheses.' },
+    { aliases: ['find-support', 'resistance', 'support-resistance'], description: 'Locating levels that mattered before, and treating them as hypotheses.' },
   ),
   concept(
     'breakouts',
@@ -144,7 +144,7 @@ export const COMPETENCY_CONCEPTS: CompetencyConcept[] = [
     'technical_analysis',
     'technical_analysis',
     ['support', 'false-breakouts', 'volume', 'momentum'],
-    { description: 'Judging whether a level break has evidence, not just a print beyond the line.' },
+    { aliases: ['breakout'], description: 'Judging whether a level break has evidence, not just a print beyond the line.' },
   ),
   concept(
     'false-breakouts',
@@ -152,7 +152,7 @@ export const COMPETENCY_CONCEPTS: CompetencyConcept[] = [
     'technical_analysis',
     'technical_analysis',
     ['breakouts', 'support', 'false-signals', 'invalidation'],
-    { description: 'Recognizing failed breaks and the process response (stand down, not chase).' },
+    { aliases: ['fakeout', 'false-breakout'], description: 'Recognizing failed breaks and the process response (stand down, not chase).' },
   ),
   concept(
     'momentum',
@@ -176,7 +176,7 @@ export const COMPETENCY_CONCEPTS: CompetencyConcept[] = [
     'technical_analysis',
     'technical_analysis',
     ['trend-identification', 'momentum', 'multi-timeframe'],
-    { aliases: ['macd'], description: 'Using averages as structure context, not as automatic entries.' },
+    { aliases: ['macd', 'moving-average'], description: 'Using averages as structure context, not as automatic entries.' },
   ),
   concept(
     'rsi',
@@ -226,7 +226,10 @@ export const COMPETENCY_CONCEPTS: CompetencyConcept[] = [
     'fundamental_research',
     'fundamental_analysis',
     ['earnings', 'business-quality', 'fundamental-uncertainty'],
-    { description: 'Reading growth as evidence with limits, not as a forecast.' },
+    {
+      aliases: ['revenue', 'top-line'],
+      description: 'Reading growth as evidence with limits, not as a forecast.',
+    },
   ),
   concept(
     'earnings',
@@ -234,7 +237,10 @@ export const COMPETENCY_CONCEPTS: CompetencyConcept[] = [
     'fundamental_research',
     'fundamental_analysis',
     ['revenue-growth', 'valuation', 'earnings-events', 'thesis'],
-    { description: 'Using earnings as one evidence pile — quality, not a directional tip.' },
+    {
+      aliases: ['profitability', 'profits', 'eps', 'margins', 'margin', 'cash-flow', 'cashflow', 'fcf'],
+      description: 'Using earnings, margins, and cash conversion as one evidence pile — quality, not a directional tip.',
+    },
   ),
   concept(
     'valuation',
@@ -258,7 +264,10 @@ export const COMPETENCY_CONCEPTS: CompetencyConcept[] = [
     'fundamental_research',
     'fundamental_analysis',
     ['business-quality', 'revenue-growth'],
-    { aliases: ['moat'], description: 'Describing why a business might keep earning — and what would erode that.' },
+    {
+      aliases: ['moat', 'advantage'],
+      description: 'Describing why a business might keep earning — and what would erode that.',
+    },
   ),
   concept(
     'business-quality',
@@ -266,7 +275,10 @@ export const COMPETENCY_CONCEPTS: CompetencyConcept[] = [
     'fundamental_research',
     'fundamental_analysis',
     ['competitive-position', 'revenue-growth', 'balance-sheet'],
-    { description: 'Separating a good business from a good process decision at this price.' },
+    {
+      aliases: ['quality'],
+      description: 'Separating a good business from a good process decision at this price.',
+    },
   ),
   concept(
     'fundamental-uncertainty',
@@ -360,7 +372,7 @@ export const COMPETENCY_CONCEPTS: CompetencyConcept[] = [
     'thesis_decision_making',
     'decision_making',
     ['evidence-quality', 'invalidation', 'uncertainty', 'alternative-explanations'],
-    { description: 'Writing a testable idea before size, not a slogan after the fill.' },
+    { aliases: ['assumptions'], description: 'Writing a testable idea before size, not a slogan after the fill.' },
   ),
   concept(
     'evidence-quality',
@@ -384,7 +396,7 @@ export const COMPETENCY_CONCEPTS: CompetencyConcept[] = [
     'thesis_decision_making',
     'decision_making',
     ['thesis', 'event-risk', 'fundamental-uncertainty', 'scenario-thinking'],
-    { description: 'Saying what is unknown and sizing (or skipping) accordingly.' },
+    { aliases: ['probabilities'], description: 'Saying what is unknown and sizing (or skipping) accordingly.' },
   ),
   concept(
     'scenario-thinking',
@@ -392,7 +404,7 @@ export const COMPETENCY_CONCEPTS: CompetencyConcept[] = [
     'thesis_decision_making',
     'decision_making',
     ['uncertainty', 'invalidation', 'adapting-decisions'],
-    { description: 'Holding more than one path and a response for each.' },
+    { aliases: ['scenarios'], description: 'Holding more than one path and a response for each.' },
   ),
   concept(
     'decision-consistency',
@@ -661,4 +673,7 @@ export const FORBIDDEN_MASTERY_TERMS = [
   'professional',
   'guaranteed',
   'expert',
+  'advanced trader',
+  'safely trade',
+  'you can safely',
 ] as const;

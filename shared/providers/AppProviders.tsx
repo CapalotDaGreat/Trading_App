@@ -6,6 +6,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useAlertEvaluator } from '@/features/alerts/hooks/useAlertEvaluator';
 import { AuthProvider, useAuth } from '@/features/auth/hooks/useAuth';
 import { useOpsConfigBootstrap } from '@/features/ops-config/hooks/useOpsConfig';
+import { useLearnerStateSync } from '@/features/learner-state';
 import { BiometricGate } from '@/features/settings/components/BiometricGate';
 import { markSessionActive } from '@/features/settings/hooks/useSessionTimeout';
 import { useSubscription } from '@/features/subscription/hooks/useSubscription';
@@ -85,6 +86,11 @@ function OpsConfigBootstrap({ children }: AppProvidersProps) {
   return children;
 }
 
+function LearnerStateSyncBootstrap({ children }: AppProvidersProps) {
+  useLearnerStateSync();
+  return children;
+}
+
 export function AppProviders({ children }: AppProvidersProps) {
   return (
     <GestureHandlerRootView className="flex-1">
@@ -97,11 +103,13 @@ export function AppProviders({ children }: AppProvidersProps) {
                   <ToastProvider>
                     <SubscriptionBootstrap>
                       <AlertEvaluationBootstrap>
-                        <BiometricGate>
-                          <View className="flex-1" onTouchStart={markSessionActive}>
-                            {children}
-                          </View>
-                        </BiometricGate>
+                        <LearnerStateSyncBootstrap>
+                          <BiometricGate>
+                            <View className="flex-1" onTouchStart={markSessionActive}>
+                              {children}
+                            </View>
+                          </BiometricGate>
+                        </LearnerStateSyncBootstrap>
                       </AlertEvaluationBootstrap>
                     </SubscriptionBootstrap>
                   </ToastProvider>

@@ -3,14 +3,17 @@ import { useMemo } from 'react';
 
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { ingestKnowledgeCheck, ingestLessonCompletion, ingestLessonExercise } from '@/features/competency';
+import type { HelpLevel } from '@/features/competency';
 import { useAppendDecisionRecord } from '@/features/decision-log/hooks/useDecisionLog';
 import { useRegime } from '@/features/decision/hooks/useDecision';
 import type { DecisionDebtSnapshot, TraderMemory } from '@/features/decision/types/decision.types';
 import { useDecisionLabStore } from '@/features/decision-lab/stores/lab.store';
+import { useLearnerModel } from '@/features/learner-model';
 import { usePracticeProgressStore } from '@/features/practice/stores/practice-progress.store';
 import { DEMO_USER_UID } from '@/firebase/config';
 import { useSubscriptionStore } from '@/shared/stores/subscription.store';
 
+import { ALL_LESSONS, getLocalChecklistById, getLocalChecklists, getLocalLessonById } from '../content';
 import { LEARNING_PATHS, type AcademyPathMeta } from '../content/paths-and-checklists';
 import {
   getAllChecklists,
@@ -23,7 +26,12 @@ import {
   getTradingChecklist,
   type LessonCategory,
 } from '../services/academy.service';
-import { collectWeakConcepts, scorePathMastery, type MasteryLabel } from '../services/academy-mastery.service';
+import {
+  CONCEPT_TO_LESSON,
+  collectWeakConcepts,
+  scorePathMastery,
+  type MasteryLabel,
+} from '../services/academy-mastery.service';
 import {
   buildDefaultNextLesson,
   buildPersonalizedCurriculum,
@@ -40,25 +48,39 @@ const checklistQueryKey = (id: string) => ['academy-checklist', id] as const;
 
 export function useAcademy(category?: LessonCategory) {
   // Always load full catalog; LessonCard / lesson screen enforce Premium locks.
+  const localCatalog = useMemo(
+    () => (category ? ALL_LESSONS.filter((lesson) => lesson.category === category) : ALL_LESSONS),
+    [category],
+  );
   const lessonsQuery = useQuery({
     queryKey: category ? ['academy-lessons', category, 'full'] : ['academy-lessons', 'full'],
     queryFn: () => (category ? getLessonsByCategory(category, true) : getLessons(true)),
     staleTime: 30 * 60 * 1000,
+    initialData: localCatalog,
+    networkMode: 'offlineFirst',
   });
 
-  const completedCount = useAcademyProgressStore((s) =>
-    (lessonsQuery.data ?? []).filter((l) => s.isRead(l.id)).length,
+  const lessonProgress = useAcademyProgressStore((s) => s.lessons);
+  const catalog = lessonsQuery.data ?? localCatalog;
+  const completedCount = useMemo(
+    () =>
+      catalog.filter((lesson) => {
+        const row = lessonProgress[lesson.id];
+        return Boolean(row?.read || row?.completed);
+      }).length,
+    [catalog, lessonProgress],
   );
-  const practicedCount = useAcademyProgressStore((s) =>
-    (lessonsQuery.data ?? []).filter((l) => s.isPracticed(l.id)).length,
+  const practicedCount = useMemo(
+    () => catalog.filter((lesson) => Boolean(lessonProgress[lesson.id]?.practiced)).length,
+    [catalog, lessonProgress],
   );
 
   return {
-    lessons: lessonsQuery.data ?? [],
+    lessons: catalog,
     completedCount,
     practicedCount,
-    totalCount: lessonsQuery.data?.length ?? 0,
-    isLoading: lessonsQuery.isLoading,
+    totalCount: catalog.length,
+    isLoading: lessonsQuery.isLoading && catalog.length === 0,
     isError: lessonsQuery.isError,
     refetch: () => {
       void lessonsQuery.refetch();
@@ -79,6 +101,8 @@ export function useLearningPaths() {
     queryKey: ['academy-paths'],
     queryFn: getLearningPaths,
     staleTime: 60 * 60 * 1000,
+    initialData: LEARNING_PATHS,
+    networkMode: 'offlineFirst',
   });
 
   // Recompute when Lab positions change (challenge progress)
@@ -113,7 +137,7 @@ export function useLearningPaths() {
   return {
     paths,
     defaultPath: getDefaultOperatorPath(),
-    isLoading: query.isLoading,
+    isLoading: query.isLoading && paths.length === 0,
     isError: query.isError,
     refetch: query.refetch,
   };
@@ -131,15 +155,35 @@ export function useNextAcademyLesson(input?: {
   const isPracticed = useAcademyProgressStore((s) => s.isPracticed);
   const conceptResults = useAcademyProgressStore((s) => s.conceptResults);
   const practiceAttempts = usePracticeProgressStore((s) => s.attempts);
+  const learner = useLearnerModel();
 
-  const weakConcepts = useMemo(
-    () =>
-      collectWeakConcepts({
-        conceptResults,
-        repeatedDrillIds: usePracticeProgressStore.getState().repeatedMistakes(),
-      }),
-    [conceptResults, practiceAttempts],
-  );
+  const weakConcepts = useMemo(() => {
+    const fromAcademy = collectWeakConcepts({
+      conceptResults,
+      repeatedDrillIds: usePracticeProgressStore.getState().repeatedMistakes(),
+    });
+    const seen = new Set(fromAcademy.map((row) => row.lessonId));
+    const fromLearner = learner.concepts
+      .filter((row) => row.state === 'needs_revisit' || row.knowledge.misconceptionFlags.length > 0)
+      .map((row) => {
+        const lessonId = CONCEPT_TO_LESSON[row.conceptId];
+        if (!lessonId || seen.has(lessonId)) return null;
+        const lesson = ALL_LESSONS.find((item) => item.id === lessonId);
+        if (!lesson) return null;
+        seen.add(lessonId);
+        return {
+          conceptId: row.conceptId,
+          lessonId,
+          title: lesson.title,
+          misses: Math.max(1, row.knowledge.misconceptionFlags.length),
+          attempts: Math.max(2, row.application.practiceAttempts + row.knowledge.knowledgeCheckAttempts),
+          reason: row.state === 'needs_revisit' ? `${row.title} needs another look.` : `Repeated process flags on ${row.title.toLowerCase()}.`,
+          evidence: [`Learner model: ${row.label}. Process evidence, not a trophy score.`],
+        };
+      })
+      .filter((row): row is NonNullable<typeof row> => row != null);
+    return [...fromAcademy, ...fromLearner].slice(0, 5);
+  }, [conceptResults, learner.concepts, practiceAttempts]);
 
   if (isPremium) {
     const personalized = buildPersonalizedCurriculum({
@@ -173,6 +217,7 @@ export function useLearningPath(pathId: string) {
     queryFn: () => getPathLessons(pathId, true),
     staleTime: 30 * 60 * 1000,
     enabled: Boolean(pathId),
+    networkMode: 'offlineFirst',
   });
 
   const lessons = query.data?.lessons ?? [];
@@ -191,11 +236,14 @@ export function useLearningPath(pathId: string) {
 export function useLesson(lessonId: string) {
   const { user } = useAuth();
   const uid = user?.uid ?? DEMO_USER_UID;
+  const localLesson = lessonId ? getLocalLessonById(lessonId) : null;
   const query = useQuery({
     queryKey: ['academy-lesson', lessonId],
     queryFn: () => getLessonById(lessonId),
     staleTime: 30 * 60 * 1000,
     enabled: Boolean(lessonId),
+    initialData: localLesson ?? undefined,
+    networkMode: 'offlineFirst',
   });
 
   const markOpened = useAcademyProgressStore((s) => s.markOpened);
@@ -210,7 +258,7 @@ export function useLesson(lessonId: string) {
   const isPracticed = useAcademyProgressStore((s) => s.isPracticed(lessonId));
 
   return {
-    lesson: query.data ?? null,
+    lesson: query.data ?? localLesson,
     progress,
     isCompleted,
     isRead,
@@ -229,11 +277,33 @@ export function useLesson(lessonId: string) {
       storeRecordConceptResult(conceptId, correct);
       ingestKnowledgeCheck(uid, lessonId, conceptId, correct);
     },
-    recordExerciseAttempt: (id: string, correct?: boolean) => {
+    recordExerciseAttempt: (
+      id: string,
+      correct?: boolean,
+      options?: {
+        kind?: string;
+        conceptId?: string;
+        helpLevel?: HelpLevel;
+        exerciseId?: string;
+        asTransfer?: boolean;
+        scenarioContext?: import('@/features/competency').CompetencyScenarioContext;
+        interactingConceptIds?: string[];
+      },
+    ) => {
       storeRecordExerciseAttempt(id, correct);
-      if (typeof correct === 'boolean') ingestLessonExercise(uid, id, undefined, correct);
+      const passed = typeof correct === 'boolean' ? correct : options?.kind === 'explain' || options?.kind === 'annotate';
+      if (passed === true || correct === false) {
+        ingestLessonExercise(uid, id, options?.conceptId, correct === false ? false : true, Date.now(), {
+          helpLevel: options?.helpLevel,
+          kind: options?.kind,
+          exerciseId: options?.exerciseId,
+          asTransfer: options?.asTransfer,
+          scenarioContext: options?.scenarioContext,
+          interactingConceptIds: options?.interactingConceptIds,
+        });
+      }
     },
-    isLoading: query.isLoading,
+    isLoading: query.isLoading && !query.data && !localLesson,
     isError: query.isError,
     refetch: query.refetch,
   };
@@ -244,6 +314,8 @@ export function useAcademyChecklists() {
     queryKey: ['academy-checklists'],
     queryFn: getAllChecklists,
     staleTime: 30 * 60 * 1000,
+    initialData: getLocalChecklists(),
+    networkMode: 'offlineFirst',
   });
 
   return {
@@ -266,6 +338,8 @@ export function useTradingChecklist(checklistId = 'pre-trade-checklist') {
     queryKey: checklistQueryKey(checklistId),
     queryFn: () => getTradingChecklist(checklistId),
     staleTime: 30 * 60 * 1000,
+    initialData: getLocalChecklistById(checklistId),
+    networkMode: 'offlineFirst',
   });
 
   const toggleItemStore = useChecklistStore((s) => s.toggleItem);

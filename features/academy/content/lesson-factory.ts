@@ -22,6 +22,12 @@ const DEFAULT_SIMULATION: PracticeLink = {
   description: 'Paper capital only. Simulated P/L does not grade the decision.',
 };
 
+const DEFAULT_REPLAY: PracticeLink = {
+  label: 'Replay a historical decision',
+  href: '/decision/replay-tv',
+  description: 'Commit before the outcome is visible. Process is the grade — not the next print.',
+};
+
 export interface FlagshipLessonInput {
   id: string;
   title: string;
@@ -46,10 +52,13 @@ export interface FlagshipLessonInput {
   whenItFails: string[];
   whenItWorks?: string[];
   exercise: LessonExercise;
+  /** Extra applied / comparison / transfer exercises after the primary one. */
+  extraExercises?: LessonExercise[];
   quiz: QuizQuestion[];
   takeaways: string[];
   practice?: PracticeLink[];
   simulation?: PracticeLink[];
+  replay?: PracticeLink[];
   journalHref?: string;
   isPremium?: boolean;
 }
@@ -57,38 +66,19 @@ export interface FlagshipLessonInput {
 export function makeFlagshipLesson(input: FlagshipLessonInput): Lesson {
   const practiceLinks = input.practice?.length ? input.practice : [{ ...DEFAULT_PRACTICE }];
   const simulationLinks = input.simulation?.length ? input.simulation : [{ ...DEFAULT_SIMULATION }];
+  const replayLinks = input.replay?.length ? input.replay : [{ ...DEFAULT_REPLAY }];
   const sections = [
-    {
-      heading: 'Learning objectives',
-      body: input.objectives.map((item, index) => `${index + 1}. ${item}`).join('\n'),
-    },
-    {
-      heading: 'Why it matters',
-      body: input.whyItMatters,
-    },
     {
       heading: 'The idea',
       body: input.explanation,
       chart: input.chart,
     },
     {
-      heading: 'Practical examples',
+      heading: 'Practical interpretation',
       body: input.examples.map((item) => `• ${item}`).join('\n'),
-    },
-    {
-      heading: 'Common mistakes',
-      body: input.mistakes.map((item) => `• ${item}`).join('\n'),
-      callout: {
-        type: 'warning' as const,
-        text: input.limitations[0] ?? 'Every model fails. Name the failure mode before you size.',
-      },
-    },
-    {
-      heading: 'When the concept fails',
-      body: input.whenItFails.map((item) => `• ${item}`).join('\n'),
       callout: {
         type: 'practice' as const,
-        text: 'After this lesson: practice the drill, then apply the idea on a simulated decision and journal the reasoning.',
+        text: 'After this lesson: practise the drill, replay a historical room, then apply the idea on a simulated decision. Simulated P/L is not the grade.',
       },
     },
   ];
@@ -115,11 +105,12 @@ export function makeFlagshipLesson(input: FlagshipLessonInput): Lesson {
     commonMistakes: input.mistakes,
     whenItWorks: input.whenItWorks,
     whenItFails: input.whenItFails,
-    exercises: [input.exercise],
+    exercises: [input.exercise, ...(input.extraExercises ?? [])],
     quiz: input.quiz,
     keyTakeaways: input.takeaways,
     practiceLinks,
     simulationLinks,
+    replayLinks,
     journalHref: input.journalHref ?? '/journal?from=academy',
     educationalCharts: input.chart ? [input.chart] : [],
     sections,
@@ -131,4 +122,12 @@ export function makeFlagshipLesson(input: FlagshipLessonInput): Lesson {
 
 export function defaultPractice(href: string, label: string, description?: string): PracticeLink {
   return { href, label, description };
+}
+
+export function replayEpisodeLink(episodeId: string, label: string): PracticeLink {
+  return {
+    href: `/decision/replay-tv?episode=${episodeId}`,
+    label,
+    description: 'Educational reconstruction. Outcome does not grade the process alone.',
+  };
 }

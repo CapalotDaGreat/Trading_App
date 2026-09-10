@@ -12,6 +12,8 @@ import { assessTrainingReadiness } from '@/features/progress/services/readiness.
 import { buildSkillModel } from '@/features/progress/services/skill-model.service';
 import { buildWeeklyTrainingPlan } from '@/features/progress/services/weekly-training-plan.service';
 import { useNextAcademyLesson } from '@/features/academy/hooks/useAcademy';
+import { useLearnerModel } from '@/features/learner-model';
+import { preferredPracticeDrillIds } from '@/features/mistake-library/services/mistake-library.service';
 import { recommendPracticeDrill } from '@/features/practice/services/practice-library.service';
 import { useSimulation } from '@/features/simulation/hooks/useSimulation';
 import { SKILL_DOMAIN_LABELS } from '@/shared/constants/skill-domains';
@@ -28,9 +30,15 @@ export default function ReadinessScreen() {
   const attempts = usePracticeProgressStore((state) => state.attempts);
   const { entries } = useJournal();
   const { account } = useSimulation();
+  const learner = useLearnerModel();
   const drill = useMemo(
-    () => recommendPracticeDrill({ attempts, nextLessonId: recommendation?.lesson.id }),
-    [attempts, recommendation?.lesson.id],
+    () =>
+      recommendPracticeDrill({
+        attempts,
+        nextLessonId: recommendation?.lesson.id,
+        preferredDrillIds: preferredPracticeDrillIds(learner.mistakePatterns),
+      }),
+    [attempts, learner.mistakePatterns, recommendation?.lesson.id],
   );
 
   const skill = useMemo(

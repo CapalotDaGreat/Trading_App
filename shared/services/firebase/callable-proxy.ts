@@ -26,10 +26,19 @@ export class ProxyError extends Error {
   }
 }
 
+/** True when a Firebase user may call secret-backed vendor proxies. */
+export function canUseVendorProxyForUser(
+  user: { uid: string; isAnonymous?: boolean; emailVerified?: boolean } | null | undefined,
+): boolean {
+  const uid = user?.uid;
+  if (!uid || uid === DEMO_USER_UID || !canUseFirestore(uid)) return false;
+  if (user.isAnonymous) return false;
+  return user.emailVerified === true;
+}
+
 /** True when the current Firebase user can call secret-backed vendor proxies. */
 export function canUseVendorProxy(): boolean {
-  const uid = auth?.currentUser?.uid;
-  return canUseFirestore(uid) && uid !== DEMO_USER_UID;
+  return canUseVendorProxyForUser(auth?.currentUser);
 }
 
 /**

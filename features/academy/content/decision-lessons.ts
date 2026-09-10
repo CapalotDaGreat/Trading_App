@@ -34,7 +34,7 @@ export const DECISION_LESSONS: Lesson[] = [
       {
         label: 'Open training recommendations',
         href: '/decision/radar',
-        description: 'Rank ideas before deep research',
+        description: 'Prioritize the next research skill to practice',
       },
       {
         label: 'Today Brief',
@@ -301,16 +301,22 @@ export const DECISION_LESSONS: Lesson[] = [
       },
     ],
     practiceLinks: [
-      { label: 'Chart Replay', href: '/decision/replay' },
       {
-        label: 'Decision Replay TV',
-        href: '/decision/replay-tv',
-        description: 'Name invalidation on a blind historical tape. Outcome is not the sole score.',
+        label: 'Name the thesis-killer',
+        href: '/practice?drill=name-invalidation',
+        description: 'A feeling is not invalidation.',
       },
       {
         label: 'Risk/reward sketch',
         href: '/practice?drill=rr-compare',
         description: 'You cannot size until the killer level is named.',
+      },
+    ],
+    replayLinks: [
+      {
+        label: 'Failed-setup Replay TV',
+        href: '/decision/replay-tv?episode=failed-setup-patience',
+        description: 'Name invalidation, then skip if the case is not there. Outcome is not the sole score.',
       },
     ],
     simulationLinks: [

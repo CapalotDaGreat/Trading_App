@@ -9,6 +9,7 @@ const POSITION_SIZING: RemediationPlan = {
   conceptId: 'position-sizing',
   diagnosis:
     'Recent decisions show a recurring pattern of taking more risk than the written limit. Position sizing needs practice.',
+  verifyInNewContext: true,
   steps: steps([
     {
       kind: 'lesson',
@@ -23,6 +24,7 @@ const POSITION_SIZING: RemediationPlan = {
       reason: 'Work a constrained risk-per-trade example independently.',
       href: '/practice?drill=position-size',
       sourceId: 'position-size',
+      requiresRetry: true,
     },
     {
       kind: 'simulation',
@@ -44,6 +46,7 @@ const INVALIDATION: RemediationPlan = {
   conceptId: 'invalidation',
   diagnosis:
     'Recent decisions show a recurring pattern of changing invalidation after entry. Name the line before size, then keep it.',
+  verifyInNewContext: true,
   steps: steps([
     {
       kind: 'lesson',
@@ -58,6 +61,7 @@ const INVALIDATION: RemediationPlan = {
       reason: 'Compare the written invalidation with what actually happened.',
       href: '/practice?drill=rr-compare',
       sourceId: 'rr-compare',
+      requiresRetry: true,
     },
     {
       kind: 'replay',
@@ -80,6 +84,7 @@ const FOMO: RemediationPlan = {
   conceptId: 'fomo',
   diagnosis:
     'Your recent decisions show a recurring pattern of entering after rapid price movement. That is a process pattern, not a diagnosis of a medical condition.',
+  verifyInNewContext: true,
   steps: steps([
     {
       kind: 'lesson',
@@ -94,6 +99,7 @@ const FOMO: RemediationPlan = {
       reason: 'Practice spotting a chase versus a written reason to wait.',
       href: '/practice?drill=confirmation-bias',
       sourceId: 'confirmation-bias',
+      requiresRetry: true,
     },
     {
       kind: 'replay',
@@ -115,6 +121,7 @@ const FOMO: RemediationPlan = {
 const GENERIC: RemediationPlan = {
   conceptId: '',
   diagnosis: 'Recent performance shows a recurring process miss on this concept. It needs more practice.',
+  verifyInNewContext: true,
   steps: steps([
     {
       kind: 'lesson',
@@ -127,6 +134,7 @@ const GENERIC: RemediationPlan = {
       title: 'Short practice drill',
       reason: 'A constrained check before applying the idea again.',
       href: '/practice',
+      requiresRetry: true,
     },
     {
       kind: 'redemonstration',
@@ -172,6 +180,50 @@ export function remediationPlanFor(conceptId: string): RemediationPlan {
     diagnosis: `Recent performance shows a recurring process miss on this concept. It needs more practice.`,
   };
 }
+
+/** Alternate activities so remediation does not repeat the exact same question. */
+export const ALTERNATE_ACTIVITIES: Record<string, RemediationStep[]> = {
+  'position-size': [
+    {
+      kind: 'calculation',
+      title: 'Risk/reward comparison',
+      reason: 'A different sizing question — not the same drill you just missed.',
+      href: '/practice?drill=rr-compare',
+      sourceId: 'rr-compare',
+      requiresRetry: true,
+    },
+  ],
+  'rr-compare': [
+    {
+      kind: 'calculation',
+      title: 'Position size calculation',
+      reason: 'A different numbers problem so this is not the same question.',
+      href: '/practice?drill=position-size',
+      sourceId: 'position-size',
+      requiresRetry: true,
+    },
+  ],
+  'confirmation-bias': [
+    {
+      kind: 'practice',
+      title: 'Missing-evidence drill',
+      reason: 'A different example of waiting for independent evidence.',
+      href: '/practice?drill=missing-evidence',
+      sourceId: 'missing-evidence',
+      requiresRetry: true,
+    },
+  ],
+  'missing-evidence': [
+    {
+      kind: 'practice',
+      title: 'Confirmation-bias drill',
+      reason: 'A different example rather than the same prompt again.',
+      href: '/practice?drill=confirmation-bias',
+      sourceId: 'confirmation-bias',
+      requiresRetry: true,
+    },
+  ],
+};
 
 export const MIXED_CONTEXTS: CompetencyScenarioContext[] = [
   'trend',

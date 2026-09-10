@@ -88,6 +88,9 @@ export function pickPrimaryRegime(rand: () => number, focus?: ScenarioFocus): Ma
   if (focus === 'position_sizing') return pick(rand, ['high_vol_sideways', 'panic', 'bear', 'transition']);
   if (focus === 'correlation') return pick(rand, ['sector_rotation', 'panic', 'strong_bull']);
   if (focus === 'event_adaptation') return pick(rand, ['transition', 'weak_bull', 'bear']);
+  if (focus === 'fomo_chase') return pick(rand, ['strong_bull', 'weak_bull', 'recovery', 'transition']);
+  if (focus === 'invalidation_discipline') return pick(rand, ['transition', 'high_vol_sideways', 'weak_bull']);
+  if (focus === 'overconfidence') return pick(rand, ['weak_bull', 'strong_bull', 'sideways']);
   return pick(rand, ALL_REGIMES);
 }
 
@@ -144,11 +147,12 @@ function nextPhase(
   const beginner = difficulty === 'beginner';
   const expertish = difficulty === 'advanced' || difficulty === 'expert';
   const falseBias = (focus === 'false_breakouts' ? 0.18 : 0) + (expertish ? 0.08 : 0) - (beginner ? 0.12 : 0);
+  const chaseBias = focus === 'fomo_chase' ? 0.22 : 0;
   if (current === 'impulse') {
-    if (rand() < (beginner ? 0.28 : 0.42)) return 'pullback';
+    if (rand() < (beginner ? 0.28 : 0.42) - chaseBias * 0.4) return 'pullback';
     if (rand() < 0.28) return 'consolidation';
     if (rand() < 0.12 + (regime === 'transition' ? 0.1 : 0) - (beginner ? 0.08 : 0)) return 'reversal';
-    if (expertish && rand() < 0.16) return 'momentum_burst';
+    if ((expertish || focus === 'fomo_chase') && rand() < 0.16 + chaseBias) return 'momentum_burst';
     return 'impulse';
   }
   if (current === 'momentum_burst') {
@@ -163,6 +167,7 @@ function nextPhase(
     return 'pullback';
   }
   if (current === 'consolidation') {
+    if (focus === 'fomo_chase' && rand() < 0.38) return rand() < 0.55 ? 'momentum_burst' : 'reversal';
     if (rand() < 0.34 + falseBias) return 'breakout_attempt';
     if (rand() < 0.22) return 'impulse';
     if (expertish && rand() < 0.12) return 'momentum_burst';

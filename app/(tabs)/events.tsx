@@ -54,13 +54,14 @@ export default function EventsScreen() {
       }).weakest,
     [account?.decisions, attempts, entries.length, lessonProgress],
   );
+  const mastery = useMemo(() => scoreAllCompetencyMastery(evidence), [evidence]);
   const gapConceptIds = useMemo(
     () =>
       collectPracticeGapConceptIds({
         attempts,
-        mastery: scoreAllCompetencyMastery(evidence).map((item) => ({ conceptId: item.conceptId, state: item.state })),
+        mastery,
       }),
-    [attempts, evidence],
+    [attempts, mastery],
   );
   const {
     cards,
@@ -72,12 +73,16 @@ export default function EventsScreen() {
     freshnessNote,
     fetchedAt,
     refetchCalendar,
-  } = useMarketEvents({ weakness, gapConceptIds });
+  } = useMarketEvents({ weakness, gapConceptIds, mastery });
 
   return (
     <ScreenScaffold
       title="Market Events"
-      subtitle="What market event should I understand and practice? Never what to trade because of this event."
+      subtitle={
+        beginner
+          ? 'What is this event and why does it matter? Never what the market will do next.'
+          : 'What market event should I understand and practice? Never what to trade because of this event.'
+      }
       contentClassName="pb-12"
       testID="events-screen"
     >
@@ -88,11 +93,11 @@ export default function EventsScreen() {
             Learning calendar
           </Text>
           <Text variant="h3" headingLevel={3} className="mt-2">
-            Learn what an economic calendar is
+            What is this event and why does it matter?
           </Text>
           <Text variant="body-sm" className="mt-2 text-text-secondary">
-            A few study objects — not a high-frequency news stream. First understand event risk, size, and why a
-            headline is not a signal.
+            A few study objects — not a professional terminal. Understand the event, the classroom it belongs
+            to, and why a headline is not a signal.
           </Text>
           <Button className="mt-3" size="sm" onPress={() => router.push('/academy/lesson/fund-calendar' as never)}>
             Open the event-risk lesson
@@ -141,7 +146,9 @@ export default function EventsScreen() {
         learningCalendar.length === 0 ? (
           <EmptyState
             title="Nothing on the learning calendar yet"
-            description="Waiting is a valid state. The event-risk lesson, Practice, and Simulation still work."
+            description="Waiting is a valid state. Start with the event-risk lesson, then Practice."
+            actionLabel="Open the event-risk lesson"
+            onAction={() => router.push('/academy/lesson/fund-calendar' as never)}
           />
         ) : (
           <View className="mb-4" testID="events-learning-calendar">
@@ -149,14 +156,16 @@ export default function EventsScreen() {
               Upcoming study objects
             </Text>
             {learningCalendar.map((event) => (
-              <MarketEventCard key={event.id} event={event} />
+              <MarketEventCard key={event.id} event={event} variant="beginner" />
             ))}
           </View>
         )
       ) : cards.length === 0 ? (
         <EmptyState
           title="Nothing to study yet"
-          description="Waiting is a valid state. The rest of TradeAcademy still works."
+          description="Waiting is a valid state. Practice and Simulation still work."
+          actionLabel="Open Practice"
+          onAction={() => router.push('/practice' as never)}
         />
       ) : (
         SECTIONS.map((lifecycle) => {

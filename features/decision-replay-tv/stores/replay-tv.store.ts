@@ -4,6 +4,7 @@ import { persist } from 'zustand/middleware';
 import {
   advanceReplayTvPhase,
   advanceReplayTvReveal,
+  attachReplayTvReflection,
   createReplayTvSession,
   patchReplayTvAnnotations,
   patchReplayTvChecklist,
@@ -21,7 +22,8 @@ import type {
   ReplayTvReasoning,
   ReplayTvSession,
 } from '@/features/decision-replay-tv/types/replay-tv.types';
-import { createPersistedStorage } from '@/shared/stores/create-persisted-storage';
+import { DEMO_USER_UID } from '@/firebase/config';
+import { createDebouncedPersistedStorage } from '@/shared/stores/create-persisted-storage';
 
 function dayKey(ms = Date.now()): string {
   return new Date(ms).toISOString().slice(0, 10);
@@ -45,26 +47,7 @@ function nextStreak(prev: ReplayTvProgress, completedAt = Date.now()): Pick<
   return { streakDays, lastCompletedDayKey: today };
 }
 
-interface ReplayTvState {
-  activeSession: ReplayTvSession | null;
-  progress: ReplayTvProgress;
-  startEpisode: (episodeId: string) => ReplayTvSession;
-  restartEpisode: () => ReplayTvSession | null;
-  advancePhase: () => void;
-  updateChecklist: (patch: Partial<ReplayTvChecklist>) => void;
-  submitDecision: (decision: ReplayTvDecision, reasoning: string, structured?: ReplayTvReasoning) => void;
-  updateDraftReasoning: (draft: ReplayTvReasoning) => void;
-  advanceReveal: () => void;
-  updateAnnotations: (annotations: ReplayTvAnnotation[]) => void;
-  markComplete: (input: {
-    episodeId: string;
-    collectionIds: ReplayTvCollectionId[];
-    processScore: number;
-  }) => void;
-  clearActive: () => void;
-}
-
-const EMPTY_PROGRESS: ReplayTvProgress = {
+export const EMPTY_REPLAY_TV_PROGRESS: ReplayTvProgress = {
   completedEpisodeIds: [],
   attemptCount: 0,
   streakDays: 0,
@@ -75,62 +58,147 @@ const EMPTY_PROGRESS: ReplayTvProgress = {
   monthlyCompletions: 0,
 };
 
+export function migrateReplayTvPersistedState(persisted: unknown): {
+  progressByUser: Record<string, ReplayTvProgress>;
+  activeSessionByUser: Record<string, ReplayTvSession | null>;
+} {
+  const p = (persisted ?? {}) as {
+    progressByUser?: Record<string, ReplayTvProgress>;
+    activeSessionByUser?: Record<string, ReplayTvSession | null>;
+    progress?: ReplayTvProgress;
+    activeSession?: ReplayTvSession | null;
+  };
+  if (p.progressByUser) {
+    const sessions: Record<string, ReplayTvSession | null> = {};
+    for (const [uid, session] of Object.entries(p.activeSessionByUser ?? {})) {
+      sessions[uid] = rehydrateReplayTvSession(session ?? null);
+    }
+    return {
+      progressByUser: p.progressByUser,
+      activeSessionByUser: sessions,
+    };
+  }
+  return {
+    progressByUser: {
+      [DEMO_USER_UID]: {
+        ...EMPTY_REPLAY_TV_PROGRESS,
+        ...p.progress,
+        monthlyKey: p.progress?.monthlyKey ?? null,
+        monthlyCompletions: p.progress?.monthlyCompletions ?? 0,
+      },
+    },
+    activeSessionByUser: {
+      [DEMO_USER_UID]: rehydrateReplayTvSession(p.activeSession ?? null),
+    },
+  };
+}
+
+function writeSession(
+  set: (partial: Partial<ReplayTvState> | ((state: ReplayTvState) => Partial<ReplayTvState>)) => void,
+  get: () => ReplayTvState,
+  userId: string,
+  session: ReplayTvSession | null,
+): ReplayTvSession | null {
+  set({ activeSessionByUser: { ...get().activeSessionByUser, [userId]: session } });
+  return session;
+}
+
+interface ReplayTvState {
+  progressByUser: Record<string, ReplayTvProgress>;
+  activeSessionByUser: Record<string, ReplayTvSession | null>;
+  progressFor: (userId: string) => ReplayTvProgress;
+  sessionFor: (userId: string) => ReplayTvSession | null;
+  startEpisode: (userId: string, episodeId: string) => ReplayTvSession;
+  restartEpisode: (userId: string) => ReplayTvSession | null;
+  advancePhase: (userId: string) => void;
+  updateChecklist: (userId: string, patch: Partial<ReplayTvChecklist>) => void;
+  submitDecision: (
+    userId: string,
+    decision: ReplayTvDecision,
+    reasoning: string,
+    structured?: ReplayTvReasoning,
+  ) => void;
+  updateDraftReasoning: (userId: string, draft: ReplayTvReasoning) => void;
+  commitReflection: (userId: string, reflection?: string) => void;
+  advanceReveal: (userId: string) => void;
+  updateAnnotations: (userId: string, annotations: ReplayTvAnnotation[]) => void;
+  markComplete: (
+    userId: string,
+    input: {
+      episodeId: string;
+      collectionIds: ReplayTvCollectionId[];
+      processScore: number;
+    },
+  ) => void;
+  mergeProgress: (userId: string, progress: Partial<ReplayTvProgress>) => void;
+  clearActive: (userId: string) => void;
+}
+
 export const useReplayTvStore = create<ReplayTvState>()(
   persist(
     (set, get) => ({
-      activeSession: null,
-      progress: EMPTY_PROGRESS,
-      startEpisode: (episodeId) => {
+      progressByUser: {},
+      activeSessionByUser: {},
+      progressFor: (userId) => get().progressByUser[userId] ?? EMPTY_REPLAY_TV_PROGRESS,
+      sessionFor: (userId) => get().activeSessionByUser[userId] ?? null,
+      startEpisode: (userId, episodeId) => {
         const session = createReplayTvSession(episodeId);
-        set({ activeSession: session });
+        writeSession(set, get, userId, session);
         return session;
       },
-      restartEpisode: () => {
-        const active = get().activeSession;
+      restartEpisode: (userId) => {
+        const active = get().sessionFor(userId);
         if (!active) return null;
-        const session = createReplayTvSession(active.episodeId);
-        set({ activeSession: session });
-        return session;
+        return writeSession(set, get, userId, createReplayTvSession(active.episodeId));
       },
-      advancePhase: () => {
-        const active = get().activeSession;
+      advancePhase: (userId) => {
+        const active = get().sessionFor(userId);
         if (!active) return;
-        set({ activeSession: advanceReplayTvPhase(active) });
+        writeSession(set, get, userId, advanceReplayTvPhase(active));
       },
-      updateChecklist: (patch) => {
-        const active = get().activeSession;
+      updateChecklist: (userId, patch) => {
+        const active = get().sessionFor(userId);
         if (!active) return;
-        set({ activeSession: patchReplayTvChecklist(active, patch) });
+        writeSession(set, get, userId, patchReplayTvChecklist(active, patch));
       },
-      submitDecision: (decision, reasoning, structured) => {
-        const active = get().activeSession;
+      submitDecision: (userId, decision, reasoning, structured) => {
+        const active = get().sessionFor(userId);
         if (!active) return;
-        set({
-          activeSession: submitReplayTvDecision({
+        writeSession(
+          set,
+          get,
+          userId,
+          submitReplayTvDecision({
             session: active,
             decision,
             reasoning,
             structured,
           }),
-        });
+        );
       },
-      updateDraftReasoning: (draft) => {
-        const active = get().activeSession;
+      updateDraftReasoning: (userId, draft) => {
+        const active = get().sessionFor(userId);
         if (!active) return;
-        set({ activeSession: patchReplayTvDraftReasoning(active, draft) });
+        writeSession(set, get, userId, patchReplayTvDraftReasoning(active, draft));
       },
-      advanceReveal: () => {
-        const active = get().activeSession;
+      commitReflection: (userId, reflection) => {
+        const active = get().sessionFor(userId);
         if (!active) return;
-        set({ activeSession: advanceReplayTvReveal(active) });
+        const note = reflection ?? active.draftReasoning?.reflection ?? '';
+        writeSession(set, get, userId, attachReplayTvReflection(active, note));
       },
-      updateAnnotations: (annotations) => {
-        const active = get().activeSession;
+      advanceReveal: (userId) => {
+        const active = get().sessionFor(userId);
         if (!active) return;
-        set({ activeSession: patchReplayTvAnnotations(active, annotations) });
+        writeSession(set, get, userId, advanceReplayTvReveal(active));
       },
-      markComplete: ({ episodeId, collectionIds, processScore }) => {
-        const prev = get().progress;
+      updateAnnotations: (userId, annotations) => {
+        const active = get().sessionFor(userId);
+        if (!active) return;
+        writeSession(set, get, userId, patchReplayTvAnnotations(active, annotations));
+      },
+      markComplete: (userId, { episodeId, collectionIds, processScore }) => {
+        const prev = get().progressFor(userId);
         const completedEpisodeIds = prev.completedEpisodeIds.includes(episodeId)
           ? prev.completedEpisodeIds
           : [...prev.completedEpisodeIds, episodeId];
@@ -140,48 +208,77 @@ export const useReplayTvStore = create<ReplayTvState>()(
         }
         const best = prev.bestProcessByEpisode[episodeId] ?? 0;
         const mk = monthKey();
-        const monthlyCompletions =
-          prev.monthlyKey === mk ? prev.monthlyCompletions + 1 : 1;
+        const monthlyCompletions = prev.monthlyKey === mk ? prev.monthlyCompletions + 1 : 1;
         set({
-          progress: {
-            ...prev,
-            completedEpisodeIds,
-            attemptCount: prev.attemptCount + 1,
-            ...nextStreak(prev),
-            masteryByCollection,
-            bestProcessByEpisode: {
-              ...prev.bestProcessByEpisode,
-              [episodeId]: Math.max(best, processScore),
+          progressByUser: {
+            ...get().progressByUser,
+            [userId]: {
+              ...prev,
+              completedEpisodeIds,
+              attemptCount: prev.attemptCount + 1,
+              ...nextStreak(prev),
+              masteryByCollection,
+              bestProcessByEpisode: {
+                ...prev.bestProcessByEpisode,
+                [episodeId]: Math.max(best, processScore),
+              },
+              monthlyKey: mk,
+              monthlyCompletions,
             },
-            monthlyKey: mk,
-            monthlyCompletions,
           },
         });
       },
-      clearActive: () => set({ activeSession: null }),
+      mergeProgress: (userId, progress) => {
+        if (!userId.trim()) return;
+        const prev = get().progressFor(userId);
+        const completedEpisodeIds = [
+          ...new Set([...prev.completedEpisodeIds, ...(progress.completedEpisodeIds ?? [])]),
+        ];
+        const bestProcessByEpisode = { ...prev.bestProcessByEpisode };
+        for (const [id, score] of Object.entries(progress.bestProcessByEpisode ?? {})) {
+          bestProcessByEpisode[id] = Math.max(bestProcessByEpisode[id] ?? 0, score);
+        }
+        const masteryByCollection = { ...prev.masteryByCollection };
+        for (const [id, count] of Object.entries(progress.masteryByCollection ?? {})) {
+          const key = id as keyof typeof masteryByCollection;
+          masteryByCollection[key] = Math.max(masteryByCollection[key] ?? 0, count ?? 0);
+        }
+        set({
+          progressByUser: {
+            ...get().progressByUser,
+            [userId]: {
+              ...prev,
+              completedEpisodeIds,
+              attemptCount: Math.max(prev.attemptCount, progress.attemptCount ?? 0),
+              bestProcessByEpisode,
+              masteryByCollection,
+            },
+          },
+        });
+      },
+      clearActive: (userId) => {
+        writeSession(set, get, userId, null);
+      },
     }),
     {
       name: 'tradevision-replay-tv-v2',
-      storage: createPersistedStorage(),
+      storage: createDebouncedPersistedStorage(),
+      version: 3,
       partialize: (state) => ({
-        progress: state.progress,
-        activeSession: stripReplayTvSessionForPersist(state.activeSession),
+        progressByUser: Object.fromEntries(
+          Object.entries(state.progressByUser).map(([uid, progress]) => [uid, progress]),
+        ),
+        activeSessionByUser: Object.fromEntries(
+          Object.entries(state.activeSessionByUser).map(([uid, session]) => [
+            uid,
+            stripReplayTvSessionForPersist(session),
+          ]),
+        ),
       }),
-      merge: (persisted, current) => {
-        const p = (persisted ?? {}) as Partial<ReplayTvState>;
-        const activeSession = rehydrateReplayTvSession(p.activeSession ?? null);
-        return {
-          ...current,
-          ...p,
-          activeSession,
-          progress: {
-            ...EMPTY_PROGRESS,
-            ...p.progress,
-            monthlyKey: p.progress?.monthlyKey ?? null,
-            monthlyCompletions: p.progress?.monthlyCompletions ?? 0,
-          },
-        };
-      },
+      merge: (persisted, current) => ({
+        ...current,
+        ...migrateReplayTvPersistedState(persisted),
+      }),
     },
   ),
 );

@@ -13,6 +13,8 @@ interface AssetStudyNextStepsProps {
   replayEpisodes: ReplayTvEpisode[];
   fromSimulation: boolean;
   hasSimulationAccount: boolean;
+  lessonId?: string;
+  conceptTitle?: string;
   onSaveStudyList: () => void;
 }
 
@@ -22,6 +24,8 @@ export function AssetStudyNextSteps({
   replayEpisodes,
   fromSimulation,
   hasSimulationAccount,
+  lessonId,
+  conceptTitle,
   onSaveStudyList,
 }: AssetStudyNextStepsProps) {
   const router = useRouter();
@@ -30,9 +34,30 @@ export function AssetStudyNextSteps({
 
   return (
     <View className="gap-4">
+      <Surface testID="asset-understand-this-concept">
+        <Text variant="label" className="text-text-tertiary">
+          Understand
+        </Text>
+        <Text variant="h3" headingLevel={3} className="mt-1">
+          {conceptTitle ?? 'Study the idea on the chart'}
+        </Text>
+        <Text variant="body-sm" className="mt-2 text-text-secondary">
+          Name what the tape can teach. This is study — not a reason to enter.
+        </Text>
+        <Button
+          className="mt-3"
+          size="sm"
+          variant="outline"
+          onPress={() =>
+            router.push((lessonId ? `/academy/lesson/${lessonId}` : '/learn') as never)
+          }
+        >
+          {lessonId ? 'Open the lesson' : 'Open Learn'}
+        </Button>
+      </Surface>
       <Surface testID="asset-practice-this-concept">
         <Text variant="label" className="text-text-tertiary">
-          Practice this concept
+          Practice
         </Text>
         <Text variant="h3" headingLevel={3} className="mt-1">
           {primaryDrill?.title ?? 'Open a chart drill'}
@@ -58,7 +83,7 @@ export function AssetStudyNextSteps({
 
       <Surface testID="asset-historical-scenario">
         <Text variant="label" className="text-text-tertiary">
-          Explore a historical scenario
+          Replay
         </Text>
         {namedReplay ? (
           <>
@@ -102,7 +127,7 @@ export function AssetStudyNextSteps({
 
       <Surface testID="asset-practice-in-simulation">
         <Text variant="label" className="text-text-tertiary">
-          Practice in Simulation
+          Simulate
         </Text>
         <Text variant="h3" headingLevel={3} className="mt-1">
           {fromSimulation ? 'Return to your paper book' : 'Apply the idea on paper'}
@@ -122,7 +147,7 @@ export function AssetStudyNextSteps({
               router.push((hasSimulationAccount ? '/simulate' : '/simulate?start=1') as never)
             }
           >
-            {hasSimulationAccount ? 'Continue simulation' : 'Open a paper path'}
+            {hasSimulationAccount ? 'Continue simulation' : 'Start Simulation'}
           </Button>
         )}
       </Surface>

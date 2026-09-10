@@ -125,6 +125,7 @@ export function publicScenarioView(scenario: SimulationScenario): PublicScenario
     observableTape: observableTapeSummary(scenario),
     climateHint: climateHint(scenario.climate),
     practiceLevelHint: SCENARIO_DIFFICULTY_HINTS[scenario.difficulty ?? 'intermediate'],
+    trainingRationale: scenario.trainingRationale,
     assets: scenario.assets.map((asset) => ({
       symbol: asset.symbol,
       name: asset.name ?? asset.symbol,
@@ -143,7 +144,11 @@ export function publicViewLeaks(view: PublicScenarioView, scenario: SimulationSc
   const blob = JSON.stringify(view);
   const leaks: string[] = [];
   if ('seed' in view) leaks.push('seed');
+  if ('focus' in view) leaks.push('focus');
   if (blob.includes('"phase"')) leaks.push('phase');
+  if (view.trainingRationale && /buy this|sell this|guaranteed|correct trade|fomo|overconfidence/i.test(view.trainingRationale)) {
+    leaks.push('trainingRationale');
+  }
   for (const event of futureScenarioEvents(scenario)) {
     if (event.actualValue && blob.includes(event.actualValue)) leaks.push(`future:${event.id}`);
   }
