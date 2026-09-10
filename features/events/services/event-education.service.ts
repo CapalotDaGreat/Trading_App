@@ -1,6 +1,30 @@
 import type { EconomicEvent, EventCategory } from '@/features/calendar/services/economic-calendar.service';
+import { withConceptHandoff } from '@/features/learning-engine/services/concept-handoff.service';
 import { EVENT_EDUCATION, type EventEducation } from '../content/event-education';
 import type { MarketEventKind, MarketEventTraining } from '../types/events.types';
+
+function withEventHandoff(education: EventEducation): EventEducation {
+  const conceptId = education.conceptIds[0];
+  if (!conceptId) return education;
+  return {
+    ...education,
+    practiceHref: withConceptHandoff(education.practiceHref, {
+      conceptId,
+      loop: 'practice',
+      priority: 'event_driven',
+    }),
+    replayHref: withConceptHandoff(education.replayHref, {
+      conceptId,
+      loop: 'apply',
+      priority: 'event_driven',
+    }),
+    simulateHref: withConceptHandoff(education.simulateHref, {
+      conceptId,
+      loop: 'apply',
+      priority: 'event_driven',
+    }),
+  };
+}
 
 const CALENDAR_KINDS = new Set<MarketEventKind>([
   'employment',
@@ -42,7 +66,7 @@ export function kindFromCalendarEvent(event: Pick<EconomicEvent, 'title' | 'cate
 }
 
 export function educationForKind(kind: MarketEventKind): EventEducation {
-  return EVENT_EDUCATION[kind] ?? EVENT_EDUCATION.other;
+  return withEventHandoff(EVENT_EDUCATION[kind] ?? EVENT_EDUCATION.other);
 }
 
 export function educationForCategory(category: EventCategory): EventEducation {

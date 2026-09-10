@@ -1,6 +1,7 @@
 import { PRACTICE_DRILLS } from '../../content/practice-drills';
 import {
   filterPracticeDrills,
+  parsePracticeTopicParam,
   recommendPracticeDrill,
   type PracticeLibraryFilters,
 } from '../practice-library.service';
@@ -20,6 +21,8 @@ describe('practice library', () => {
       'fomo-chase',
       'revenge-interrupt',
       'confidence-check',
+      'loss-aversion',
+      'premature-entry',
     ]);
     expect(
       filterPracticeDrills(PRACTICE_DRILLS, { ...all, difficulty: 'intermediate' }, []).every(
@@ -50,5 +53,13 @@ describe('practice library', () => {
     expect(recommendPracticeDrill({ attempts: [], preferredDrillIds: ['confirmation-bias'] }).id).toBe(
       'confirmation-bias',
     );
+  });
+
+  it('parses practice topic query params used by event handoff', () => {
+    expect(parsePracticeTopicParam('fundamentals')).toBe('fundamentals');
+    expect(parsePracticeTopicParam(['psychology'])).toBe('psychology');
+    expect(parsePracticeTopicParam('all')).toBeNull();
+    expect(parsePracticeTopicParam('not-a-topic')).toBeNull();
+    expect(parsePracticeTopicParam(undefined)).toBeNull();
   });
 });

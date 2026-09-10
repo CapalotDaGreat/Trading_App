@@ -363,6 +363,7 @@ export const FLAGSHIP_PROCESS_LESSONS: Lesson[] = [
     ],
     mistakes: ['Moving stops only when losing.', 'Taking winners instantly and holding losers “until they work”.'],
     limitations: ['Not every hold is loss aversion — sometimes the plan was time-based. Write that in advance.'],
+    whenItWorks: ['You exit at the written invalidation and journal the scratch as process, not as personal failure.'],
     whenItFails: ['When you use “I’m a long-term investor” as an excuse for a broken short-term thesis.'],
     exercise: {
       id: 'ex-la',
@@ -400,8 +401,16 @@ export const FLAGSHIP_PROCESS_LESSONS: Lesson[] = [
       ),
     ],
     takeaways: ['Write the exit before the sting.', 'A scratch can be high-quality.'],
-    practice: [JOURNAL],
+    practice: [
+      {
+        label: 'Loss-aversion drill',
+        href: '/practice?drill=loss-aversion',
+        description: 'Name the leak: moving the exit to avoid booking a written scratch.',
+      },
+      JOURNAL,
+    ],
     simulation: [SIMULATE],
+    replay: [replayEpisodeLink('failed-setup-patience', 'Stand down after a failed idea — do not chase size')],
   }),
 
   makeFlagshipLesson({
@@ -657,7 +666,8 @@ export const FLAGSHIP_PROCESS_LESSONS: Lesson[] = [
         'Maximise paper profit, then learn',
       ],
       correctIndex: 1,
-      explanation: 'The product loop is Learn → Practice → Simulate → Review → Improve. P/L is not the grade.',
+      explanation:
+        'The product loop is Learn → Practice → Replay → Simulate → Journal → Review → Improve. P/L is not the grade.',
       conceptId: 'discipline',
     },
     quiz: [

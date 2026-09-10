@@ -6,11 +6,17 @@ import { useCompetencyEvidenceStore } from '@/features/competency/stores/compete
 import { canUseFirestore } from '@/firebase/config';
 import { useOnlineStatus } from '@/shared/hooks/useOnlineStatus';
 
-import { isolateGuestProgressIfNeeded, syncLearnerState } from '../services/sync.service';
+import {
+  isolateGuestProgressIfNeeded,
+  persistAuthUid,
+  readPersistedAuthUid,
+  syncLearnerState,
+} from '../services/sync.service';
 
 /**
  * Authenticated users: pull-merge-push structured learner state.
  * Guests stay local. Offline queues a retry.
+ * Last uid is persisted so guest academy/practice cannot attach after a process kill.
  */
 export function useLearnerStateSync() {
   const { user } = useAuth();
@@ -24,10 +30,19 @@ export function useLearnerStateSync() {
 
   useEffect(() => {
     if (!uid) return;
-    isolateGuestProgressIfNeeded(lastUid.current, uid);
-    lastUid.current = uid;
-    if (!canUseFirestore(uid)) return;
-    void syncLearnerState({ authUid: uid, online: isOnline });
+    let cancelled = false;
+    void (async () => {
+      const stored = lastUid.current ?? (await readPersistedAuthUid());
+      if (cancelled) return;
+      isolateGuestProgressIfNeeded(stored, uid);
+      lastUid.current = uid;
+      await persistAuthUid(uid);
+      if (!canUseFirestore(uid)) return;
+      void syncLearnerState({ authUid: uid, online: isOnline });
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, [uid, isOnline]);
 
   useEffect(() => {

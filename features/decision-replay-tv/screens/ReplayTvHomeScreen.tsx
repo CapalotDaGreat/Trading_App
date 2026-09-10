@@ -33,6 +33,8 @@ import { deriveReplayTvSkillProgress } from '@/features/decision-replay-tv/servi
 import type { ReplayTvEpisode } from '@/features/decision-replay-tv/types/replay-tv.types';
 import { LoopCtaRow } from '@/features/navigation/components/LoopCtaRow';
 import { TrainingHandoffBanner } from '@/features/learning-engine/components/TrainingHandoffBanner';
+import { useLearningEngine } from '@/features/learning-engine/hooks/useLearningEngine';
+import { PlannerNextCard } from '@/features/training-planner/components/PlannerNextCard';
 import { EducationalModeBadge } from '@/features/educational/components/EducationalModeBadge';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { scoreAllCompetencyMastery, useCompetencyEvidenceStore } from '@/features/competency';
@@ -134,6 +136,7 @@ export function ReplayTvHomeScreen() {
     isPremium,
   } = useReplayTv();
   const { profile } = useCoachProfile();
+  const { primary, openItem, defer } = useLearningEngine();
   const { user } = useAuth();
   const uid = user?.uid ?? DEMO_USER_UID;
   const evidence =
@@ -274,6 +277,16 @@ export function ReplayTvHomeScreen() {
       <View className="gap-4">
         <EducationalModeBadge />
         <TrainingHandoffBanner />
+
+        {primary?.activityType === 'replay' ? (
+          <PlannerNextCard
+            recommendation={primary}
+            onOpen={() => openItem(primary)}
+            onDefer={defer}
+            eyebrow="Training Planner"
+            testID="replay-planner-next"
+          />
+        ) : null}
 
         {!isOnline ? (
           <Text variant="caption" className="text-text-tertiary">
@@ -527,7 +540,7 @@ export function ReplayTvHomeScreen() {
         ) : (
           <EpisodeRow
             title="Practice this skill"
-            description="Rooms mapped to your current Trading DNA growth areas."
+            description="Rooms mapped to current process-pattern growth areas — never a predicted winner."
             episodes={dnaEpisodes.length ? dnaEpisodes : beginner.slice(0, 3)}
             progress={progress}
             isStarting={isStarting}
@@ -634,7 +647,15 @@ export function ReplayTvHomeScreen() {
             })}
           </View>
         </CollapsibleSection>
-        <LoopCtaRow current="replay" title="After a historical room" />
+        <LoopCtaRow
+          current="replay"
+          title="After a historical room"
+          plannerNext={
+            primary
+              ? { label: primary.activityType === 'replay' ? 'Start next training' : primary.title, href: primary.href }
+              : undefined
+          }
+        />
       </View>
     </ScreenScaffold>
   );

@@ -1,5 +1,6 @@
 import type { CompetenceState, CompetencyMastery, CompetencyMasteryState } from '@/features/competency';
 import { DRILL_TO_CONCEPT } from '@/features/learning-engine/content/learning-graph';
+import { withConceptHandoff } from '@/features/learning-engine/services/concept-handoff.service';
 import type { MentorExperienceLevel, TradingStruggle } from '@/features/onboarding/types/mentor-setup.types';
 import type { SkillDomain } from '@/shared/constants/skill-domains';
 
@@ -224,15 +225,19 @@ function applyIntent(
   | 'simulateHref'
   | 'primary'
 > {
+  const conceptId = lead.training.conceptIds[0];
+  const wrap = (href: string, id: string | undefined, loop: 'learn' | 'practice' | 'apply') =>
+    withConceptHandoff(href, { conceptId: id, loop, priority: 'event_driven' });
+
   const base = {
     lessonTitle: lead.training.lessonTitle,
-    lessonHref: `/academy/lesson/${lead.training.lessonId}`,
+    lessonHref: wrap(`/academy/lesson/${lead.training.lessonId}`, conceptId, 'learn'),
     practiceTitle: lead.training.practiceTitle,
-    practiceHref: lead.training.practiceHref,
+    practiceHref: wrap(lead.training.practiceHref, conceptId, 'practice'),
     replayTitle: lead.training.replayTitle,
-    replayHref: lead.training.replayHref,
+    replayHref: wrap(lead.training.replayHref, conceptId, 'apply'),
     simulateTitle: lead.training.simulateTitle,
-    simulateHref: lead.training.simulateHref,
+    simulateHref: wrap(lead.training.simulateHref, conceptId, 'apply'),
     primary: 'lesson' as EventTrainingPrimary,
   };
 
@@ -240,7 +245,7 @@ function applyIntent(
     return {
       ...base,
       lessonTitle: 'Event Risk lesson',
-      lessonHref: '/academy/lesson/fund-calendar',
+      lessonHref: wrap('/academy/lesson/fund-calendar', 'event-risk', 'learn'),
       primary: 'lesson',
     };
   }
@@ -248,21 +253,22 @@ function applyIntent(
     return {
       ...base,
       lessonTitle: 'Deciding when information is incomplete',
-      lessonHref: '/academy/lesson/dec-uncertainty',
+      lessonHref: wrap('/academy/lesson/dec-uncertainty', 'uncertainty', 'learn'),
       practiceTitle: 'Uncertainty-focused event exercise',
-      practiceHref: '/practice?drill=rate-decision-uncertainty',
+      practiceHref: wrap('/practice?drill=rate-decision-uncertainty', 'uncertainty', 'practice'),
       primary: 'practice',
     };
   }
   if (intent === 'fundamentals_application') {
+    const simulateHref = lead.training.simulateHref.includes('prep=')
+      ? lead.training.simulateHref
+      : '/simulate?start=1&prep=earnings';
     return {
       ...base,
       practiceTitle: 'Event-driven fundamentals practice',
-      practiceHref: '/practice?topic=fundamentals',
+      practiceHref: wrap('/practice?topic=fundamentals', 'earnings', 'practice'),
       simulateTitle: 'Event-driven fundamentals scenario',
-      simulateHref: lead.training.simulateHref.includes('prep=')
-        ? lead.training.simulateHref
-        : '/simulate?start=1&prep=earnings',
+      simulateHref: wrap(simulateHref, 'earnings', 'apply'),
       primary: 'simulate',
     };
   }
@@ -301,9 +307,16 @@ export function composeEventTrainingPlan(input: {
   });
   const applied = applyIntent(lead, resolved.intent);
   const highVol = resolved.conceptId === 'event-volatility' || resolved.conceptId === 'volatility-aware-risk';
-  const simulateHref = highVol
-    ? simulationHrefForEventKind(lead.kind, { highVolatility: true, prep: lead.training.simulatePrep })
-    : applied.simulateHref;
+  const simulateHref = withConceptHandoff(
+    highVol
+      ? simulationHrefForEventKind(lead.kind, { highVolatility: true, prep: lead.training.simulatePrep })
+      : applied.simulateHref,
+    {
+      conceptId: resolved.conceptId ?? lead.training.conceptIds[0],
+      loop: 'apply',
+      priority: 'event_driven',
+    },
+  );
   const simulateTitle = highVol ? 'High-volatility simulation' : applied.simulateTitle;
 
   return {

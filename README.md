@@ -2,7 +2,7 @@
 
 **TradeAcademy** is a **trading education, simulation, decision-practice, and coaching** app from **Aithera**, built with **Expo SDK 54**.
 
-The product loop is **Learn → Practice → Simulate → Review → Improve**.
+The product loop is **Learn → Practice → Replay → Simulate → Journal → Review → Improve**.
 
 It is **not** a broker, not an execution venue, not a live trading terminal, and **not** a source of buy/sell signals or guaranteed returns. Simulated P/L does **not** grade a decision. Setup “confidence” is a **decision-quality score (DQS)** — process quality, never a price prediction.
 

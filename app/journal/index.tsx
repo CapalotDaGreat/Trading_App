@@ -14,6 +14,7 @@ import { TrainingHandoffBanner } from '@/features/learning-engine/components/Tra
 import { useJournalLearningJourney } from '@/features/journal/hooks/useJournalLearningJourney';
 import { searchJournalEntries, type JournalQuickFilter } from '@/features/journal/services/journal-search.service';
 import type { JournalHubTab } from '@/features/journal/types/journal-learning-journey.types';
+import { LoopCtaRow } from '@/features/navigation/components/LoopCtaRow';
 import { EmptyState } from '@/shared/components/feedback/EmptyState';
 import { RecoverableErrorState } from '@/shared/components/feedback/RecoverableErrorState';
 import { StatusState } from '@/shared/components/feedback/StatusState';
@@ -65,6 +66,7 @@ export default function JournalScreen() {
   );
   const [journalQuery, setJournalQuery] = useState(symbol ?? '');
   const [journalFilter, setJournalFilter] = useState<JournalQuickFilter>('all');
+  const [reviewReady, setReviewReady] = useState(false);
   const { canExport, createEntry, deleteEntry, exportJournal, isCreating } = useJournal();
   const { isOnline } = useOnlineStatus();
   const { journey, stats, entries, isLoading, isError, isStale, refetch } = useJournalLearningJourney();
@@ -162,6 +164,7 @@ export default function JournalScreen() {
                   );
                 } else {
                   setTab('entries');
+                  setReviewReady(true);
                 }
               }}
               isSubmitting={isCreating}
@@ -281,6 +284,26 @@ export default function JournalScreen() {
             )}
           </View>
         ) : null}
+
+        {reviewReady ? (
+          <Surface tone="accent" emphasis="outlined" testID="journal-review-cta">
+            <Text variant="label">Reflection saved</Text>
+            <Text variant="body-sm" className="mt-1 text-text-secondary">
+              Review the process next — thesis, invalidation, and what you would repeat. Simulated P/L is not the
+              grade.
+            </Text>
+            <Button
+              className="mt-3 self-start"
+              size="sm"
+              onPress={() => router.push('/review' as never)}
+              accessibilityLabel="Review this decision"
+            >
+              Review this decision
+            </Button>
+          </Surface>
+        ) : null}
+
+        <LoopCtaRow current="journal" title="After a reflection" testID="journal-loop-cta" />
 
         <CollapsibleSection
           title="Summary and export"

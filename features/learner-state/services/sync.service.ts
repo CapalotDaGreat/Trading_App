@@ -25,6 +25,25 @@ export function setLearnerStateCloudPort(port: LearnerStateCloudPort | null): vo
   cloudPort = port;
 }
 
+export const LAST_AUTH_UID_KEY = 'tradevision-last-auth-uid';
+
+export async function readPersistedAuthUid(): Promise<string | null> {
+  try {
+    const value = await AsyncStorage.getItem(LAST_AUTH_UID_KEY);
+    return value && value.trim().length > 0 ? value : null;
+  } catch {
+    return null;
+  }
+}
+
+export async function persistAuthUid(uid: string): Promise<void> {
+  try {
+    await AsyncStorage.setItem(LAST_AUTH_UID_KEY, uid);
+  } catch {
+    // In-session isolation still uses the hook ref.
+  }
+}
+
 export function isolateGuestProgressIfNeeded(previousUid: string | null, nextUid: string): boolean {
   if (!previousUid || previousUid === nextUid) return false;
   useAcademyProgressStore.getState().resetProgress();

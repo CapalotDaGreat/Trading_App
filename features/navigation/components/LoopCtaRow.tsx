@@ -1,7 +1,8 @@
 import { useRouter } from 'expo-router';
 import { View } from 'react-native';
 
-import { PRODUCT_LOOP_STEPS, type ProductLoopStep } from '@/features/navigation/config/navigation-ia.config';
+import { type ProductLoopStep } from '@/features/navigation/config/navigation-ia.config';
+import { resolveLoopCtas } from '@/features/navigation/config/product-loop';
 import { Button } from '@/shared/components/ui/Button';
 import { Text } from '@/shared/components/ui/Text';
 import { BRAND } from '@/shared/constants/brand';
@@ -13,6 +14,8 @@ interface LoopCtaRowProps {
   title?: string;
   testID?: string;
   followUp?: { label: string; href: string };
+  /** Review → Improve: Training Planner primary, not an empty sequential slice. */
+  plannerNext?: { label: string; href: string } | null;
 }
 
 /** Next steps in the competence loop — sequential, not a random hub. */
@@ -21,14 +24,10 @@ export function LoopCtaRow({
   title = 'Continue the loop',
   testID = 'loop-cta-row',
   followUp,
+  plannerNext,
 }: LoopCtaRowProps) {
   const router = useRouter();
-  const index = current ? PRODUCT_LOOP_STEPS.findIndex((step) => step.id === current) : -1;
-  const sequential =
-    index >= 0 ? PRODUCT_LOOP_STEPS.slice(index + 1, index + 4) : PRODUCT_LOOP_STEPS.slice(0, 3);
-  const next = followUp
-    ? [{ id: 'follow' as const, href: followUp.href, label: followUp.label }, ...sequential]
-    : sequential;
+  const next = resolveLoopCtas({ current, followUp, plannerNext });
 
   return (
     <View className="mt-2" testID={testID}>
@@ -36,7 +35,7 @@ export function LoopCtaRow({
         {title} · {BRAND.loop}
       </Text>
       <View className="flex-row flex-wrap gap-2">
-        {next.slice(0, 3).map((step) => (
+        {next.map((step) => (
           <Button
             key={`${step.id}-${step.href}`}
             size="sm"

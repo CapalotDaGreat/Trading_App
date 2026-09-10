@@ -34,6 +34,13 @@ export interface TradingMentorInput {
   coachProfile?: CoachProfile | null;
   dnaMentorSummary?: DnaMentorSummary | null;
   reinforcementAcademy?: TradingMentorBrief['weekly']['academyRecommendation'];
+  /** Canonical Training Planner primary — mentor must not invent a competing next action. */
+  plannerFocus?: {
+    title: string;
+    reason: string;
+    href: string;
+    activityType?: string;
+  } | null;
   now?: number;
 }
 
@@ -87,7 +94,15 @@ function pickMostImproved(input: TradingMentorInput): string {
   );
 }
 
+function plannerLessonId(href: string): string | undefined {
+  const match = href.match(/\/academy\/lesson\/([^/?]+)/);
+  return match?.[1] ? decodeURIComponent(match[1]) : undefined;
+}
+
 function buildTodaysFocus(input: TradingMentorInput, mistake: string): string {
+  if (input.plannerFocus?.title) {
+    return sanitizeMentorCopy(`Train next: ${input.plannerFocus.title}. ${input.plannerFocus.reason}`);
+  }
   const weekday = new Date(input.now ?? Date.now()).toLocaleDateString('en-US', {
     weekday: 'long',
   });
@@ -150,6 +165,14 @@ function buildAcademyRec(
   input: TradingMentorInput,
   mistake: string,
 ): TradingMentorBrief['weekly']['academyRecommendation'] {
+  const plannerLesson = input.plannerFocus ? plannerLessonId(input.plannerFocus.href) : undefined;
+  if (plannerLesson && input.plannerFocus) {
+    return {
+      lessonId: plannerLesson,
+      title: input.plannerFocus.title,
+      reason: sanitizeMentorCopy(input.plannerFocus.reason),
+    };
+  }
   if (input.reinforcementAcademy?.lessonId && input.reinforcementAcademy.title) {
     return {
       lessonId: input.reinforcementAcademy.lessonId,

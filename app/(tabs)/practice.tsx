@@ -1,5 +1,5 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { ScrollView, View } from 'react-native';
 
 import { EducationalChart } from '@/features/academy/components/EducationalChart';
@@ -15,6 +15,7 @@ import {
   DEFAULT_PRACTICE_FILTERS,
   PRACTICE_TOPIC_FILTERS,
   filterPracticeDrills,
+  parsePracticeTopicParam,
   type PracticeLibraryFilters,
 } from '@/features/practice/services/practice-library.service';
 import { usePracticeProgressStore } from '@/features/practice/stores/practice-progress.store';
@@ -181,11 +182,19 @@ function DrillCard({ drill }: { drill: PracticeDrill }) {
 }
 
 export default function PracticeScreen() {
-  const { drill: drillParam } = useLocalSearchParams<{ drill?: string }>();
+  const { drill: drillParam, topic: topicParam } = useLocalSearchParams<{ drill?: string; topic?: string }>();
   const { isOnline } = useOnlineStatus();
   const attempts = usePracticeProgressStore((state) => state.attempts);
   const { primary, openItem, defer } = useLearningEngine();
-  const [filters, setFilters] = useState<PracticeLibraryFilters>(DEFAULT_PRACTICE_FILTERS);
+  const topicFromQuery = parsePracticeTopicParam(topicParam);
+  const [filters, setFilters] = useState<PracticeLibraryFilters>(() =>
+    topicFromQuery ? { ...DEFAULT_PRACTICE_FILTERS, topic: topicFromQuery } : DEFAULT_PRACTICE_FILTERS,
+  );
+
+  useEffect(() => {
+    if (!topicFromQuery) return;
+    setFilters((prev) => (prev.topic === topicFromQuery ? prev : { ...prev, topic: topicFromQuery }));
+  }, [topicFromQuery]);
   const plannerDrillId =
     primary?.activityType === 'practice' ? new URLSearchParams(primary.href.split('?')[1] ?? '').get('drill') : null;
   const featuredId =
@@ -338,7 +347,11 @@ export default function PracticeScreen() {
       <LoopCtaRow
         current="practice"
         title="After a drill"
-        followUp={{ label: 'Replay', href: '/decision/replay-tv' }}
+        followUp={
+          primary?.isRemediation
+            ? { label: 'Required practice', href: primary.href }
+            : undefined
+        }
       />
     </ScreenScaffold>
   );

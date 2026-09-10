@@ -18,6 +18,8 @@ import { createMemoryLearnerCloud } from '../memory-cloud.port';
 import { applyLearnerBundle, collectLearnerBundle } from '../snapshot.service';
 import {
   isolateGuestProgressIfNeeded,
+  persistAuthUid,
+  readPersistedAuthUid,
   setLearnerStateCloudPort,
   syncLearnerState,
 } from '../sync.service';
@@ -54,6 +56,7 @@ describe('learner-state persistence', () => {
 
   afterEach(() => {
     setLearnerStateCloudPort(null);
+    void persistAuthUid('');
   });
 
   it('strips simulated P/L and journal prose from cloud evidence', () => {
@@ -92,6 +95,15 @@ describe('learner-state persistence', () => {
     expect(isolateGuestProgressIfNeeded('alice', 'bob')).toBe(true);
     expect(useAcademyProgressStore.getState().lessons['ta-candles']).toBeUndefined();
     expect(isolateGuestProgressIfNeeded(null, 'alice')).toBe(false);
+  });
+
+  it('clears guest academy after a process restart using the persisted last uid', async () => {
+    await persistAuthUid(DEMO_USER_UID);
+    useAcademyProgressStore.getState().markCompleted('ta-candles');
+    const previous = await readPersistedAuthUid();
+    expect(previous).toBe(DEMO_USER_UID);
+    expect(isolateGuestProgressIfNeeded(previous, 'alice')).toBe(true);
+    expect(useAcademyProgressStore.getState().lessons['ta-candles']).toBeUndefined();
   });
 
   it('restores evidence after a simulated reinstall', async () => {

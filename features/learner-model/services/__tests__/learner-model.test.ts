@@ -489,4 +489,51 @@ describe('learner model', () => {
     expect(slice?.evidenceDiversity.formatCount).toBeGreaterThan(1);
     expect(JSON.stringify(model.longitudinal)).not.toMatch(/Trading Mastery/i);
   });
+
+  it('composes development history from independent evidence without fabricating ratios', () => {
+    const records = [
+      ...Array.from({ length: 4 }, (_, index) =>
+        ev('user-a', {
+          conceptId: 'invalidation',
+          sourceType: 'simulation_decision',
+          sourceId: `early-${index}`,
+          occurredAt: NOW - (8 - index) * DAY,
+          result: 'fail',
+          independent: true,
+          processMetrics: { processQuality: 30, flags: { missingInvalidation: true } },
+        }),
+      ),
+      ...Array.from({ length: 4 }, (_, index) =>
+        ev('user-a', {
+          conceptId: 'invalidation',
+          sourceType: 'simulation_decision',
+          sourceId: `late-${index}`,
+          occurredAt: NOW - (3 - index) * DAY,
+          result: 'pass',
+          independent: true,
+          processMetrics: { processQuality: 82 },
+        }),
+      ),
+    ];
+    const model = composeLearnerModel({ uid: 'user-a', records, now: NOW });
+    expect(model.developmentHistory).not.toBeNull();
+    expect(model.developmentHistory?.conceptId).toBe('invalidation');
+    expect(model.developmentHistory?.earlier).toMatch(/invalidation/i);
+    expect(model.developmentHistory?.recently).toMatch(/4 of your last 8 independent scenarios/);
+    expect(model.developmentHistory?.next.length).toBeGreaterThan(12);
+    expect(JSON.stringify(model.developmentHistory)).not.toMatch(/Trading Mastery|93%/i);
+  });
+
+  it('does not invent a development trend from a single knowledge check', () => {
+    const records = [
+      ev('user-a', {
+        conceptId: 'rsi',
+        sourceType: 'knowledge_check',
+        sourceId: 'q',
+        result: 'pass',
+      }),
+    ];
+    const model = composeLearnerModel({ uid: 'user-a', records, now: NOW });
+    expect(model.developmentHistory).toBeNull();
+  });
 });

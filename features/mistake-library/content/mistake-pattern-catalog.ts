@@ -54,16 +54,16 @@ export const MISTAKE_PATTERN_CATALOG: readonly MistakePatternDefinition[] = [
     recurringSummary:
       'Several recent decisions were recorded before both a thesis and an invalidation were named. Training focus: naming thesis and invalidation before size.',
     affectedConcepts: ['thesis', 'invalidation', 'decision-process'],
-    practiceDrillIds: ['rr-compare'],
+    practiceDrillIds: ['premature-entry', 'rr-compare'],
     simulationFocus: 'thesis_discipline',
     replayConceptIds: ['thesis', 'invalidation'],
     replayCollections: ['patience', 'false_breakouts'],
     recommendedTraining: [
       {
         loop: 'practice',
-        href: '/practice?drill=rr-compare',
+        href: '/practice?drill=premature-entry',
         label: 'Practice: plan before size',
-        reason: 'Write the levels, then choose size.',
+        reason: 'Name thesis and invalidation before the fill.',
       },
       {
         loop: 'simulation',

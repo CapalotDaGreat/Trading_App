@@ -470,6 +470,50 @@ export const PRACTICE_DRILLS: PracticeDrill[] = [
       'A streak is a path. Size changes belong in the written plan. Winners need review. Paper profit is not a graduation certificate.',
     whyItMatters: 'Drawdowns often start after a green patch, when size quietly inflates without a new process.',
   },
+  {
+    id: 'loss-aversion',
+    title: 'Which action is loss aversion?',
+    prompt: 'Price tags your written invalidation. Which move is the loss-aversion leak — not a diagnosis of you?',
+    skill: 'psychology',
+    topic: 'psychology',
+    difficulty: 'beginner',
+    estimatedMinutes: 4,
+    isPremium: false,
+    lessonId: 'psych-loss-aversion',
+    simulateHref: '/simulate',
+    choices: [
+      'Exit at the written invalidation and journal what the thesis missed',
+      'Widen the stop so you do not have to book the scratch “yet”',
+      'Reduce size because volatility rose, as the plan already required',
+      'Skip the next name until a new thesis is written',
+    ],
+    correctIndex: 1,
+    explanation:
+      'Moving the exit to avoid the feeling of a loss is a new trade. A planned scratch is process. Simulated P/L is not the grade.',
+    whyItMatters: 'Loss aversion buys time with the risk budget. Write the exit before the sting.',
+  },
+  {
+    id: 'premature-entry',
+    title: 'Which entry is premature?',
+    prompt: 'The tape is moving. You have no written thesis or invalidation yet. Which action is premature?',
+    skill: 'psychology',
+    topic: 'psychology',
+    difficulty: 'beginner',
+    estimatedMinutes: 4,
+    isPremium: false,
+    lessonId: 'dec-thesis',
+    simulateHref: '/simulate?start=1&focus=thesis_discipline',
+    choices: [
+      'Stand aside until thesis, evidence, and invalidation are named',
+      'Enter now and write the plan after the fill, because waiting “misses it”',
+      'Cut size to a token amount and still skip invalidation',
+      'Journal the skip and wait for a location your rules actually allow',
+    ],
+    correctIndex: 1,
+    explanation:
+      'Premature entry is size before a written idea. A smaller unplanned fill is still unplanned. Process is thesis and invalidation first.',
+    whyItMatters: 'Speed is not a substitute for a decision. Missing a move is cheaper than an unwritten paper trade.',
+  },
 ];
 
 export function getPracticeDrill(id: string): PracticeDrill | undefined {

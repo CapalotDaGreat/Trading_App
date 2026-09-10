@@ -39,6 +39,7 @@ import type {
 } from '../types/learner-model.types';
 import { LEARNER_STATE_LABELS } from '../types/learner-model.types';
 import { composeLongitudinalProfile, emptyLongitudinalProfile } from './longitudinal-profile.service';
+import { composeDevelopmentHistory } from './development-history.service';
 
 const DAY = 24 * 60 * 60 * 1000;
 const SESSION_GAP_MS = 45 * 60 * 1000;
@@ -525,6 +526,7 @@ export function emptyLearnerModel(uid: string, now = Date.now()): LearnerModelSn
     },
     mistakePatterns: emptyMistakeLibrary(uid, now),
     longitudinal: emptyLongitudinalProfile(),
+    developmentHistory: null,
     disclaimer: COMPETENCY_DISCLAIMER,
   };
 }
@@ -549,6 +551,8 @@ export function composeLearnerModel(input: ComposeLearnerModelInput): LearnerMod
 
   const behavior = behaviorSlice(input, records, now);
   const explanation = explanationOf(concepts, behavior);
+  const nextPractice = nextPracticeOf(concepts);
+  const longitudinal = composeLongitudinalProfile(records, mastery, now);
 
   return {
     uid,
@@ -557,7 +561,7 @@ export function composeLearnerModel(input: ComposeLearnerModelInput): LearnerMod
     decisionQuality: decisionQuality(records),
     behavior,
     explanation,
-    nextPractice: nextPracticeOf(concepts),
+    nextPractice,
     selfConfidence: selfConfidenceOf(input),
     mistakePatterns: composeMistakeLibrary({
       uid,
@@ -565,7 +569,8 @@ export function composeLearnerModel(input: ComposeLearnerModelInput): LearnerMod
       behaviorEvents: input.behaviorEvents,
       now,
     }),
-    longitudinal: composeLongitudinalProfile(records, mastery, now),
+    longitudinal,
+    developmentHistory: composeDevelopmentHistory({ concepts, longitudinal, nextPractice }, records),
     disclaimer: COMPETENCY_DISCLAIMER,
   };
 }

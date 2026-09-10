@@ -97,8 +97,8 @@ const FOMO: RemediationPlan = {
       kind: 'practice',
       title: 'Recognition exercise',
       reason: 'Practice spotting a chase versus a written reason to wait.',
-      href: '/practice?drill=confirmation-bias',
-      sourceId: 'confirmation-bias',
+      href: '/practice?drill=fomo-chase',
+      sourceId: 'fomo-chase',
       requiresRetry: true,
     },
     {
@@ -163,11 +163,57 @@ const BY_ID: Record<string, RemediationPlan> = {
     conceptId: 'revenge-trading',
     diagnosis:
       'Recent decisions show a recurring pattern of acting to “get it back” after a loss. That is a process pattern, not a medical label.',
-    steps: FOMO.steps.map((step) =>
-      step.sourceId === 'psych-fomo'
-        ? { ...step, href: '/academy/lesson/psych-revenge', sourceId: 'psych-revenge', title: 'Revenge-trading lesson' }
-        : step,
-    ),
+    steps: FOMO.steps.map((step) => {
+      if (step.sourceId === 'psych-fomo') {
+        return { ...step, href: '/academy/lesson/psych-revenge', sourceId: 'psych-revenge', title: 'Revenge-trading lesson' };
+      }
+      if (step.sourceId === 'fomo-chase') {
+        return {
+          ...step,
+          href: '/practice?drill=revenge-interrupt',
+          sourceId: 'revenge-interrupt',
+          title: 'Revenge interrupt',
+        };
+      }
+      return step;
+    }),
+  },
+  'loss-aversion': {
+    conceptId: 'loss-aversion',
+    diagnosis:
+      'Recent decisions show a recurring pattern of moving the exit after a loss starts. That is a process pattern, not a diagnosis.',
+    verifyInNewContext: true,
+    steps: steps([
+      {
+        kind: 'lesson',
+        title: 'Loss-aversion lesson',
+        reason: 'Revisit why a written scratch is process, not failure.',
+        href: '/academy/lesson/psych-loss-aversion',
+        sourceId: 'psych-loss-aversion',
+      },
+      {
+        kind: 'practice',
+        title: 'Exit-discipline drill',
+        reason: 'Spot the leak of widening a stop to avoid booking the loss.',
+        href: '/practice?drill=loss-aversion',
+        sourceId: 'loss-aversion',
+        requiresRetry: true,
+      },
+      {
+        kind: 'replay',
+        title: 'Hold-or-scratch tape',
+        reason: 'A historical room where standing down after invalidation is the process choice.',
+        href: replayTvEpisodeHref('failed-setup-patience'),
+        sourceId: 'failed-setup-patience',
+      },
+      {
+        kind: 'redemonstration',
+        title: 'Independent exit simulation',
+        reason: 'Write the exit before size in a new paper scenario.',
+        href: '/simulate?start=1',
+        concealConcept: true,
+      },
+    ]),
   },
 };
 
@@ -220,6 +266,26 @@ export const ALTERNATE_ACTIVITIES: Record<string, RemediationStep[]> = {
       reason: 'A different example rather than the same prompt again.',
       href: '/practice?drill=confirmation-bias',
       sourceId: 'confirmation-bias',
+      requiresRetry: true,
+    },
+  ],
+  'loss-aversion': [
+    {
+      kind: 'practice',
+      title: 'Invalidation naming drill',
+      reason: 'A different exercise — write the exit before size, not the same prompt.',
+      href: '/practice?drill=name-invalidation',
+      sourceId: 'name-invalidation',
+      requiresRetry: true,
+    },
+  ],
+  'fomo-chase': [
+    {
+      kind: 'practice',
+      title: 'Premature-entry drill',
+      reason: 'A different pressure scenario — thesis first, not the same chase prompt.',
+      href: '/practice?drill=premature-entry',
+      sourceId: 'premature-entry',
       requiresRetry: true,
     },
   ],

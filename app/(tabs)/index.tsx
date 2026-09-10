@@ -4,6 +4,7 @@ import { View } from 'react-native';
 
 import { useAcademy } from '@/features/academy/hooks/useAcademy';
 import { EducationalModeBadge } from '@/features/educational/components/EducationalModeBadge';
+import { DevelopmentHistoryCard } from '@/features/learner-model';
 import { TodaysTrainingCard } from '@/features/learning-engine/components/TodaysTrainingCard';
 import { useLearningEngine } from '@/features/learning-engine/hooks/useLearningEngine';
 import { useCoachProfile } from '@/features/onboarding/hooks/useCoachProfile';
@@ -89,6 +90,8 @@ export default function HomeScreen() {
         />
 
         <HomePersonalizationSections home={home} />
+
+        <DevelopmentHistoryCard history={learner.developmentHistory} />
 
         <CollapsibleSection
           title="More training"

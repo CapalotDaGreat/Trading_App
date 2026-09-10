@@ -63,8 +63,12 @@ describe('event-to-concept mapping', () => {
       expect(educationForKind(kind).conceptIds).toEqual(expect.arrayContaining(mappingForEventKind(kind).conceptIds));
       expect(educationForKind(kind).relatedLessonId).toBeTruthy();
       expect(educationForKind(kind).practiceHref).toContain('/practice');
+      expect(educationForKind(kind).practiceHref).toContain('concept=');
+      expect(educationForKind(kind).practiceHref).toContain('loop=');
       expect(educationForKind(kind).replayHref).toContain('/decision/replay');
+      expect(educationForKind(kind).replayHref).toContain('concept=');
       expect(educationForKind(kind).simulateHref).toContain('/simulate');
+      expect(educationForKind(kind).simulateHref).toContain('concept=');
     }
   });
 
@@ -205,7 +209,9 @@ describe('beginner vs advanced behavior', () => {
     expect(hub.trainingPlan?.intent).toBe('uncertainty_exercise');
     expect(hub.trainingPlan?.primary).toBe('practice');
     expect(hub.trainingPlan?.practiceHref).toContain('rate-decision-uncertainty');
+    expect(hub.trainingPlan?.practiceHref).toContain('concept=uncertainty');
     expect(hub.trainingPlan?.lessonHref).toContain('dec-uncertainty');
+    expect(hub.trainingPlan?.lessonHref).toContain('concept=');
     expect(hub.trainingPlan?.replayHref).toContain('replay');
     expect(hub.trainingPlan?.simulateHref).toContain('/simulate');
     expect(`${hub.trainingPlan?.headline} ${hub.trainingPlan?.reminder}`).not.toMatch(PREDICTION);
@@ -238,6 +244,7 @@ describe('beginner vs advanced behavior', () => {
     expect(hub.trainingPlan?.simulateTitle).toMatch(/fundamentals scenario/i);
     expect(hub.trainingPlan?.simulateHref).toContain('prep=earnings');
     expect(hub.trainingPlan?.practiceHref).toContain('fundamentals');
+    expect(hub.trainingPlan?.practiceHref).toContain('concept=');
     expect(hub.trainingPlan?.reminder.toLowerCase()).not.toMatch(/signal|buy|sell/);
   });
 });

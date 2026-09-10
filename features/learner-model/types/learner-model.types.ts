@@ -207,6 +207,16 @@ export interface LearnerLongitudinalProfile {
   concepts: ConceptLongitudinalSlice[];
 }
 
+/** Earlier / recently / next copy from evidence. Never a trophy score. */
+export interface DevelopmentHistoryView {
+  conceptId: string;
+  title: string;
+  earlier: string;
+  recently: string;
+  next: string;
+  href?: string;
+}
+
 export interface LearnerModelSnapshot {
   uid: string;
   generatedAt: number;
@@ -218,6 +228,7 @@ export interface LearnerModelSnapshot {
   selfConfidence: LearnerSelfConfidence;
   mistakePatterns: MistakeLibrarySnapshot;
   longitudinal: LearnerLongitudinalProfile;
+  developmentHistory: DevelopmentHistoryView | null;
   disclaimer: string;
 }
 

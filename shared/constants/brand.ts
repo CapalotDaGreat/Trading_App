@@ -16,7 +16,7 @@ export const BRAND = {
   /** Store / marketing positioning */
   positioning: 'Learn the concepts. Read the chart. Practice the decision. Manage simulated money. Review your reasoning. Improve your process.',
   /** Short loop label for headers and empty states */
-  loop: 'Learn → Practice → Simulate → Review → Improve',
+  loop: 'Learn → Practice → Replay → Simulate → Journal → Review → Improve',
   /** Always-on simulated-trading label */
   simulatedLabel: 'SIMULATED',
   paperTradingLabel: 'PAPER TRADING',

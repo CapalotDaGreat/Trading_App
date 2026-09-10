@@ -315,6 +315,14 @@ function EducationalChartComponent({ spec, height = 220 }: EducationalChartProps
         ) : null}
       </View>
 
+      <Text
+        variant="caption"
+        className="px-3 pb-3 pt-2 leading-5 text-text-secondary"
+        testID={`educational-chart-spoken-${spec.id}`}
+      >
+        {spoken}
+      </Text>
+
       {spec.exercise ? <ChartExercise exercise={spec.exercise} /> : null}
     </View>
   );

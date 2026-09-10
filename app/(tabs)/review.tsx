@@ -18,6 +18,7 @@ import {
   type NavigationHubSection,
 } from '@/features/navigation/config/navigation-ia.config';
 import { MistakeLibraryCard } from '@/features/mistake-library';
+import { DevelopmentHistoryCard } from '@/features/learner-model';
 import { useSimulation } from '@/features/simulation/hooks/useSimulation';
 import { scoreSimulationProcess } from '@/features/simulation/services/scenario-process.service';
 import { EmptyState } from '@/shared/components/feedback/EmptyState';
@@ -149,6 +150,8 @@ export default function ReviewScreen() {
         </View>
       ) : null}
 
+      <DevelopmentHistoryCard history={learner.developmentHistory} />
+
       <MistakeLibraryCard library={learner.mistakePatterns} />
 
       <Surface className="mt-4" testID="review-journal">
@@ -238,8 +241,8 @@ export default function ReviewScreen() {
       </CollapsibleSection>
 
       <CollapsibleSection
-        title="Trading DNA & Personal Intelligence"
-        description="Patterns only from records you kept."
+        title="Process patterns"
+        description="Observed decision tendencies from records you kept — not a personality diagnosis."
         defaultExpanded={false}
         className="mt-4"
       >
@@ -261,7 +264,15 @@ export default function ReviewScreen() {
         <HubPathList sections={REPLAY} emphasizeFirst={false} />
       </CollapsibleSection>
 
-      <LoopCtaRow current="review" title="Improve next" />
+      <LoopCtaRow
+        current="review"
+        title="Improve next"
+        plannerNext={
+          primary
+            ? { label: 'Start next training', href: primary.href }
+            : { label: 'Train next', href: '/' }
+        }
+      />
     </ScreenScaffold>
   );
 }

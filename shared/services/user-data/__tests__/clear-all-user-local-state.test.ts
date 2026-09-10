@@ -104,6 +104,7 @@ describe('clearAllUserLocalState', () => {
     expect(result.removedAsyncStorageKeys).toContain('tradevision-decision-passport-v1');
     expect(result.removedAsyncStorageKeys).toContain('tradevision-competency-evidence-v1');
     expect(result.removedAsyncStorageKeys).toContain('tradevision-learner-behavior-v1');
+    expect(result.removedAsyncStorageKeys).toContain('tradevision-last-auth-uid');
     expect(result.removedAsyncStorageKeys).not.toContain('tradevision-theme-v2');
     expect(multiRemove).toHaveBeenCalledWith(result.removedAsyncStorageKeys);
     expect(mockResetRepository).toHaveBeenCalled();

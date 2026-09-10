@@ -200,4 +200,41 @@ describe('trading mentor composer', () => {
     expect(replayOnly.kind).toBe('replay');
     expect(replayOnly.ctaLabel).toBe('Open practice');
   });
+
+  it('uses the Training Planner primary instead of a competing daily focus', () => {
+    const brief = buildTradingMentorBrief({
+      logSummary,
+      journalCoach,
+      memory,
+      weeklyTape,
+      brief: {
+        greeting: 'Hello',
+        generatedAt: Date.now(),
+        regime: 'ranging',
+        regimeLabel: 'Ranging',
+        highImpactEvents: [],
+        setupCount: 0,
+        topSetups: [],
+        watchFocus: [],
+        headline: 'Stay selective',
+        summary: 'Chop favors patience',
+        suggestResearch: [],
+        explainability: journalCoach.explainability,
+        quotesFetchedAt: Date.now(),
+        psychologyReminder: "Today's objective is patience.",
+        recommendedFocus: 'Journal every researched idea',
+        processScoreWeek: 70,
+      },
+      plannerFocus: {
+        title: 'Practice invalidation',
+        reason: 'You named the idea in lessons; simulation still skips the fail condition.',
+        href: '/academy/lesson/dec-invalidation',
+        activityType: 'lesson',
+      },
+    });
+
+    expect(brief.daily.todaysFocus.toLowerCase()).toContain('practice invalidation');
+    expect(brief.daily.todaysFocus.toLowerCase()).not.toContain("today's objective is patience");
+    expect(brief.weekly.academyRecommendation?.lessonId).toBe('dec-invalidation');
+  });
 });

@@ -179,12 +179,12 @@ function CandlestickChartComponent({
   const chartHeight = dimensions.height - CHART_PADDING.top - CHART_PADDING.bottom;
 
   return (
+    <View className={cn('w-full', className)}>
     <View
       accessible={accessible}
       accessibilityRole={accessible ? 'image' : undefined}
       accessibilityLabel={accessible ? accessibilityLabel : undefined}
       importantForAccessibility={accessible ? 'yes' : 'no-hide-descendants'}
-      className={cn('w-full', className)}
       onLayout={onLayout}
       style={{ height }}
     >
@@ -270,6 +270,16 @@ function CandlestickChartComponent({
             );
           })}
         </Svg>
+      ) : null}
+    </View>
+      {accessible ? (
+        <Text
+          variant="caption"
+          className="mt-2 leading-5 text-text-secondary"
+          testID="candlestick-chart-spoken"
+        >
+          {accessibilityLabel}
+        </Text>
       ) : null}
     </View>
   );

@@ -1,5 +1,6 @@
 import type { CurriculumRecommendation } from '@/features/academy/services/curriculum.service';
 import type { PracticeDrill } from '@/features/practice/content/practice-drills';
+import { BRAND } from '@/shared/constants/brand';
 import type { SkillDomain } from '@/shared/constants/skill-domains';
 import { SKILL_DOMAIN_LABELS } from '@/shared/constants/skill-domains';
 import type { TrainingLoopPlan, TrainingStep } from '../types/progress.types';
@@ -78,7 +79,6 @@ export function composeTrainingLoop(input: {
     suggestedNext,
     chain,
     weaknessLabel: input.weakness ? SKILL_DOMAIN_LABELS[input.weakness] : null,
-    processReminder:
-      'The loop is Learn → Practice → Simulate → Review → Improve. Profit on the paper book is not the score.',
+    processReminder: `The loop is ${BRAND.loop}. Profit on the paper book is not the score.`,
   };
 }

@@ -63,6 +63,7 @@ export const USER_LOCAL_STORAGE_KEYS = [
   'tradevision-competency-evidence-v1',
   'tradevision-learner-behavior-v1',
   'tradevision-learner-sync-queue-v1',
+  'tradevision-last-auth-uid',
 ] as const;
 
 export interface ClearUserLocalStateOptions {

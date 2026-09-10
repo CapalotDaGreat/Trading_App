@@ -84,6 +84,8 @@ export const DRILL_CONCEPT_IDS: Record<string, readonly string[]> = {
   'fomo-chase': ['fomo'],
   'revenge-interrupt': ['revenge-trading'],
   'confidence-check': ['overconfidence'],
+  'loss-aversion': ['loss-aversion'],
+  'premature-entry': ['thesis', 'invalidation'],
 };
 
 export const EVENT_DRILL_IDS = new Set(['inflation-asset-effects', 'rate-decision-uncertainty']);

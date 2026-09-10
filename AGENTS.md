@@ -15,7 +15,7 @@ If you upgrade the SDK, update this file and `package.json` in the same change.
 
 **TradeAcademy** (by **Aithera**) is a **trading education, simulation, decision-practice, and coaching** app.
 
-The product loop is **Learn → Practice → Simulate → Review → Improve**. Home is a training center. Simulation paths must be uniquely generated (internal seed, never shown). Simulated P/L does not grade a decision. Training readiness never certifies live trading.
+The product loop is **Learn → Practice → Replay → Simulate → Journal → Review → Improve**. Home is a training center. Simulation paths must be uniquely generated (internal seed, never shown). Simulated P/L does not grade a decision. Training readiness never certifies live trading.
 
 It is **not** a broker, not an execution venue, not a live trading terminal, not a social network, and **not** a source of buy/sell signals or guaranteed returns. Setup "confidence" is a **decision-quality score (DQS)** — process quality, never a prediction of price direction. Simulated P&L does **not** grade a decision. Preserve this framing in all new work.
 

@@ -185,6 +185,16 @@ export const LEARNING_CONCEPTS: LearningConceptNode[] = [
     journalMistakes: ['revenge'],
   },
   {
+    id: 'loss-aversion',
+    title: 'Loss aversion',
+    relatedIds: ['invalidation', 'overconfidence', 'fomo'],
+    skillDomain: 'psychology',
+    lessonIds: ['psych-loss-aversion'],
+    drillIds: ['loss-aversion'],
+    replayIds: ['failed-setup-patience'],
+    simulateHref: '/simulate?start=1',
+  },
+  {
     id: 'diversification',
     title: 'Diversification',
     relatedIds: ['position-sizing', 'event-risk'],

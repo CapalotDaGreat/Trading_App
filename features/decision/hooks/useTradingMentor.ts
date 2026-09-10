@@ -3,6 +3,7 @@ import { useMemo } from 'react';
 
 import { useAcademyProgressStore } from '@/features/academy/stores/academy-progress.store';
 import { useNextAcademyLesson, useAcademy } from '@/features/academy/hooks/useAcademy';
+import { useLearningEngine } from '@/features/learning-engine/hooks/useLearningEngine';
 import { buildDecisionDebt } from '@/features/decision/services/decision-os.service';
 import {
   useDecisionBrief,
@@ -46,6 +47,7 @@ export function useTradingMentor() {
   const labPositions = useDecisionLabStore((s) => s.positions);
   const labStats = useMemo(() => buildLabStats(labPositions), [labPositions]);
   const { practicedCount, totalCount } = useAcademy();
+  const { primary: plannerPrimary } = useLearningEngine();
   const { alerts } = useAlerts();
   const intelligenceQuery = usePersonalIntelligence('weekly');
   const debt = useMemo(() => {
@@ -95,6 +97,7 @@ export function useTradingMentor() {
         logSummary?.processScore ?? 0,
         streakQuery.dataUpdatedAt,
         academyRecommendation?.lesson.id ?? 'none',
+        plannerPrimary?.id ?? 'none',
         labStats.tradesClosed,
         academyStreakDays,
         coachProfile?.uid ?? 'none',
@@ -111,6 +114,7 @@ export function useTradingMentor() {
       logSummary?.processScore,
       streakQuery.dataUpdatedAt,
       academyRecommendation?.lesson.id,
+      plannerPrimary?.id,
       labStats.tradesClosed,
       academyStreakDays,
       coachProfile?.uid,
@@ -134,6 +138,14 @@ export function useTradingMentor() {
         risk: riskQuery.data,
         streak: { ...streak, days: learningDays },
         academyRecommendation: academyRecommendation ?? null,
+        plannerFocus: plannerPrimary
+          ? {
+              title: plannerPrimary.title,
+              reason: plannerPrimary.reason,
+              href: plannerPrimary.href,
+              activityType: plannerPrimary.activityType,
+            }
+          : null,
         coachProfile,
         dnaMentorSummary: intelligenceQuery.data?.mentorSummary ?? null,
         reinforcementAcademy: intelligenceQuery.data?.reinforcement?.academyLesson

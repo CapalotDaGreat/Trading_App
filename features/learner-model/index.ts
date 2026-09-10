@@ -2,6 +2,7 @@ export type {
   AnalyticsSafeLearnerSummary,
   ComposeLearnerModelInput,
   ConceptLongitudinalSlice,
+  DevelopmentHistoryView,
   ImprovementDirection,
   LearnerApplicationSlice,
   LearnerBehaviorEvent,
@@ -37,6 +38,10 @@ export {
 } from './services/learner-model.service';
 
 export { composeLongitudinalProfile, emptyLongitudinalProfile } from './services/longitudinal-profile.service';
+
+export { composeDevelopmentHistory } from './services/development-history.service';
+
+export { DevelopmentHistoryCard } from './components/DevelopmentHistoryCard';
 
 export { LEARNER_BEHAVIOR_STORAGE_KEY, useLearnerBehaviorStore } from './stores/learner-behavior.store';
 

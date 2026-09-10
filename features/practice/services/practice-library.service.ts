@@ -34,6 +34,12 @@ export function practiceTimeBucket(minutes: number): PracticeTimeBucket {
   return minutes <= 4 ? 'short' : 'medium';
 }
 
+export function parsePracticeTopicParam(value: string | string[] | undefined): PracticeTopicFilter | null {
+  const raw = Array.isArray(value) ? value[0] : value;
+  if (!raw || raw === 'all') return null;
+  return LEARNING_TOPICS.includes(raw as LearningTopic) ? (raw as LearningTopic) : null;
+}
+
 export function isDrillCompleted(drillId: string, attempts: PracticeAttempt[]): boolean {
   return attempts.some((attempt) => attempt.drillId === drillId);
 }
