@@ -61,7 +61,7 @@ describe('evaluateAlertsForUser', () => {
     await expect(evaluateAlertsForUser('u1', { allowInactive: true })).resolves.toBe(1);
     expect(mockMarkAlertTriggered).toHaveBeenCalledWith('u1', 'a1');
     expect(mockPresentLocalNotification).toHaveBeenCalledWith(
-      'Your research reminder is ready.',
+      'Your study reminder is ready.',
       expect.stringMatching(/AAPL reached a level you named/i),
       expect.objectContaining({ symbol: 'AAPL', type: 'price_alert' }),
     );

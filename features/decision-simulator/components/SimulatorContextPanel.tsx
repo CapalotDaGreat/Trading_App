@@ -21,7 +21,7 @@ const CHECKS: { key: keyof SimulatorChecklist; label: string }[] = [
   { key: 'notedRegime', label: 'Noted market regime' },
   { key: 'consideredPortfolio', label: 'Considered portfolio overlap' },
   { key: 'setInvalidationThought', label: 'Wrote an invalidation thought' },
-  { key: 'respectedTimeBudget', label: 'Respected research time budget' },
+  { key: 'respectedTimeBudget', label: 'Respected study time budget' },
 ];
 
 export function SimulatorContextPanel({
@@ -38,10 +38,14 @@ export function SimulatorContextPanel({
         </Text>
         <View className="mt-3 flex-row flex-wrap gap-2">
           <Badge
-            label={context.bias}
-            variant={
-              context.bias === 'bullish' ? 'success' : context.bias === 'bearish' ? 'danger' : 'default'
+            label={
+              context.bias === 'bullish'
+                ? 'Upward case'
+                : context.bias === 'bearish'
+                  ? 'Downward case'
+                  : 'Neutral case'
             }
+            variant="default"
             size="sm"
           />
           <Badge label={`${context.evidenceQuality}% evidence`} variant="outline" size="sm" />

@@ -60,14 +60,7 @@ function HeatmapCellItem({
           </Text>
           <Text
             variant="caption"
-            className={cn(
-              'mt-1 font-semibold',
-              changePercent > 0
-                ? 'text-bullish'
-                : changePercent < 0
-                  ? 'text-bearish'
-                  : 'text-text-secondary',
-            )}
+            className="mt-1 text-text-secondary"
           >
             {formatPercent(changePercent)}
           </Text>
@@ -113,8 +106,11 @@ export function MarketHeatmap({
 
   return (
     <GlassCard className={cn('p-3', className)}>
-      <Text variant="h3" className="mb-3">
-        Market Heatmap
+      <Text variant="h3" className="mb-1">
+        Relative change
+      </Text>
+      <Text variant="caption" className="mb-3 text-text-secondary">
+        Recent percent change for study — not a ranking of what to trade.
       </Text>
       <View className="gap-2">
         {rows.map((row, rowIndex) => (

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useRouter } from 'expo-router';
 import {
   ActivityIndicator,
   FlatList,
@@ -17,6 +18,7 @@ import { StatusState } from '@/shared/components/feedback/StatusState';
 import { Screen } from '@/shared/components/layout/Screen';
 import { CollapsibleSection } from '@/shared/components/patterns/CollapsibleSection';
 import { Header } from '@/shared/components/layout/Header';
+import { Button } from '@/shared/components/ui/Button';
 import { IconButton } from '@/shared/components/ui/IconButton';
 import { Input } from '@/shared/components/ui/Input';
 import { SegmentedControl } from '@/shared/components/ui/SegmentedControl';
@@ -45,6 +47,7 @@ interface AiChatScreenProps {
 }
 
 export function AiChatScreen({ symbol }: AiChatScreenProps) {
+  const router = useRouter();
   const params = useLocalSearchParams<{ mode?: string; source?: string }>();
   const aiChatEnabled = useFeatureFlag('aiChatEnabled');
   const [mode, setMode] = useState<AskMode>(params.mode === 'tools' ? 'tools' : 'chat');
@@ -169,6 +172,14 @@ export function AiChatScreen({ symbol }: AiChatScreenProps) {
                   }}
                   disabled={isSending}
                 />
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onPress={() => router.push('/learn' as never)}
+                  accessibilityLabel="Open Academy after asking a concept"
+                >
+                  Open Academy
+                </Button>
               </View>
             }
             ListHeaderComponent={

@@ -292,10 +292,10 @@ export function buildPersonalizedToday(input: {
         eyebrow: becoming,
         headline: 'Advanced setup today',
         detail: input.startHereSymbol
-          ? `${input.startHereSymbol} clears your process bar â€” research with full checklist discipline.`
-          : 'Consistency unlocked deeper research. Stay selective; protect Decision Quality.',
+          ? `${input.startHereSymbol} clears your process bar — study with full checklist discipline.`
+          : 'Consistency unlocked deeper study. Stay selective; protect Decision Quality.',
         primaryCta: {
-          label: input.startHereSymbol ? `Research ${input.startHereSymbol}` : 'Open Radar',
+          label: input.startHereSymbol ? `Study ${input.startHereSymbol}` : 'Open training recommendations',
           href: input.startHereSymbol
             ? `/asset/${encodeURIComponent(input.startHereSymbol)}`
             : '/decision/radar',

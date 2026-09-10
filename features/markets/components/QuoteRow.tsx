@@ -6,7 +6,7 @@ import { Text } from '@/shared/components/ui/Text';
 import type { Asset, Quote } from '@/shared/types/market';
 import { INSTRUMENT_RESOLUTION_COPY, isUsableMarketPrice } from '@/features/markets/types/instrument.types';
 import { getPriceAccessibilityLabel } from '@/shared/utils/accessibility';
-import { formatPercent, formatPrice, formatVolume, getPriceColorClass } from '@/shared/utils/format';
+import { formatPercent, formatPrice, formatVolume } from '@/shared/utils/format';
 import { cn } from '@/shared/utils/cn';
 
 import { useMarketQuote } from '../hooks/useMarketQuote';
@@ -33,7 +33,7 @@ function QuoteRowComponent({
   });
 
   const quote = quoteProp ?? fetchedQuote;
-  const changeClass = quote ? getPriceColorClass(quote.change) : 'text-text-secondary';
+  const changeClass = 'text-text-secondary';
   const accessibilityLabel = quote
     ? getPriceAccessibilityLabel(asset.symbol, quote.price, quote.changePercent)
     : `${asset.symbol}, ${asset.name}`;
@@ -63,7 +63,7 @@ function QuoteRowComponent({
           <Skeleton width={64} height={18} />
         ) : quote && isUsableMarketPrice(quote.price) ? (
           <>
-            <Text variant="mono" className="font-semibold">
+            <Text variant="caption" className="text-text-secondary">
               {formatPrice(quote.price, quote.currency)}
             </Text>
             <Text variant="caption" className={changeClass}>

@@ -43,8 +43,8 @@ export function prioritizeResearch(
         score,
         reason:
           estimatedMinutes <= budgetMinutes
-            ? `Fits ~${budgetMinutes}m · RVS ${rvs} (research value, not price odds)`
-            : `Higher complexity (~${estimatedMinutes}m) — only if top RVS priority`,
+            ? `Fits ~${budgetMinutes}m · study fit ${rvs} (process, not price odds)`
+            : `Higher complexity (~${estimatedMinutes}m) — only if it teaches a current gap`,
       };
     })
     .sort((a, b) => b.score - a.score);

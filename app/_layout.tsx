@@ -203,7 +203,7 @@ function RootLayoutNav() {
       >
         <ActivityIndicator size="large" color={colors.accent.primary} />
         <Text variant="body-sm" className="mt-4 text-center">
-          Preparing your decision workspace…
+          Preparing your training center…
         </Text>
       </View>
     );

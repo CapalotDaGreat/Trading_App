@@ -54,7 +54,7 @@ export const FLAGSHIP_PROCESS_LESSONS: Lesson[] = [
     conceptIds: ['exposure', 'concentration'],
     objectives: [
       'Distinguish cash, invested, and equity.',
-      'Treat a 20%+ single-name weight as a process signal, not a badge.',
+      'Treat a 20%+ single-name weight as a process observation, not a badge.',
     ],
     whyItMatters:
       'People track P/L and ignore that one position became the whole book. Simulation shows portfolio weight for this reason.',

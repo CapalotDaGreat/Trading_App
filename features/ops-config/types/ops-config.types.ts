@@ -65,16 +65,11 @@ export interface OpsRemoteConfig {
 export interface OpsFeatureFlags {
   globalKill: FeatureFlagDefinition;
   aiChatEnabled: FeatureFlagDefinition;
-  aiTrustPanelsEnabled: FeatureFlagDefinition;
   personalIntelligenceEnabled: FeatureFlagDefinition;
-  decisionGraphEnabled: FeatureFlagDefinition;
   mentorEnabled: FeatureFlagDefinition;
   academyEnabled: FeatureFlagDefinition;
   decisionReinforcementEnabled: FeatureFlagDefinition;
-  paywallExperimentsEnabled: FeatureFlagDefinition;
   aggressiveMarketPollingEnabled: FeatureFlagDefinition;
-  betaReplayStudioEnabled: FeatureFlagDefinition;
-  internalDiagnosticsEnabled: FeatureFlagDefinition;
 }
 
 export interface OpsBootstrapSnapshot {

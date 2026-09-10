@@ -35,7 +35,7 @@ describe('feature flag evaluation', () => {
 
   it('percentage flags respect bucket', () => {
     const definition = {
-      key: 'paywallExperimentsEnabled',
+      key: 'rolloutExample',
       kind: 'percentage' as const,
       enabled: true,
       percentage: 0,
@@ -46,8 +46,10 @@ describe('feature flag evaluation', () => {
 
   it('beta flags require beta/internal/development channel', () => {
     const definition = {
-      ...DEFAULT_OPS_FLAGS.betaReplayStudioEnabled,
+      key: 'betaExample',
+      kind: 'beta' as const,
       enabled: true,
+      percentage: 100,
     };
     expect(evaluateFlag(definition, { channel: 'production' })).toBe(false);
     expect(evaluateFlag(definition, { channel: 'beta' })).toBe(true);

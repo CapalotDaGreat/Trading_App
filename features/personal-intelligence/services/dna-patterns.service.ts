@@ -56,7 +56,7 @@ export function buildDnaPatterns(input: {
       detail: 'Several research opens arrived before brief or checklist evidence caught up.',
       tone: 'growth',
       evidence: collectEvidence(
-        evidenceItem('decision_log', b.researched, 'research sessions'),
+        evidenceItem('decision_log', b.researched, 'study sessions'),
         evidenceItem('checklist', b.checklist, 'checklists'),
       ),
     });
@@ -66,10 +66,10 @@ export function buildDnaPatterns(input: {
     patterns.push({
       id: 'ignoring_invalidation',
       title: 'Invalidation under-specified',
-      detail: 'Research is active, but few cases record what would change your mind.',
+      detail: 'Study is active, but few cases record what would change your mind.',
       tone: 'growth',
       evidence: collectEvidence(
-        evidenceItem('decision_log', b.researched, 'research sessions'),
+        evidenceItem('decision_log', b.researched, 'study sessions'),
         evidenceItem('decision_log', b.invalidated, 'invalidation marks'),
       ),
     });
@@ -81,7 +81,7 @@ export function buildDnaPatterns(input: {
       title: 'Over-researching lower-value ideas',
       detail: 'Attention is spreading across many symbols with modest research value.',
       tone: 'growth',
-      evidence: collectEvidence(evidenceItem('decision_log', b.researched, 'research sessions')),
+      evidence: collectEvidence(evidenceItem('decision_log', b.researched, 'study sessions')),
     });
   }
 
@@ -163,7 +163,7 @@ export function buildDnaPatterns(input: {
       tone: 'neutral',
       evidence: collectEvidence(
         evidenceItem('decision_log', b.skipped, 'skips'),
-        evidenceItem('decision_log', b.researched, 'research sessions'),
+        evidenceItem('decision_log', b.researched, 'study sessions'),
       ),
     });
   }

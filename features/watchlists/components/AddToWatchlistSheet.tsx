@@ -60,7 +60,7 @@ export function AddToWatchlistSheet({
         >
           <View className="mb-4 h-1 w-10 self-center rounded-full bg-border" />
           <Text variant="h3" className="mb-1">
-            Add to Watchlist
+            Add to Study List
           </Text>
           <Text variant="body-sm" className="mb-4">
             {symbol} · {watchlists.length}/{limits.watchlistMax} lists
@@ -98,12 +98,12 @@ export function AddToWatchlistSheet({
 
           <View className="mt-4 border-t border-border pt-4">
             <Text variant="label" className="mb-2">
-              Create new watchlist
+              Create a study list
             </Text>
             <Input
               value={newListName}
               onChangeText={setNewListName}
-              placeholder="Watchlist name"
+              placeholder="Study list name"
               maxLength={100}
             />
             <Button

@@ -51,7 +51,7 @@ export function buildObservedTendencies(input: {
   const patience = getTraitScore(input.dna, 'patience');
 
   const overAnalysisEvidence = collectEvidence(
-    evidenceItem('decision_log', b.researched, 'research sessions'),
+    evidenceItem('decision_log', b.researched, 'study sessions'),
     evidenceItem('journal', b.journaled, 'closed journal loops', '/journal'),
     evidenceItem('decision_log', b.skipped, 'skips'),
   );
@@ -65,7 +65,7 @@ export function buildObservedTendencies(input: {
     evidenceItem('decision_log', b.skipped, 'skips'),
     evidenceItem('replay', b.replay, 'replay sessions', '/decision/replay-tv'),
     evidenceItem('checklist', b.checklist, 'checklists'),
-    evidenceItem('decision_log', b.researched, 'research sessions'),
+    evidenceItem('decision_log', b.researched, 'study sessions'),
   );
   let confirmLevel: DnaObservedTendency['level'] = 'not_observed';
   if (b.skipped + b.replay >= 4 && b.journaled === 0 && b.researched >= 2) confirmLevel = 'clear';
@@ -82,7 +82,7 @@ export function buildObservedTendencies(input: {
     windowMs: 14 * 86_400_000,
   });
   const fatigueEvidence = collectEvidence(
-    evidenceItem('decision_log', b.researched, 'research sessions this week'),
+    evidenceItem('decision_log', b.researched, 'study sessions this week'),
     evidenceItem('journal', b.journaled, 'journal process entries', '/journal'),
   );
   let fatigueLevel: DnaObservedTendency['level'] = 'not_observed';

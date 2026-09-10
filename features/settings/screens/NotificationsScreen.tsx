@@ -45,14 +45,14 @@ export function NotificationsScreen() {
   return (
     <ScreenScaffold
       title="Notifications"
-      subtitle="Quiet research reminders — never a prompt to trade."
+      subtitle="Quiet study reminders — never a prompt to trade."
       showBack
       onBack={() => router.back()}
       contentClassName="pb-12"
     >
       {permission !== 'granted' ? (
         <Surface className="mb-6 p-4">
-          <Text variant="h3">Enable research reminders</Text>
+          <Text variant="h3">Enable study reminders</Text>
           <Text variant="body-sm" className="mt-2 text-text-secondary">
             Named levels and optional process notes can notify you later. This is not real-time
             trading urgency.

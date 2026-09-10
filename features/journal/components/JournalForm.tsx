@@ -411,6 +411,7 @@ export function JournalForm({ onSubmit, isSubmitting, initialSymbol = '', initia
           render={({ field: { onChange, onBlur, value } }) => (
             <Input
               label="Decision notes"
+              hint="What happened, what you believed, what evidence you had, what risk you took, and what you would improve."
               multiline
               numberOfLines={4}
               value={value}

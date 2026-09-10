@@ -47,7 +47,7 @@ export function WatchlistCard({
                 variant="ghost"
                 size="sm"
                 onPress={() => onDelete(watchlist)}
-                accessibilityLabel="Delete watchlist"
+                accessibilityLabel="Delete study list"
               />
             ) : null}
           </View>

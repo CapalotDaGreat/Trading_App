@@ -119,7 +119,7 @@ const TRAIT_META: Record<
         : 'Observed tendency: older theses sometimes persist after the tape changes.',
   },
   researchEfficiency: {
-    label: 'Research Efficiency',
+    label: 'Study efficiency',
     minEvidence: 3,
     detail: (s) =>
       s >= 65
@@ -454,7 +454,7 @@ function evidenceForTrait(id: TradingDnaTraitId, b: DnaEvidenceBundle) {
   switch (id) {
     case 'evidenceDiscipline':
       return collectEvidence(
-        evidenceItem('decision_log', b.researched, 'research sessions', '/decision/radar'),
+        evidenceItem('decision_log', b.researched, 'study sessions', '/decision/radar'),
         evidenceItem('checklist', b.checklist, 'checklists completed', '/academy'),
         evidenceItem('journal', b.journaled, 'journal loops', '/journal'),
       );
@@ -514,7 +514,7 @@ function evidenceForTrait(id: TradingDnaTraitId, b: DnaEvidenceBundle) {
       );
     case 'researchEfficiency':
       return collectEvidence(
-        evidenceItem('decision_log', b.researched, 'research sessions'),
+        evidenceItem('decision_log', b.researched, 'study sessions'),
         evidenceItem(
           'decision_log',
           b.avgRvs != null ? Math.max(1, Math.round(b.avgRvs / 25)) : 0,
@@ -541,7 +541,7 @@ function evidenceForTrait(id: TradingDnaTraitId, b: DnaEvidenceBundle) {
       );
     case 'decisionStamina':
       return collectEvidence(
-        evidenceItem('decision_log', b.researched, 'research sessions', '/decision/radar'),
+        evidenceItem('decision_log', b.researched, 'study sessions', '/decision/radar'),
         evidenceItem('journal', b.journaled, 'closed loops', '/journal'),
         evidenceItem('replay', b.replayTvStamina || b.replay, 'replay decisions', '/decision/replay-tv'),
       );

@@ -95,7 +95,7 @@ describe('trusted AI mentor 2.0', () => {
     expect(result.content).toMatch(/\*\*Interpretation\*\*/i);
     expect(result.content).toMatch(/What changed/i);
     expect(result.content).toMatch(/What would change the assessment/i);
-    expect(result.content).toMatch(/Next research action/i);
+    expect(result.content).toMatch(/Next study action/i);
     expect(result.content.toLowerCase()).not.toMatch(/buy now|sell now|guaranteed/);
     expect(result.metadata.trust?.evidenceLevel).toMatch(/high|moderate|limited|insufficient/);
     expect(result.metadata.trust?.mentorAnswer?.memoryUse.disclosure).toMatch(/Trading DNA|process/i);
@@ -258,7 +258,7 @@ describe('trusted AI mentor 2.0', () => {
     expect(concise.content).toMatch(/\*\*Unknown\*\*/);
     expect(concise.content).toMatch(/\*\*Interpretation\*\*/);
     expect(concise.content).toMatch(/What would change the assessment/);
-    expect(concise.content).toMatch(/Next research action/);
+    expect(concise.content).toMatch(/Next study action/);
   });
 
   it('does not treat DQS/RVS or coverage scores as prediction probabilities', () => {

@@ -238,9 +238,9 @@ function OverviewTab({
         />
       </PassportSectionCard>
 
-      <PassportSectionCard title="Research Value Trend" delay={320}>
+      <PassportSectionCard title="Research quality trend" delay={320}>
         <PassportTrendStrip
-          title="Research Value"
+          title="Research quality"
           points={profile.researchValueTrend}
           metric="researchValueAvg"
         />
@@ -255,7 +255,7 @@ function OverviewTab({
       ) : null}
 
       {profile.researchQueueNote ? (
-        <PassportSectionCard title="Research Queue" delay={400}>
+        <PassportSectionCard title="Study queue" delay={400}>
           <Text variant="body-sm" className="text-text-secondary">
             {profile.researchQueueNote}
           </Text>
@@ -358,7 +358,7 @@ function JourneyTab({
             <Text variant="label">{year.label}</Text>
             <Text variant="caption" className="mt-1 text-text-secondary">
               Research {year.researched} · Journal {year.journaled} · Replay {year.replayed}
-              {year.avgResearchValue != null ? ` · RVS ${year.avgResearchValue}` : ''}
+              {year.avgResearchValue != null ? ` · research quality ${year.avgResearchValue}` : ''}
             </Text>
             <Text variant="caption" className="mt-1 text-text-tertiary">
               {year.insight}

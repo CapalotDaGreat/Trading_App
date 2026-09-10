@@ -45,14 +45,14 @@ export function AiAnalysisCard({ result }: AiAnalysisCardProps) {
         </View>
         {result.sentiment ? (
           <Badge
-            label={result.sentiment}
-            variant={
+            label={
               result.sentiment === 'bullish'
-                ? 'success'
+                ? 'Upward case'
                 : result.sentiment === 'bearish'
-                  ? 'danger'
-                  : 'default'
+                  ? 'Downward case'
+                  : 'Neutral case'
             }
+            variant="default"
             size="sm"
           />
         ) : null}
@@ -94,7 +94,7 @@ export function AiAnalysisCard({ result }: AiAnalysisCardProps) {
 }
 
 function formatTypeLabel(type: AiAnalysisResult['type']): string {
-  if (type === 'trade_suggestion') return 'Research Priority';
+  if (type === 'trade_suggestion') return 'Decision exercise';
   return type.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
@@ -107,13 +107,17 @@ function TradeSuggestionSection({
     <View className="mb-3 rounded-xl border border-border bg-surface/30 p-3">
       <View className="mb-2 flex-row items-center justify-between">
         <Text variant="label">{data.symbol}</Text>
-        <Badge label={data.action.toUpperCase()} variant="accent" size="sm" />
+        <Badge
+          label={data.action === 'research' ? 'Study' : data.action === 'watch' ? 'Watch' : 'Skip'}
+          variant="default"
+          size="sm"
+        />
       </View>
       <Text variant="body-sm" className="mb-2">
         {data.reasoning}
       </Text>
       <Text variant="caption" className="mb-1 font-semibold uppercase">
-        Research evidence (not a prediction)
+        Study evidence (not a prediction)
       </Text>
       {data.why.map((reason, i) => (
         <Text key={i} variant="caption" className="mb-1 leading-relaxed">
@@ -131,19 +135,17 @@ function TradeSuggestionSection({
           <LevelRow
             label="Invalidation reference"
             value={formatPrice(data.invalidationLevel)}
-            tone="bearish"
           />
         ) : null}
         {data.nextResearchLevel !== undefined ? (
           <LevelRow
-            label="Next level to research"
+            label="Next level to study"
             value={formatPrice(data.nextResearchLevel)}
-            tone="bullish"
           />
         ) : null}
       </View>
       <Text variant="caption" className="mt-2 text-text-tertiary">
-        Coverage checklist is not a probability of success. Research window: {data.timeframe}
+        Coverage checklist is not a probability of success. Study window: {data.timeframe}
       </Text>
     </View>
   );
@@ -232,7 +234,17 @@ function IndicatorSection({
         <Text variant="label">
           {data.indicator}: {data.value}
         </Text>
-        <Badge label={data.signal} size="sm" />
+        <Badge
+          label={
+            data.signal === 'bullish'
+              ? 'Upward observation'
+              : data.signal === 'bearish'
+                ? 'Downward observation'
+                : 'Neutral observation'
+          }
+          variant="default"
+          size="sm"
+        />
       </View>
       <Text variant="body-sm" className="mb-1">
         {data.explanation}
@@ -281,7 +293,6 @@ function MarketRecapSection({
           key={m.symbol}
           label={m.symbol}
           value={formatPercent(m.changePercent)}
-          tone={m.changePercent >= 0 ? 'bullish' : 'bearish'}
         />
       ))}
       <Text variant="caption" className="mb-1 mt-2 font-semibold">
@@ -337,7 +348,7 @@ function PortfolioSection({
             Strengths
           </Text>
           {data.strengths.map((s, i) => (
-            <Text key={i} variant="caption" className="mb-0.5 text-bullish">
+            <Text key={i} variant="caption" className="mb-0.5 text-text-secondary">
               + {s}
             </Text>
           ))}
@@ -349,7 +360,7 @@ function PortfolioSection({
             Weaknesses
           </Text>
           {data.weaknesses.map((w, i) => (
-            <Text key={i} variant="caption" className="mb-0.5 text-bearish">
+            <Text key={i} variant="caption" className="mb-0.5 text-text-secondary">
               − {w}
             </Text>
           ))}

@@ -29,8 +29,8 @@ export function buildDecisionIntelligenceContext(input: {
   const psychologyReminder = PSYCHOLOGY_REMINDERS[day % PSYCHOLOGY_REMINDERS.length]!;
   const top = input.topSetupSymbols?.[0];
   const recommendedFocus = top
-    ? `Research ${top} within your time budget, then stop.`
-    : 'Protect the day — nothing deserving attention means no forced research.';
+    ? `Study ${top} within your time budget, then stop.`
+    : 'Protect the day — nothing deserving attention means no forced study.';
 
   return {
     assembledAt: Date.now(),

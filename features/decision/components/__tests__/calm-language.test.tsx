@@ -40,11 +40,11 @@ const setup: SetupCardData = {
   },
 };
 
-describe('calm Decision OS language', () => {
-  it('labels setups as research candidates with case-risk wording', async () => {
+describe('calm decision-training language', () => {
+  it('labels setups as study specimens with case-risk wording', async () => {
     const screen = await render(<SetupCard setup={setup} />);
 
-    expect(screen.getByText(/Research candidate/)).toBeTruthy();
+    expect(screen.getByText(/Study specimen/)).toBeTruthy();
     expect(screen.getByText('Evidence stronger')).toBeTruthy();
     expect(screen.queryByText(/Evidence ready/i)).toBeNull();
     expect(screen.queryByText(/Lower risk/i)).toBeNull();
@@ -69,8 +69,8 @@ describe('calm Decision OS language', () => {
       />,
     );
 
-    expect(await screen.findByText('Research queue')).toBeTruthy();
-    expect(screen.getByText('Highest research value now')).toBeTruthy();
+    expect(await screen.findByText('Study queue')).toBeTruthy();
+    expect(screen.getByText('Names worth studying now')).toBeTruthy();
     expect(screen.queryByText(/Highest-value ideas only/i)).toBeNull();
     expect(screen.queryByText(/RESEARCH OPPORTUNITIES/i)).toBeNull();
   });

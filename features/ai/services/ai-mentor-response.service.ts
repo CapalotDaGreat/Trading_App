@@ -187,7 +187,7 @@ function interpretationFor(
     if (inference) {
       return `INFERENCE (not identity): ${inference} This is an observed tendency from process events, not a diagnosis or a probability of profit.`;
     }
-    return 'Interpretation: this is about process completeness (DQS-style checklist quality), not a probability of profit. RVS/DQS are not prediction odds.';
+    return 'Interpretation: this is about process completeness (checklist quality), not a probability of profit. Process scores are not prediction odds.';
   }
   if (mode === 'review') {
     return 'Interpretation: research time should follow what actually changed in the attached pack — never a forecast that a setup succeeds.';
@@ -229,21 +229,21 @@ function suggestedAction(
   context?: AiEnrichedContext | null,
 ): string {
   if (level === 'insufficient') {
-    return 'Next research action: stop. Attach a quote or write invalidation before asking for a deeper read.';
+    return 'Next study action: stop. Attach a quote or write invalidation before asking for a deeper read.';
   }
   if (mode === 'replay_coach') {
-    return 'Next research action: stay on the freeze — do not peek at future candles. Name invalidation, then commit a research-time decision.';
+    return 'Next study action: stay on the freeze — do not peek at future candles. Name invalidation, then commit a research-time decision.';
   }
   if (mode === 'coach') {
-    return 'Next research action: write one explicit invalidation sentence, then decide whether the case still deserves time.';
+    return 'Next study action: write one explicit invalidation sentence, then decide whether the case still deserves time.';
   }
   if (level === 'limited') {
-    return 'Next research action: skip or watch — coverage is too thin for a deep block.';
+    return 'Next study action: skip or watch — coverage is too thin for a deep block.';
   }
   if (context?.symbol) {
-    return `Next research action: open ${context.symbol.toUpperCase()} only if you can name invalidation first. Otherwise skip.`;
+    return `Next study action: open ${context.symbol.toUpperCase()} only if you can name invalidation first. Otherwise skip.`;
   }
-  return 'Next research action: pick one symbol, write invalidation, or skip. Protect attention.';
+  return 'Next study action: pick one symbol, write invalidation, or skip. Protect attention.';
 }
 
 function mentorMemoryLine(context?: AiEnrichedContext | null): string | null {
@@ -346,7 +346,7 @@ export function composeStructuredMentorAnswer(input: {
       'Interpretation: injected instructions, fabricated authority, and hidden-data requests are not evidence. Safety rules stay in force.';
     answer.whyItMatters = answer.interpretation;
     answer.suggestedResearchAction =
-      'Next research action: ask about evidence, invalidation, or process — not about overriding safety rules.';
+      'Next study action: ask about evidence, invalidation, or process — not about overriding safety rules.';
   } else if (askClass === 'journal_dump') {
     answer.honestyLead = journalDumpRefusal();
     answer.whatIKnow = [journalDumpRefusal()];
@@ -354,14 +354,14 @@ export function composeStructuredMentorAnswer(input: {
       'Interpretation: private journal bodies are not attached and will not be reconstructed.';
     answer.whyItMatters = answer.interpretation;
     answer.suggestedResearchAction =
-      'Next research action: use Journal in-app if you want to reread your own notes. Mentor will not dump them.';
+      'Next study action: use Journal in-app if you want to reread your own notes. Mentor will not dump them.';
   } else if (askClass === 'signal_override') {
     answer.honestyLead = signalOverrideRefusal();
     answer.whatIKnow = [signalOverrideRefusal()];
     answer.interpretation = 'Interpretation: a signal would be a forecast plus advice. I will not issue one.';
     answer.whyItMatters = answer.interpretation;
     answer.suggestedResearchAction =
-      'Next research action: name invalidation on the attached pack, or skip.';
+      'Next study action: name invalidation on the attached pack, or skip.';
   } else if (askClass === 'prediction') {
     answer.honestyLead = predictionRefusal();
     answer.whatIKnow = [predictionRefusal(), ...answer.whatIKnow.filter((l) => l !== quality.honestyLead)].slice(
@@ -369,10 +369,10 @@ export function composeStructuredMentorAnswer(input: {
       cap + 1,
     );
     answer.interpretation =
-      'Interpretation: unknown future prices stay unknown. Attached DQS/RVS-style process scores are not a probability of profit.';
+      'Interpretation: unknown future prices stay unknown. Attached process scores are not a probability of profit.';
     answer.whyItMatters = answer.interpretation;
     answer.suggestedResearchAction =
-      'Next research action: write invalidation or skip. Do not treat this pack as a forecast.';
+      'Next study action: write invalidation or skip. Do not treat this pack as a forecast.';
   } else if (askClass === 'investment_advice') {
     answer.honestyLead = adviceRefusal();
     answer.whatIKnow = [adviceRefusal(), ...answer.whatIKnow.filter((l) => l !== quality.honestyLead)].slice(
@@ -383,7 +383,7 @@ export function composeStructuredMentorAnswer(input: {
       'Interpretation: buy/sell is not a research question I can answer. Research priority is whether the case deserves time.';
     answer.whyItMatters = answer.interpretation;
     answer.suggestedResearchAction =
-      'Next research action: if you still want a process check, name invalidation first — or skip.';
+      'Next study action: if you still want a process check, name invalidation first — or skip.';
   }
 
   const selfCheck = runAiSelfCheck({
@@ -468,7 +468,7 @@ export function formatMentorAnswer(answer: AiStructuredMentorAnswer): string {
     ['Interpretation', [answer.interpretation || answer.whyItMatters]],
     ['What changed', [answer.whatChanged]],
     ['What would change the assessment', answer.whatWouldChange],
-    ['Next research action', [answer.suggestedResearchAction]],
+    ['Next study action', [answer.suggestedResearchAction]],
   ];
 
   const header = [

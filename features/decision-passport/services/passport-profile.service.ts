@@ -416,8 +416,8 @@ export function buildDecisionPassportProfile(input: BuildPassportProfileInput): 
   const queueLen = input.brief?.researchQueue?.length ?? 0;
   const researchQueueNote =
     queueLen > 0
-      ? `${queueLen} ideas on today’s research queue — priority is process, not coverage.`
-      : 'Research queue is clear — protect attention.';
+      ? `${queueLen} names on today’s study queue — priority is process, not coverage.`
+      : 'Study queue is clear — protect attention.';
 
   const portfolioNote = input.risk
     ? `Risk center ${input.risk.riskScore}/100 · ${input.risk.recommendation}`

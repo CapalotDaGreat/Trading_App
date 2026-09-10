@@ -1,6 +1,6 @@
 import { decisionOsUpsellCopy } from '@/features/decision/services/decision-os-access.service';
 
-import { MORE_HUB_SECTIONS } from '../more-hub.config';
+import { PRACTICE_HUB_SECTIONS, REVIEW_HUB_SECTIONS } from '../navigation-ia.config';
 import {
   buildLegacyAnalysisRedirect,
   buildLegacyReplayRedirect,
@@ -10,42 +10,26 @@ import {
 } from '../review-navigation.config';
 
 describe('review information architecture', () => {
-  it('exposes the four More sections with Review and Decision Heatmap', () => {
-    expect(MORE_HUB_SECTIONS.map((section) => section.title)).toEqual([
-      'Decide',
-      'Review',
-      'Practice',
-      'Stay on Top',
+  it('keeps Review work, patterns, and replay rooms', () => {
+    expect(REVIEW_HUB_SECTIONS.map((section) => section.title)).toEqual([
+      'Your work',
+      'Patterns',
+      'Replay',
     ]);
-
-    const review = MORE_HUB_SECTIONS.find((section) => section.title === 'Review');
-    expect(review?.items).toEqual([
-      expect.objectContaining({
-        href: '/decision/decision-replay',
-        title: 'Review',
-      }),
-      expect.objectContaining({
-        href: '/decision/heatmap',
-        title: 'Decision Heatmap',
-      }),
-    ]);
+    const work = REVIEW_HUB_SECTIONS.find((section) => section.title === 'Your work');
+    expect(work?.items.map((item) => item.href)).toEqual(
+      expect.arrayContaining(['/journal', '/simulate', '/decision/decision-replay?segment=process']),
+    );
   });
 
-  it('keeps Mentor, Simulator, Personal Intelligence, Passport, Lab and Learn in Practice', () => {
-    const practice = MORE_HUB_SECTIONS.find((section) => section.title === 'Practice');
-    expect(practice?.items.map((item) => item.href)).toEqual([
-      '/decision/mentor',
-      '/decision/simulator',
-      '/decision/replay-tv',
-      '/decision/intelligence',
-      '/decision/passport',
+  it('keeps Lab, Simulator, Chart Replay, and Decision Replay in Practice', () => {
+    const scenarios = PRACTICE_HUB_SECTIONS.find((section) => section.title === 'Scenarios');
+    expect(scenarios?.items.map((item) => item.href)).toEqual([
       '/decision/lab',
-      '/analysis/backtest',
-      '/academy',
+      '/decision/simulator',
+      '/decision/decision-replay?segment=chart',
+      '/decision/replay-tv',
     ]);
-    expect(practice?.items.find((item) => item.href === '/analysis/backtest')?.title).toBe(
-      'Strategy sandbox — sample data',
-    );
   });
 
   it('defines clear Process Tape and Chart Replay segments', () => {
@@ -67,7 +51,7 @@ describe('review information architecture', () => {
     });
   });
 
-  it('redirects legacy analysis links to the canonical asset Advanced tab', () => {
+  it('redirects legacy analysis links to the canonical asset study tab', () => {
     expect(
       buildLegacyAnalysisRedirect('BRK.B', {
         symbol: 'BRK.B',
@@ -79,7 +63,7 @@ describe('review information architecture', () => {
       pathname: '/asset/[symbol]',
       params: {
         symbol: 'BRK.B',
-        tab: 'advanced',
+        tab: 'learn',
         legacyTab: 'ai',
         marketType: 'stock',
         source: 'alert',

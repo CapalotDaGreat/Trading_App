@@ -28,6 +28,7 @@ export function emptyReplayTvReasoning(): ReplayTvReasoning {
     riskAssessment: '',
     intendedSize: '',
     expectedRisk: '',
+    alternatives: '',
     freeText: '',
   };
 }
@@ -43,6 +44,7 @@ export function composeReplayTvReasoning(fields: ReplayTvReasoning): string {
     fields.riskAssessment?.trim() ? `Risk: ${fields.riskAssessment.trim()}` : null,
     fields.intendedSize?.trim() ? `Size: ${fields.intendedSize.trim()}` : null,
     fields.expectedRisk?.trim() ? `Expected risk: ${fields.expectedRisk.trim()}` : null,
+    fields.alternatives?.trim() ? `Alternatives: ${fields.alternatives.trim()}` : null,
     `Process confidence ${clampConfidence(fields.confidence)}/5 (not a price forecast).`,
     fields.freeText?.trim() || null,
   ]
@@ -52,7 +54,7 @@ export function composeReplayTvReasoning(fields: ReplayTvReasoning): string {
 
 export function reasoningHasSubstance(fields: ReplayTvReasoning | undefined, fallback = ''): boolean {
   if (!fields) return fallback.trim().length >= 12;
-  const packed = `${fields.thesis} ${fields.why ?? ''} ${fields.evidence} ${fields.invalidation} ${fields.whatWouldChangeMind ?? ''} ${fields.mainUncertainty} ${fields.riskAssessment ?? ''} ${fields.intendedSize ?? ''} ${fields.freeText ?? ''} ${fallback}`;
+  const packed = `${fields.thesis} ${fields.why ?? ''} ${fields.evidence} ${fields.invalidation} ${fields.whatWouldChangeMind ?? ''} ${fields.mainUncertainty} ${fields.riskAssessment ?? ''} ${fields.intendedSize ?? ''} ${fields.alternatives ?? ''} ${fields.freeText ?? ''} ${fallback}`;
   return packed.trim().length >= 12;
 }
 

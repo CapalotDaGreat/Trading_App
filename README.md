@@ -17,8 +17,11 @@ Default market data is **labelled synthetic/sample**. Cloud AI stays disabled. R
 - **Practice** — exercise library plus Lab and Replay rooms
 - **Simulate** — labelled paper trading (default **$100,000 USD**). Not brokerage execution
 - **Review** — journal, decision history, simulation history, Trading DNA, Personal Intelligence
-- **Ask** — on-device educational mentor (never financial advice)
+- **Events** — upcoming/historical prints as study context (hidden for beginners; not a news feed)
+- **Ask** — on-device educational mentor at `/ai` (hidden tab; never financial advice)
 - **You** — profile, progress, settings, subscription, privacy, data
+
+Research, Markets, Alerts, and the old More hub still exist as hidden or redirected routes so deep links do not break. See [`docs/TRADEACADEMY_HIDDEN_FEATURE_AUDIT.md`](docs/TRADEACADEMY_HIDDEN_FEATURE_AUDIT.md) before deleting anything.
 
 ## Prerequisites
 
@@ -65,7 +68,6 @@ EXPO_PUBLIC_FIREBASE_PROJECT_ID=
 EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET=
 EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=
 EXPO_PUBLIC_FIREBASE_APP_ID=
-EXPO_PUBLIC_FIREBASE_MEASUREMENT_ID=
 
 # Market data — default product path is synthetic/sample. Vendor keys are optional and not required.
 EXPO_PUBLIC_MARKET_DATA_MODE=synthetic
@@ -81,8 +83,7 @@ EXPO_PUBLIC_RC_PRODUCT_MONTHLY=monthly
 EXPO_PUBLIC_RC_PRODUCT_YEARLY=yearly
 EXPO_PUBLIC_RC_PRODUCT_LIFETIME=lifetime
 
-# Cloud AI stays off in the product. Do not enable for cost or safety.
-EXPO_PUBLIC_AI_API_URL=
+# Cloud AI stays off. There is no client AI URL or key.
 
 # Expo / EAS
 EXPO_PUBLIC_EAS_PROJECT_ID=

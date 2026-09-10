@@ -82,7 +82,7 @@ export function buildDnaEvolution(input: {
         : styleForMonthActivity({ ...stats, baseStyle: input.dna.styleLabel });
 
     const dominantTraits = [
-      stats.journaled >= stats.researched ? 'Reflection Quality' : 'Research Efficiency',
+      stats.journaled >= stats.researched ? 'Reflection Quality' : 'Study efficiency',
       stats.skipped > 0 || stats.replay > 0 ? 'Patience' : 'Learning Momentum',
       stats.replay > 0 ? 'Learning Momentum' : 'Process Consistency',
     ];

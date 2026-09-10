@@ -64,7 +64,9 @@ function summarizeDrift(symbol: string, points: ConvictionDriftPoint[]): Convict
     const rv = last.researchValue - prev.researchValue;
     const dq = last.decisionQuality - prev.decisionQuality;
     if (Math.abs(rv) >= 5 || Math.abs(dq) >= 5) {
-      latestChange = last.note || `RVS ${rv >= 0 ? '+' : ''}${rv}, DQS ${dq >= 0 ? '+' : ''}${dq}`;
+      latestChange =
+        last.note ||
+        `Research quality ${rv >= 0 ? '+' : ''}${rv}, decision quality ${dq >= 0 ? '+' : ''}${dq}`;
     }
   }
 

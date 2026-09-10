@@ -1,89 +1,69 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Pressable, View } from 'react-native';
+import { useCallback, useMemo, useState } from 'react';
+import { View } from 'react-native';
 
-import { AiDebateCard } from '@/features/ai/components/AiDebateCard';
-import { useAiDebate } from '@/features/ai/hooks/useAiDebate';
 import { CandlestickChart } from '@/features/charts/components/CandlestickChart';
 import { IndicatorPanel } from '@/features/charts/components/IndicatorPanel';
 import { TimeframeSelector } from '@/features/charts/components/TimeframeSelector';
 import { useChartData } from '@/features/charts/hooks/useChartData';
 import type { IndicatorType } from '@/features/charts/utils/indicators';
 import { DataFreshnessBadge } from '@/features/decision/components/DataFreshnessBadge';
-import { ExplainabilityBlock } from '@/features/decision/components/ExplainabilityBlock';
-import { MtfConsensusCard } from '@/features/decision/components/MtfConsensusCard';
-import { useMtfConsensus, useRegime } from '@/features/decision/hooks/useDecision';
-import { useAppendDecisionRecord } from '@/features/decision-log/hooks/useDecisionLog';
-import type { DecisionAction } from '@/features/decision-log/services/decision-log.service';
 import { DataSourceBadge } from '@/features/markets/components/DataSourceBadge';
-import { getDataFreshness } from '@/features/markets/constants/freshness';
 import { useMarketQuote } from '@/features/markets/hooks/useMarketQuote';
 import { buildAssetFromSymbol } from '@/features/markets/services/market-data.service';
 import {
+  INSTRUMENT_CLASS_DISPLAY,
   INSTRUMENT_RESOLUTION_COPY,
   isUsableMarketPrice,
 } from '@/features/markets/types/instrument.types';
-import { ResearchLearnCard } from '@/features/research/components/ResearchLearnCard';
+import { AssetStudyNextSteps } from '@/features/research/components/AssetStudyNextSteps';
+import { LearnFromChartSection } from '@/features/research/components/LearnFromChartSection';
+import {
+  STUDY_CONCEPTS,
+  describeStudyProvenance,
+  educationalRsiReading,
+  findStudyReplayEpisodes,
+  studyDrillsForConcepts,
+  type StudyConcept,
+} from '@/features/research/services/asset-study.service';
+import { useSimulation } from '@/features/simulation/hooks/useSimulation';
 import { AddToWatchlistSheet } from '@/features/watchlists/components/AddToWatchlistSheet';
 import { AccessibleChartFrame } from '@/shared/components/charts/AccessibleChartFrame';
 import { ScreenScaffold } from '@/shared/components/layout/ScreenScaffold';
 import { CollapsibleSection } from '@/shared/components/patterns/CollapsibleSection';
 import { Badge } from '@/shared/components/ui/Badge';
-import { Button } from '@/shared/components/ui/Button';
 import { Surface } from '@/shared/components/ui/Surface';
 import { Skeleton } from '@/shared/components/ui/Skeleton';
 import { Text } from '@/shared/components/ui/Text';
 import type { CandleInterval, MarketType } from '@/shared/types/market';
 import { useResponsiveLayout } from '@/shared/hooks/useResponsiveLayout';
-import { cn } from '@/shared/utils/cn';
 import { composeChartSpokenSummary, spokenIntervalLabel } from '@/shared/utils/accessibility';
-import {
-  formatChange,
-  formatPercent,
-  formatPrice,
-  formatVolume,
-  getPriceColorClass,
-} from '@/shared/utils/format';
-import { getPriceAccessibilityLabel } from '@/shared/utils/accessibility';
+import { formatPrice, formatVolume } from '@/shared/utils/format';
 
-type DetailTab = 'decision' | 'chart' | 'indicators' | 'advanced';
-
-function resolveTab(raw?: string): DetailTab {
-  if (raw === 'chart') return 'chart';
-  if (raw === 'indicators' || raw === 'details') return 'indicators';
-  if (raw === 'advanced' || raw === 'debate' || raw === 'analysis') return 'advanced';
-  return 'decision';
-}
-
-export default function AssetDetailScreen() {
+export default function AssetStudyScreen() {
   const router = useRouter();
   const layout = useResponsiveLayout();
-  const params = useLocalSearchParams<{ symbol: string; marketType?: string; tab?: string }>();
+  const params = useLocalSearchParams<{
+    symbol: string;
+    marketType?: string;
+    tab?: string;
+    from?: string;
+  }>();
   const symbol = decodeURIComponent(params.symbol ?? '');
   const marketType = (params.marketType as MarketType) ?? undefined;
+  const fromSimulation = params.from === 'simulate';
 
   const [interval, setInterval] = useState<CandleInterval>('1d');
-  const [activeTab, setActiveTab] = useState<DetailTab>(() => resolveTab(params.tab));
-  const [activeIndicators, setActiveIndicators] = useState<IndicatorType[]>([
-    'rsi',
-    'macd',
-    'bollinger',
-  ]);
-  const [watchlistSheetVisible, setWatchlistSheetVisible] = useState(false);
+  const [activeIndicators, setActiveIndicators] = useState<IndicatorType[]>(['rsi', 'macd']);
+  const [studyListVisible, setStudyListVisible] = useState(false);
+  const [selectedConcept, setSelectedConcept] = useState<StudyConcept>(STUDY_CONCEPTS[0]);
 
   const asset = useMemo(() => buildAssetFromSymbol(symbol, marketType), [symbol, marketType]);
-
-  const needsChartWork =
-    activeTab === 'decision' || activeTab === 'chart' || activeTab === 'indicators';
-  const needsMtf = activeTab === 'decision' || activeTab === 'advanced';
-  const needsRegime = activeTab === 'decision' || activeTab === 'advanced';
-  const needsDebate = activeTab === 'advanced';
-
+  const { account } = useSimulation();
   const { data: quote, isLoading: quoteLoading } = useMarketQuote({
     symbol,
     marketType: asset.marketType,
   });
-
   const {
     candles,
     analysis,
@@ -95,56 +75,20 @@ export default function AssetDetailScreen() {
     interval,
     marketType: asset.marketType,
     indicators: activeIndicators,
-    enabled: needsChartWork,
+    enabled: true,
   });
-  const mtfQuery = useMtfConsensus(symbol, { enabled: needsMtf });
-  const regimeQuery = useRegime({ enabled: needsRegime });
-  const debateQuery = useAiDebate(symbol, interval, needsDebate);
-  const appendDecision = useAppendDecisionRecord();
-  const loggedRef = useRef(false);
-  const [decisionOutcome, setDecisionOutcome] = useState<DecisionAction | null>(null);
 
-  useEffect(() => {
-    setActiveTab(resolveTab(params.tab));
-  }, [params.tab]);
-
-  useEffect(() => {
-    if (!symbol || !regimeQuery.data || loggedRef.current) return;
-    loggedRef.current = true;
-    void appendDecision.mutateAsync({
-      symbol,
-      regime: regimeQuery.data.label,
-      action: 'opened',
-      bias: analysis?.summary.overallBias,
-      note: 'Asset decision tab opened',
-      eventKey: `asset-opened:${symbol.toUpperCase()}:${new Date().toISOString().slice(0, 10)}`,
-    });
-  }, [symbol, regimeQuery.data, analysis?.summary.overallBias, appendDecision]);
-
-  const recordOutcome = useCallback(
-    (action: 'researched' | 'skipped' | 'ignored') => {
-      if (!symbol || !regimeQuery.data || !analysis) return;
-      const score = Math.round(analysis.summary.confidence * 100);
-      const invalidation =
-        analysis.summary.overallBias === 'bearish'
-          ? analysis.summary.resistanceLevels[0]
-          : analysis.summary.supportLevels[0];
-      appendDecision.mutate(
-        {
-          symbol,
-          regime: regimeQuery.data.label,
-          action,
-          setupScore: score,
-          bias: analysis.summary.overallBias,
-          invalidation: invalidation != null ? String(invalidation) : undefined,
-          note: `Asset decision · ${analysis.summary.trend} · chart context ${score}`,
-          eventKey: `asset-outcome:${symbol.toUpperCase()}:${action}:${new Date().toISOString().slice(0, 10)}`,
-        },
-        { onSuccess: () => setDecisionOutcome(action) },
-      );
-    },
-    [analysis, appendDecision, regimeQuery.data, symbol],
+  const provenance = describeStudyProvenance({
+    kind: chartSource?.kind ?? quote?.dataSourceKind,
+    provider: chartSource?.provider,
+  });
+  const rsiReading = educationalRsiReading(analysis?.indicators.rsi);
+  const replayEpisodes = useMemo(() => findStudyReplayEpisodes(asset.symbol), [asset.symbol]);
+  const drills = useMemo(
+    () => studyDrillsForConcepts([selectedConcept, ...STUDY_CONCEPTS]),
+    [selectedConcept],
   );
+  const classLabel = INSTRUMENT_CLASS_DISPLAY[asset.assetClass] ?? asset.marketType;
 
   const toggleIndicator = useCallback((indicator: IndicatorType) => {
     setActiveIndicators((prev) =>
@@ -152,450 +96,140 @@ export default function AssetDetailScreen() {
     );
   }, []);
 
-  const changeClass = quote ? getPriceColorClass(quote.change) : 'text-text-secondary';
-  const researchPriority = analysis ? Math.round(analysis.summary.confidence * 100) : null;
-
-  const tabs: { key: DetailTab; label: string }[] = [
-    { key: 'decision', label: 'Decision' },
-    { key: 'chart', label: 'Chart' },
-    { key: 'indicators', label: 'Indicators' },
-    { key: 'advanced', label: 'Advanced' },
-  ];
-
   return (
     <ScreenScaffold
-      title={asset.symbol}
-      subtitle={asset.name}
+      eyebrow="Study an asset"
+      title={`Study ${asset.symbol}`}
+      subtitle="What can I learn by studying this asset? Not whether to trade it."
       showBack
+      onBack={fromSimulation ? () => router.back() : undefined}
       contentClassName="pb-10"
       testID="asset-detail-screen"
     >
       <View className="gap-4">
+        <Surface padding="sm" testID="asset-identity">
+          <Text variant="h3" headingLevel={3}>
+            {asset.name}
+          </Text>
+          <Text variant="caption" className="mt-1 text-text-secondary">
+            {classLabel}
+            {asset.exchange ? ` · ${asset.exchange}` : ''}
+          </Text>
+          <View className="mt-2 flex-row flex-wrap items-center gap-2">
+            <Badge label={provenance.kindLabel} size="sm" variant="outline" />
+            <Badge label={provenance.sourceLabel} size="sm" variant="outline" />
+            {quote?.dataSourceKind ? <DataSourceBadge kind={quote.dataSourceKind} /> : null}
+            <DataFreshnessBadge fetchedAt={quote?.fetchedAt ?? dataUpdatedAt} />
+          </View>
+          <Text variant="caption" className="mt-2 text-text-tertiary">
+            {provenance.detail}
+          </Text>
+        </Surface>
+
         {quoteLoading ? (
-          <Skeleton height={48} />
+          <Skeleton height={40} />
         ) : quote && isUsableMarketPrice(quote.price) ? (
           <Surface padding="sm" tone="subtle" testID="asset-price-provenance">
-            <Text
-              variant="price-lg"
-              className={changeClass}
-              accessibilityLabel={getPriceAccessibilityLabel(
-                asset.symbol,
-                quote.price,
-                quote.changePercent,
-              )}
-            >
+            <Text variant="caption" className="text-text-tertiary">
+              Last print · study context · {provenance.kindLabel}
+            </Text>
+            <Text variant="body" className="mt-1">
               {formatPrice(quote.price, quote.currency)}
             </Text>
-            <View className="mt-1 flex-row flex-wrap items-center gap-2">
-              <Text variant="body-sm" className={changeClass}>
-                {quote.changePercent > 0 ? 'Up' : quote.changePercent < 0 ? 'Down' : 'Unchanged'}{' '}
-                {formatChange(quote.change, quote.currency)} ({formatPercent(quote.changePercent)})
-              </Text>
-              <Badge label={quote.status} size="sm" variant="outline" />
-              <DataSourceBadge kind={quote.dataSourceKind} />
-              <DataFreshnessBadge fetchedAt={quote.fetchedAt ?? dataUpdatedAt} />
-            </View>
+            <Text variant="caption" className="mt-1 text-text-tertiary">
+              Open {formatPrice(quote.open, quote.currency)} · High{' '}
+              {formatPrice(quote.high, quote.currency)} · Low {formatPrice(quote.low, quote.currency)}{' '}
+              · Vol {formatVolume(quote.volume)}
+            </Text>
           </Surface>
         ) : (
           <Surface padding="sm" tone="subtle" testID="asset-price-unavailable">
             <Text variant="body">{INSTRUMENT_RESOLUTION_COPY.priceUnavailable}</Text>
             <Text variant="caption" className="mt-1 text-text-tertiary">
-              {INSTRUMENT_RESOLUTION_COPY.reliableDataOnly}
+              The chart below can still be used as a study specimen.
             </Text>
           </Surface>
         )}
 
-        <View className="flex-row rounded-2xl bg-surface p-1" accessibilityRole="tablist">
-          {tabs.map((tab) => (
-            <Pressable
-              key={tab.key}
-              onPress={() => {
-                setActiveTab(tab.key);
-                router.replace({
-                  pathname: '/asset/[symbol]',
-                  params: { ...params, symbol, tab: tab.key },
-                } as never);
-              }}
-              accessibilityRole="tab"
-              accessibilityState={{ selected: activeTab === tab.key }}
-              accessibilityLabel={`Show ${tab.label} for ${asset.symbol}`}
-              testID={`asset-tab-${tab.key}`}
-              className={cn(
-                'min-h-11 flex-1 justify-center rounded-lg py-2',
-                activeTab === tab.key && 'bg-accent-muted',
-              )}
-            >
-              <Text
-                variant="caption"
-                className={cn(
-                  'text-center font-semibold',
-                  activeTab === tab.key ? 'text-accent' : 'text-text-secondary',
-                )}
-              >
-                {tab.label}
+        <View testID="asset-chart-panel">
+          <Text variant="label" className="mb-2 text-text-tertiary">
+            Educational chart
+          </Text>
+          <TimeframeSelector value={interval} onChange={setInterval} />
+          <AccessibleChartFrame
+            title={`${asset.symbol} educational chart`}
+            timeRange={spokenIntervalLabel(interval) ?? interval}
+            source={
+              chartSource
+                ? `${provenance.kindLabel} · ${chartSource.provider}`
+                : provenance.sourceLabel
+            }
+            freshness={
+              chartSource
+                ? `Fetched ${new Date(chartSource.fetchedAt).toLocaleTimeString()}`
+                : 'Freshness unknown'
+            }
+            summary={composeChartSpokenSummary({
+              symbol: asset.symbol,
+              candles,
+              intervalLabel: spokenIntervalLabel(interval),
+              dataKind: chartSource?.kind,
+            })}
+            textualAlternative={composeChartSpokenSummary({
+              symbol: asset.symbol,
+              candles,
+              intervalLabel: spokenIntervalLabel(interval),
+              dataKind: chartSource?.kind,
+            })}
+          >
+            <Surface padding="sm" className="mt-2 overflow-hidden">
+              <CandlestickChart
+                candles={candles}
+                isLoading={chartLoading}
+                currency={quote?.currency}
+                height={layout.isLandscape ? 360 : 300}
+                symbol={asset.symbol}
+                intervalLabel={spokenIntervalLabel(interval)}
+                dataKind={chartSource?.kind}
+                accessible={false}
+              />
+            </Surface>
+          </AccessibleChartFrame>
+
+          {rsiReading ? (
+            <Surface padding="sm" tone="subtle" className="mt-3" testID="asset-rsi-reading">
+              <Text variant="label">RSI: {rsiReading.value}</Text>
+              <Text variant="caption" className="mt-1 text-text-secondary">
+                {rsiReading.lessonHint}
               </Text>
-            </Pressable>
-          ))}
+            </Surface>
+          ) : null}
+
+          <CollapsibleSection
+            title="Indicator overlays"
+            description="Readings on labelled data. They describe the recent tape — they do not tell you what to buy."
+            defaultExpanded={false}
+          >
+            <IndicatorPanel active={activeIndicators} onToggle={toggleIndicator} />
+          </CollapsibleSection>
         </View>
 
-        <ResearchLearnCard tab={activeTab} indicators={activeIndicators} symbol={symbol} />
+        <LearnFromChartSection symbol={asset.symbol} onSelectConcept={setSelectedConcept} />
 
-        {activeTab === 'decision' ? (
-          <View className="gap-4" testID="asset-decision-panel">
-            {!analysis && chartLoading ? <Skeleton height={180} rounded="lg" /> : null}
-            {analysis ? (
-              <>
-                <Surface>
-                  <Text variant="label" className="text-text-tertiary">
-                    Research priority
-                  </Text>
-                  <Text variant="h2" headingLevel={2} className="mt-2">
-                    {researchPriority != null && researchPriority >= 65
-                      ? 'Worth deeper research'
-                      : researchPriority != null && researchPriority >= 40
-                        ? 'Worth a watchlist check'
-                        : 'Low research priority today'}
-                  </Text>
-                  <Text variant="body-sm" className="mt-2 text-text-secondary">
-                    Research value {researchPriority}% · {analysis.summary.overallBias} technical
-                    bias · {analysis.summary.trend}. This is not a buy or sell signal.
-                  </Text>
-                </Surface>
-
-                <CollapsibleSection
-                  title="Decision summary"
-                  description="Thesis, invalidation, and timeframe context."
-                  defaultExpanded={false}
-                >
-                  <Text variant="body-sm" className="text-text-secondary">
-                    Thesis: {analysis.summary.trend} with {analysis.summary.rsiSignal} RSI and{' '}
-                    {analysis.summary.macdSignal} MACD context.
-                  </Text>
-                  {analysis.summary.supportLevels[0] ? (
-                    <Text variant="caption" className="mt-2 text-bearish">
-                      Invalidation (long thesis): below{' '}
-                      {formatPrice(analysis.summary.supportLevels[0], quote?.currency)}
-                    </Text>
-                  ) : null}
-                  {analysis.summary.resistanceLevels[0] ? (
-                    <Text variant="caption" className="mt-1 text-bearish">
-                      Invalidation (short thesis): above{' '}
-                      {formatPrice(analysis.summary.resistanceLevels[0], quote?.currency)}
-                    </Text>
-                  ) : null}
-                  {mtfQuery.data ? <MtfConsensusCard data={mtfQuery.data} /> : null}
-                </CollapsibleSection>
-
-                <Surface>
-                  <Text variant="caption" className="mb-1 font-semibold text-text-tertiary">
-                    Attention decision
-                  </Text>
-                  <Text variant="h3" headingLevel={3}>
-                    What should happen next?
-                  </Text>
-                  <Text variant="caption" className="mt-1 text-text-secondary">
-                    Log the research outcome — not a buy or sell signal.
-                  </Text>
-                  <View className="mt-3 flex-row flex-wrap gap-2">
-                    <Button
-                      size="sm"
-                      onPress={() => recordOutcome('researched')}
-                      disabled={appendDecision.isPending}
-                    >
-                      Research
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onPress={() => recordOutcome('skipped')}
-                      disabled={appendDecision.isPending}
-                    >
-                      Skip
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onPress={() => recordOutcome('ignored')}
-                      disabled={appendDecision.isPending}
-                    >
-                      Dismiss
-                    </Button>
-                  </View>
-                  {decisionOutcome ? (
-                    <Text variant="caption" className="mt-2 text-accent">
-                      Logged:{' '}
-                      {decisionOutcome === 'researched'
-                        ? 'Research'
-                        : decisionOutcome === 'skipped'
-                          ? 'Skip'
-                          : 'Dismiss'}
-                    </Text>
-                  ) : null}
-                </Surface>
-
-                <CollapsibleSection
-                  title="Also on this case"
-                  description="Ask, watchlist, journal, and explainability — after the attention decision."
-                  defaultExpanded={false}
-                >
-                  <View className="flex-row flex-wrap gap-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onPress={() =>
-                        router.push({ pathname: '/ai', params: { symbol, source: 'asset' } } as never)
-                      }
-                    >
-                      Ask
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onPress={() => setWatchlistSheetVisible(true)}
-                    >
-                      Watch
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onPress={() =>
-                        router.push(
-                          `/journal?symbol=${encodeURIComponent(symbol)}` as never,
-                        )
-                      }
-                    >
-                      Journal this research
-                    </Button>
-                  </View>
-                  <ExplainabilityBlock
-                    explainability={{
-                      confidence: Math.round(analysis.summary.confidence * 100),
-                      factors: [
-                        { label: 'Trend', agrees: true, detail: analysis.summary.trend },
-                        {
-                          label: 'RSI',
-                          agrees: analysis.summary.rsiSignal !== 'neutral',
-                          detail: analysis.summary.rsiSignal,
-                        },
-                        {
-                          label: 'MACD',
-                          agrees: analysis.summary.macdSignal !== 'neutral',
-                          detail: analysis.summary.macdSignal,
-                        },
-                      ],
-                      agrees: 2,
-                      disagrees: 1,
-                      dataAsOf: dataUpdatedAt ?? Date.now(),
-                      freshness: getDataFreshness(chartSource?.fetchedAt),
-                      reasoning:
-                        'Decision tab summarizes whether this symbol deserves research time today.',
-                    }}
-                  />
-                </CollapsibleSection>
-              </>
-            ) : null}
-          </View>
-        ) : null}
-
-        {activeTab === 'chart' ? (
-          <View className="gap-4" testID="asset-chart-panel">
-            <TimeframeSelector value={interval} onChange={setInterval} />
-            {quote ? (
-              <View className="flex-row flex-wrap gap-4">
-                <View>
-                  <Text variant="caption">Open</Text>
-                  <Text variant="mono">{formatPrice(quote.open, quote.currency)}</Text>
-                </View>
-                <View>
-                  <Text variant="caption">High</Text>
-                  <Text variant="mono">{formatPrice(quote.high, quote.currency)}</Text>
-                </View>
-                <View>
-                  <Text variant="caption">Low</Text>
-                  <Text variant="mono">{formatPrice(quote.low, quote.currency)}</Text>
-                </View>
-                <View>
-                  <Text variant="caption">Volume</Text>
-                  <Text variant="mono">{formatVolume(quote.volume)}</Text>
-                </View>
-              </View>
-            ) : null}
-            <AccessibleChartFrame
-              title={`${asset.symbol} chart`}
-              timeRange={spokenIntervalLabel(interval) ?? interval}
-              source={
-                chartSource
-                  ? `${chartSource.kind} · ${chartSource.provider}`
-                  : 'Source pending'
-              }
-              freshness={
-                chartSource
-                  ? `Fetched ${new Date(chartSource.fetchedAt).toLocaleTimeString()}`
-                  : 'Freshness unknown'
-              }
-              summary={composeChartSpokenSummary({
-                symbol: asset.symbol,
-                candles,
-                intervalLabel: spokenIntervalLabel(interval),
-                dataKind: chartSource?.kind,
-              })}
-              textualAlternative={
-                quote
-                  ? composeChartSpokenSummary({
-                      symbol: asset.symbol,
-                      candles,
-                      intervalLabel: spokenIntervalLabel(interval),
-                      dataKind: chartSource?.kind,
-                      extraNote: `Last ${formatPrice(quote.price, quote.currency)}; open ${formatPrice(quote.open, quote.currency)}; high ${formatPrice(quote.high, quote.currency)}; low ${formatPrice(quote.low, quote.currency)}`,
-                    })
-                  : composeChartSpokenSummary({
-                      symbol: asset.symbol,
-                      candles,
-                      intervalLabel: spokenIntervalLabel(interval),
-                      dataKind: chartSource?.kind,
-                    })
-              }
-            >
-              <Surface padding="sm" className="overflow-hidden">
-                <CandlestickChart
-                  candles={candles}
-                  isLoading={chartLoading}
-                  currency={quote?.currency}
-                  height={layout.isLandscape ? 360 : 300}
-                  symbol={asset.symbol}
-                  intervalLabel={spokenIntervalLabel(interval)}
-                  dataKind={chartSource?.kind}
-                  accessible={false}
-                />
-              </Surface>
-            </AccessibleChartFrame>
-          </View>
-        ) : null}
-
-        {activeTab === 'indicators' ? (
-          <View className="mb-2 gap-4" testID="asset-indicators-panel">
-            <IndicatorPanel active={activeIndicators} onToggle={toggleIndicator} />
-            {analysis?.indicators.rsi ? (
-              <Surface>
-                <Text variant="label" className="mb-2">
-                  RSI (14)
-                </Text>
-                <Text variant="price">
-                  {(
-                    (analysis.indicators.rsi as { values: { value: number }[] }).values.slice(-1)[0]
-                      ?.value ?? 0
-                  ).toFixed(2)}
-                </Text>
-              </Surface>
-            ) : null}
-            {analysis?.indicators.macd ? (
-              <Surface>
-                <Text variant="label" className="mb-2">
-                  MACD
-                </Text>
-                {(() => {
-                  const macd = (
-                    analysis.indicators.macd as {
-                      values: { macd: number; signal: number; histogram: number }[];
-                    }
-                  ).values.slice(-1)[0];
-                  return macd ? (
-                    <View className="gap-1">
-                      <Text variant="mono">MACD: {macd.macd.toFixed(4)}</Text>
-                      <Text variant="mono">Signal: {macd.signal.toFixed(4)}</Text>
-                      <Text
-                        variant="mono"
-                        className={macd.histogram >= 0 ? 'text-bullish' : 'text-bearish'}
-                      >
-                        Histogram: {macd.histogram.toFixed(4)}
-                      </Text>
-                    </View>
-                  ) : null;
-                })()}
-              </Surface>
-            ) : null}
-          </View>
-        ) : null}
-
-        {activeTab === 'advanced' ? (
-          <View className="gap-4" testID="asset-advanced-panel">
-            {analysis?.summary.supportLevels.length ? (
-              <Surface>
-                <Text variant="label" className="mb-2">
-                  Support levels
-                </Text>
-                {analysis.summary.supportLevels.map((level, i) => (
-                  <Text key={i} variant="mono" className="text-bullish">
-                    {formatPrice(level, quote?.currency)}
-                  </Text>
-                ))}
-              </Surface>
-            ) : null}
-            {analysis?.summary.resistanceLevels.length ? (
-              <Surface>
-                <Text variant="label" className="mb-2">
-                  Resistance levels
-                </Text>
-                {analysis.summary.resistanceLevels.map((level, i) => (
-                  <Text key={i} variant="mono" className="text-bearish">
-                    {formatPrice(level, quote?.currency)}
-                  </Text>
-                ))}
-              </Surface>
-            ) : null}
-            {analysis?.summary.recentPatterns.length ? (
-              <Surface>
-                <Text variant="label" className="mb-2">
-                  Recent patterns
-                </Text>
-                {analysis.summary.recentPatterns.map((pattern, i) => (
-                  <Text key={i} variant="body-sm" className="capitalize">
-                    {pattern}
-                  </Text>
-                ))}
-              </Surface>
-            ) : null}
-
-            <CollapsibleSection
-              title="Evidence debate"
-              description="Bull and bear evidence for this case — not a recommendation."
-              defaultExpanded={false}
-            >
-              {debateQuery.isLoading && !debateQuery.debate ? (
-                <View className="gap-3">
-                  <Skeleton height={120} rounded="lg" />
-                  <Skeleton height={160} rounded="lg" />
-                </View>
-              ) : null}
-              {debateQuery.debate ? <AiDebateCard debate={debateQuery.debate} /> : null}
-              {!debateQuery.isLoading && !debateQuery.debate ? (
-                <Surface>
-                  <Text variant="h3" headingLevel={3}>
-                    Debate unavailable
-                  </Text>
-                  <Text variant="body-sm" className="mt-2 text-text-secondary">
-                    We could not assemble enough evidence for a balanced debate. Check market-data
-                    connectivity and try again — we will not invent bull or bear points.
-                  </Text>
-                  <Button
-                    className="mt-3 self-start"
-                    size="sm"
-                    variant="outline"
-                    onPress={() => void debateQuery.refetch()}
-                  >
-                    Retry debate
-                  </Button>
-                </Surface>
-              ) : null}
-            </CollapsibleSection>
-          </View>
-        ) : null}
+        <AssetStudyNextSteps
+          symbol={asset.symbol}
+          drills={drills}
+          replayEpisodes={replayEpisodes}
+          fromSimulation={fromSimulation}
+          hasSimulationAccount={Boolean(account)}
+          onSaveStudyList={() => setStudyListVisible(true)}
+        />
       </View>
 
       <AddToWatchlistSheet
-        visible={watchlistSheetVisible}
+        visible={studyListVisible}
         symbol={symbol}
-        onClose={() => setWatchlistSheetVisible(false)}
+        onClose={() => setStudyListVisible(false)}
       />
     </ScreenScaffold>
   );

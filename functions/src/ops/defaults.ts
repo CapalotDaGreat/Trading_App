@@ -7,20 +7,8 @@ export const SERVER_DEFAULT_FLAGS = {
     percentage: 100,
   },
   aiChatEnabled: { key: 'aiChatEnabled', kind: 'boolean', enabled: true, percentage: 100 },
-  aiTrustPanelsEnabled: {
-    key: 'aiTrustPanelsEnabled',
-    kind: 'boolean',
-    enabled: true,
-    percentage: 100,
-  },
   personalIntelligenceEnabled: {
     key: 'personalIntelligenceEnabled',
-    kind: 'boolean',
-    enabled: true,
-    percentage: 100,
-  },
-  decisionGraphEnabled: {
-    key: 'decisionGraphEnabled',
     kind: 'boolean',
     enabled: true,
     percentage: 100,
@@ -33,27 +21,9 @@ export const SERVER_DEFAULT_FLAGS = {
     enabled: true,
     percentage: 100,
   },
-  paywallExperimentsEnabled: {
-    key: 'paywallExperimentsEnabled',
-    kind: 'percentage',
-    enabled: false,
-    percentage: 0,
-  },
   aggressiveMarketPollingEnabled: {
     key: 'aggressiveMarketPollingEnabled',
     kind: 'boolean',
-    enabled: false,
-    percentage: 100,
-  },
-  betaReplayStudioEnabled: {
-    key: 'betaReplayStudioEnabled',
-    kind: 'beta',
-    enabled: false,
-    percentage: 100,
-  },
-  internalDiagnosticsEnabled: {
-    key: 'internalDiagnosticsEnabled',
-    kind: 'internal',
     enabled: false,
     percentage: 100,
   },

@@ -11,8 +11,8 @@ const ACTIONS: {
 }[] = [
   {
     id: 'research',
-    label: 'Research',
-    detail: 'This deserves a focused research block',
+    label: 'Study',
+    detail: 'This deserves a focused study block',
   },
   {
     id: 'wait',

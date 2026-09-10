@@ -44,7 +44,7 @@ export function BulletList({ items }: { items: string[] }) {
   if (items.length === 0) {
     return (
       <Text variant="body-sm" className="text-text-secondary">
-        Still collecting signal — keep logging process.
+        Still collecting evidence — keep logging process.
       </Text>
     );
   }

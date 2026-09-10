@@ -6,7 +6,7 @@ import { Chip } from '@/shared/components/ui/Chip';
 import { GlassCard } from '@/shared/components/ui/GlassCard';
 import { Text } from '@/shared/components/ui/Text';
 import { formatDate } from '@/shared/utils/date';
-import { formatChange, formatPercent, formatPrice, getPriceColorClass } from '@/shared/utils/format';
+import { formatChange, formatPercent, formatPrice } from '@/shared/utils/format';
 
 import type { JournalEntry } from '../types/journal.types';
 
@@ -16,19 +16,15 @@ interface JournalEntryCardProps {
   onDelete?: (entryId: string) => void;
 }
 
-const outcomeVariant: Record<
-  JournalEntry['outcome'],
-  'success' | 'danger' | 'warning' | 'outline'
-> = {
-  win: 'success',
-  loss: 'danger',
-  breakeven: 'warning',
-  open: 'outline',
+const outcomeLabel: Record<JournalEntry['outcome'], string> = {
+  win: 'closed +',
+  loss: 'closed −',
+  breakeven: 'flat',
+  open: 'open',
 };
 
 export function JournalEntryCard({ entry, onPress, onDelete }: JournalEntryCardProps) {
   const router = useRouter();
-  const pnlColor = getPriceColorClass(entry.pnl ?? 0);
   const isProcessNote = entry.quantity === 0 && entry.outcome === 'open';
 
   return (
@@ -45,8 +41,8 @@ export function JournalEntryCard({ entry, onPress, onDelete }: JournalEntryCardP
               <Text variant="h3">{entry.symbol}</Text>
               <Badge label={entry.direction} variant="outline" size="sm" />
               <Badge
-                label={isProcessNote ? 'process' : entry.outcome}
-                variant={isProcessNote ? 'outline' : outcomeVariant[entry.outcome]}
+                label={isProcessNote ? 'process' : outcomeLabel[entry.outcome]}
+                variant="outline"
                 size="sm"
               />
               {entry.emotion ? <Badge label={entry.emotion} variant="outline" size="sm" /> : null}
@@ -115,14 +111,17 @@ export function JournalEntryCard({ entry, onPress, onDelete }: JournalEntryCardP
           <View className="items-end">
             {entry.pnl !== undefined ? (
               <>
-                <Text variant="price" className={pnlColor}>
+                <Text variant="caption" className="text-text-secondary">
                   {formatChange(entry.pnl)}
                 </Text>
                 {entry.pnlPercent !== undefined ? (
-                  <Text variant="caption" className={pnlColor}>
+                  <Text variant="caption" className="text-text-tertiary">
                     {formatPercent(entry.pnlPercent)}
                   </Text>
                 ) : null}
+                <Text variant="caption" className="mt-1 text-text-tertiary">
+                  Context, not a grade
+                </Text>
               </>
             ) : (
               <Text variant="caption" className="text-text-tertiary">

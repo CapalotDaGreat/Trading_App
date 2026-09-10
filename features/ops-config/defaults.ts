@@ -29,9 +29,7 @@ export const DEFAULT_OPS_FLAGS: OpsFeatureFlags = {
     'Emergency kill — disables high-risk surfaces while keeping Today/guest usable',
   ),
   aiChatEnabled: flag('aiChatEnabled', 'boolean', true, 100, 'Ask AI chat'),
-  aiTrustPanelsEnabled: flag('aiTrustPanelsEnabled', 'boolean', true, 100),
   personalIntelligenceEnabled: flag('personalIntelligenceEnabled', 'boolean', true, 100),
-  decisionGraphEnabled: flag('decisionGraphEnabled', 'boolean', true, 100),
   mentorEnabled: flag('mentorEnabled', 'boolean', true, 100),
   academyEnabled: flag('academyEnabled', 'boolean', true, 100),
   decisionReinforcementEnabled: flag(
@@ -41,10 +39,7 @@ export const DEFAULT_OPS_FLAGS: OpsFeatureFlags = {
     100,
     'Derived Decision Reinforcement Layer — Replay / DNA / Mentor / Academy / Today continuity',
   ),
-  paywallExperimentsEnabled: flag('paywallExperimentsEnabled', 'percentage', false, 0),
   aggressiveMarketPollingEnabled: flag('aggressiveMarketPollingEnabled', 'boolean', false, 100),
-  betaReplayStudioEnabled: flag('betaReplayStudioEnabled', 'beta', false, 100),
-  internalDiagnosticsEnabled: flag('internalDiagnosticsEnabled', 'internal', false, 100),
 };
 
 export const DEFAULT_OPS_REMOTE: OpsRemoteConfig = {

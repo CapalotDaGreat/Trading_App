@@ -1,3 +1,4 @@
+import { replayPracticeDifficulty } from '@/features/decision-replay/services/replay-practice-difficulty.service';
 import { inferReplayTvEventKind, inferReplayTvTopics } from '@/features/decision-replay-tv/services/replay-tv-boundary.service';
 import type {
   ReplayTvCollectionId,
@@ -9,7 +10,7 @@ import type {
   ReplayTvTopic,
 } from '@/features/decision-replay-tv/types/replay-tv.types';
 
-export type ReplayTvDifficultyFilter = 'beginner' | 'intermediate' | 'advanced' | 'all';
+export type ReplayTvDifficultyFilter = 'beginner' | 'intermediate' | 'advanced' | 'mixed' | 'all';
 export type ReplayTvMarketFilter = ReplayTvMarketFocus | 'all';
 export type ReplayTvThemeFilter =
   | 'all'
@@ -45,9 +46,7 @@ export function inferReplayTvEpisodeKinds(episode: ReplayTvEpisode): ReplayTvEpi
 
 export function matchesDifficulty(episode: ReplayTvEpisode, filter: ReplayTvDifficultyFilter): boolean {
   if (filter === 'all') return true;
-  if (filter === 'beginner') return episode.difficulty === 'foundation';
-  if (filter === 'intermediate') return episode.difficulty === 'intermediate';
-  return episode.difficulty === 'advanced' || episode.difficulty === 'expert';
+  return replayPracticeDifficulty(episode) === filter;
 }
 
 export function matchesMarket(episode: ReplayTvEpisode, filter: ReplayTvMarketFilter): boolean {

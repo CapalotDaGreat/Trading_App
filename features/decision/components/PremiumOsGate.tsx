@@ -26,7 +26,7 @@ const TEASERS: Record<DecisionOsFeature, string> = {
   weeklyReviews: 'Your weekly process review has new patterns to explore.',
   portfolioIntelligence: 'Portfolio concentration and stress insights are ready.',
   advancedReplay: 'Advanced Process Tape comparisons are available.',
-  convictionDrift: 'Your Decision Graph has updated with new process edges.',
+  convictionDrift: 'Your Decision Graph has updated with new process patterns.',
   decisionLab: 'Decision Lab challenges and advanced stats are ready to practice.',
 };
 

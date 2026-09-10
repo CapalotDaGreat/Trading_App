@@ -17,8 +17,8 @@ function clamp(n: number, min = 0, max = 100): number {
 }
 
 /**
- * Research Value Score — "How valuable is spending time researching this?"
- * Never a price-direction probability.
+ * Research quality — how complete the study case is (evidence, fit, unknowns).
+ * Never a price-direction probability or a trade-opportunity rank.
  */
 export function computeResearchValueScore(input: {
   setup: SetupCardData;

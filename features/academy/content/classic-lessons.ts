@@ -689,7 +689,7 @@ export const CLASSIC_LESSONS: Lesson[] = [
     tags: ['fundamentals', 'catalysts', 'narrative'],
     relatedLessonIds: ['fund-calendar', 'dec-research-filter'],
     practiceLinks: [
-      { label: 'Economic calendar', href: '/calendar' },
+      { label: 'Market Events', href: '/events' },
       { label: 'Markets', href: '/markets' },
     ],
     sections: [

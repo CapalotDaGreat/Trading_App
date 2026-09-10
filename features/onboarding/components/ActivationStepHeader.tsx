@@ -38,7 +38,7 @@ export function activationStepSubtitle(step: number, isDemo: boolean): string {
   if (step === 1) {
     return isDemo
       ? 'This uses the seeded demo universe and its real decision-brief pipeline.'
-      : 'Generated from your selected universe and research budget.';
+      : 'Generated from your selected universe and study time budget.';
   }
-  return 'Research or skip is a process outcome—not a buy or sell signal.';
+  return 'Study or skip is a process outcome—not a buy or sell signal.';
 }

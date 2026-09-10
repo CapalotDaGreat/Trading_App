@@ -36,7 +36,7 @@ export const CHART_LESSONS: Lesson[] = [
     practiceLinks: [
       {
         label: 'Inspect RSI on a research chart',
-        href: '/asset/AAPL?tab=indicators',
+        href: '/asset/AAPL',
         description: 'Open a chart, then come back and write what RSI does not tell you',
       },
       { label: 'Chart Replay', href: '/decision/replay' },

@@ -9,7 +9,7 @@ import {
 
 describe('product trust language', () => {
   it('defines distinct score meanings without predictive confidence', () => {
-    expect(TRUST_LANGUAGE.rvs.meaning).toMatch(/research/i);
+    expect(TRUST_LANGUAGE.rvs.meaning).toMatch(/evidence|thesis|unknowns/i);
     expect(TRUST_LANGUAGE.dqs.meaning).toMatch(/process|checklist/i);
     expect(TRUST_LANGUAGE.technicalBias.meaning).toMatch(/not a directional forecast/i);
     expect(TRUST_LANGUAGE.outputQuality.meaning).toMatch(/not probability/i);
@@ -27,7 +27,7 @@ describe('product trust language', () => {
     expect(waitingReviewCopy(1)).toBe('1 item is available to review when you want.');
   });
 
-  it('uses research-reminder language instead of price-move urgency', () => {
+  it('uses study-reminder language instead of price-move urgency', () => {
     const reminder = composeNamedLevelReminder({
       symbol: 'EURUSD',
     });

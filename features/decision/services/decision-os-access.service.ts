@@ -3,7 +3,7 @@ import type { EntitlementCapability } from '@/shared/constants/entitlements';
 import type { SubscriptionTier } from '@/shared/constants/subscription';
 
 /**
- * Advanced Decision OS capabilities.
+ * Advanced decision-training capabilities.
  * Core learning (brief, academy basics, journal, basic radar) stays free.
  */
 export type DecisionOsFeature =
@@ -47,7 +47,7 @@ export function decisionOsUpsellCopy(feature: DecisionOsFeature): string {
       'See portfolio concentration, stress tests, and holding context in more depth.',
     advancedReplay: 'View your personalised coaching with advanced Process Tape insights.',
     convictionDrift:
-      'See Research Value, Decision Quality, and process score evolution during replay.',
+      'See research quality, decision quality, and process score evolution during replay.',
     decisionLab:
       'Included with Premium — Decision Lab challenges, advanced stats, and multi-scenario practice.',
   };

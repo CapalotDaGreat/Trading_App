@@ -13,6 +13,7 @@ import { EmptyState } from '@/shared/components/feedback/EmptyState';
 import { StatusState } from '@/shared/components/feedback/StatusState';
 import { ScreenScaffold } from '@/shared/components/layout/ScreenScaffold';
 import { CollapsibleSection } from '@/shared/components/patterns/CollapsibleSection';
+import { Button } from '@/shared/components/ui/Button';
 import { Text } from '@/shared/components/ui/Text';
 import { useTheme } from '@/shared/hooks/useTheme';
 
@@ -69,7 +70,7 @@ export default function AlertsScreen() {
   return (
     <ScreenScaffold
       title="Alerts"
-      subtitle="Quiet reminders when a level you named is reached — not a prompt to trade."
+      subtitle="Optional study reminders. Prefer Events, Practice, and Journal — not a price-monitoring desk."
       showBack
       onBack={() => router.back()}
       contentClassName="pb-8"
@@ -91,9 +92,12 @@ export default function AlertsScreen() {
             color={colors.accent.primary}
           />
           <Text variant="caption" className="flex-1 leading-relaxed text-text-secondary">
-            {summary}
+            {summary} Prefer Market Events, Practice, and Journal over watching prices.
           </Text>
         </View>
+        <Button size="sm" variant="outline" onPress={() => router.push('/events' as never)}>
+          Open Market Events
+        </Button>
 
         <Text variant="caption" className="text-text-tertiary">
           {alerts.length}/{alertLimit} alerts used

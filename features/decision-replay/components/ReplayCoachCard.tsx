@@ -47,7 +47,7 @@ export function ReplayCoachCard({ frame }: ReplayCoachCardProps) {
 
       {context.researchValueScore != null || context.decisionQualityScore != null ? (
         <Text variant="caption" className="mb-3 text-text-tertiary">
-          {context.researchValueScore != null ? `RVS ${context.researchValueScore}` : ''}
+          {context.researchValueScore != null ? `Research quality ${context.researchValueScore}` : ''}
           {context.researchValueScore != null && context.decisionQualityScore != null
             ? ' · '
             : ''}

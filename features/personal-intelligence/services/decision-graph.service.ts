@@ -34,7 +34,7 @@ const METRIC_HREF: Record<DecisionGraphMetricId, string> = {
 
 const METRIC_LABEL: Record<DecisionGraphMetricId, string> = {
   consistency: 'Consistency',
-  research: 'Research',
+  research: 'Study',
   patience: 'Patience',
   learning: 'Learning',
   risk: 'Risk',

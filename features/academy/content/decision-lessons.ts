@@ -32,7 +32,7 @@ export const DECISION_LESSONS: Lesson[] = [
     relatedLessonIds: ['dec-time-budget', 'dec-setup-quality', 'dec-why-not'],
     practiceLinks: [
       {
-        label: 'Open Setup Radar',
+        label: 'Open training recommendations',
         href: '/decision/radar',
         description: 'Rank ideas before deep research',
       },
@@ -192,7 +192,7 @@ export const DECISION_LESSONS: Lesson[] = [
     tags: ['setups', 'quality', 'radar'],
     relatedLessonIds: ['dec-research-filter', 'dec-invalidation', 'risk-expectancy'],
     practiceLinks: [
-      { label: 'Setup Radar', href: '/decision/radar' },
+      { label: 'Training recommendations', href: '/decision/radar' },
       { label: 'Decision Brief', href: '/' },
       {
         label: 'Decision Replay TV',

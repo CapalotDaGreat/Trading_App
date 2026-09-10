@@ -27,7 +27,7 @@ export function buildPassportExportPackage(profile: DecisionPassportProfile): Pa
       'Trading DNA',
       'Learning Journey',
       'Decision Quality Trend',
-      'Research Value Trend',
+      'Research quality trend',
       'Consistency',
       'Achievements',
       'Monthly Summaries',

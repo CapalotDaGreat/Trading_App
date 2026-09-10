@@ -12,7 +12,7 @@ const PROCESS_GOAL_LABELS: Record<ProcessGoalId, string> = {
   improve_risk_awareness: 'Improve risk awareness',
   reduce_fomo: 'Reduce FOMO',
   improve_thesis_clarity: 'Improve thesis clarity',
-  research_efficiency: 'Research more efficiently',
+  research_efficiency: 'Study more efficiently',
   build_consistency: 'Build consistency',
   improve_invalidation: 'Improve invalidation discipline',
   improve_reflection: 'Improve reflection quality',

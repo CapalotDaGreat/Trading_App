@@ -56,7 +56,3 @@ export function useFeatureFlag(key: keyof OpsFeatureFlags): boolean {
 export function useRemoteConfig(): OpsRemoteConfig {
   return useOpsConfigStore(selectRemoteConfig);
 }
-
-export function useOpsEvaluatedFlags(): Record<keyof OpsFeatureFlags, boolean> {
-  return useOpsConfigStore((s) => s.evaluated);
-}

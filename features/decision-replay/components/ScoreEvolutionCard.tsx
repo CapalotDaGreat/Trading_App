@@ -53,7 +53,7 @@ export function ScoreEvolutionCard({ points, highlightIndex }: ScoreEvolutionCar
   const changes: string[] = [];
   if (prev) {
     const keys: { key: keyof ScoreSnapshot; label: string }[] = [
-      { key: 'researchValue', label: 'RVS' },
+      { key: 'researchValue', label: 'Research quality' },
       { key: 'decisionQuality', label: 'DQS' },
       { key: 'processScore', label: 'Process' },
       { key: 'confidence', label: 'Confidence' },
@@ -83,7 +83,7 @@ export function ScoreEvolutionCard({ points, highlightIndex }: ScoreEvolutionCar
         {current.note ?? 'Process scores — never price predictions'}
       </Text>
 
-      <BarRow label="Research Value" value={current.researchValue} highlight />
+      <BarRow label="Research quality" value={current.researchValue} highlight />
       <BarRow label="Decision Quality" value={current.decisionQuality} />
       <BarRow label="Process Score" value={current.processScore} />
       <BarRow label="Logged confidence" value={current.confidence} />

@@ -13,7 +13,7 @@ import { Badge } from '@/shared/components/ui/Badge';
 import { GlassCard } from '@/shared/components/ui/GlassCard';
 import { Text } from '@/shared/components/ui/Text';
 import { useTheme } from '@/shared/hooks/useTheme';
-import { formatPercent, formatPrice, getPriceColorClass } from '@/shared/utils/format';
+import { formatPercent, formatPrice } from '@/shared/utils/format';
 
 interface SetupCardProps {
   setup: SetupCardData;
@@ -22,14 +22,14 @@ interface SetupCardProps {
 }
 
 const BIAS_LABEL: Record<DecisionBias, string> = {
-  bullish: 'Bullish',
-  bearish: 'Bearish',
-  neutral: 'Neutral',
+  bullish: 'Upward case',
+  bearish: 'Downward case',
+  neutral: 'Neutral case',
 };
 
-const BIAS_VARIANT: Record<DecisionBias, 'success' | 'danger' | 'default'> = {
-  bullish: 'success',
-  bearish: 'danger',
+const BIAS_VARIANT: Record<DecisionBias, 'default'> = {
+  bullish: 'default',
+  bearish: 'default',
   neutral: 'default',
 };
 
@@ -64,10 +64,7 @@ export function SetupCardComponent({ setup, onPress, highlight }: SetupCardProps
   const { colors } = useTheme();
   const [detailsOpen, setDetailsOpen] = useState(false);
   const detailsId = useId();
-  const changeColor =
-    setup.changePercent !== undefined
-      ? getPriceColorClass(setup.changePercent)
-      : 'text-text-secondary';
+  const changeColor = 'text-text-secondary';
   const typeLabel = setup.setupTypeLabel ?? setup.title;
   const oneLineWhy = setup.why[0] ?? typeLabel;
 
@@ -103,7 +100,7 @@ export function SetupCardComponent({ setup, onPress, highlight }: SetupCardProps
               />
             </View>
             <Text variant="caption" className="mb-0.5 text-text-tertiary">
-              Research candidate · {typeLabel}
+              Study specimen · {typeLabel}
             </Text>
             <Text variant="body-sm" className="text-text-secondary" numberOfLines={2}>
               {oneLineWhy}
@@ -111,11 +108,8 @@ export function SetupCardComponent({ setup, onPress, highlight }: SetupCardProps
           </View>
 
           <View className="items-end">
-            <Text variant="caption" className="mb-0.5 font-semibold text-accent">
-              RVS {Math.round(setup.researchValueScore ?? setup.confidence)}
-            </Text>
             <Text variant="caption" className="mb-0.5 text-text-tertiary">
-              DQS {Math.round(setup.decisionQualityScore ?? setup.confidence)}
+              Process {Math.round(setup.decisionQualityScore ?? setup.confidence)}
             </Text>
             {setup.lastPrice !== undefined ? (
               <Text variant="mono" className="text-text-primary">
@@ -132,7 +126,7 @@ export function SetupCardComponent({ setup, onPress, highlight }: SetupCardProps
 
         {onPress ? (
           <Text variant="caption" className="text-accent">
-            Tap chart to research →
+            Open study chart →
           </Text>
         ) : null}
       </Pressable>
@@ -140,16 +134,16 @@ export function SetupCardComponent({ setup, onPress, highlight }: SetupCardProps
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={
-          detailsOpen ? 'Hide research detail' : 'Show why, checklist, and invalidation'
+          detailsOpen ? 'Hide study detail' : 'Show why, checklist, and invalidation'
         }
         accessibilityState={{ expanded: detailsOpen }}
-        accessibilityHint={detailsOpen ? 'Collapses research detail' : 'Expands research detail'}
+        accessibilityHint={detailsOpen ? 'Collapses study detail' : 'Expands study detail'}
         aria-controls={detailsId}
         onPress={() => setDetailsOpen((v) => !v)}
         className="mt-3 min-h-11 flex-row items-center justify-between pt-3"
       >
         <Text variant="caption" className="font-semibold text-text-secondary">
-          {detailsOpen ? 'Hide research detail' : 'Why · checklist · invalidation'}
+          {detailsOpen ? 'Hide study detail' : 'Why · checklist · invalidation'}
         </Text>
         <Ionicons
           name={detailsOpen ? 'chevron-up' : 'chevron-down'}
@@ -178,13 +172,13 @@ export function SetupCardComponent({ setup, onPress, highlight }: SetupCardProps
           {setup.researchChecklist?.length ? (
             <View>
               <Text variant="caption" className="mb-1 font-semibold text-text-secondary">
-                Research checklist
+                Study checklist
               </Text>
               {setup.researchChecklist.map((item) => (
                 <Text
                   key={item.id}
                   variant="caption"
-                  className={item.done ? 'mb-0.5 text-bullish' : 'mb-0.5 text-text-tertiary'}
+                  className={item.done ? 'mb-0.5 text-text-primary' : 'mb-0.5 text-text-tertiary'}
                 >
                   {item.done ? '☑' : '☐'} {item.label}
                 </Text>
@@ -199,7 +193,7 @@ export function SetupCardComponent({ setup, onPress, highlight }: SetupCardProps
               size="sm"
             />
             {setup.invalidation ? (
-              <Text variant="caption" className="flex-1 text-bearish" numberOfLines={2}>
+              <Text variant="caption" className="flex-1 text-text-secondary" numberOfLines={2}>
                 Invalidation: {setup.invalidation}
               </Text>
             ) : null}
@@ -220,10 +214,10 @@ export function SetupCardComponent({ setup, onPress, highlight }: SetupCardProps
           {setup.reasonsToResearch?.length ? (
             <View>
               <Text variant="caption" className="mb-1 font-semibold text-text-secondary">
-                Reasons to research
+                Reasons to study
               </Text>
               {setup.reasonsToResearch.slice(0, 3).map((r) => (
-                <Text key={r} variant="caption" className="mb-0.5 text-bullish">
+                <Text key={r} variant="caption" className="mb-0.5 text-text-secondary">
                   + {r}
                 </Text>
               ))}
@@ -233,10 +227,10 @@ export function SetupCardComponent({ setup, onPress, highlight }: SetupCardProps
           {setup.reasonsNotToResearch?.length ? (
             <View>
               <Text variant="caption" className="mb-1 font-semibold text-text-secondary">
-                Reasons not to research
+                Reasons not to study
               </Text>
               {setup.reasonsNotToResearch.slice(0, 3).map((r) => (
-                <Text key={r} variant="caption" className="mb-0.5 text-bearish">
+                <Text key={r} variant="caption" className="mb-0.5 text-text-secondary">
                   − {r}
                 </Text>
               ))}

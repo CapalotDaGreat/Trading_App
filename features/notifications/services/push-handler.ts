@@ -22,10 +22,21 @@ function handleNotificationNavigation(
 
   switch (data.screen) {
     case 'markets':
-      router.push('/(tabs)/markets');
+    case 'events':
+      router.push('/events' as never);
       break;
     case 'portfolio':
-      router.push('/(tabs)/portfolio');
+    case 'simulate':
+      router.push('/simulate' as never);
+      break;
+    case 'practice':
+      router.push('/practice' as never);
+      break;
+    case 'learn':
+      router.push('/learn' as never);
+      break;
+    case 'review':
+      router.push('/review' as never);
       break;
     case 'ai':
       router.push('/(tabs)/ai');

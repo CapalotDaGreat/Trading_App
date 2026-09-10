@@ -31,8 +31,8 @@ export function ResearchQueueCard({
   onOutcome,
   freeItemLimit = Number.POSITIVE_INFINITY,
   variant = 'expanded',
-  eyebrow = 'Research queue',
-  title = 'Highest research value now',
+  eyebrow = 'Study queue',
+  title = 'Names worth studying now',
   description,
 }: ResearchQueueCardProps) {
   const router = useRouter();
@@ -61,7 +61,7 @@ export function ResearchQueueCard({
       regime,
       action,
       researchValueScore: item.researchValueScore,
-      note: `Research queue · ${item.rankReason ?? `${item.estimatedMinutes} minute review`}`,
+      note: `Study queue · ${item.rankReason ?? `${item.estimatedMinutes} minute review`}`,
       eventKey: `queue-outcome:${item.symbol.toUpperCase()}:${action}:${new Date().toISOString().slice(0, 10)}`,
     });
     onOutcome?.(item, action);
@@ -69,7 +69,7 @@ export function ResearchQueueCard({
 
   const detail =
     description === undefined
-      ? `${pending.length} item${pending.length === 1 ? '' : 's'} · ~${totalMinutes} min remaining · ranked for research, not trading`
+      ? `${pending.length} item${pending.length === 1 ? '' : 's'} · ~${totalMinutes} min remaining · ranked for study, not trading`
       : description;
 
   return (
@@ -95,19 +95,18 @@ export function ResearchQueueCard({
           <View className="flex-row items-center justify-between gap-2">
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel={`Open ${item.symbol} research`}
+              accessibilityLabel={`Open ${item.symbol} study`}
               className="min-h-11 min-w-0 flex-1 justify-center"
               onPress={() => router.push(`/asset/${encodeURIComponent(item.symbol)}` as never)}
               testID={`research-queue-symbol-${item.symbol}`}
             >
               <Text variant="label" className="text-text-primary">
                 {index + 1}. {item.symbol}
-                {item.priority === 'high' ? ' · Worth researching' : ''}
+                {item.priority === 'high' ? ' · Worth studying' : ''}
               </Text>
               <Text variant="caption" className="mt-0.5 text-text-secondary">
                 ~{item.estimatedMinutes} min
-                {item.researchValueScore != null ? ` · RVS ${item.researchValueScore}` : ''}
-                {item.decisionQualityScore != null ? ` · DQS ${item.decisionQualityScore}` : ''}
+                {item.decisionQualityScore != null ? ` · process ${item.decisionQualityScore}` : ''}
               </Text>
               {item.rankReason ? (
                 <Text variant="caption" className="mt-0.5 text-text-tertiary" numberOfLines={2}>
@@ -123,7 +122,7 @@ export function ResearchQueueCard({
             <View className="items-end gap-1">
               <Pressable
                 accessibilityRole="button"
-                accessibilityLabel={`Research ${item.symbol}`}
+                accessibilityLabel={`Study ${item.symbol}`}
                 testID={`research-queue-research-${item.symbol}`}
                 onPress={() => {
                   recordOutcome(item, 'researched');
@@ -132,7 +131,7 @@ export function ResearchQueueCard({
                 className="min-h-11 justify-center rounded-full bg-accent px-3 py-2"
               >
                 <Text variant="caption" className="font-semibold text-text-inverse">
-                  Research
+                  Study
                 </Text>
               </Pressable>
               <Pressable
@@ -162,19 +161,18 @@ export function ResearchQueueCard({
                 <View className="flex-row items-center justify-between gap-2">
                   <Pressable
                     accessibilityRole="button"
-                    accessibilityLabel={`Open ${item.symbol} research`}
+                    accessibilityLabel={`Open ${item.symbol} study`}
                     className="min-h-11 min-w-0 flex-1 justify-center"
                     onPress={() => router.push(`/asset/${encodeURIComponent(item.symbol)}` as never)}
                     testID={`research-queue-symbol-${item.symbol}`}
                   >
                     <Text variant="label" className="text-text-primary">
                       {freePending.length + offset + 1}. {item.symbol}
-                      {item.priority === 'high' ? ' · Worth researching' : ''}
+                      {item.priority === 'high' ? ' · Worth studying' : ''}
                     </Text>
                     <Text variant="caption" className="mt-0.5 text-text-secondary">
                       ~{item.estimatedMinutes} min
-                      {item.researchValueScore != null ? ` · RVS ${item.researchValueScore}` : ''}
-                      {item.decisionQualityScore != null ? ` · DQS ${item.decisionQualityScore}` : ''}
+                      {item.decisionQualityScore != null ? ` · process ${item.decisionQualityScore}` : ''}
                     </Text>
                     {item.rankReason ? (
                       <Text
@@ -189,7 +187,7 @@ export function ResearchQueueCard({
                   <View className="items-end gap-1">
                     <Pressable
                       accessibilityRole="button"
-                      accessibilityLabel={`Research ${item.symbol}`}
+                      accessibilityLabel={`Study ${item.symbol}`}
                       testID={`research-queue-research-${item.symbol}`}
                       onPress={() => {
                         recordOutcome(item, 'researched');
@@ -197,8 +195,8 @@ export function ResearchQueueCard({
                       }}
                       className="min-h-11 justify-center rounded-full bg-accent px-3 py-2"
                     >
-                      <Text variant="caption" className="font-semibold text-text-inverse">
-                        Research
+                        <Text variant="caption" className="font-semibold text-text-inverse">
+                        Study
                       </Text>
                     </Pressable>
                     <Pressable

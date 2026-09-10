@@ -119,7 +119,7 @@ export default function LabPositionScreen() {
           </Text>
           <Text
             variant="body-sm"
-            className={cn('mt-3', simulatedPnl >= 0 ? 'text-bullish' : 'text-bearish')}
+            className="mt-3 text-text-secondary"
           >
             Simulated P&L {simulatedPnl >= 0 ? '+' : ''}
             {simulatedPnl.toFixed(2)} {active.accountCurrency} (secondary metric)

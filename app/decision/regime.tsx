@@ -31,7 +31,7 @@ export default function RegimeScreen() {
     >
       <Header
         title="Market condition"
-        subtitle="What research styles fit the tape right now — not a trade signal"
+        subtitle="What kind of tape this is, and which process fits — not a trade signal"
         onBack={() => router.back()}
       />
       <View className="mt-4 gap-4 pb-8">

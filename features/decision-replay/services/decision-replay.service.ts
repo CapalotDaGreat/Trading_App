@@ -254,7 +254,7 @@ export function buildCoachForRecord(
   if (record.regime) evidence.push(`Regime logged: ${record.regime.replace(/_/g, ' ')}`);
   if (record.setupScore != null) evidence.push(`Setup score at time: ${record.setupScore}`);
   if (record.researchValueScore != null) {
-    evidence.push(`Research Value: ${record.researchValueScore}`);
+    evidence.push(`Research quality: ${record.researchValueScore}`);
   }
   if (record.decisionQualityScore != null) {
     evidence.push(`Decision Quality: ${record.decisionQualityScore}`);
@@ -397,7 +397,7 @@ export function buildLearningInsights(
       statement: 'You frequently ignore high research-value setups.',
       evidence: highRvsSkipped.slice(0, 3).map(
         (r) =>
-          `${r.symbol || 'Idea'} skipped with RVS/score ${r.researchValueScore ?? r.setupScore}`,
+          `${r.symbol || 'Idea'} skipped with research-quality score ${r.researchValueScore ?? r.setupScore}`,
       ),
       category: 'habit',
     });

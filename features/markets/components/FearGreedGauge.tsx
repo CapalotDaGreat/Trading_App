@@ -60,8 +60,8 @@ export function FearGreedGauge({ className }: FearGreedGaugeProps) {
       <Text variant="h3" className="mb-1 self-start">
         Fear & Greed
       </Text>
-      <Text variant="caption" className="mb-4 self-start">
-        Crypto market sentiment
+      <Text variant="caption" className="mb-4 self-start text-text-secondary">
+        A labelled sentiment snapshot for study — not a timing cue.
       </Text>
 
       {isLoading ? (
@@ -109,8 +109,8 @@ export function FearGreedGauge({ className }: FearGreedGaugeProps) {
             </SvgText>
           </Svg>
           <View className="mt-2 items-center">
-            <Text variant="body" className="font-semibold" style={{ color: getGaugeColor(value) }}>
-              {data?.classification ?? 'Neutral'}
+            <Text variant="body-sm" className="text-text-secondary">
+              {data?.classification ?? 'Neutral'} · study context only
             </Text>
           </View>
         </>

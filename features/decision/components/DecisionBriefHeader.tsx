@@ -12,7 +12,7 @@ import { Skeleton } from '@/shared/components/ui/Skeleton';
 import { Text } from '@/shared/components/ui/Text';
 import { useTheme } from '@/shared/hooks/useTheme';
 import { formatRelativeTime } from '@/shared/utils/date';
-import { formatPercent, getPriceColorClass } from '@/shared/utils/format';
+import { formatPercent } from '@/shared/utils/format';
 
 interface DecisionBriefHeaderProps {
   brief: DecisionBrief;
@@ -49,10 +49,6 @@ export function DecisionBriefHeader({
   const events = brief.highImpactEvents.slice(0, 3);
   const focus = brief.focusSummary;
   const minutes = brief.estimatedResearchMinutes;
-  const portfolioColor =
-    brief.portfolioChangePercent !== undefined
-      ? getPriceColorClass(brief.portfolioChangePercent)
-      : undefined;
 
   return (
     <GlassCard className="p-4" testID="morning-brief-card">
@@ -77,8 +73,8 @@ export function DecisionBriefHeader({
       <View className="mb-3 flex-row flex-wrap items-center gap-2">
         <Badge label={brief.regimeLabel} variant="accent" size="sm" />
         {brief.portfolioChangePercent !== undefined ? (
-          <Text variant="caption" className={portfolioColor}>
-            Portfolio {formatPercent(brief.portfolioChangePercent)}
+          <Text variant="caption" className="text-text-secondary">
+            Paper book {formatPercent(brief.portfolioChangePercent)}
           </Text>
         ) : null}
       </View>
@@ -89,13 +85,13 @@ export function DecisionBriefHeader({
             Your focus today
           </Text>
           <Text variant="body-sm" className="text-text-primary">
-            {focus.opportunities} research candidate{focus.opportunities === 1 ? '' : 's'} ·{' '}
+            {focus.opportunities} study candidate{focus.opportunities === 1 ? '' : 's'} ·{' '}
             {focus.risks} risk flag{focus.risks === 1 ? '' : 's'} · {focus.events} event
             {focus.events === 1 ? '' : 's'}
           </Text>
           {minutes !== undefined ? (
             <Text variant="caption" className="mt-1 text-accent">
-              Estimated research time: {minutes} minutes
+              Estimated study time: {minutes} minutes
             </Text>
           ) : null}
         </View>
@@ -172,7 +168,7 @@ export function DecisionBriefHeader({
 
       {onOpenRadar ? (
         <Button variant="primary" fullWidth onPress={onOpenRadar}>
-          Review today’s research candidates
+          Open training recommendations
         </Button>
       ) : null}
     </GlassCard>

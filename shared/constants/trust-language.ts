@@ -1,12 +1,12 @@
 export const TRUST_LANGUAGE = {
   rvs: {
-    short: 'RVS',
-    name: 'Research Value Score',
-    meaning: 'How worthwhile this is to research now.',
+    short: 'RQ',
+    name: 'Research quality',
+    meaning: 'How complete the evidence, thesis, and unknowns are — not a trade rank.',
   },
   dqs: {
-    short: 'DQS',
-    name: 'Decision Quality Score',
+    short: 'process',
+    name: 'Decision quality',
     meaning: 'How complete the decision process and evidence checklist are.',
   },
   technicalBias: {
@@ -20,7 +20,7 @@ export const TRUST_LANGUAGE = {
 } as const;
 
 export const NON_PREDICTION_COPY =
-  'Scores describe research priority, process, or evidence quality. They do not predict price direction.';
+  'Scores describe process completeness and evidence quality. They do not predict price direction.';
 
 export const EVIDENCE_LEVEL_COPY = {
   high: {
@@ -29,7 +29,7 @@ export const EVIDENCE_LEVEL_COPY = {
   },
   moderate: {
     label: 'Moderate evidence',
-    meaning: 'Useful coverage with gaps. Treat as a research checklist, not certainty.',
+    meaning: 'Useful coverage with gaps. Treat as a study checklist, not certainty.',
   },
   limited: {
     label: 'Limited evidence',
@@ -42,14 +42,14 @@ export const EVIDENCE_LEVEL_COPY = {
 } as const;
 
 export const CALM_CASE_RISK_COPY =
-  'Case risk describes how demanding the research case is — not how safe a trade would be.';
+  'Case risk describes how demanding the study case is — not how safe a trade would be.';
 
 /** Attention hierarchy copy — never urgency, never a trade prompt. */
 export const CALM_ATTENTION = {
   nothingRequiresAttention: 'Nothing requires your attention right now.',
   nothingRequiresAttentionDetail:
-    'This is a successful state. You do not need to invent a research opportunity.',
-  worthResearching: 'Worth researching',
+    'This is a successful state. You do not need to invent a learning opportunity.',
+  worthResearching: 'Worth studying',
   worthReviewing: 'Worth reviewing',
   considerReviewing: 'Consider reviewing',
   needsReview: 'Needs review',
@@ -58,10 +58,10 @@ export const CALM_ATTENTION = {
   evidenceMixed: 'Evidence is mixed',
   evidenceLimited: 'Evidence is limited',
   conditionsChanged: 'Conditions changed',
-  researchBeforeDeciding: 'Research before deciding',
+  researchBeforeDeciding: 'Study before deciding',
   waitingReviewEmpty: 'Nothing waiting for review.',
-  researchOptional: 'Protect your attention. Research is optional.',
-  researchReminderReady: 'Your research reminder is ready.',
+  researchOptional: 'Protect your attention. Study is optional.',
+  researchReminderReady: 'Your study reminder is ready.',
   processPractice: 'Process practice',
   continueSession: 'Continue session',
   reviewWhenReady: 'Review when ready',

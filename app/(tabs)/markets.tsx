@@ -71,8 +71,8 @@ export default function MarketsScreen() {
   return (
     <Screen scrollable safeTop={false}>
       <Header
-        title="Markets"
-        subtitle="Find a symbol, then open the chart"
+        title="Study names"
+        subtitle="Open an educational chart. This is not a live trading board."
         rightAction={<DataFreshnessBadge fetchedAt={livePopular.dataUpdatedAt || undefined} />}
       />
 
@@ -82,10 +82,10 @@ export default function MarketsScreen() {
 
       <View className="mb-5">
         <Text variant="h3" className="mb-1">
-          Your watchlists
+          Your study lists
         </Text>
         <Text variant="caption" className="mb-3 text-text-secondary">
-          Start here if you already have names you follow
+          Names you want to learn about — not a buy list.
         </Text>
         {watchlistsLoading ? (
           <Skeleton height={100} rounded="lg" />
@@ -97,8 +97,8 @@ export default function MarketsScreen() {
           </View>
         ) : (
           <EmptyState
-            title="No watchlists yet"
-            description="Search a symbol, open it, then tap + Watch."
+            title="No study list yet"
+            description="Search a name, open it, then save it to a Study List."
           />
         )}
       </View>
@@ -132,7 +132,7 @@ export default function MarketsScreen() {
           Popular {activeTab}
         </Text>
         <Text variant="caption" className="mb-3 text-text-secondary">
-          Live or delayed quotes as labelled · tap a row to research
+          Live or delayed quotes as labelled · tap a row to study
         </Text>
         <View className="gap-1">
           {livePopular.isError && !livePopular.data?.length ? (
@@ -162,7 +162,7 @@ export default function MarketsScreen() {
         <View>
           <Text variant="label">Market overview</Text>
           <Text variant="caption" className="text-text-secondary">
-            Heatmap{activeTab === 'crypto' ? ' & Fear & Greed' : ''}
+            Relative change for study{activeTab === 'crypto' ? ' · sentiment snapshot' : ''}
           </Text>
         </View>
         <Text variant="caption" className="text-accent">

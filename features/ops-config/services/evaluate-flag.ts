@@ -36,10 +36,7 @@ export function evaluateFlag(
     if (!killSafe.has(definition.key)) {
       if (
         definition.key === 'aiChatEnabled' ||
-        definition.key === 'paywallExperimentsEnabled' ||
-        definition.key === 'aggressiveMarketPollingEnabled' ||
-        definition.key === 'betaReplayStudioEnabled' ||
-        definition.key === 'internalDiagnosticsEnabled'
+        definition.key === 'aggressiveMarketPollingEnabled'
       ) {
         return false;
       }

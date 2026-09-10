@@ -28,8 +28,14 @@ expo-env.d.ts
 npm-debug.*
 yarn-debug.*
 yarn-error.*
+*.log
+!certs/avg-web-mail-shield-root.pem
 firestore-debug.log
+ui-debug.log
+firebase-debug.log
+storage-debug.log
 functions/lib/
+coverage/
 
 # macOS
 .DS_Store

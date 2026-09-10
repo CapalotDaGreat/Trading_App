@@ -43,9 +43,9 @@ const SECTIONS: {
     icon: 'fitness-outline',
   },
   {
-    title: 'AI Debate',
-    body: 'Every asset debate shows bull, bear, and neutral cases with cited evidence. It never invents headlines or issues buy/sell language.',
-    icon: 'git-compare-outline',
+    title: 'Ask',
+    body: 'The mentor explains concepts, evidence, and process. It does not invent headlines or issue buy/sell language.',
+    icon: 'sparkles-outline',
   },
   {
     title: 'Trading Mentor',
@@ -58,13 +58,13 @@ const SECTIONS: {
     icon: 'sparkles-outline',
   },
   {
-    title: 'Decision Quality Score (DQS)',
-    body: 'DQS grades checklist and process completeness — evidence, invalidation, sizing rationale. It does not forecast whether a trade will profit.',
+    title: 'Decision quality',
+    body: 'Decision quality grades checklist and process completeness — evidence, invalidation, sizing rationale. It does not forecast whether a trade will profit.',
     icon: 'checkbox-outline',
   },
   {
-    title: 'Research Value Score (RVS)',
-    body: 'RVS ranks whether an idea deserves research attention. High RVS means “look closer,” not “buy” or “sell.”',
+    title: 'Research quality',
+    body: 'Research quality asks whether the thesis, evidence, assumptions, and unknowns were written down. It is not a rank of trade opportunities.',
     icon: 'search-outline',
   },
   {

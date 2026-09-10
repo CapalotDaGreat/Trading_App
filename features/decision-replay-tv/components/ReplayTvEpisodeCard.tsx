@@ -1,5 +1,10 @@
 import { Pressable, View } from 'react-native';
 
+import {
+  REPLAY_PRACTICE_DIFFICULTY_LABELS,
+  replayConcealsCompetency,
+  replayPracticeDifficulty,
+} from '@/features/decision-replay/services/replay-practice-difficulty.service';
 import type { ReplayTvEpisode } from '@/features/decision-replay-tv/types/replay-tv.types';
 import { Chip } from '@/shared/components/ui/Chip';
 import { GlassCard } from '@/shared/components/ui/GlassCard';
@@ -13,13 +18,6 @@ interface ReplayTvEpisodeCardProps {
   lockedHint?: string | null;
 }
 
-const DIFFICULTY_LABEL: Record<ReplayTvEpisode['difficulty'], string> = {
-  foundation: 'Foundation',
-  intermediate: 'Intermediate',
-  advanced: 'Advanced',
-  expert: 'Expert',
-};
-
 export function ReplayTvEpisodeCard({
   episode,
   completed,
@@ -27,6 +25,9 @@ export function ReplayTvEpisodeCard({
   onPress,
   lockedHint,
 }: ReplayTvEpisodeCardProps) {
+  const practice = replayPracticeDifficulty(episode);
+  const conceal = replayConcealsCompetency(episode);
+
   return (
     <Pressable
       onPress={onPress}
@@ -36,7 +37,7 @@ export function ReplayTvEpisodeCard({
         episode.eraLabel,
         episode.symbolLabel,
         `${episode.durationMinutes} minutes`,
-        DIFFICULTY_LABEL[episode.difficulty],
+        REPLAY_PRACTICE_DIFFICULTY_LABELS[practice],
         completed ? 'Completed' : null,
         bestProcess != null ? `Best decision quality score ${bestProcess}` : null,
         lockedHint,
@@ -60,17 +61,21 @@ export function ReplayTvEpisodeCard({
             <Text variant="body-sm" className="mt-2 text-text-secondary">
               {episode.teaser}
             </Text>
-            <Text variant="caption" className="mt-2 text-text-tertiary">
-              Skills: {episode.skills.slice(0, 4).join(' · ')}
-            </Text>
+            {conceal ? (
+              <Text variant="caption" className="mt-2 text-text-tertiary">
+                Unlabeled practice. The skill under test is not shown before you commit.
+              </Text>
+            ) : (
+              <Text variant="caption" className="mt-2 text-text-tertiary">
+                Skills: {episode.skills.slice(0, 4).join(' · ')}
+              </Text>
+            )}
           </View>
-          <Chip label={DIFFICULTY_LABEL[episode.difficulty]} />
+          <Chip label={REPLAY_PRACTICE_DIFFICULTY_LABELS[practice]} />
         </View>
         <View className="mt-3 flex-row flex-wrap gap-2">
           {completed ? <Chip label="Completed" tone="success" /> : null}
-          {bestProcess != null ? (
-            <Chip label={`Best DQS ${bestProcess}`} />
-          ) : null}
+          {bestProcess != null ? <Chip label={`Best DQS ${bestProcess}`} /> : null}
           <Chip label="Blind tape" />
           {lockedHint ? <Chip label={lockedHint} /> : null}
         </View>

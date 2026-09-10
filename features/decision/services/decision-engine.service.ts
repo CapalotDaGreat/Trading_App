@@ -520,7 +520,7 @@ async function buildDecisionBriefInternal(input?: {
       researchValue: rvs.score,
       decisionQuality: dqs.score,
       risk: setup.risk,
-      note: `Brief refresh · RVS ${rvs.score} · DQS ${dqs.score}`,
+      note: `Brief refresh · research quality ${rvs.score} · decision quality ${dqs.score}`,
     }).catch(() => undefined);
     return scored;
   });
@@ -592,8 +592,8 @@ async function buildDecisionBriefInternal(input?: {
   const summary = fatigue.shouldStop
     ? `${regime.label} tape. ${fatigue.message}`
     : topSetups.length > 0
-      ? `${regime.label} tape. ${topSetups.length} setup${topSetups.length === 1 ? '' : 's'} deserve research — start with ${startSymbol} (RVS ${topSetups[0]?.researchValueScore ?? '—'}).`
-      : `${regime.label} tape. No high-quality research candidates yet — wait for clearer structure instead of inventing urgency.`;
+      ? `${regime.label} tape. ${topSetups.length} name${topSetups.length === 1 ? '' : 's'} worth studying — start with ${startSymbol}.`
+      : `${regime.label} tape. No high-quality study candidates yet — wait for clearer structure instead of inventing urgency.`;
 
   const memoryBoost = memory.bestSetups.length
     ? topSetups.filter((s) =>

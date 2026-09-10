@@ -62,7 +62,7 @@ export function CreateAlertForm({
   return (
     <GlassCard className="p-4">
       <Text variant="h3" className="mb-4">
-        Create Price Alert
+        Name a review level
       </Text>
 
       <View className="gap-3">
@@ -162,7 +162,7 @@ export function CreateAlertForm({
         onPress={submit}
         fullWidth
       >
-        Create Alert
+        Save reminder
       </Button>
     </GlassCard>
   );

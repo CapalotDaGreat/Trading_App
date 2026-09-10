@@ -518,7 +518,7 @@ function buildDailySummary(context: AiEnrichedContext): AiAnalysisResult {
       ? 'Risk appetite is improving across key benchmarks. Leadership appears in growth-sensitive areas while defensives lag. Prefer researching confirmed breakouts only when invalidation is defined.'
       : sentiment === 'bearish'
         ? 'Markets are under pressure with risk-off undertones. Prefer deferring high-beta research until support evidence stabilizes. Sitting out is a valid process choice.'
-        : 'Markets are digesting mixed evidence in a consolidation phase. Selectivity matters — prioritize clearer research candidates.';
+        : 'Markets are digesting mixed evidence in a consolidation phase. Selectivity matters — prioritize clearer study candidates.';
 
   return {
     type: 'daily_summary',

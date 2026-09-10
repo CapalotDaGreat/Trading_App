@@ -207,7 +207,10 @@ export function sanitizeMentorOutput(text: string): string {
     next = next.replace(pattern, replacement);
   }
   next = next.replace(LEAKAGE_RE, '[redacted]');
-  next = next.replace(DQS_RVS_AS_PREDICTION_RE, 'DQS/RVS describe process and research priority, not a chance of profit');
+  next = next.replace(
+    DQS_RVS_AS_PREDICTION_RE,
+    'Process and research-quality scores describe evidence completeness, not a chance of profit',
+  );
   return next.trim();
 }
 

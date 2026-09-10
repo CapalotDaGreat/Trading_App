@@ -48,7 +48,7 @@ export async function ensureDemoDecisionTape(): Promise<void> {
         symbol: 'NVDA',
         regime: 'trending',
         action: 'ignored',
-        note: 'High RVS but outside time budget',
+        note: 'High research quality but outside time budget',
         setupScore: 74,
         researchValueScore: 81,
         decisionQualityScore: 55,

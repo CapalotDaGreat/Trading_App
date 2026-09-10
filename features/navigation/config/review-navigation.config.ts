@@ -78,7 +78,7 @@ export function buildLegacyAnalysisRedirect(symbol: string, params: RouteParams 
     params: {
       ...rest,
       symbol,
-      tab: 'advanced' as const,
+      tab: 'learn' as const,
       ...(legacyTab ? { legacyTab } : {}),
     },
   };

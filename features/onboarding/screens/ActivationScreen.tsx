@@ -235,8 +235,8 @@ export default function ActivationScreen() {
                   <GlassCard className="p-4">
                     <Text variant="label">How to read the scores</Text>
                     <Text variant="body-sm" className="mt-2 text-text-secondary">
-                      RVS ranks where your limited research time may be most useful. DQS grades the
-                      quality of the decision process. Neither predicts price direction.
+                      Decision quality grades whether thesis, evidence, and invalidation were
+                      written. Neither score predicts price direction.
                     </Text>
                   </GlassCard>
                   {briefQuery.data.topSetups[0] ? (
