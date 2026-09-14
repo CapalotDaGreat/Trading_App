@@ -169,11 +169,12 @@ function RootLayoutNav() {
   const mentorSetupCompleted = useSettingsStore((state) => state.mentorSetupCompleted);
 
   useEffect(() => {
+    const routeSegments = segments as readonly string[];
     const destination = resolveRootRedirect({
       status,
       firebaseConfigured: isFirebaseConfigured(),
-      firstSegment: segments[0],
-      secondSegment: segments[1],
+      firstSegment: routeSegments[0],
+      secondSegment: routeSegments[1],
       onboarding,
       mentorSetupCompleted,
     });
