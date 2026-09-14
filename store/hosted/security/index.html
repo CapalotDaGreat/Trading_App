@@ -3,66 +3,42 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <meta name="theme-color" content="#151922" />
+  <meta name="description" content="How we protect accounts and handle incidents." />
   <title>Security Notice · TradeAcademy by Aithera</title>
-  <style>
-    body { font-family: system-ui, sans-serif; max-width: 48rem; margin: 2rem auto; padding: 0 1rem; line-height: 1.55; color: #111; }
-    h1, h2, h3 { line-height: 1.25; }
-    code, pre { background: #f4f4f5; }
-    pre { overflow-x: auto; padding: 0.75rem; }
-    a { color: #0f766e; }
-    nav { margin-bottom: 1.5rem; font-size: 0.9rem; }
-  </style>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="/site.css" />
 </head>
 <body>
-  <nav>
-    <a href="/">TradeAcademy</a> ·
-    <a href="/privacy">Privacy</a> ·
-    <a href="/terms">Terms</a> ·
-    <a href="/risk">Risk</a> ·
-    <a href="/security">Security</a> ·
-    <a href="/account-deletion">Account deletion</a> ·
-    <a href="/support">Support</a>
-  </nav>
-  <p role="note" style="background:#fef3c7;border:1px solid #d97706;padding:0.75rem 1rem;border-radius:0.5rem"><strong>Template — not a live operator publication.</strong> Bracketed fields (legal entity, VAT/UID, emails, official domain) are not production values. Do not paste this URL into App Store Connect or Play Console until those fields are replaced and this notice is gone.</p>
+  <a class="skip" href="#content">Skip to content</a>
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="brand" href="/">
+        <svg class="mark" viewBox="0 0 32 32" width="40" height="40" aria-hidden="true"><rect width="32" height="32" rx="10" fill="currentColor" opacity="0"/><circle cx="16" cy="16" r="9.25" fill="none" stroke="currentColor" stroke-width="2"/><path d="M16 7.8 18.4 16 16 24.2 13.6 16Z" fill="currentColor"/></svg>
+        <span class="brand-text">
+          <span class="brand-name">TradeAcademy</span>
+          <span class="brand-sub">by Aithera</span>
+        </span>
+      </a>
+      <nav class="site-nav" aria-label="Legal"><a class="nav-link" href="/privacy">Privacy</a><a class="nav-link" href="/terms">Terms</a><a class="nav-link" href="/risk">Risk</a><a class="nav-link" href="/security" aria-current="page">Security</a><a class="nav-link" href="/account-deletion">Account deletion</a><a class="nav-link" href="/support">Support</a></nav>
+    </div>
+  </header>
+  <main id="content">
+    <article class="wrap narrow legal"><p class="notice" role="note"><strong>Template — not a live operator publication.</strong> Bracketed fields (legal entity, VAT/UID, emails, official domain) are not production values. Do not paste this URL into App Store Connect or Play Console until those fields are replaced and this notice is gone.</p>
 <h1>Security &amp; Cybersecurity Notice</h1>
-<p><strong>Last updated:</strong> 24 August 2026 <strong>Version:</strong> 2026.08.24 <strong>Operator:</strong> [LEGAL ENTITY NAME REQUIRED], trading as Aithera <strong>Registered address:</strong> Höglerstrasse 55, 8600 Dübendorf, Switzerland</p>
+<dl class="doc-meta"><div class="meta-row"><dt>Last updated</dt><dd>24 August 2026</dd></div><div class="meta-row"><dt>Version</dt><dd>2026.08.24</dd></div><div class="meta-row"><dt>Operator</dt><dd>[LEGAL ENTITY NAME REQUIRED], trading as Aithera</dd></div><div class="meta-row"><dt>Registered address</dt><dd>Höglerstrasse 55, 8600 Dübendorf, Switzerland</dd></div></dl>
 <p>This notice summarises Aithera’s security posture for users, reviewers, and enterprise diligence. It complements the Privacy Policy and is aligned with expectations under Swiss nFADP, GDPR security principles (Art. 32), and commonly referenced U.S. frameworks (e.g. reasonable security under state law, FTC Act Section 5 unfairness for unreasonable security).</p>
 <p><strong>It is not a certification, SOC 2 report, or guarantee against breach.</strong></p>
 <hr />
 <h2>1. Security objectives</h2>
-<ul>
-<li>Protect account confidentiality and integrity;</li>
-<li>Prevent cross-user data access;</li>
-<li>Minimise collection and exposure of personal data;</li>
-<li>Detect and respond to incidents;</li>
-<li>Keep optional diagnostics off until consent is given.</li>
-</ul>
+<ul><li>Protect account confidentiality and integrity;</li><li>Prevent cross-user data access;</li><li>Minimise collection and exposure of personal data;</li><li>Detect and respond to incidents;</li><li>Keep optional diagnostics off until consent is given.</li></ul>
 <hr />
 <h2>2. Controls in the shipped product</h2>
-<pre>
-| Area | Measures |
-| --- | --- |
-| Transport | HTTPS/TLS to backend and third-party APIs |
-| Authentication | Firebase Auth; optional MFA (TOTP); OAuth MFA challenge handling |
-| Authorisation | Firestore/Storage security rules; verified-email write gates; owner-scoped documents |
-| Privileged actions | Recent re-authentication window for account deletion and sensitive MFA changes |
-| Subscriptions | Server-side webhook verification; entitlement/expiry fail-closed; client cache not treated as authority |
-| Push | Per-device token documents with cleanup on sign-out/delete |
-| Diagnostics | Crash reporting default **off**; redaction of common secrets/PII and user-content fields; consent versioning; debug console logs in development builds only |
-| Analytics | Product analytics default **off**; allowlisted event/property names only; no journal, AI chat, or portfolio values |
-| Guest mode | Local demo without verified cloud write privileges |
-| Screen privacy | Screen-capture protections on sensitive MFA secret reveal flows where implemented |
-| Development | Typecheck/tests/rules emulator gates in CI; dependency isolation for Functions |
-</pre>
+<div class="table-wrap" role="region" aria-label="Document table" tabindex="0"><table><thead><tr><th scope="col">Area</th><th scope="col">Measures</th></tr></thead><tbody><tr><td data-label="Area">Transport</td><td data-label="Measures">HTTPS/TLS to backend and third-party APIs</td></tr><tr><td data-label="Area">Authentication</td><td data-label="Measures">Firebase Auth; optional MFA (TOTP); OAuth MFA challenge handling</td></tr><tr><td data-label="Area">Authorisation</td><td data-label="Measures">Firestore/Storage security rules; verified-email write gates; owner-scoped documents</td></tr><tr><td data-label="Area">Privileged actions</td><td data-label="Measures">Recent re-authentication window for account deletion and sensitive MFA changes</td></tr><tr><td data-label="Area">Subscriptions</td><td data-label="Measures">Server-side webhook verification; entitlement/expiry fail-closed; client cache not treated as authority</td></tr><tr><td data-label="Area">Push</td><td data-label="Measures">Per-device token documents with cleanup on sign-out/delete</td></tr><tr><td data-label="Area">Diagnostics</td><td data-label="Measures">Crash reporting default <strong>off</strong>; redaction of common secrets/PII and user-content fields; consent versioning; debug console logs in development builds only</td></tr><tr><td data-label="Area">Analytics</td><td data-label="Measures">Product analytics default <strong>off</strong>; allowlisted event/property names only; no journal, AI chat, or portfolio values</td></tr><tr><td data-label="Area">Guest mode</td><td data-label="Measures">Local demo without verified cloud write privileges</td></tr><tr><td data-label="Area">Screen privacy</td><td data-label="Measures">Screen-capture protections on sensitive MFA secret reveal flows where implemented</td></tr><tr><td data-label="Area">Development</td><td data-label="Measures">Typecheck/tests/rules emulator gates in CI; dependency isolation for Functions</td></tr></tbody></table></div>
 <hr />
 <h2>3. Your responsibilities</h2>
-<ul>
-<li>Use a strong unique password and enable MFA;</li>
-<li>Keep the OS and app updated;</li>
-<li>Do not jailbreak/root or install untrusted profiles that weaken OS protections;</li>
-<li>Review crash-reporting consent before enabling;</li>
-<li>Report suspected compromise immediately.</li>
-</ul>
+<ul><li>Use a strong unique password and enable MFA;</li><li>Keep the OS and app updated;</li><li>Do not jailbreak/root or install untrusted profiles that weaken OS protections;</li><li>Review crash-reporting consent before enabling;</li><li>Report suspected compromise immediately.</li></ul>
 <hr />
 <h2>4. Vulnerability disclosure</h2>
 <p>Email <strong>[SECURITY EMAIL REQUIRED]</strong> (or [SUPPORT EMAIL REQUIRED]) with a good-faith report. Include steps to reproduce and avoid accessing other users’ data. We will acknowledge and remediate according to severity. Do not publicly disclose before a reasonable remediation window unless required by law.</p>
@@ -71,6 +47,13 @@
 <p>If a personal-data breach is likely to result in a high risk to individuals, we will notify affected users and/or authorities as required under Swiss nFADP, GDPR (including supervisory notification without undue delay and, where feasible, within 72 hours), and applicable U.S. state breach statutes.</p>
 <hr />
 <h2>6. Contact</h2>
-<p>[SECURITY EMAIL REQUIRED] [PRIVACY EMAIL REQUIRED] [SUPPORT EMAIL REQUIRED] Höglerstrasse 55, 8600 Dübendorf, Switzerland</p>
+<p>[SECURITY EMAIL REQUIRED]<br />[PRIVACY EMAIL REQUIRED]<br />[SUPPORT EMAIL REQUIRED]<br />Höglerstrasse 55, 8600 Dübendorf, Switzerland</p></article>
+  </main>
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <p>TradeAcademy by Aithera is a trading education and simulated-practice app.</p>
+      <p class="mute">Not a broker. Not an execution venue. Not buy/sell signals. Simulated P/L does not grade a decision. Decision Quality Score is process quality, not a price prediction.</p>
+    </div>
+  </footer>
 </body>
 </html>

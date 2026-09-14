@@ -3,70 +3,61 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <meta name="theme-color" content="#151922" />
+  <meta name="description" content="How to delete your account and what remains." />
   <title>Account Deletion · TradeAcademy by Aithera</title>
-  <style>
-    body { font-family: system-ui, sans-serif; max-width: 48rem; margin: 2rem auto; padding: 0 1rem; line-height: 1.55; color: #111; }
-    h1, h2, h3 { line-height: 1.25; }
-    code, pre { background: #f4f4f5; }
-    pre { overflow-x: auto; padding: 0.75rem; }
-    a { color: #0f766e; }
-    nav { margin-bottom: 1.5rem; font-size: 0.9rem; }
-  </style>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="/site.css" />
 </head>
 <body>
-  <nav>
-    <a href="/">TradeAcademy</a> ·
-    <a href="/privacy">Privacy</a> ·
-    <a href="/terms">Terms</a> ·
-    <a href="/risk">Risk</a> ·
-    <a href="/security">Security</a> ·
-    <a href="/account-deletion">Account deletion</a> ·
-    <a href="/support">Support</a>
-  </nav>
-  <p role="note" style="background:#fef3c7;border:1px solid #d97706;padding:0.75rem 1rem;border-radius:0.5rem"><strong>Template — not a live operator publication.</strong> Bracketed fields (legal entity, VAT/UID, emails, official domain) are not production values. Do not paste this URL into App Store Connect or Play Console until those fields are replaced and this notice is gone.</p>
+  <a class="skip" href="#content">Skip to content</a>
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="brand" href="/">
+        <svg class="mark" viewBox="0 0 32 32" width="40" height="40" aria-hidden="true"><rect width="32" height="32" rx="10" fill="currentColor" opacity="0"/><circle cx="16" cy="16" r="9.25" fill="none" stroke="currentColor" stroke-width="2"/><path d="M16 7.8 18.4 16 16 24.2 13.6 16Z" fill="currentColor"/></svg>
+        <span class="brand-text">
+          <span class="brand-name">TradeAcademy</span>
+          <span class="brand-sub">by Aithera</span>
+        </span>
+      </a>
+      <nav class="site-nav" aria-label="Legal"><a class="nav-link" href="/privacy">Privacy</a><a class="nav-link" href="/terms">Terms</a><a class="nav-link" href="/risk">Risk</a><a class="nav-link" href="/security">Security</a><a class="nav-link" href="/account-deletion" aria-current="page">Account deletion</a><a class="nav-link" href="/support">Support</a></nav>
+    </div>
+  </header>
+  <main id="content">
+    <article class="wrap narrow legal"><p class="notice" role="note"><strong>Template — not a live operator publication.</strong> Bracketed fields (legal entity, VAT/UID, emails, official domain) are not production values. Do not paste this URL into App Store Connect or Play Console until those fields are replaced and this notice is gone.</p>
 <h1>Account Deletion Notice</h1>
-<p><strong>Last updated:</strong> 24 August 2026 <strong>Version:</strong> 2026.08.24 <strong>Operator:</strong> [LEGAL ENTITY NAME REQUIRED], trading as Aithera <strong>Registered address:</strong> Höglerstrasse 55, 8600 Dübendorf, Switzerland</p>
+<dl class="doc-meta"><div class="meta-row"><dt>Last updated</dt><dd>24 August 2026</dd></div><div class="meta-row"><dt>Version</dt><dd>2026.08.24</dd></div><div class="meta-row"><dt>Operator</dt><dd>[LEGAL ENTITY NAME REQUIRED], trading as Aithera</dd></div><div class="meta-row"><dt>Registered address</dt><dd>Höglerstrasse 55, 8600 Dübendorf, Switzerland</dd></div></dl>
 <p>This notice explains how to delete your TradeAcademy account and what happens to your data. It supports Apple App Store and Google Play account-deletion requirements and privacy rights under Swiss nFADP, EU/UK GDPR, and U.S. state privacy laws (including CCPA/CPRA deletion rights).</p>
 <hr />
 <h2>1. How to delete in the app</h2>
-<p>1. Open <strong>Settings</strong>. 2. If you have an active Premium subscription, tap <strong>Manage Subscription</strong> and cancel or modify billing in the Apple App Store or Google Play <strong>first</strong>. <strong>Account deletion does not cancel store billing.</strong> 3. Under <strong>Delete Account</strong>, tap <strong>Delete Account</strong>, type <code>DELETE</code>, and confirm. 4. For security, deletion may require a <strong>recent sign-in</strong> (typically within about five minutes). If prompted, sign out, sign back in, and retry.</p>
+<ol><li>Open <strong>Settings</strong>.</li><li>If you have an active Premium subscription, tap <strong>Manage Subscription</strong> and cancel or modify billing in the Apple App Store or Google Play <strong>first</strong>. <strong>Account deletion does not cancel store billing.</strong></li><li>Under <strong>Delete Account</strong>, tap <strong>Delete Account</strong>, type <code>DELETE</code>, and confirm.</li><li>For security, deletion may require a <strong>recent sign-in</strong> (typically within about five minutes). If prompted, sign out, sign back in, and retry.</li></ol>
 <p>Guest/demo data can usually be cleared by resetting local demo state or reinstalling; it is not a cloud account.</p>
 <hr />
 <h2>2. What we delete</h2>
 <p>When deletion succeeds, we aim to remove:</p>
-<ul>
-<li>your Firebase Authentication user;</li>
-<li>your Firestore user profile and subcollections (e.g. watchlists, holdings, journal, alerts, decisions, devices, simulation accounts);</li>
-<li>your <code>userSettings</code> document;</li>
-<li>the server-side subscription access record for your UID;</li>
-<li>RevenueCat webhook event documents we store that reference your UID (where implemented);</li>
-<li>user-scoped security/ops event documents we stored for your UID (where implemented);</li>
-<li>files under your Firebase Storage path <code>users/{uid}/</code>;</li>
-<li>local app user data on the device used for deletion (device theme preference may remain).</li>
-</ul>
+<ul><li>your Firebase Authentication user;</li><li>your Firestore user profile and subcollections (e.g. watchlists, holdings, journal, alerts, decisions, devices, simulation accounts);</li><li>your <code>userSettings</code> document;</li><li>the server-side subscription access record for your UID;</li><li>RevenueCat webhook event documents we store that reference your UID (where implemented);</li><li>user-scoped security/ops event documents we stored for your UID (where implemented);</li><li>files under your Firebase Storage path <code>users/{uid}/</code>;</li><li>local app user data on the device used for deletion (device theme preference may remain).</li></ul>
 <p>Push tokens registered for your account are removed as part of device/token cleanup where implemented.</p>
 <p>We <strong>do not</strong> delete shared educational content (Academy lessons, public catalogs, Decision Replay TV catalogs). Those are not personal account data.</p>
 <hr />
 <h2>3. What we may retain briefly or cannot delete</h2>
-<ul>
-<li><strong>Apple / Google purchase and billing records</strong> remain with the stores under their policies. <strong>Deleting the TradeAcademy account does not cancel an App Store or Play subscription.</strong></li>
-<li><strong>Security, fraud, or legal logs</strong> may be retained for a limited period where required by law or legitimate security interests (including a short-lived deletion-audit record).</li>
-<li><strong>Backups</strong> may persist for a short technical window before rotating out.</li>
-<li><strong>Aggregated, de-identified</strong> metrics that cannot reasonably identify you may remain.</li>
-</ul>
+<ul><li><strong>Apple / Google purchase and billing records</strong> remain with the stores under their policies. <strong>Deleting the TradeAcademy account does not cancel an App Store or Play subscription.</strong></li><li><strong>Security, fraud, or legal logs</strong> may be retained for a limited period where required by law or legitimate security interests (including a short-lived deletion-audit record).</li><li><strong>Backups</strong> may persist for a short technical window before rotating out.</li><li><strong>Aggregated, de-identified</strong> metrics that cannot reasonably identify you may remain.</li></ul>
 <hr />
 <h2>4. Other ways to request deletion</h2>
 <p>Email <strong>[PRIVACY EMAIL REQUIRED]</strong> or <strong>[SUPPORT EMAIL REQUIRED]</strong> from your account email with subject “Account deletion request”. We will verify your identity and process the request within applicable statutory timelines (e.g. GDPR one month, subject to extensions; CCPA timelines as required).</p>
 <hr />
 <h2>5. Effect on Premium</h2>
 <p>Deleting the account removes TradeAcademy access to Premium features tied to that account. It does <strong>not</strong> stop auto-renewal in the store. Manage subscription separately:</p>
-<ul>
-<li><strong>In-app:</strong> Settings → Manage Subscription</li>
-<li><strong>iOS:</strong> Settings → Apple ID → Subscriptions</li>
-<li><strong>Android:</strong> Play Store → Payments &amp; subscriptions → Subscriptions</li>
-</ul>
+<ul><li><strong>In-app:</strong> Settings → Manage Subscription</li><li><strong>iOS:</strong> Settings → Apple ID → Subscriptions</li><li><strong>Android:</strong> Play Store → Payments &amp; subscriptions → Subscriptions</li></ul>
 <hr />
 <h2>6. Contact</h2>
-<p>[PRIVACY EMAIL REQUIRED] [SUPPORT EMAIL REQUIRED] Höglerstrasse 55, 8600 Dübendorf, Switzerland [OFFICIAL DOMAIN REQUIRED]</p>
+<p>[PRIVACY EMAIL REQUIRED]<br />[SUPPORT EMAIL REQUIRED]<br />Höglerstrasse 55, 8600 Dübendorf, Switzerland<br />[OFFICIAL DOMAIN REQUIRED]</p></article>
+  </main>
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <p>TradeAcademy by Aithera is a trading education and simulated-practice app.</p>
+      <p class="mute">Not a broker. Not an execution venue. Not buy/sell signals. Simulated P/L does not grade a decision. Decision Quality Score is process quality, not a price prediction.</p>
+    </div>
+  </footer>
 </body>
 </html>

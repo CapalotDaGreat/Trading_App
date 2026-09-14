@@ -24,7 +24,7 @@ It is **not**:
 
 **Research Value Score (RVS)** ranks whether an idea may deserve research time. **Decision Quality Score (DQS)** grades checklist/process completeness. **Neither score predicts market direction or trading outcomes.**
 
-A **12+ / Teen store rating** is a content-suitability label. It is not permission to trade and not a statement that under-18 users may legally trade.
+A **4+ / Everyone store rating** is a content-suitability label. It is not permission to trade and not a statement that under-18 users may legally trade.
 
 ---
 

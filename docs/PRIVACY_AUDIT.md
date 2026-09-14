@@ -83,11 +83,11 @@ In-app copies sync from markdown. Runtime `LEGAL_URLS` page paths may still fall
 
 | Layer | Shipped position |
 | --- | --- |
-| Store rating | Apple **12+** / Play **Teen** (content questionnaire) |
+| Store rating | Apple **4+** / Play **Everyone** (content questionnaire) |
 | Contractual eligibility | **18+** or age of majority for accounts and purchases |
 | Privacy | Cloud accounts not for young children; Guest/demo local exploration has no 18+ gate |
 
-No in-app copy states that 12+ users may legally trade.
+No in-app copy states that 4+ users may legally trade.
 
 ---
 

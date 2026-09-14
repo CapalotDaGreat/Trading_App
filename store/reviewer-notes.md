@@ -12,10 +12,10 @@ funds, and **does not** provide buy/sell signals or guaranteed returns.
 
 **Age layers (please do not collapse these):**
 
-- Store content rating: Apple **12+** / Play **Teen** (content suitability).
+- Store content rating: Apple **4+** / Play **Everyone** (content suitability).
 - Accounts and in-app purchases: **18+** or age of majority.
 - Guest/demo: local educational exploration; not an 18+ gate.
-- The 12+ rating does **not** mean a minor may legally trade.
+- The 4+ rating does **not** mean a minor may legally trade.
 
 ---
 

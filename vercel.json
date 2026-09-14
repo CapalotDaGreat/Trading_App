@@ -4,6 +4,7 @@
   "buildCommand": "echo skip",
   "outputDirectory": "store/hosted",
   "cleanUrls": true,
+  "trailingSlash": false,
   "headers": [
     {
       "source": "/.well-known/apple-app-site-association",

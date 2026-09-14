@@ -41,7 +41,7 @@ cybersecurity expectations. Before production:
 2. Activate real `[PRIVACY EMAIL REQUIRED]`, `[SECURITY EMAIL REQUIRED]`, and
    `[SUPPORT EMAIL REQUIRED]` mailboxes (do not ship invented addresses).
 3. Confirm processor list / DPAs / SCCs with counsel.
-4. Confirm store age rating (Apple **12+**, Google Play **Teen**) versus
+4. Confirm store age rating (Apple **4+**, Google Play **Everyone**) versus
    contractual eligibility (**18+** / age of majority for accounts and
    subscriptions). Guest/demo does not require being 18.
 5. Publish HTTP 200 pages that match this folder on `[OFFICIAL DOMAIN REQUIRED]`.

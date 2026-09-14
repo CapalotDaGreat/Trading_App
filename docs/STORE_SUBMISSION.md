@@ -15,11 +15,11 @@ Listing display name: **TradeAcademy**. Company: **Aithera**. Application id: **
 
 | Layer | Value |
 | --- | --- |
-| Store content rating | Apple **12+**, Google Play **Teen** |
+| Store content rating | Apple **4+**, Google Play **Everyone** |
 | Contractual eligibility | **18+** or age of majority for accounts and purchases |
 | Privacy | Cloud accounts not directed at young children; Guest/demo is local and has no 18+ gate |
 
-Do not describe the 12+ rating as permission to trade.
+Do not describe the 4+ rating as permission to trade.
 
 ## Expo and push
 

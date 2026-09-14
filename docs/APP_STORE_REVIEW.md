@@ -16,7 +16,7 @@ fields remain MANUAL ACTION REQUIRED.** Do not submit until those are done.
 | 5.1.1(v) Account deletion | In-app deletion for signed-in users; billing warning; guest does not show Delete Account |
 | 5.1.1 Privacy | Crash reporting and product analytics off by default; no ATT/tracking product; Privacy Policy in-app |
 | 4.8 Sign in with Apple | Google + Apple offered; `usesAppleSignIn` + `expo-apple-authentication` plugin in `app.config.ts` |
-| 2.3 Accurate metadata | Educational research / not a broker / no buy-sell signals; **12+** store rating with **18+** account eligibility; RVS/DQS are not price predictions |
+| 2.3 Accurate metadata | Educational research / not a broker / no buy-sell signals; **4+** store rating with **18+** account eligibility; RVS/DQS are not price predictions |
 | Demo access | Guest path with educational/risk acknowledgment (no 18+ gate to explore) |
 | AI | Explainability / process coaching; production cloud AI disabled |
 

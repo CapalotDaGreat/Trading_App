@@ -19,7 +19,7 @@ jobs:
       # Official major tag retained under the same verified-SHA policy above.
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
           cache: npm
       - run: npm ci
       - run: npm ci --prefix functions

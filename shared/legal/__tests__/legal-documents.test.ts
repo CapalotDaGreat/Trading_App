@@ -45,7 +45,7 @@ describe('legal compliance pack', () => {
     expect(privacy).toContain('[official domain required]');
     expect(privacy).toContain('journal text');
     expect(privacy).toContain('cloud_ai_enabled');
-    expect(privacy).toContain('12+');
+    expect(privacy).toContain('4+');
     expect(privacy).toContain('does not mean a minor may legally trade');
     expect(privacy).not.toMatch(/tradeinsight|tradevision/i);
 
@@ -112,5 +112,23 @@ describe('legal compliance pack', () => {
     expect(hosted).not.toMatch(/TradeInsight|TradeVision/);
     expect(hosted).toContain('Template — not a live operator publication');
     expect(hosted).toContain('[LEGAL ENTITY NAME REQUIRED]');
+  });
+
+  it('renders hosted legal HTML with app chrome and readable tables', () => {
+    const hostedDir = join(__dirname, '../../../store/hosted');
+    const home = readFileSync(join(hostedDir, 'index.html'), 'utf8');
+    const privacy = readFileSync(join(hostedDir, 'privacy.html'), 'utf8');
+
+    expect(home).toContain('Practice the decision');
+    expect(home).toContain('SIMULATED');
+    expect(home).toContain('/site.css');
+    expect(home).not.toMatch(/TradeInsight|TradeVision/);
+
+    expect(privacy).toContain('site.css');
+    expect(privacy).toContain('<table');
+    expect(privacy).toContain('data-label');
+    expect(privacy).toContain('doc-meta');
+    expect(privacy).toContain('Last updated');
+    expect(privacy).not.toContain('<pre>');
   });
 });

@@ -21,7 +21,7 @@ Downloading the app or exploring **Guest/demo mode** does not require you to be 
 
 You must be at least **18** years old, or the age of majority in your jurisdiction, to create an account or purchase a subscription, and you must be legally able to enter a binding contract.
 
-**Store content rating is separate.** Apple **12+** / Google Play **Teen** ratings describe content suitability. They do **not** mean a person under 18 may open a cloud account, purchase Premium, or treat TradeAcademy as authorisation to trade.
+**Store content rating is separate.** Apple **4+** / Google Play **Everyone** ratings describe content suitability. They do **not** mean a person under 18 may open a cloud account, purchase Premium, or treat TradeAcademy as authorisation to trade.
 
 The Service is an educational trading-education and simulated-practice platform for a general audience. It is **not directed toward young children**. You may not use cloud account features if applicable sanctions or export laws prohibit you from doing so.
 

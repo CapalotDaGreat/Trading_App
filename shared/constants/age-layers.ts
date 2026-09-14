@@ -3,8 +3,8 @@
  * Store ratings are content suitability, not permission to trade or to open a cloud account.
  */
 export const AGE_LAYERS = {
-  storeContentRatingIos: '12+',
-  storeContentRatingAndroid: 'Teen',
+  storeContentRatingIos: '4+',
+  storeContentRatingAndroid: 'Everyone',
   accountMinimumYears: 18,
   guestRequiresAccountAge: false,
   storeRatingIsNotPermissionToTrade: true,

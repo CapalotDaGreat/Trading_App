@@ -1,0 +1,11 @@
+﻿---
+description: Always commit and push to the main branch
+alwaysApply: true
+---
+
+# Git target branch
+
+- Default branch for this repo is **`main`**.
+- When the user asks to commit and/or push, work on **`main`** (checkout or create it if needed), commit there, and **`git push -u origin main`**.
+- Do not open long-lived feature branches or push only to `master` unless the user explicitly asks for a different branch or a PR workflow.
+- If local `master` still exists, keep it aligned with `main` after pushes (`git push origin HEAD:master` only when needed to avoid drift), but treat **`main` as the source of truth**.

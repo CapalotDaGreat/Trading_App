@@ -31,7 +31,7 @@ Do not submit until hosted legal URLs return HTTP 200 on `[OFFICIAL DOMAIN REQUI
 - Sync: `npm run legal` → `shared/legal/document-text.ts` + `store/hosted/`
 - Operator placeholders remain: `[LEGAL ENTITY NAME REQUIRED]`, `[VAT/UID REQUIRED]`, contact emails, `[OFFICIAL DOMAIN REQUIRED]`
 - Postal address in templates: Höglerstrasse 55, 8600 Dübendorf
-- Age layers documented: store **12+ / Teen** vs accounts **18+** vs Guest (no 18+ gate)
+- Age layers documented: store **4+ / Everyone** vs accounts **18+** vs Guest (no 18+ gate)
 
 ### Privacy behaviour (in source)
 
@@ -107,7 +107,7 @@ Previously probed `https://tradeacademy.cloud/{privacy,terms,support,account-del
 - [ ] Upload to App Store Connect + Play Console
 - [ ] Paste listing copy from `store/metadata/*.json` **after** URLs are live
 - [ ] Fill Apple Privacy Nutrition Labels + Google Data Safety (match shipped consent behaviour)
-- [ ] Age: Apple **12+**, Play **Teen**; account eligibility **18+**
+- [ ] Age: Apple **4+**, Play **Everyone**; account eligibility **18+**
 
 ### 7. Review submission
 

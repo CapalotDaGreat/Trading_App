@@ -6,8 +6,8 @@ import playStore from '../../../store/metadata/play-store.json';
 
 describe('age layers stay distinct', () => {
   it('keeps store content ratings separate from 18+ account eligibility', () => {
-    expect(AGE_LAYERS.storeContentRatingIos).toBe('12+');
-    expect(AGE_LAYERS.storeContentRatingAndroid).toBe('Teen');
+    expect(AGE_LAYERS.storeContentRatingIos).toBe('4+');
+    expect(AGE_LAYERS.storeContentRatingAndroid).toBe('Everyone');
     expect(AGE_LAYERS.accountMinimumYears).toBe(18);
     expect(AGE_LAYERS.guestRequiresAccountAge).toBe(false);
     expect(AGE_LAYERS.storeRatingIsNotPermissionToTrade).toBe(true);
@@ -22,11 +22,11 @@ describe('age layers stay distinct', () => {
 
   it('repeats the same split in Terms and Privacy', () => {
     expect(LEGAL_DOCUMENT_TEXT.terms).toContain('18');
-    expect(LEGAL_DOCUMENT_TEXT.terms).toContain('12+');
-    expect(LEGAL_DOCUMENT_TEXT.privacy).toContain('Teen');
+    expect(LEGAL_DOCUMENT_TEXT.terms).toContain('4+');
+    expect(LEGAL_DOCUMENT_TEXT.privacy).toContain('Everyone');
     expect(LEGAL_DOCUMENT_TEXT.privacy.toLowerCase()).toContain('guest/demo');
     expect(LEGAL_DOCUMENT_TEXT.privacy.toLowerCase()).toContain(
-      'does **not** tell anyone that a 12+ store rating authorises trading',
+      'does **not** tell anyone that a 4+ store rating authorises trading',
     );
   });
 });

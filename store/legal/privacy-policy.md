@@ -37,11 +37,11 @@ It does **not** govern third-party stores (Apple, Google), payment processors, o
 
 ## 1A. Store rating, contractual eligibility, and privacy eligibility
 
-These are **different** rules. TradeAcademy does **not** tell anyone that a 12+ store rating authorises trading, brokerage, or investment advice.
+These are **different** rules. TradeAcademy does **not** tell anyone that a 4+ store rating authorises trading, brokerage, or investment advice.
 
 | Layer | What it means |
 | --- | --- |
-| **Store content rating** | Apple App Store **12+** and Google Play **Teen** describe *content suitability* for the store questionnaire. They are **not** a licence to trade and **not** an invitation for children to open cloud accounts. |
+| **Store content rating** | Apple App Store **4+** and Google Play **Everyone** describe *content suitability* for the store questionnaire. They are **not** a licence to trade and **not** an invitation for children to open cloud accounts. |
 | **Contractual eligibility** | Creating an account or purchasing a subscription requires being at least **18**, or the age of majority where you live. Guest/demo exploration of local educational features does not require being 18. |
 | **Privacy / children’s eligibility** | Cloud account features (registration, cloud sync, online journals, online portfolios, paid subscriptions) are **not** offered to young children. We do not knowingly collect personal data from young children through cloud accounts. The app is **not directed toward young children**. |
 
@@ -202,7 +202,7 @@ TradeAcademy is intended for a **general audience**. Anyone may download the app
 
 **Cloud account features** — including registration, cloud sync, online journals, online portfolios, and paid subscriptions — are available only to users who meet the minimum eligibility requirements: at least **18** years old, or the age of majority in their jurisdiction. We do not knowingly collect personal data from young children through cloud accounts. The application is **not directed toward young children**. If you believe a minor has created an account or provided personal data, contact [PRIVACY EMAIL REQUIRED] and we will delete it.
 
-A **12+ / Teen store rating does not change this.** It does not mean a minor may legally trade, receive investment advice, or open a TradeAcademy cloud account.
+A **4+ / Everyone store rating does not change this.** It does not mean a minor may legally trade, receive investment advice, or open a TradeAcademy cloud account.
 
 ---
 

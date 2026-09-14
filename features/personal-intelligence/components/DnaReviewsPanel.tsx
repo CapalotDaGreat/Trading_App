@@ -55,7 +55,7 @@ export function DnaReviewsPanel({
     <View className="gap-4" testID="dna-reviews-panel">
       <Surface>
         <Text variant="label" className="text-accent">
-          What's changing
+          What is changing
         </Text>
         <View className="mt-3 gap-3">
           {whatsChanging.map((insight) => (
@@ -100,7 +100,10 @@ export function DnaReviewsPanel({
 
       {isPremium ? (
         <>
-          <CollapsibleSection title="Monthly evolution" description="What improved, what drifted, what to practice.">
+          <CollapsibleSection
+            title="Monthly evolution"
+            description="What improved, what drifted, what to practice."
+          >
             <Text variant="body-sm" className="mb-3 text-text-secondary">
               {monthlyReview.comparison}
             </Text>
@@ -150,7 +153,10 @@ export function DnaReviewsPanel({
             ))}
           </CollapsibleSection>
 
-          <CollapsibleSection title="Patterns" description="Neutral coaching observations from your process.">
+          <CollapsibleSection
+            title="Patterns"
+            description="Neutral coaching observations from your process."
+          >
             {patterns.length ? (
               patterns.map((pattern) => (
                 <View key={pattern.id} className="mb-3">
@@ -167,7 +173,10 @@ export function DnaReviewsPanel({
             )}
           </CollapsibleSection>
 
-          <CollapsibleSection title="Practice this next" description="Replay, Academy, Journal, Mentor, checklist.">
+          <CollapsibleSection
+            title="Practice this next"
+            description="Replay, Academy, Journal, Mentor, checklist."
+          >
             {coachingActions.map((action) => (
               <View key={action.id} className="mb-3">
                 <Text variant="body-sm">{action.title}</Text>
