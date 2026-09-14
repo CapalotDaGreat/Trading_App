@@ -21,6 +21,11 @@ jobs:
         with:
           node-version: 24
           cache: npm
+      # Firestore/Storage emulators require JDK 21+ (firebase-tools).
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
       - run: npm ci
       - run: npm ci --prefix functions
       - run: npm run lint
