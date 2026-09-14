@@ -132,4 +132,4 @@ export type LearnerSyncResult =
   | { status: 'queued'; reason: 'offline' }
   | { status: 'synced'; pulled: boolean; pushed: boolean; evidenceCount: number; revision: number };
 
-export const LEARNER_SYNC_QUEUE_KEY = 'tradevision-learner-sync-queue-v1';
+export const LEARNER_SYNC_QUEUE_KEY = 'tradeacademy-learner-sync-queue-v1';

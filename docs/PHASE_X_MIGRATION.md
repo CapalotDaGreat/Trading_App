@@ -11,9 +11,9 @@
 
 | Key | Version | Notes |
 | --- | --- | --- |
-| `tradevision:onboarding-draft:v1` | 1 | Legacy activation (still readable) |
-| `tradevision:mentor-setup-draft:v2` | 2 | Mentor Setup answers + step |
-| `tradevision:coach-profile:v1` | 1 | Completed coach profile |
+| `tradeacademy:onboarding-draft:v1` | 1 | Legacy activation (still readable) |
+| `tradeacademy:mentor-setup-draft:v2` | 2 | Mentor Setup answers + step |
+| `tradeacademy:coach-profile:v1` | 1 | Completed coach profile |
 
 ## Quota: daily → monthly (AI)
 

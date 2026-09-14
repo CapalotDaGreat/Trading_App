@@ -65,7 +65,7 @@ export function App() {
   if (!user) {
     return (
       <div className="shell">
-        <h1>TradeVision Ops Admin</h1>
+        <h1>TradeAcademy Ops Admin</h1>
         <p className="muted">
           Internal dashboard only. Aggregates never include journals, AI chats, emails, or portfolio
           values. Requires `opsAdmins/{"{uid}"}` allowlist.
@@ -107,7 +107,7 @@ export function App() {
     <div className="shell">
       <div className="row" style={{ justifyContent: 'space-between' }}>
         <div>
-          <h1>TradeVision Ops Admin</h1>
+          <h1>TradeAcademy Ops Admin</h1>
           <p className="muted">Signed in · aggregates for {data?.day ?? '…'}</p>
         </div>
         <div className="row">

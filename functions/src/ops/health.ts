@@ -17,7 +17,7 @@ async function maybeAlertSpike(count: number, threshold: number): Promise<void> 
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({
-        text: `TradeVision ops spike: ${count} security events in the last hour (threshold ${threshold}).`,
+        text: `TradeAcademy ops spike: ${count} security events in the last hour (threshold ${threshold}).`,
       }),
     });
   } catch (error) {

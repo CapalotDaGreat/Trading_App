@@ -29,9 +29,9 @@ RevenueCat **public** app-specific keys belong in `.env` (gitignored) and EAS se
 # Sandbox / shared test key (Project → API keys → Public app-specific)
 EXPO_PUBLIC_REVENUECAT_API_KEY=test_…
 EXPO_PUBLIC_REVENUECAT_ENTITLEMENT_ID=Aithera Pro
-EXPO_PUBLIC_RC_PRODUCT_MONTHLY=tradevision_premium_monthly
-EXPO_PUBLIC_RC_PRODUCT_YEARLY=tradevision_premium_yearly
-EXPO_PUBLIC_RC_PRODUCT_LIFETIME=tradevision_premium_lifetime
+EXPO_PUBLIC_RC_PRODUCT_MONTHLY=tradeacademy_premium_monthly
+EXPO_PUBLIC_RC_PRODUCT_YEARLY=tradeacademy_premium_yearly
+EXPO_PUBLIC_RC_PRODUCT_LIFETIME=tradeacademy_premium_lifetime
 ```
 
 Production EAS profiles should use platform keys:
@@ -43,7 +43,7 @@ EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY=goog_…
 
 The client configures Purchases in `subscriptionService.configureForUser(uid)` with the **Firebase UID** as the App User ID. Demo/guest (`demo-guest`) and Expo Go never load the native module.
 
-`eas.json` already bakes the non-secret catalog IDs (`Aithera Pro`, `tradevision_premium_monthly`, `tradevision_premium_yearly`, `tradevision_premium_lifetime`). Platform SDK keys stay in EAS Environment / `.env`.
+`eas.json` already bakes the non-secret catalog IDs (`Aithera Pro`, `tradeacademy_premium_monthly`, `tradeacademy_premium_yearly`, `tradeacademy_premium_lifetime`). Platform SDK keys stay in EAS Environment / `.env`.
 
 ## 3. Dashboard — project, apps, entitlement, products
 
@@ -51,10 +51,10 @@ Do this in [RevenueCat](https://app.revenuecat.com). The repo cannot create stor
 
 ### 3.1 Project and apps
 
-1. Create / open the project that will serve TradeInsight.
+1. Create / open the project that will serve TradeAcademy.
 2. **Add apps** (same RC project for both stores):
-   - iOS: bundle id `ai.tradevision.app`
-   - Android: package `ai.tradevision.app`
+   - iOS: bundle id `ai.tradeacademy.app`
+   - Android: package `ai.tradeacademy.app`
 3. Copy the **public** SDK keys (`appl_…` / `goog_…` / sandbox `test_…`) into `.env` as above. Never paste the secret API key into `EXPO_PUBLIC_*`.
 
 ### 3.2 Entitlement
@@ -73,9 +73,9 @@ Product IDs must match both stores and RevenueCat:
 
 | Product ID | Store type | Trial |
 | --- | --- | --- |
-| `tradevision_premium_monthly` | Auto-renewing subscription | None |
-| `tradevision_premium_yearly` | Auto-renewing subscription | **7-day introductory offer** |
-| `tradevision_premium_lifetime` | **Non-consumable** (not a subscription) | None |
+| `tradeacademy_premium_monthly` | Auto-renewing subscription | None |
+| `tradeacademy_premium_yearly` | Auto-renewing subscription | **7-day introductory offer** |
+| `tradeacademy_premium_lifetime` | **Non-consumable** (not a subscription) | None |
 
 Attach **all three** to entitlement `Aithera Pro`.
 
@@ -99,18 +99,18 @@ The client maps those identifiers in `features/subscription/services/revenuecat-
 4. **Terms / Privacy buttons must use in-app URLs** (Project settings *and* the paywall footer / `navigate_to` actions):
 
 ```
-Terms of Service:  tradevision://legal/terms
-Privacy Policy:    tradevision://legal/privacy
+Terms of Service:  tradeacademy://legal/terms
+Privacy Policy:    tradeacademy://legal/privacy
 ```
 
 Optional extras (same in-app reader):
 
 ```
-Risk:              tradevision://legal/risk
-Support:           tradevision://legal/support
+Risk:              tradeacademy://legal/risk
+Support:           tradeacademy://legal/support
 ```
 
-Do **not** set these paywall buttons to `https://tradevision.ai/…`. HTTPS from a native paywall opens Safari. The custom scheme is handled by Expo Router and opens `/legal/[doc]` on top of the paywall. Back returns to the paywall.
+Do **not** set these paywall buttons to `https://tradeacademy.cloud/…`. HTTPS from a native paywall opens Safari. The custom scheme is handled by Expo Router and opens `/legal/[doc]` on top of the paywall. Back returns to the paywall.
 
 The embedded paywall screen also has in-app Terms / Privacy / Risk links above the native view, so legal is reachable even before the dashboard URLs are saved.
 
@@ -122,7 +122,7 @@ Copy used in-app (keep this tone):
 
 ### 3.6 Customer Center
 
-Enable Customer Center. Use the **same** Terms / Privacy URLs as the paywall (`tradevision://legal/terms` and `tradevision://legal/privacy`).
+Enable Customer Center. Use the **same** Terms / Privacy URLs as the paywall (`tradeacademy://legal/terms` and `tradeacademy://legal/privacy`).
 
 ### 3.7 Webhook (server)
 
@@ -180,7 +180,7 @@ These still need HTTPS URLs for the **store listing** (App Privacy / store metad
 - Privacy Policy URL (store listing)
 - Terms of Use / EULA (Apple: custom EULA or Terms URL)
 
-Until `tradevision.ai` (or `EXPO_PUBLIC_LEGAL_SITE_ORIGIN`) actually hosts those pages, store listing URLs remain a hosting blocker. In-app legal already satisfies the paywall / IAP disclosure path.
+Until `tradeacademy.cloud` (or `EXPO_PUBLIC_LEGAL_SITE_ORIGIN`) actually hosts those pages, store listing URLs remain a hosting blocker. In-app legal already satisfies the paywall / IAP disclosure path.
 
 ## 6. Best practices (this app)
 

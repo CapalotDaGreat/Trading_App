@@ -1,4 +1,4 @@
-# Backend production audit — TradeInsight (Phase 4)
+# Backend production audit — TradeAcademy (Phase 4)
 
 **Date:** 2026-08-24  
 **Scope:** Firebase Cloud Functions, Firestore/Storage rules, quotas, App Check, billing webhook, account deletion, ops callables  

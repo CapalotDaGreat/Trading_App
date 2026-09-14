@@ -1,7 +1,7 @@
 # Phase 10 — Trusted AI 2.0
 
 **Date:** 2026-08-24  
-**Product:** TradeInsight by Aithera  
+**Product:** TradeAcademy by Aithera  
 **SDK:** Expo 54 (`expo@54.0.36`)
 
 The objective is **not** to make the mentor sound smarter. The objective is to make it **more trustworthy**.

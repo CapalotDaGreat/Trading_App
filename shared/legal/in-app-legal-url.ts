@@ -35,7 +35,7 @@ function hostsMatchLegalSite(hostname: string): boolean {
   } catch {
     // Ignore malformed fallback origin.
   }
-  return host === 'tradevision.ai';
+  return host === 'tradeacademy.cloud';
 }
 
 /**
@@ -57,8 +57,8 @@ export function inAppLegalUrl(id: LegalRouteId): string {
 
 /**
  * Map an incoming deep link (custom scheme or hosted HTTPS path) to `/legal/:doc`.
- * Handles `tradevision://legal/terms`, `tradevision:///legal/terms`, and
- * `https://tradevision.ai/privacy` (plus privacy_policy aliases used by RevenueCat).
+ * Handles `tradeacademy://legal/terms`, `tradeacademy:///legal/terms`, and
+ * `https://tradeacademy.cloud/privacy` (plus privacy_policy aliases used by RevenueCat).
  */
 export function parseInAppLegalPath(raw: string): string | null {
   const trimmed = raw.trim();

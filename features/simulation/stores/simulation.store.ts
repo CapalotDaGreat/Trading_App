@@ -308,7 +308,7 @@ export const useSimulationStore = create<SimulationState>()(
       },
     }),
     {
-      name: 'tradevision-simulation-v1',
+      name: 'tradeacademy-simulation-v1',
       storage: createDebouncedPersistedStorage(),
       version: 3,
       partialize: (state) =>

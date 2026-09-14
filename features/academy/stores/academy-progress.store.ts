@@ -357,7 +357,7 @@ export const useAcademyProgressStore = create<AcademyProgressState>()(
       },
     }),
     {
-      name: 'tradevision-academy-progress',
+      name: 'tradeacademy-academy-progress',
       storage: createPersistedStorage(),
       version: 5,
       partialize: (state) => {

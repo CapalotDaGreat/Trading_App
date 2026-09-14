@@ -76,7 +76,7 @@ function buildMetadata(
     dataAsOf: context.assembledAt,
     citations,
     symbol: context.symbol,
-    modelVersion: 'tradevision-engine-2.0',
+    modelVersion: 'tradeacademy-engine-2.0',
     trust,
   };
 }
@@ -612,7 +612,7 @@ function buildPsychologyCoach(topic: string): AiAnalysisResult {
       confidence: 75,
       dataAsOf: Date.now(),
       citations: [{ label: 'Topic', value: topic }],
-      modelVersion: 'tradevision-engine-1.0',
+      modelVersion: 'tradeacademy-engine-1.0',
     },
   };
 }
@@ -640,7 +640,7 @@ function buildPortfolioReview(
         confidence: 40,
         dataAsOf: Date.now(),
         citations: [],
-        modelVersion: 'tradevision-engine-1.0',
+        modelVersion: 'tradeacademy-engine-1.0',
       },
     };
   }
@@ -699,7 +699,7 @@ function buildPortfolioReview(
       confidence: clamp(diversificationScore, 45, 85),
       dataAsOf: Date.now(),
       citations: [{ label: 'Holdings', value: String(items.length) }],
-      modelVersion: 'tradevision-engine-1.0',
+      modelVersion: 'tradeacademy-engine-1.0',
     },
   };
 }
@@ -805,14 +805,14 @@ export function generateEngineChatResponse(
     ? {
         ...buildMetadata(enriched, 50, [], { sentiment: enriched.overallBias }),
         trust,
-        modelVersion: 'tradevision-mentor-3.0',
+        modelVersion: 'tradeacademy-mentor-3.0',
       }
     : {
         source: 'engine',
         confidence: 0,
         dataAsOf: Date.now(),
         citations: [{ label: 'Topic', value: 'process' }],
-        modelVersion: 'tradevision-mentor-3.0',
+        modelVersion: 'tradeacademy-mentor-3.0',
         trust,
       };
 

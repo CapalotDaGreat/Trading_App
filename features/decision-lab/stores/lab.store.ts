@@ -334,7 +334,7 @@ export const useDecisionLabStore = create<LabState>()(
       getChallenges: () => evaluateChallenges(get().positions),
     }),
     {
-      name: 'tradevision-decision-lab-v1',
+      name: 'tradeacademy-decision-lab-v1',
       storage: createPersistedStorage(),
       partialize: (s) => ({
         account: s.account,

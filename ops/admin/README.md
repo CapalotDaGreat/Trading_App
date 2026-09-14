@@ -1,4 +1,4 @@
-# TradeVision Ops Admin
+# TradeAcademy Ops Admin
 
 Internal Vite dashboard for feature flags, remote config, AI/ops aggregates, and health.
 

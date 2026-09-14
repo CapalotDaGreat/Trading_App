@@ -1,7 +1,7 @@
 # Market-data cost audit — do you need Finnhub at $50/month?
 
 **Date:** 8 September 2026  
-**Product:** TradeInsight (decision-first research; delayed/sample data is already honest in the UI)  
+**Product:** TradeAcademy (decision-first research; delayed/sample data is already honest in the UI)  
 **Question:** Is Finnhub Market Data Basic (~**$49.99/month**, billed quarterly) required?
 
 **Short answer**
@@ -17,7 +17,7 @@ You do **not** need Finnhub Enterprise. You do **not** need to spend $50 to keep
 
 ---
 
-## What TradeInsight actually calls
+## What TradeAcademy actually calls
 
 The app does **not** use Finnhub news, fundamentals, transcripts, ESG, ticks, or websockets.
 
@@ -66,7 +66,7 @@ Basic is billed **quarterly** (~$150/quarter), not a casual month-to-month exper
 
 Finnhub’s self-serve cards, including Basic / Standard / Professional, are labelled **Personal Use**. Third-party writeups of the same page: commercial or professional use needs **written approval**; redistribution is Enterprise.
 
-TradeInsight **displays prices and candles to end users** in an App Store app. That is not a personal Jupyter notebook.
+TradeAcademy **displays prices and candles to end users** in an App Store app. That is not a personal Jupyter notebook.
 
 So:
 
@@ -117,7 +117,7 @@ That is acceptable for **development and a demo-quality store listing**. It is *
 Are you charging users (or submitting to the App Store) for stock/ETF charts?
   NO  → Do not buy Finnhub. Demo + CoinGecko + FX is enough.
   YES → You need licensed OHLC.
-          Email Finnhub: “in-app display in TradeInsight, delayed OK, no redistribution.”
+          Email Finnhub: “in-app display in TradeAcademy, delayed OK, no redistribution.”
           If they approve Basic → buy the $50 plan, put FINNHUB_API_KEY on Functions secrets.
           If they say no / Enterprise → do not buy Basic; evaluate a vendor that sells external display
           (e.g. Twelve Data Business/Venture is priced for that, typically well above $50).
@@ -151,7 +151,7 @@ These would require **code**, not just a secret:
 | Tiingo Business | ~$50/mo | Internal-use commercial license — confirm **end-user display** |
 | Stay on sample + CoinGecko | $0 | Honest demo; no real stock charts |
 
-None of these are required to keep building TradeInsight.
+None of these are required to keep building TradeAcademy.
 
 ---
 

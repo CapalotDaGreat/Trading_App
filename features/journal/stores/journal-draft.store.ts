@@ -38,7 +38,7 @@ export const useJournalDraftStore = create<JournalDraftState>()(
       clearDraft: () => set({ draft: null, savedAt: null }),
     }),
     {
-      name: 'tradevision-journal-draft-v1',
+      name: 'tradeacademy-journal-draft-v1',
       storage: createPersistedStorage(),
       version: 1,
     },

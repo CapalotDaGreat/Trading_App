@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export const LOCAL_USER_DATA_VERSION = 1;
-export const LOCAL_USER_DATA_KEY_PREFIX = `tradevision:user-data:v${LOCAL_USER_DATA_VERSION}`;
+export const LOCAL_USER_DATA_KEY_PREFIX = `tradeacademy:user-data:v${LOCAL_USER_DATA_VERSION}`;
 
 export type LocalCollectionName =
   'watchlists' | 'journal' | 'holdings' | 'alerts' | 'profiles' | 'decisionLog';
@@ -25,10 +25,10 @@ export interface LocalStorageAdapter {
   removeItem(key: string): Promise<void>;
 }
 
-const LEGACY_WATCHLIST_KEY = 'tradevision-demo-watchlist';
-const LEGACY_JOURNAL_KEY = 'tradevision-demo-journal';
-const LEGACY_PROFILE_KEY = 'tradevision-demo-profile';
-const LEGACY_DECISION_LOG_KEY = 'tradevision-decision-log';
+const LEGACY_WATCHLIST_KEY = 'tradeacademy-demo-watchlist';
+const LEGACY_JOURNAL_KEY = 'tradeacademy-demo-journal';
+const LEGACY_PROFILE_KEY = 'tradeacademy-demo-profile';
+const LEGACY_DECISION_LOG_KEY = 'tradeacademy-decision-log';
 
 const queues = new Map<string, Promise<unknown>>();
 let idCounter = 0;

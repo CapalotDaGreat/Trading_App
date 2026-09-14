@@ -1,11 +1,11 @@
 # Phase 6 — Calm OS UX Transformation
 
 **Date:** 2026-08-24  
-**Product:** TradeInsight by Aithera  
+**Product:** TradeAcademy by Aithera  
 **SDK:** Expo 54 (`expo@54.0.36`)  
 **Scope:** UX transformation only. Decision engines, Firestore schemas, stores, and entitlements were not rewritten.
 
-TradeInsight remains a decision-first research and coaching app. It is not a broker, not an execution platform, not a buy/sell signal service, and not a prediction engine. RVS still ranks research attention. DQS still grades process quality.
+TradeAcademy remains a decision-first research and coaching app. It is not a broker, not an execution platform, not a buy/sell signal service, and not a prediction engine. RVS still ranks research attention. DQS still grades process quality.
 
 This pass does **not** change the store GO/NO-GO in `docs/FINAL_PRODUCTION_READINESS_REPORT.md`. Calm OS does not unblock App Store or Play Console work.
 

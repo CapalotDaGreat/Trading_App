@@ -10,7 +10,7 @@ import type {
   OpsRemoteConfig,
 } from '../types/ops-config.types';
 
-const CACHE_KEY = 'tradevision-ops-bootstrap-v1';
+const CACHE_KEY = 'tradeacademy-ops-bootstrap-v1';
 
 function mergeFlags(remote?: Partial<OpsFeatureFlags> | null): OpsFeatureFlags {
   const base = JSON.parse(JSON.stringify(DEFAULT_OPS_FLAGS)) as OpsFeatureFlags;

@@ -1,7 +1,7 @@
 # Phase 14 — Trusted AI 3.0
 
 **Date:** 2026-08-25  
-**Product:** TradeInsight by Aithera  
+**Product:** TradeAcademy by Aithera  
 **SDK:** Expo 54 (`expo@54.0.36`)
 
 The objective is **not** to make the mentor sound smarter. The objective is to make it **impossible to confuse with a confident prediction engine**.
@@ -250,7 +250,7 @@ Analysis: missing quote does not invent support/invalidation (`ai-engine.test.ts
 
 ## Honest verdict
 
-TradeInsight’s AI can still be useful as a research mentor. It is much harder to mistake for a prediction engine than a fluent chatbot would be.
+TradeAcademy’s AI can still be useful as a research mentor. It is much harder to mistake for a prediction engine than a fluent chatbot would be.
 
 It will say **I don't know** when the pack is missing, stale, conflicting, or the user asks for a call. It will not invent prices, timestamps, or support levels. It will not quietly reword an unsupported forecast into something that still asserts the same claim.
 

@@ -95,7 +95,7 @@ export const usePracticeProgressStore = create<PracticeProgressState>()(
       },
     }),
     {
-      name: 'tradevision-practice-progress-v1',
+      name: 'tradeacademy-practice-progress-v1',
       storage: createPersistedStorage(),
       version: 2,
       partialize: (state) => ({

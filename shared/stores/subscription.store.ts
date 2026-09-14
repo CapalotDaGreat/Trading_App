@@ -56,7 +56,7 @@ export const useSubscriptionStore = create<SubscriptionState>()(
       reset: () => set({ ...initialState, isLoading: false }),
     }),
     {
-      name: 'tradevision-subscription',
+      name: 'tradeacademy-subscription',
       storage: createPersistedStorage(),
       partialize: (state) => ({
         ownerUid: state.ownerUid,

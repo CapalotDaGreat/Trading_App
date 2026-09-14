@@ -73,19 +73,19 @@ describe('LocalUserRepository', () => {
   it('migrates legacy demo keys once into the uid document', async () => {
     const storage = new MemoryStorage();
     storage.values.set(
-      'tradevision-demo-watchlist',
+      'tradeacademy-demo-watchlist',
       JSON.stringify({ name: 'Legacy', symbols: ['AAPL'] }),
     );
     storage.values.set(
-      'tradevision-demo-journal',
+      'tradeacademy-demo-journal',
       JSON.stringify([{ id: 'journal-1', symbol: 'AAPL' }]),
     );
     storage.values.set(
-      'tradevision-demo-profile:demo-guest',
+      'tradeacademy-demo-profile:demo-guest',
       JSON.stringify({ uid: 'wrong', displayName: 'Legacy Trader' }),
     );
     storage.values.set(
-      'tradevision-decision-log',
+      'tradeacademy-decision-log',
       JSON.stringify([{ id: 'decision-1', eventKey: 'legacy-event' }]),
     );
 
@@ -103,14 +103,14 @@ describe('LocalUserRepository', () => {
       displayName: 'Legacy Trader',
     });
     expect(document.collections.decisionLog).toHaveLength(1);
-    expect(storage.values.has('tradevision-demo-watchlist')).toBe(false);
+    expect(storage.values.has('tradeacademy-demo-watchlist')).toBe(false);
     expect(storage.values.has(localUserDataStorageKey('demo-guest'))).toBe(true);
   });
 
   it('seeds idempotently and resets only its own user-data key', async () => {
     const storage = new MemoryStorage();
-    storage.values.set('tradevision-settings', 'keep');
-    storage.values.set('tradevision-theme', 'keep');
+    storage.values.set('tradeacademy-settings', 'keep');
+    storage.values.set('tradeacademy-theme', 'keep');
     const repository = new LocalUserRepository('demo-guest', storage);
 
     expect(
@@ -130,8 +130,8 @@ describe('LocalUserRepository', () => {
     expect(await repository.list('alerts')).toHaveLength(2);
 
     await repository.reset();
-    expect(storage.values.get('tradevision-settings')).toBe('keep');
-    expect(storage.values.get('tradevision-theme')).toBe('keep');
+    expect(storage.values.get('tradeacademy-settings')).toBe('keep');
+    expect(storage.values.get('tradeacademy-theme')).toBe('keep');
     expect(storage.values.has(localUserDataStorageKey('demo-guest'))).toBe(false);
   });
 });

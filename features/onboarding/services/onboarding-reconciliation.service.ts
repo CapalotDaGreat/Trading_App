@@ -12,7 +12,7 @@ import type { OnboardingEvidence, OnboardingResolution } from '../types/onboardi
 import { loadOnboardingDraft } from './onboarding-draft.service';
 import { resolveOnboarding } from './onboarding-migration.service';
 
-export const LEGACY_TODAY_COACH_DISMISS_KEY = 'tradevision-today-coach-dismissed';
+export const LEGACY_TODAY_COACH_DISMISS_KEY = 'tradeacademy-today-coach-dismissed';
 
 interface ReconciliationProfile {
   onboardingCompleted: boolean;

@@ -1,9 +1,9 @@
-# Full product improvement audit — TradeInsight
+# Full product improvement audit — TradeAcademy
 
 **Date:** 8 September 2026  
-**Product:** TradeInsight by Aithera  
-**Bundle ID (frozen):** `ai.tradevision.app`  
-**URL scheme:** `tradevision`  
+**Product:** TradeAcademy by Aithera  
+**Bundle ID (frozen):** `ai.tradeacademy.app`  
+**URL scheme:** `tradeacademy`  
 **Verdict:** Substantial product improvement in-repo. **Not App Store ready.** External credentials, hosted legal URLs, and console work still block submission.
 
 This pass did **not** delete Decision Lab, Replay, Trading DNA, Personal Intelligence, AI, or advanced research. Complexity is layered: short explanation first, then charts, then practice.
@@ -41,7 +41,7 @@ This pass did **not** delete Decision Lab, Replay, Trading DNA, Personal Intelli
 
 ### Bookmarks
 
-- `savedLessonIds` on `tradevision-academy-progress` (persist version 3)
+- `savedLessonIds` on `tradeacademy-academy-progress` (persist version 3)
 - Bookmark control on the lesson header; **Saved for later** on Academy home.
 
 No new Cloud Functions, Firestore collections, or indexes.
@@ -112,7 +112,7 @@ No new Cloud Functions, Firestore collections, or indexes.
 | EAS project / credentials | Confirm EAS project id, iOS/Android credentials, push | `eas.json` / Expo dashboard | Native IAP, background alerts, push need a Dev Client / store build | **Yes** for store binaries |
 | Sentry org/project | Optional: set org/project or leave crash reporting off | Sentry + EAS | `expo config` warns they are missing; analytics/crash stay off by default | No if crash reporting stays off |
 | Cloud AI | Keep `CLOUD_AI_ENABLED = false` until privacy/provenance approved | `features/ai/constants/ai-release.ts` | Cloud AI is intentionally stubbed | No — local analysis is the current product |
-| Bundle ID migration | Do **not** change `ai.tradevision.app` without an Apple App ID plan | App Store Connect | Frozen in Phase 0 | N/A unless you choose to rebrand IDs |
+| Bundle ID migration | Do **not** change `ai.tradeacademy.app` without an Apple App ID plan | App Store Connect | Frozen in Phase 0 | N/A unless you choose to rebrand IDs |
 | Device visual QA | Walk the Manual QA checklist on iPhone + Android Dev Client | Device | This pass was verified with tests/typecheck, not a full device walkthrough | No for compile; **yes** before you submit |
 
 ---
@@ -134,6 +134,6 @@ Not fully redesigned (sound enough; future P1/P2): onboarding length, Replay TV 
 | `npm run functions:build` | Pass |
 | `npm --prefix functions test` | 18 passed |
 | `npm run test:rules` | Firestore + Storage rules passed |
-| `npx expo config --type public` | Pass — name TradeInsight, scheme `tradevision`, bundle `ai.tradevision.app`, SDK 54 |
+| `npx expo config --type public` | Pass — name TradeAcademy, scheme `tradeacademy`, bundle `ai.tradeacademy.app`, SDK 54 |
 
 The app is **not** production-ready until remaining console, legal-hosting, and commercial market-data items above are done.

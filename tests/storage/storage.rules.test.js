@@ -12,7 +12,7 @@ let testEnv;
 
 beforeAll(async () => {
   testEnv = await initializeTestEnvironment({
-    projectId: 'tradevision-rules-test',
+    projectId: 'tradeacademy-rules-test',
     storage: {
       rules: fs.readFileSync(path.resolve(__dirname, '../../firebase/rules/storage.rules'), 'utf8'),
     },

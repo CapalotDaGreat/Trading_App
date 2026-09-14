@@ -147,7 +147,7 @@ export const useSettingsStore = create<SettingsState>()(
       reset: () => set({ ...initialState, hasHydrated: true }),
     }),
     {
-      name: 'tradevision-settings',
+      name: 'tradeacademy-settings',
       version: 8,
       storage: createPersistedStorage(),
       partialize: (state) => {

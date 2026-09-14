@@ -6,6 +6,7 @@ import {
   LEGAL_COUNSEL_NOTICE,
   LEGAL_URLS,
 } from '@/shared/constants/legal';
+import { DEFAULT_LEGAL_SITE_ORIGIN } from '@/shared/constants/brand';
 import {
   LEGAL_DOCUMENT_META,
   LEGAL_DOCUMENT_TEXT,
@@ -46,7 +47,7 @@ describe('legal compliance pack', () => {
     expect(privacy).toContain('cloud_ai_enabled');
     expect(privacy).toContain('12+');
     expect(privacy).toContain('does not mean a minor may legally trade');
-    expect(privacy).not.toMatch(/tradeinsight/i);
+    expect(privacy).not.toMatch(/tradeinsight|tradevision/i);
 
     const terms = LEGAL_DOCUMENT_TEXT.terms.toLowerCase();
     expect(terms).toContain('not');
@@ -56,9 +57,9 @@ describe('legal compliance pack', () => {
     expect(terms).toContain('guest/demo mode');
     expect(terms).toContain('store content rating is separate');
     expect(terms).toContain('lifetime is a one-time purchase');
-    expect(terms).toContain('tradevision_premium_monthly');
-    expect(terms).toContain('tradevision_premium_yearly');
-    expect(terms).not.toMatch(/tradeinsight/i);
+    expect(terms).toContain('tradeacademy_premium_monthly');
+    expect(terms).toContain('tradeacademy_premium_yearly');
+    expect(terms).not.toMatch(/tradeinsight|tradevision/i);
 
     expect(privacy).toContain('general audience');
     expect(privacy).toContain('not directed toward young children');
@@ -89,12 +90,13 @@ describe('legal compliance pack', () => {
     }
     expect(LEGAL_URLS.risk).toContain('/risk');
     expect(LEGAL_URLS.security).toContain('/security');
+    expect(DEFAULT_LEGAL_SITE_ORIGIN).toBe('https://tradeacademy.cloud');
   });
 
   it('does not invent production mailboxes from the technical URL fallback', () => {
-    expect(LEGAL_URLS.privacyEmail).not.toMatch(/@tradevision\.ai/i);
-    expect(LEGAL_URLS.securityEmail).not.toMatch(/@tradevision\.ai/i);
-    expect(LEGAL_URLS.supportEmail).not.toMatch(/@tradevision\.ai/i);
+    expect(LEGAL_URLS.privacyEmail).not.toMatch(/@tradeacademy\.cloud/i);
+    expect(LEGAL_URLS.securityEmail).not.toMatch(/@tradeacademy\.cloud/i);
+    expect(LEGAL_URLS.supportEmail).not.toMatch(/@tradeacademy\.cloud/i);
   });
 
   it('keeps product analytics on an allowlist without user-content fields', () => {
@@ -104,10 +106,10 @@ describe('legal compliance pack', () => {
     expect(props).not.toMatch(/journal|prompt|chat|holding|password|token/i);
   });
 
-  it('keeps hosted legal pages on TradeAcademy until operator fields are filled', () => {
+  it('keeps hosted legal pages on TradeAcademy and not retired product names', () => {
     const hosted = readFileSync(join(__dirname, '../../../store/hosted/terms.html'), 'utf8');
     expect(hosted).toContain('TradeAcademy');
-    expect(hosted).not.toMatch(/TradeInsight/);
+    expect(hosted).not.toMatch(/TradeInsight|TradeVision/);
     expect(hosted).toContain('Template — not a live operator publication');
     expect(hosted).toContain('[LEGAL ENTITY NAME REQUIRED]');
   });

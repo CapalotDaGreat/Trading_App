@@ -1,9 +1,9 @@
-# Final 10/10 quality audit — TradeInsight by Aithera
+# Final 10/10 quality audit — TradeAcademy by Aithera
 
 **Date:** 2026-08-24  
-**Product:** TradeInsight by Aithera  
-**Application id:** `ai.tradevision.app` (frozen)  
-**Scheme:** `tradevision` (frozen)  
+**Product:** TradeAcademy by Aithera  
+**Application id:** `ai.tradeacademy.app` (frozen)  
+**Scheme:** `tradeacademy` (frozen)  
 **SDK:** Expo 54 (`expo@54.0.36`, React 19.1, RN 0.81) — public config `sdkVersion: 54.0.0`
 
 **Scope:** Production-quality audit only. No new features. No speculative performance rewrites. Measure-or-evidence first.
@@ -54,7 +54,7 @@ No dimension is 100. Objective evidence for 100 would require signed-device trac
 | `npm --prefix functions test` | **Pass** — 18 tests (App Check fail-closed, premium expiry, AI quota, webhook, validation) |
 | `npm run test:rules` | **Pass** — 11 tests (Firestore + Storage emulators) |
 | `npm run legal` | **Pass** — regenerated `shared/legal/document-text.ts` and `store/hosted/` from markdown |
-| `npx expo config --type public` | **Pass** — name TradeInsight, bundle/package `ai.tradevision.app`, scheme `tradevision`, SDK 54, `updates.enabled: false`. Sentry plugin warns missing org/project. Local `.env` still exports `EXPO_PUBLIC_RC_PRODUCT_LIFETIME` (do not bake into store-like EAS). |
+| `npx expo config --type public` | **Pass** — name TradeAcademy, bundle/package `ai.tradeacademy.app`, scheme `tradeacademy`, SDK 54, `updates.enabled: false`. Sentry plugin warns missing org/project. Local `.env` still exports `EXPO_PUBLIC_RC_PRODUCT_LIFETIME` (do not bake into store-like EAS). |
 
 No test was weakened. No failing assertion was “fixed” by deleting it.
 
@@ -77,7 +77,7 @@ No test was weakened. No failing assertion was “fixed” by deleting it.
 **Solid**
 
 - Feature-first layout under `features/<name>/`.
-- Server/derived state via React Query; preferences via Zustand + AsyncStorage (`tradevision-*` prefix frozen).
+- Server/derived state via React Query; preferences via Zustand + AsyncStorage (`tradeacademy-*` prefix frozen).
 - Firestore gated by `canUseFirestore()` / `isFirebaseConfigured()`; demo uid `demo-guest`.
 - Shared instrument identity (`resolveMarketIdentity` / catalog-aware `buildAssetFromSymbol`) reused by Markets, Charts, Decision, Portfolio, Alerts, AI.
 - Decision OS / DNA / Replay TV / Mentor extend existing stores — no parallel brains.
@@ -380,7 +380,7 @@ Do not submit while this document and `FINAL_PRODUCTION_READINESS_REPORT.md` say
 **Recommended action:** Land Phase 7–10 in reviewable PRs; do not mix store secrets.  
 **Priority:** Medium.
 
-### Finding: Expo slug / npm name still `traders` / `tradevision-ai`
+### Finding: Expo slug / npm name still `traders` / `tradeacademy-ai`
 **Impact:** Dashboard naming only; bundle id is frozen correctly.  
 **Recommended action:** Rename later; do not change bundle id.  
 **Priority:** Nice to have.

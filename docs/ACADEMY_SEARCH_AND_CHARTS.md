@@ -1,6 +1,6 @@
 # Academy search and educational charts
 
-TradeInsight search and lesson charts are **on-device**. They do not call a new backend.
+TradeAcademy search and lesson charts are **on-device**. They do not call a new backend.
 
 ## Search
 

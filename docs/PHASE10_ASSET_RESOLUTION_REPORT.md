@@ -1,10 +1,10 @@
 # Phase 10 — Universal Asset Resolution
 
 **Date:** 2026-08-24  
-**Product:** TradeInsight by Aithera  
+**Product:** TradeAcademy by Aithera  
 **SDK:** Expo 54 (`expo@54.0.36`)
 
-TradeInsight resolves user search text to a **known canonical instrument** before anything is added to a portfolio. Raw typed symbols are never accepted as identity.
+TradeAcademy resolves user search text to a **known canonical instrument** before anything is added to a portfolio. Raw typed symbols are never accepted as identity.
 
 This phase **extends** `features/markets/` (catalog, resolver, quotes) and the existing portfolio create gate. It does **not** add a second instrument database per module.
 
@@ -33,7 +33,7 @@ Not 10/10. Device QA is still required.
 
 ## Mission
 
-When a user searches for an asset, TradeInsight must resolve it to a known canonical instrument.
+When a user searches for an asset, TradeAcademy must resolve it to a known canonical instrument.
 
 Never silently accept arbitrary user-entered symbols.
 
@@ -89,7 +89,7 @@ Copy:
 
 > We couldn't verify this instrument.
 
-> TradeInsight can only manage assets for which reliable market data is available.
+> TradeAcademy can only manage assets for which reliable market data is available.
 
 No fake holding is created.
 

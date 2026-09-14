@@ -115,7 +115,7 @@ export function useJournal() {
     }
 
     const content = format === 'csv' ? exportJournalToCsv(entries) : exportJournalToJson(entries);
-    const filename = `tradevision-journal-${Date.now()}.${format}`;
+    const filename = `tradeacademy-journal-${Date.now()}.${format}`;
 
     if (Platform.OS === 'web') {
       const blob = new Blob([content], { type: format === 'csv' ? 'text/csv' : 'application/json' });

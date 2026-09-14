@@ -11,7 +11,7 @@ Route: `/onboarding` → [`MentorSetupScreen`](../features/onboarding/screens/Me
 3. **Research Universe** — recommended assets, editable, max 10
 4. **Mentor Ready** — estimated learning profile + personalisation checklist
 
-New users must complete this before tabs. Drafts persist under `tradevision:mentor-setup-draft:v2:<uid>`.
+New users must complete this before tabs. Drafts persist under `tradeacademy:mentor-setup-draft:v2:<uid>`.
 
 ## Soft invite (existing users)
 

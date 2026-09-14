@@ -1,6 +1,6 @@
 # Ops architecture overview
 
-TradeVision AI production ops is privacy-first and built on existing Firebase, Sentry, EAS, and RevenueCat surfaces.
+TradeAcademy AI production ops is privacy-first and built on existing Firebase, Sentry, EAS, and RevenueCat surfaces.
 
 ## Components
 

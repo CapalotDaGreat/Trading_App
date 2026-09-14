@@ -1,4 +1,4 @@
-# Privacy audit — TradeInsight by Aithera
+# Privacy audit — TradeAcademy by Aithera
 
 **Date:** 2026-08-24  
 **Scope:** Code and legal templates only. Not a counsel opinion and not a claim that store listing URLs are live.

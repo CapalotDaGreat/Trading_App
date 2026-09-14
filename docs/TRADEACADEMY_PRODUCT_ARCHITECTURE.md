@@ -6,7 +6,7 @@
 
 TradeAcademy is a trading **education, simulation, decision-practice, and coaching** platform. It is not a broker, not an execution venue, not a live terminal, not a social network, and not a source of guaranteed signals or financial advice.
 
-User-facing name: **TradeAcademy**. Company: **Aithera**. Technical identifiers stay frozen (`ai.tradevision.app`, scheme `tradevision`, `tradevision-*` persist keys, RevenueCat entitlement `Aithera Pro`).
+User-facing name: **TradeAcademy**. Company: **Aithera**. Technical identifiers stay frozen (`ai.tradeacademy.app`, scheme `tradeacademy`, `tradeacademy-*` persist keys, RevenueCat entitlement `Aithera Pro`).
 
 ## KEEP / IMPROVE / DEEPEN / REPURPOSE / REMOVE
 

@@ -6,7 +6,7 @@ import type {
   ImpactLevel,
 } from '../types/decision.types';
 
-const DRIFT_KEY = 'tradevision-conviction-drift-v1';
+const DRIFT_KEY = 'tradeacademy-conviction-drift-v1';
 
 interface DriftStore {
   [symbol: string]: ConvictionDriftPoint[];

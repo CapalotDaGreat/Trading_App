@@ -25,7 +25,7 @@ The cash/position engine in `features/simulation/services/simulation-engine.serv
 | Thesis / invalidation | Required for a recorded decision |
 | Journal and decision linking | Optional ids on fills |
 | Reset / archive | Previous book is archived, not deleted |
-| Security / isolation | Accounts keyed by user id; persist key `tradevision-simulation-v1` |
+| Security / isolation | Accounts keyed by user id; persist key `tradeacademy-simulation-v1` |
 
 Scenario generation **does not** rewrite historical transactions or invent brokerage routing.
 
@@ -106,7 +106,7 @@ It must **not** name the skill or the “correct” behavior. Explicit Simulate 
 
 The engine does **not** generate guaranteed winners, guaranteed losers, or a hidden correct trade. Reaction styles and path noise stay probabilistic. Production books still use `createProductionScenarioSeed` (varied). Tests may pass a seed.
 
-Accounts stay keyed by user id (`demo-guest` vs signed-in). Persist key `tradevision-simulation-v1`.
+Accounts stay keyed by user id (`demo-guest` vs signed-in). Persist key `tradeacademy-simulation-v1`.
 
 ---
 

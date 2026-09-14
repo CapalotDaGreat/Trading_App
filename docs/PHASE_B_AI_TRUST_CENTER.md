@@ -54,7 +54,7 @@ UI:
 
 Research desk, not assistant persona:
 
-- “TradeVision research desk…” welcome  
+- “TradeAcademy research desk…” welcome  
 - Prompts: supports vs contradicts, missing evidence, invalidate, reliability  
 - Icon: `library-outline` on assistant bubbles  
 

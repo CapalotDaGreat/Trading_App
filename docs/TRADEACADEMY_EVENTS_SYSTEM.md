@@ -24,7 +24,7 @@ Shared metadata lives in `features/events` so Academy, Practice, Replay, and Sim
 | Education | `features/events/content/event-education.ts` | Kind → concepts, lesson, practice, replay, sim, official links |
 | Stories | `features/events/content/event-stories.ts` | Always-available sample developing / historical / corporate / geo / regulatory |
 | Hub | `features/events/services/event-hub.service.ts` | Compose cards from calendar + stories |
-| Cache | `features/events/stores/event-cache.store.ts` | Last good calendar snapshot (`tradevision-event-cache-v1`) |
+| Cache | `features/events/stores/event-cache.store.ts` | Last good calendar snapshot (`tradeacademy-event-cache-v1`) |
 
 Academy / Simulation / Replay / Personal Intelligence do **not** fetch Finnhub. They consume hrefs and IDs from event metadata.
 

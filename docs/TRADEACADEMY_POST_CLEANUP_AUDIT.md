@@ -59,7 +59,7 @@ Runtime engines that still had consumers were **not** deleted (RVS math, watchli
 | Portfolio tab | Redirect to Simulate |
 | More tab | Redirect to You |
 
-User-facing language was shifted to study / process. Frozen technical IDs were left alone: `ai.tradevision.app`, scheme `tradevision`, `tradevision-*` keys, npm `tradevision-ai`, Expo slug `traders`.
+User-facing language was shifted to study / process. Frozen technical IDs were left alone: `ai.tradeacademy.app`, scheme `tradeacademy`, `tradeacademy-*` keys, npm `tradeacademy-ai`, Expo slug `traders`.
 
 ---
 
@@ -181,7 +181,7 @@ Verified in engine tests + screen wiring:
 | Storage rules | Owner + verified + image constraints; default deny |
 | Authenticated writes | Unauthenticated create/update denied in rules tests |
 | Guest | Local only when Firebase is off; no caller-supplied uid API |
-| Sign-out cleanup | **Fixed this pass** — in-memory simulation / practice / Replay / learning-queue / journal draft now reset, and persist keys `tradevision-replay-tv-v2` + `tradevision-learning-queue-v1` are wiped |
+| Sign-out cleanup | **Fixed this pass** — in-memory simulation / practice / Replay / learning-queue / journal draft now reset, and persist keys `tradeacademy-replay-tv-v2` + `tradeacademy-learning-queue-v1` are wiped |
 | Caller-supplied UID | Functions deletion scoped to authenticated uid (functions test) |
 
 ---
@@ -220,7 +220,7 @@ Residual: Jest still force-exits (open handles). That is a test-harness leak, no
 | `npm run functions:build` | Pass |
 | `npm --prefix functions test` | **18** pass |
 | `npm run test:rules` | **12** pass (Firestore + Storage) |
-| `npx expo config --type public` | Pass — name **TradeAcademy**, SDK **54**, bundle `ai.tradevision.app`, scheme `tradevision` |
+| `npx expo config --type public` | Pass — name **TradeAcademy**, SDK **54**, bundle `ai.tradeacademy.app`, scheme `tradeacademy` |
 
 ---
 
@@ -228,7 +228,7 @@ Residual: Jest still force-exits (open handles). That is a test-harness leak, no
 
 | Query | Finding |
 | --- | --- |
-| TradeInsight / TradeVision AI | **Historical docs only** (`docs/PHASE*`, store checklists). Not in current UI screens. Frozen npm / storage IDs remain. |
+| TradeAcademy / TradeAcademy AI | **Historical docs only** (`docs/PHASE*`, store checklists). Not in current UI screens. Frozen npm / storage IDs remain. |
 | Obsolete research-terminal copy | Primary screens use study / training language. Internal scores and `research` action ids kept. |
 | Unused imports | No unused-import failures on files touched this pass. A repo-wide ESLint unused-import sweep was not run. |
 | TODOs for removed features | None in `*.ts` / `*.tsx` |
@@ -250,7 +250,7 @@ Residual: Jest still force-exits (open handles). That is a test-harness leak, no
 
 ## Regressions fixed
 
-- Reset in-memory stores on logout/delete; wipe `tradevision-replay-tv-v2` and `tradevision-learning-queue-v1`.
+- Reset in-memory stores on logout/delete; wipe `tradeacademy-replay-tv-v2` and `tradeacademy-learning-queue-v1`.
 - Remove the dead Simulate Trade button.
 - Add “Open Academy” on Ask empty state.
 - Add Replay → Review (`LoopCtaRow` on Replay home; “Open Review” after a session).
@@ -260,9 +260,9 @@ Residual: Jest still force-exits (open handles). That is a test-harness leak, no
 
 ## Remaining technical debt
 
-- Historical `docs/` still titled TradeInsight / TradeVision AI. Do not confuse with user-facing brand (`shared/constants/brand.ts` = TradeAcademy).
-- Frozen IDs (`tradevision-ai`, slug `traders`, `tradevision-*` keys) stay until a dedicated identity migration.
-- `tradevision-decision-ui` and `tradevision-day-plan-done-v1` keys are still wiped on logout though their UI is gone — harmless leftover keys.
+- Historical `docs/` still titled TradeAcademy / TradeAcademy AI. Do not confuse with user-facing brand (`shared/constants/brand.ts` = TradeAcademy).
+- Frozen IDs (`tradeacademy-ai`, slug `traders`, `tradeacademy-*` keys) stay until a dedicated identity migration.
+- `tradeacademy-decision-ui` and `tradeacademy-day-plan-done-v1` keys are still wiped on logout though their UI is gone — harmless leftover keys.
 - Remote ops knobs (`watchlistCountFree`, `researchQueueDepthFree`, `portfolioPositionsFree`) still parse for old bootstrap docs.
 - Activation onboarding still uses a research-universe brief (`DecisionBriefHeader` / study queue). Educational, but denser than Home.
 - Cloud AI remains a fail-closed stub (`CLOUD_AI_ENABLED = false`).
@@ -275,7 +275,7 @@ Residual: Jest still force-exits (open handles). That is a test-harness leak, no
 - Device QA of the primary loop on Expo Go and a Dev Client (alerts / IAP / push only on Dev Client).
 - Ask could deep-link a specific lesson when the mentor names one, not only `/learn`.
 - Activation copy still says “research budget” in one demo subtitle path — process language, not a terminal, but could match “study time.”
-- Historical docs rename (TradeInsight → TradeAcademy) when someone next touches those files.
+- Historical docs rename (TradeAcademy → TradeAcademy) when someone next touches those files.
 - Optional: drop unused persist keys after a migration window.
 
 ---

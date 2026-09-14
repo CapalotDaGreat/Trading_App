@@ -13,7 +13,7 @@ import { createEvidenceRecord, normalizeEvidenceRecord } from '../services/evide
 import { emptyCompetencyMastery, scoreCompetencyMastery } from '../services/mastery.service';
 import { resolveCompetencyId } from '../services/taxonomy.service';
 
-export const COMPETENCY_EVIDENCE_STORAGE_KEY = 'tradevision-competency-evidence-v1';
+export const COMPETENCY_EVIDENCE_STORAGE_KEY = 'tradeacademy-competency-evidence-v1';
 
 const PER_USER_CAP = 800;
 

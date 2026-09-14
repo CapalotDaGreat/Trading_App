@@ -63,19 +63,19 @@ describe('parseLegalMarkdown', () => {
 describe('parseLegalInline', () => {
   it('marks bold, code, emails, and legal URLs', () => {
     const nodes = parseLegalInline(
-      'Contact **privacy@tradevision.ai** or visit https://tradevision.ai/privacy and use `DELETE`.',
+      'Contact **privacy@tradeacademy.cloud** or visit https://tradeacademy.cloud/privacy and use `DELETE`.',
     );
     expect(nodes.some((node) => node.type === 'bold')).toBe(true);
     expect(nodes.some((node) => node.type === 'code' && node.value === 'DELETE')).toBe(true);
     expect(
-      nodes.some((node) => node.type === 'link' && node.href === 'https://tradevision.ai/privacy'),
+      nodes.some((node) => node.type === 'link' && node.href === 'https://tradeacademy.cloud/privacy'),
     ).toBe(true);
   });
 });
 
 describe('inAppLegalPath', () => {
   it('maps hosted legal URLs onto in-app routes', () => {
-    expect(inAppLegalPath('https://tradevision.ai/terms')).toBe('/legal/terms');
+    expect(inAppLegalPath('https://tradeacademy.cloud/terms')).toBe('/legal/terms');
     expect(inAppLegalPath('/account-deletion')).toBe('/legal/accountDeletion');
     expect(inAppLegalPath('https://example.com/other')).toBeNull();
   });

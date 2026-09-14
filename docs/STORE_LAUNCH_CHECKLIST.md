@@ -1,7 +1,7 @@
-# Store launch checklist — TradeInsight by Aithera
+# Store launch checklist — TradeAcademy by Aithera
 
 **Date:** 2026-08-24  
-**Identity:** product **TradeInsight**, company **Aithera**, bundle **`ai.tradevision.app`** (frozen)  
+**Identity:** product **TradeAcademy**, company **Aithera**, bundle **`ai.tradeacademy.app`** (frozen)  
 **Privacy audit:** [PRIVACY_AUDIT.md](./PRIVACY_AUDIT.md)
 
 ## Verdict
@@ -38,7 +38,7 @@ Do not submit until hosted legal URLs return HTTP 200 on `[OFFICIAL DOMAIN REQUI
 - Crash reporting and product analytics **off by default**, consent-versioned
 - Analytics allowlist: no journal, AI chat, portfolio values, secrets
 - Sentry redaction + `__DEV__`-only console logs
-- Official mailboxes stay empty until `EXPO_PUBLIC_LEGAL_*_EMAIL` is set (no invented `*@tradevision.ai`)
+- Official mailboxes stay empty until `EXPO_PUBLIC_LEGAL_*_EMAIL` is set (no invented `*@tradeacademy.cloud`)
 - Cloud generative AI **disabled** (`CLOUD_AI_ENABLED = false`)
 - `deleteAccount` removes Auth, user Firestore tree, settings, subscription record, Storage prefix, uid-scoped RevenueCat + security event docs
 
@@ -49,7 +49,7 @@ Do not submit until hosted legal URLs return HTTP 200 on `[OFFICIAL DOMAIN REQUI
 
 ### Hosted URL probe (live site)
 
-Previously probed `https://tradevision.ai/{privacy,terms,support,account-deletion}` — **not** Aithera legal pages. **Legal hosting remains a hard blocker.** That origin is a technical fallback only.
+Previously probed `https://tradeacademy.cloud/{privacy,terms,support,account-deletion}` — **not** Aithera legal pages. **Legal hosting remains a hard blocker.** That origin is a technical fallback only.
 
 ---
 

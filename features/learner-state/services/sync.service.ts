@@ -25,7 +25,7 @@ export function setLearnerStateCloudPort(port: LearnerStateCloudPort | null): vo
   cloudPort = port;
 }
 
-export const LAST_AUTH_UID_KEY = 'tradevision-last-auth-uid';
+export const LAST_AUTH_UID_KEY = 'tradeacademy-last-auth-uid';
 
 export async function readPersistedAuthUid(): Promise<string | null> {
   try {

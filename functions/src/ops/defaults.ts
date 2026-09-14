@@ -31,7 +31,7 @@ export const SERVER_DEFAULT_FLAGS = {
 
 export const SERVER_DEFAULT_REMOTE = {
   schemaVersion: 1,
-  aiModel: 'tradevision-engine-2.0',
+  aiModel: 'tradeacademy-engine-2.0',
   aiDailyLimitFree: 3,
   aiDailyLimitPremium: 100,
   aiMentorMonthlyFree: 3,

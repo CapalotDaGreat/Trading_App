@@ -1,6 +1,6 @@
 # Journal Learning Journey
 
-The Journal is TradeVision’s long-term learning OS — every entry should compound into reviews, DNA, Decision Graph, coaching, and practice recommendations.
+The Journal is TradeAcademy’s long-term learning OS — every entry should compound into reviews, DNA, Decision Graph, coaching, and practice recommendations.
 
 ## Product rules
 

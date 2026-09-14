@@ -9,8 +9,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { logger } from '@/shared/services/observability/logger';
 
-export const ALERT_BACKGROUND_TASK_NAME = 'tradevision-alert-evaluation';
-export const ALERT_BACKGROUND_UID_KEY = 'tradevision.alerts.background.uid';
+export const ALERT_BACKGROUND_TASK_NAME = 'tradeacademy-alert-evaluation';
+export const ALERT_BACKGROUND_UID_KEY = 'tradeacademy.alerts.background.uid';
 
 /** Android WorkManager minimum is 15 minutes; treat as OS lower bound. */
 export const ALERT_BACKGROUND_MIN_INTERVAL_MINUTES = 15;

@@ -1,6 +1,6 @@
 # Phase 3 — Personal Intelligence Platform
 
-TradeVision AI now answers: **Who am I becoming as a trader?**
+TradeAcademy AI now answers: **Who am I becoming as a trader?**
 
 ## What shipped
 

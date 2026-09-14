@@ -1,7 +1,7 @@
 # Phase 8 — Trading DNA 2.0
 
 **Date:** 2026-08-24  
-**Product:** TradeInsight by Aithera  
+**Product:** TradeAcademy by Aithera  
 **SDK:** Expo 54 (`expo@54.0.36`)
 
 Trading DNA answers **how you make decisions** and **how that process is changing**. It does not answer **whether you are profitable**.

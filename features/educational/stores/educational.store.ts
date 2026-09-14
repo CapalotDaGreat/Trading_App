@@ -16,7 +16,7 @@ export const useEducationalStore = create<EducationalState>()(
       dismissLabOnboarding: () => set({ labOnboardingDismissed: true }),
     }),
     {
-      name: 'tradevision-educational-mode-v1',
+      name: 'tradeacademy-educational-mode-v1',
       storage: createPersistedStorage(),
       partialize: (state) => ({
         labOnboardingDismissed: state.labOnboardingDismissed,

@@ -1,12 +1,12 @@
 # Phase 12 — Device, Accessibility & Interaction Excellence
 
 **Date:** 2026-08-25  
-**Product:** TradeInsight by Aithera  
+**Product:** TradeAcademy by Aithera  
 **SDK:** Expo 54 (`expo@54.0.36`)
 
 This phase makes existing surfaces easier to understand on real devices. It does **not** add product modules, a second Replay store, a second motion system, a second error system, or new analytics.
 
-TradeInsight remains a decision-first research and coaching app. It is not a broker, not an execution platform, not a signal service, and not a prediction engine.
+TradeAcademy remains a decision-first research and coaching app. It is not a broker, not an execution platform, not a signal service, and not a prediction engine.
 
 Store GO/NO-GO is unchanged: **NO-GO** (`docs/FINAL_PRODUCTION_READINESS_REPORT.md`).
 
@@ -48,7 +48,7 @@ Why not 95 / 100: this is a repo-side quality pass. VoiceOver, TalkBack, extra-l
 
 ### Replay TV
 
-- Persist helpers `stripReplayTvSessionForPersist` / `rehydrateReplayTvSession` live in the existing session service. Store still uses `tradevision-replay-tv-v2`.
+- Persist helpers `stripReplayTvSessionForPersist` / `rehydrateReplayTvSession` live in the existing session service. Store still uses `tradeacademy-replay-tv-v2`.
 - Restore sets `restoredFromPersist`. Resume banner appears only after persistence restore, and after reveal it no longer claims the future is hidden.
 - Phase announcements distinguish blind vs revealed. Chart summary uses visible candles only.
 - Episode cards, commit choices, coach blocks, and DQS report have useful spoken labels. Filter chips expose selected state.

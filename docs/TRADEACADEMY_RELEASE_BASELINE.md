@@ -3,13 +3,13 @@
 **Date:** 10 September 2026  
 **Scope:** Inspect existing implementation. Do **not** start the next major architecture change from this document.  
 **Companion competence audit:** [TRADEACADEMY_COMPETENCE_AUDIT_2026-09.md](./TRADEACADEMY_COMPETENCE_AUDIT_2026-09.md)  
-**Store checklist (operator work, still historically titled TradeInsight):** [STORE_LAUNCH_CHECKLIST.md](./STORE_LAUNCH_CHECKLIST.md)
+**Store checklist (operator work, still historically titled TradeAcademy):** [STORE_LAUNCH_CHECKLIST.md](./STORE_LAUNCH_CHECKLIST.md)
 
 This baseline verifies the September competence-audit hypotheses against the current tree. Scores in that audit (competence 71 / honesty 91 / personalization 66) remain the product-quality snapshot. This file is the **system-of-record map** for what to reuse, what duplicates, and what blocks a store release.
 
 **Product loop to preserve:** Learn → Practice → Replay → Simulate → Journal → Review → Improve.
 
-**Frozen identifiers (do not rename):** bundle `ai.tradevision.app`, scheme `tradevision`, AsyncStorage prefix `tradevision-*`, Expo slug `traders`, npm `tradevision-ai`, legal host `tradevision.ai`.
+**Current identifiers:** bundle `ai.tradeacademy.app`, scheme `tradeacademy`, AsyncStorage prefix `tradeacademy-*`, Expo slug `tradeacademy`, npm `tradeacademy-ai`, legal host `tradeacademy.cloud`.
 
 **Stack to preserve:** Expo SDK 54, Router v6, React 19.1, RN 0.81.5, TypeScript strict, NativeWind v4, Zustand + AsyncStorage, TanStack Query, optional Firebase, RevenueCat, optional Sentry, Vite ops/admin, `@/*` aliases.
 
@@ -45,24 +45,24 @@ No product code was changed for this baseline. Failures would have been pre-exis
 
 | Domain | Source of truth | Persistence | Notes |
 | --- | --- | --- | --- |
-| **Learner progress (Academy)** | `useAcademyProgressStore` | `tradevision-academy-progress` (local) | `read` / `practiced` / quiz stats. Completion is exposure, never mastery. |
-| **Practice drills** | `usePracticeProgressStore` | `tradevision-practice-progress-v1` | Attempt history used by `recommendPracticeDrill`. |
-| **Training queue / skip-defer** | `useLearningQueueStore` | `tradevision-learning-queue-v1` | Skip = 3 days; defer = 1 day. Not a lock. |
+| **Learner progress (Academy)** | `useAcademyProgressStore` | `tradeacademy-academy-progress` (local) | `read` / `practiced` / quiz stats. Completion is exposure, never mastery. |
+| **Practice drills** | `usePracticeProgressStore` | `tradeacademy-practice-progress-v1` | Attempt history used by `recommendPracticeDrill`. |
+| **Training queue / skip-defer** | `useLearningQueueStore` | `tradeacademy-learning-queue-v1` | Skip = 3 days; defer = 1 day. Not a lock. |
 | **Competency / mastery states** | `scoreCompetencyMastery` over the evidence ledger; fallback `concept-mastery.service.ts` | Derived | Dual model: ledger preferred when evidence exists. |
-| **Evidence** | `useCompetencyEvidenceStore` | `tradevision-competency-evidence-v1` (local, uid map, 800 cap) | **Not Firestore.** Lost on reinstall. Isolated per uid on-device. |
+| **Evidence** | `useCompetencyEvidenceStore` | `tradeacademy-competency-evidence-v1` (local, uid map, 800 cap) | **Not Firestore.** Lost on reinstall. Isolated per uid on-device. |
 | **Recommendations (Home)** | `composeTrainingPlan` | Derived from evidence + queue + graph | Canonical. Candidates come from existing engines. |
 | **Recommendations (other)** | See §B | Derived | Must not be treated as a second product brain. |
-| **Simulation book** | `useSimulationStore` + `simulation-engine.service.ts` | `tradevision-simulation-v1` (local, uid-keyed accounts) | USD 100k synthetic. **No Firestore writes in this feature.** |
-| **Decision Simulator (secondary)** | `useSimulatorStore` | `tradevision-decision-simulator-v1` | Separate scenario desk from the $100k book. |
-| **Decision Lab** | `lab.store` | `tradevision-decision-lab-v1` | Thesis / position lab, not the sim engine. |
-| **Replay TV** | `useReplayTv` + `replay-tv.store` | `tradevision-replay-tv-v2` | Information-boundary engine lives under `features/decision-replay/`. Catalog is `educational_sample`. |
-| **Journal** | `journal.service` via `resolveUserDataBackend` | Firestore `users/{uid}/journal` **or** local `tradevision-demo-journal` / user repo | Ingest on `useJournal` save only. |
+| **Simulation book** | `useSimulationStore` + `simulation-engine.service.ts` | `tradeacademy-simulation-v1` (local, uid-keyed accounts) | USD 100k synthetic. **No Firestore writes in this feature.** |
+| **Decision Simulator (secondary)** | `useSimulatorStore` | `tradeacademy-decision-simulator-v1` | Separate scenario desk from the $100k book. |
+| **Decision Lab** | `lab.store` | `tradeacademy-decision-lab-v1` | Thesis / position lab, not the sim engine. |
+| **Replay TV** | `useReplayTv` + `replay-tv.store` | `tradeacademy-replay-tv-v2` | Information-boundary engine lives under `features/decision-replay/`. Catalog is `educational_sample`. |
+| **Journal** | `journal.service` via `resolveUserDataBackend` | Firestore `users/{uid}/journal` **or** local `tradeacademy-demo-journal` / user repo | Ingest on `useJournal` save only. |
 | **Decision log** | `useDecisionLog` | Firestore create-only **or** local | Separate from competency evidence. |
-| **Events** | `event-hub` + `event-cache.store` | `tradevision-event-cache-v1` + labelled Finnhub/mock | Calendar / study objects, not a news terminal. |
+| **Events** | `event-hub` + `event-cache.store` | `tradeacademy-event-cache-v1` + labelled Finnhub/mock | Calendar / study objects, not a news terminal. |
 | **Personal Intelligence / DNA** | `personalized-today.service` + DNA services | Derived from logs, academy practiced counts, settings | Section order / archetype — not Home’s next item. |
 | **Onboarding** | `onboarding.store` + activation services | Draft via user-data backend; settings personalization | Experience/goals. Demo seed educational. Guest `demo-guest`. |
-| **Settings / consent** | `settings.store` | `tradevision-settings` | Analytics and Sentry off until consent. |
-| **Subscription / entitlements** | RevenueCat + Firestore `subscriptions/{uid}` | Server-owned; local cache `tradevision-subscription` | Entitlement **`Aithera Pro`**. Client cannot write the Firestore subscription doc. |
+| **Settings / consent** | `settings.store` | `tradeacademy-settings` | Analytics and Sentry off until consent. |
+| **Subscription / entitlements** | RevenueCat + Firestore `subscriptions/{uid}` | Server-owned; local cache `tradeacademy-subscription` | Entitlement **`Aithera Pro`**. Client cannot write the Firestore subscription doc. |
 | **Ops flags** | Firestore ops + `evaluate-flag` | Server; bootstrap cache | Live: `globalKill`, `aiChatEnabled`, `personalIntelligenceEnabled`, `mentorEnabled`, `academyEnabled`, `decisionReinforcementEnabled`, `aggressiveMarketPollingEnabled`. |
 | **Analytics** | `track.ts` → `trackProductEvent` | Opt-in callable; allowlisted events | No journal / AI / portfolio payloads. |
 | **Ask / mentor** | Local `ai-engine` (`CLOUD_AI_ENABLED = false`) + `useTradingMentor` | Local + academy next-lesson | Safety refusals for signals. Cloud AI stays off. |
@@ -107,7 +107,7 @@ No product code was changed for this baseline. Failures would have been pre-exis
 | --- | --- | --- |
 | “Did they practice this concept?” | Academy `conceptResults`, practice-progress, competency evidence, learning-queue dispositions | Three answers. |
 | “What is mastery?” | Competency states vs Academy `MasteryLabel` vs concept-mastery scores | Completion/read can look like strength. |
-| Paper trading | `tradevision-simulation-v1` vs `tradevision-decision-simulator-v1` vs leftover `features/portfolio` + `createPortfolioHolding` callable | Two classrooms + a holdings API that is not the Simulate tab. |
+| Paper trading | `tradeacademy-simulation-v1` vs `tradeacademy-decision-simulator-v1` vs leftover `features/portfolio` + `createPortfolioHolding` callable | Two classrooms + a holdings API that is not the Simulate tab. |
 | Replay | Replay TV v2 store vs older `features/decision-replay` engine vs `/decision/replay` redirect | Engine is shared; routes still fork. |
 | Journal | Firestore vs local repo vs Replay TV direct write | Ingest only on the hook path. |
 

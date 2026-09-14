@@ -61,7 +61,7 @@ export interface NotificationService {
 
 const USERS_COLLECTION = 'users';
 const DEVICES_COLLECTION = 'devices';
-const DEVICE_ID_STORAGE_KEY = 'tradevision-push-device-id';
+const DEVICE_ID_STORAGE_KEY = 'tradeacademy-push-device-id';
 
 type NotificationsModule = typeof NotificationsNS;
 

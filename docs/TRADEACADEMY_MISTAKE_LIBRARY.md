@@ -15,7 +15,7 @@ Never:
 
 ## Source of truth
 
-Patterns are **derived** from the competency evidence ledger (`tradevision-competency-evidence-v1`) plus compact behavior events. They are recomputed on read. History lives on the evidence records — improvement does not delete observations.
+Patterns are **derived** from the competency evidence ledger (`tradeacademy-competency-evidence-v1`) plus compact behavior events. They are recomputed on read. History lives on the evidence records — improvement does not delete observations.
 
 Detectors use only structured fields:
 
@@ -68,7 +68,7 @@ Recency uses a 14-day half-life. Stale patterns keep their history and lose queu
 
 Do **not** send pattern IDs or labels to analytics. `toAnalyticsSafeMistakeSummary` is counts only. `toAnalyticsSafeLearnerSummary` stays counts and help mix — no uid, no pattern names.
 
-Keep learner-specific details on-device with other `tradevision-*` uid-scoped state. Guest uid `demo-guest` is isolated like any other user.
+Keep learner-specific details on-device with other `tradeacademy-*` uid-scoped state. Guest uid `demo-guest` is isolated like any other user.
 
 ## Files
 

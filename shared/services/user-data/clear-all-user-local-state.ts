@@ -27,43 +27,44 @@ import {
 import { useSettingsStore } from '@/shared/stores/settings.store';
 import { useSubscriptionStore } from '@/shared/stores/subscription.store';
 
+import { RETIRED_PERSIST_TOKEN } from './legacy-persist-migration';
 import { getLocalUserRepository } from './local-user.repository';
 
 /**
  * AsyncStorage keys wiped on sign-out and account deletion.
- * Theme (`tradevision-theme-v2`) is intentionally preserved as a device preference.
+ * Theme (`tradeacademy-theme-v2`) is intentionally preserved as a device preference.
  */
 export const USER_LOCAL_STORAGE_KEYS = [
-  'tradevision-settings',
-  'tradevision-subscription',
-  'tradevision-academy-progress',
-  'tradevision-checklist-progress',
-  'tradevision-decision-lab-v1',
-  'tradevision-decision-ui',
-  'tradevision-ai-usage',
-  'tradevision-trader-memory',
-  'tradevision-conviction-drift-v1',
-  'tradevision-discipline-streak-v1',
-  'tradevision-day-plan-done-v1',
-  'tradevision-research-queue-done-v1',
-  'tradevision-decision-replay-demo-seed-v1',
-  'tradevision-decision-log',
-  'tradevision-today-coach-dismissed',
-  'tradevision-educational-mode-v1',
-  'tradevision-decision-simulator-v1',
-  'tradevision-decision-passport-v1',
-  'tradevision-brief-logged-day',
-  'tradevision-portfolio-reviewed-day',
-  'tradevision-ai-recommendation-history-v1',
-  'tradevision-simulation-v1',
-  'tradevision-practice-progress-v1',
-  'tradevision-journal-draft-v1',
-  'tradevision-replay-tv-v2',
-  'tradevision-learning-queue-v1',
-  'tradevision-competency-evidence-v1',
-  'tradevision-learner-behavior-v1',
-  'tradevision-learner-sync-queue-v1',
-  'tradevision-last-auth-uid',
+  'tradeacademy-settings',
+  'tradeacademy-subscription',
+  'tradeacademy-academy-progress',
+  'tradeacademy-checklist-progress',
+  'tradeacademy-decision-lab-v1',
+  'tradeacademy-decision-ui',
+  'tradeacademy-ai-usage',
+  'tradeacademy-trader-memory',
+  'tradeacademy-conviction-drift-v1',
+  'tradeacademy-discipline-streak-v1',
+  'tradeacademy-day-plan-done-v1',
+  'tradeacademy-research-queue-done-v1',
+  'tradeacademy-decision-replay-demo-seed-v1',
+  'tradeacademy-decision-log',
+  'tradeacademy-today-coach-dismissed',
+  'tradeacademy-educational-mode-v1',
+  'tradeacademy-decision-simulator-v1',
+  'tradeacademy-decision-passport-v1',
+  'tradeacademy-brief-logged-day',
+  'tradeacademy-portfolio-reviewed-day',
+  'tradeacademy-ai-recommendation-history-v1',
+  'tradeacademy-simulation-v1',
+  'tradeacademy-practice-progress-v1',
+  'tradeacademy-journal-draft-v1',
+  'tradeacademy-replay-tv-v2',
+  'tradeacademy-learning-queue-v1',
+  'tradeacademy-competency-evidence-v1',
+  'tradeacademy-learner-behavior-v1',
+  'tradeacademy-learner-sync-queue-v1',
+  'tradeacademy-last-auth-uid',
 ] as const;
 
 export interface ClearUserLocalStateOptions {
@@ -77,7 +78,7 @@ export interface ClearUserLocalStateOptions {
 export interface ClearUserLocalStateResult {
   uid: string;
   removedAsyncStorageKeys: readonly string[];
-  preservedDeviceKeys: readonly ['tradevision-theme-v2'];
+  preservedDeviceKeys: readonly ['tradeacademy-theme-v2'];
 }
 
 export async function clearAllUserLocalState(
@@ -139,10 +140,16 @@ export async function clearAllUserLocalState(
     mentorSetupDraftStorageKey(uid),
   ];
   await AsyncStorage.multiRemove(keys);
+  const leftover = (await AsyncStorage.getAllKeys()).filter((key) =>
+    key.includes(RETIRED_PERSIST_TOKEN),
+  );
+  if (leftover.length > 0) {
+    await AsyncStorage.multiRemove(leftover);
+  }
 
   return {
     uid,
     removedAsyncStorageKeys: keys,
-    preservedDeviceKeys: ['tradevision-theme-v2'],
+    preservedDeviceKeys: ['tradeacademy-theme-v2'],
   };
 }

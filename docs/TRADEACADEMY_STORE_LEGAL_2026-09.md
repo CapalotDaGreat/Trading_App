@@ -2,7 +2,7 @@
 
 **Date:** 2026-09-10  
 **Product:** TradeAcademy by Aithera  
-**Does not replace:** [STORE_LAUNCH_CHECKLIST.md](./STORE_LAUNCH_CHECKLIST.md) (historically titled TradeInsight). This is the 2026-09 verified store/legal pass.
+**Does not replace:** [STORE_LAUNCH_CHECKLIST.md](./STORE_LAUNCH_CHECKLIST.md) (historically titled TradeAcademy). This is the 2026-09 verified store/legal pass.
 
 **Rule used here:** nothing is marked **PASS** unless the current tree was inspected. Operator-owned items (legal entity, live URLs, screenshots, store consoles) are **BLOCKED**, not guessed.
 
@@ -14,7 +14,7 @@ Age layers were **not** collapsed. Store **12+ / Teen** remains content suitabil
 
 In-app positioning, simulation labels, subscription disclosures, privacy *behavior*, and Sentry *runtime* gating are ready enough to keep building.
 
-**This build is not store-submittable.** Operator identity, hosted legal URLs, support mailboxes, screenshots, App Check native tokens, and store-console products are still incomplete. Do not paste `https://tradevision.ai/...` into App Store Connect or Play Console until those pages are live **without** template banners.
+**This build is not store-submittable.** Operator identity, hosted legal URLs, support mailboxes, screenshots, App Check native tokens, and store-console products are still incomplete. Do not paste `https://tradeacademy.cloud/...` into App Store Connect or Play Console until those pages are live **without** template banners.
 
 ---
 
@@ -66,8 +66,8 @@ Markdown in `store/legal/` still contains:
 
 What *was* fixed in this pass:
 
-- Hosted HTML regenerated from markdown; retired **TradeInsight** chrome (`scripts/build-hosted-legal.py`)
-- Catalog product IDs in Terms: `tradevision_premium_monthly` / `tradevision_premium_yearly` / `tradevision_premium_lifetime`
+- Hosted HTML regenerated from markdown; retired **TradeAcademy** chrome (`scripts/build-hosted-legal.py`)
+- Catalog product IDs in Terms: `tradeacademy_premium_monthly` / `tradeacademy_premium_yearly` / `tradeacademy_premium_lifetime`
 - Hosted pages show an explicit **template banner** while `REQUIRED]` fields remain
 - In-app Support and privacy export no longer present bracketed fields as live mailboxes
 - `listingUrlsReady: false` and `legalOperatorFieldsComplete: false` on store metadata

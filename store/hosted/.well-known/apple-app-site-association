@@ -3,12 +3,12 @@
     "apps": [],
     "details": [
       {
-        "appID": "APPLE_TEAM_ID.ai.tradevision.app",
+        "appID": "APPLE_TEAM_ID.ai.tradeacademy.app",
         "paths": ["*"]
       }
     ]
   },
   "webcredentials": {
-    "apps": ["APPLE_TEAM_ID.ai.tradevision.app"]
+    "apps": ["APPLE_TEAM_ID.ai.tradeacademy.app"]
   }
 }

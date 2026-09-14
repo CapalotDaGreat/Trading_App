@@ -1,9 +1,9 @@
-# Final production readiness report — TradeInsight by Aithera
+# Final production readiness report — TradeAcademy by Aithera
 
 **Date:** 2026-08-24  
-**Product:** TradeInsight by Aithera  
-**Application id:** `ai.tradevision.app` (frozen)  
-**Scheme:** `tradevision` (frozen)  
+**Product:** TradeAcademy by Aithera  
+**Application id:** `ai.tradeacademy.app` (frozen)  
+**Scheme:** `tradeacademy` (frozen)  
 **SDK:** Expo 54 (`expo@54.0.36`, React 19.1, RN 0.81)
 
 **Scope:** Release-blocking verification. No new features. No redesign. Product philosophy unchanged: decision-first research and coaching — not a broker, not buy/sell signals, RVS = research priority, DQS = process quality.
@@ -86,7 +86,7 @@ Scores are not 100. Anything below 95 is explained below with file, owner type, 
 |-----|------|------|
 | Legal entity, VAT/UID, official emails still placeholders | `store/legal/*.md`, `shared/legal/document-text.ts` | **legal task** |
 | Hosted Privacy/Terms/Support not live on `[OFFICIAL DOMAIN REQUIRED]` | `store/hosted/`, `store/metadata/*.json` (`listingUrlsReady: false`) | **legal + console** |
-| `DEFAULT_LEGAL_SITE_ORIGIN` is technical fallback `https://tradevision.ai` | `shared/constants/brand.ts` | **configuration** after domain exists |
+| `DEFAULT_LEGAL_SITE_ORIGIN` is technical fallback `https://tradeacademy.cloud` | `shared/constants/brand.ts` | **configuration** after domain exists |
 | DSAR of Storage blobs beyond prefix delete not independently QA’d | `functions/src/index.ts` | **human QA** |
 
 ---
@@ -179,7 +179,7 @@ Did **not** upgrade the SDK.
 
 ## 8. Store — 38 / 38
 
-Copy in repo is philosophically correct (`store/metadata/app-store.json`, `play-store.json`, `store/reviewer-notes.md`): TradeInsight / Aithera, 12+ vs Teen vs 18+ accounts, no brokerage, RVS/DQS, deletion, trial yearly-only.
+Copy in repo is philosophically correct (`store/metadata/app-store.json`, `play-store.json`, `store/reviewer-notes.md`): TradeAcademy / Aithera, 12+ vs Teen vs 18+ accounts, no brokerage, RVS/DQS, deletion, trial yearly-only.
 
 **Why far below 95**
 
@@ -251,12 +251,12 @@ Foundations tested (`shared/components/__tests__/design-system-accessibility.tes
 - Certificate pinning.
 - Home-screen widgets (explicitly not shipped).
 - Live GCP Billing in ops health (heuristic today).
-- Rename npm package / Expo slug to TradeInsight (not bundle id).
+- Rename npm package / Expo slug to TradeAcademy (not bundle id).
 
 ### MANUAL APPLE TASKS
 
 - Paid Apps Agreement, tax, banking.
-- App record, bundle `ai.tradevision.app`, 12+ rating, educational finance copy.
+- App record, bundle `ai.tradeacademy.app`, 12+ rating, educational finance copy.
 - IAP `monthly` / `yearly` + yearly intro 7-day trial matching RevenueCat.
 - Privacy policy URL (live), account deletion, Sign in with Apple, Face ID usage string.
 - Review notes from `store/reviewer-notes.md`.
@@ -265,7 +265,7 @@ Foundations tested (`shared/components/__tests__/design-system-accessibility.tes
 
 ### MANUAL GOOGLE TASKS
 
-- Play app `ai.tradevision.app`, Teen rating, Data Safety (crash/analytics opt-in).
+- Play app `ai.tradeacademy.app`, Teen rating, Data Safety (crash/analytics opt-in).
 - Subscriptions `monthly` / `yearly` + yearly trial.
 - Privacy / deletion URLs live; contact email real.
 - Feature graphic + phone/tablet screenshots.
@@ -308,6 +308,6 @@ Foundations tested (`shared/components/__tests__/design-system-accessibility.tes
 | `npm run functions:build` | Pass |
 | `npm --prefix functions test` | Pass — 18 tests |
 | `npm run test:rules` | Pass — 11 tests |
-| `npx expo config --type public` | Pass — `sdkVersion: 54.0.0`, name TradeInsight, bundle/package `ai.tradevision.app`, scheme `tradevision`, `updates.enabled: false` (no EAS project id). Sentry plugin warns missing org/project. Local `.env` still exports `EXPO_PUBLIC_RC_PRODUCT_LIFETIME` — do not import that into EAS production. |
+| `npx expo config --type public` | Pass — `sdkVersion: 54.0.0`, name TradeAcademy, bundle/package `ai.tradeacademy.app`, scheme `tradeacademy`, `updates.enabled: false` (no EAS project id). Sentry plugin warns missing org/project. Local `.env` still exports `EXPO_PUBLIC_RC_PRODUCT_LIFETIME` — do not import that into EAS production. |
 
 Do not submit while this document says **NO-GO**.

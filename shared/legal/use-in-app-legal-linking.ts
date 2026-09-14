@@ -5,7 +5,7 @@ import { useEffect, useRef } from 'react';
 import { parseInAppLegalPath } from '@/shared/legal/in-app-legal-url';
 
 /**
- * When the RevenueCat native paywall opens `tradevision://legal/…` while the app
+ * When the RevenueCat native paywall opens `tradeacademy://legal/…` while the app
  * is already running, push the in-app legal screen on top of the current stack.
  */
 export function useInAppLegalDeepLinks() {

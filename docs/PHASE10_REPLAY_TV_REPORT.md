@@ -1,14 +1,14 @@
 # Phase 10 — Decision Replay TV as signature learning
 
 **Date:** 2026-08-24  
-**Product:** TradeInsight by Aithera  
+**Product:** TradeAcademy by Aithera  
 **SDK:** Expo 54 (`expo@54.0.36`)
 
-This pass upgrades the **existing** Decision Replay TV runtime into TradeInsight’s signature process classroom. It does **not** add a second replay engine, a second skill store, or a parallel persistence layer.
+This pass upgrades the **existing** Decision Replay TV runtime into TradeAcademy’s signature process classroom. It does **not** add a second replay engine, a second skill store, or a parallel persistence layer.
 
 Replay TV remains an educational reconstruction labeled `sample`. Process Tape (`/decision/decision-replay`) remains the user’s own history. The user must never see future market information before committing.
 
-TradeInsight is not a broker and not a P&L classroom. DQS still grades process quality. A later move on the educational tape does **not** prove the decision was good.
+TradeAcademy is not a broker and not a P&L classroom. DQS still grades process quality. A later move on the educational tape does **not** prove the decision was good.
 
 This pass does **not** change the store GO/NO-GO in `docs/FINAL_PRODUCTION_READINESS_REPORT.md`.
 
@@ -29,7 +29,7 @@ Not 10/10. Device QA is still required.
 | Loading / offline / resume | **84** | Hydrate still strips candles; missing episode clears session; StatusState + RecoverableErrorState; offline caption; resume banner. Not device-killed in this pass |
 | Accessibility | **84** | ScreenScaffold, loop stepper announced, 44pt commit buttons, checkbox state in text + `accessibilityState`. VoiceOver/TalkBack not run on device |
 | Analytics privacy | **90** | No new event names that carry reasoning; allowlist unchanged |
-| Architecture discipline | **93** | One session machine, one Zustand persist key (`tradevision-replay-tv-v2`), no second engine |
+| Architecture discipline | **93** | One session machine, one Zustand persist key (`tradeacademy-replay-tv-v2`), no second engine |
 
 **Overall (repo): 88 / 100.**
 

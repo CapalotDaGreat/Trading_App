@@ -20,7 +20,7 @@ The product loop is **Learn → Practice → Replay → Simulate → Journal →
 It is **not** a broker, not an execution venue, not a live trading terminal, not a social network, and **not** a source of buy/sell signals or guaranteed returns. Setup "confidence" is a **decision-quality score (DQS)** — process quality, never a prediction of price direction. Simulated P&L does **not** grade a decision. Preserve this framing in all new work.
 
 User-facing brand constants live in `shared/constants/brand.ts`. Phase 0 freezes the store
-bundle id `ai.tradevision.app`, URL scheme `tradevision`, and `tradevision-*` AsyncStorage keys
+bundle id `ai.tradeacademy.app`, URL scheme `tradeacademy`, and `tradeacademy-*` AsyncStorage keys
 — see `docs/IDENTITY_MIGRATION_PHASE0.md`. Do not rename those technical IDs without a migration.
 
 Default market data is **labelled synthetic/sample**. Do not treat Finnhub or other live vendors as a product dependency. Cloud AI stays disabled.

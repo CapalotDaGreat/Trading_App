@@ -255,7 +255,7 @@ Findings (do **not** remove solely because a surface is hidden):
 | Unused flags | `aiTrustPanelsEnabled`, `decisionGraphEnabled`, `paywallExperimentsEnabled`, `betaReplayStudioEnabled`, `internalDiagnosticsEnabled` have no runtime consumer. Remote docs may still contain the keys — do not delete without a migration check. |
 | Feature flags (live) | `globalKill`, `aiChatEnabled`, `personalIntelligenceEnabled`, `mentorEnabled`, `academyEnabled`, `decisionReinforcementEnabled`, `aggressiveMarketPollingEnabled` — live ops, not dead. |
 | Cloud AI | `CLOUD_AI_ENABLED = false`. |
-| Competency store | Zustand + AsyncStorage, `tradevision-competency-evidence-v1`, 800 records/user cap. No Firestore reads/writes. |
+| Competency store | Zustand + AsyncStorage, `tradeacademy-competency-evidence-v1`, 800 records/user cap. No Firestore reads/writes. |
 | Network | Default market data is sample/synthetic. Finnhub/News keys only in `__DEV__` + `EXPO_PUBLIC_MARKET_DATA_DIRECT`. Production vendor path is callable proxy. |
 | Render loops | No new loops found in this pass; Replay session still has `useMemo` after early returns (pre-existing hooks smell). |
 
@@ -272,7 +272,7 @@ Unnecessary Firebase: competency evidence is correctly **not** synced. Journal/s
 | Client cannot modify protected server data | **Yes** for usage/subscriptions/ops/academy content |
 | Competency evidence cross-user | **Local isolation tested** (alice/bob). **Not** a server resource — another user cannot read it from Firestore because it is not there. Same-device profile switch is uid-keyed. A rooted device can edit AsyncStorage (accepted client-trust limit) |
 | Journal privacy | **Yes** — `users/{uid}/journal/{id}`; owner + verified; shape checks. Local backend when Firebase absent |
-| Secrets in client | **Public Expo config** (`npx expo config --type public`) exposes bundle id `ai.tradevision.app`, scheme `tradevision`, SDK 54 — **no vendor secrets in `extra`**. Expected public keys: Firebase web config, RevenueCat public SDK keys via `EXPO_PUBLIC_*`. Server Finnhub lives in Functions `FINNHUB_API_KEY`. Dev-only direct vendor keys must stay out of production EAS profiles |
+| Secrets in client | **Public Expo config** (`npx expo config --type public`) exposes bundle id `ai.tradeacademy.app`, scheme `tradeacademy`, SDK 54 — **no vendor secrets in `extra`**. Expected public keys: Firebase web config, RevenueCat public SDK keys via `EXPO_PUBLIC_*`. Server Finnhub lives in Functions `FINNHUB_API_KEY`. Dev-only direct vendor keys must stay out of production EAS profiles |
 
 ---
 
@@ -285,7 +285,7 @@ Unnecessary Firebase: competency evidence is correctly **not** synced. Journal/s
 | `npm run functions:build` | Pass |
 | `npm --prefix functions test` | **18** pass |
 | `npm run test:rules` | **12** pass (Firestore + Storage) |
-| `npx expo config --type public` | TradeAcademy, Expo SDK 54, `ai.tradevision.app`, scheme `tradevision` |
+| `npx expo config --type public` | TradeAcademy, Expo SDK 54, `ai.tradeacademy.app`, scheme `tradeacademy` |
 
 No regressions were left unfixed. The Events-tab / handoff changes did not require new failing tests.
 
@@ -325,7 +325,7 @@ No regressions were left unfixed. The Events-tab / handoff changes did not requi
 - Cloud AI stays disabled.
 - Paper fees/slippage/taxes are simplified; the sim-vs-live lesson exists because of that, not despite it.
 - Guest/demo mode is first-class; Firestore is optional.
-- Technical IDs remain `ai.tradevision.app` / `tradevision` / `tradevision-*` storage keys (Phase 0 freeze).
+- Technical IDs remain `ai.tradeacademy.app` / `tradeacademy` / `tradeacademy-*` storage keys (Phase 0 freeze).
 - This audit did not run a device walkthrough of every screen in Expo Go; journey claims are from wiring, copy, and unit tests.
 
 ---

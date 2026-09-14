@@ -16,8 +16,8 @@ describe('entitlement enforcement', () => {
   });
 
   it('maps store products to monthly and yearly Aithera Pro SKUs', () => {
-    expect(PREMIUM_PRODUCT_IDS.monthly).toBe('tradevision_premium_monthly');
-    expect(PREMIUM_PRODUCT_IDS.yearly).toBe('tradevision_premium_yearly');
+    expect(PREMIUM_PRODUCT_IDS.monthly).toBe('tradeacademy_premium_monthly');
+    expect(PREMIUM_PRODUCT_IDS.yearly).toBe('tradeacademy_premium_yearly');
   });
 
   it('blocks monthly consumption at the configured allowance', async () => {

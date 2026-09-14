@@ -94,18 +94,18 @@ describe('clearAllUserLocalState', () => {
 
     const result = await clearAllUserLocalState('user-1', queryClient as never);
 
-    expect(result.preservedDeviceKeys).toEqual(['tradevision-theme-v2']);
+    expect(result.preservedDeviceKeys).toEqual(['tradeacademy-theme-v2']);
     expect(result.removedAsyncStorageKeys).toEqual([
       ...USER_LOCAL_STORAGE_KEYS,
-      'tradevision:onboarding-draft:v1:user-1',
-      'tradevision:coach-profile:v1:user-1',
-      'tradevision:mentor-setup-draft:v2:user-1',
+      'tradeacademy:onboarding-draft:v1:user-1',
+      'tradeacademy:coach-profile:v1:user-1',
+      'tradeacademy:mentor-setup-draft:v2:user-1',
     ]);
-    expect(result.removedAsyncStorageKeys).toContain('tradevision-decision-passport-v1');
-    expect(result.removedAsyncStorageKeys).toContain('tradevision-competency-evidence-v1');
-    expect(result.removedAsyncStorageKeys).toContain('tradevision-learner-behavior-v1');
-    expect(result.removedAsyncStorageKeys).toContain('tradevision-last-auth-uid');
-    expect(result.removedAsyncStorageKeys).not.toContain('tradevision-theme-v2');
+    expect(result.removedAsyncStorageKeys).toContain('tradeacademy-decision-passport-v1');
+    expect(result.removedAsyncStorageKeys).toContain('tradeacademy-competency-evidence-v1');
+    expect(result.removedAsyncStorageKeys).toContain('tradeacademy-learner-behavior-v1');
+    expect(result.removedAsyncStorageKeys).toContain('tradeacademy-last-auth-uid');
+    expect(result.removedAsyncStorageKeys).not.toContain('tradeacademy-theme-v2');
     expect(multiRemove).toHaveBeenCalledWith(result.removedAsyncStorageKeys);
     expect(mockResetRepository).toHaveBeenCalled();
     expect(queryClient.clear).toHaveBeenCalled();

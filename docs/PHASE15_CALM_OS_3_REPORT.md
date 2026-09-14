@@ -1,13 +1,13 @@
 # Phase 15 — CALM OS 3.0
 
 **Date:** 2026-08-25  
-**Product:** TradeInsight by Aithera  
+**Product:** TradeAcademy by Aithera  
 **SDK:** Expo 54 (`expo@54.0.36`)  
-**Principle:** TradeInsight should be the calmest serious trading/research application the user opens. It reduces cognitive load. It never creates artificial urgency.
+**Principle:** TradeAcademy should be the calmest serious trading/research application the user opens. It reduces cognitive load. It never creates artificial urgency.
 
 This pass extends Calm OS 2.0 (`docs/CALM_OS_2_REPORT.md`). It does **not** rebuild Decision OS, Replay, DNA, AI memory, analytics, or the design system. It does **not** change RVS or DQS calculations. It does **not** create new stores.
 
-TradeInsight remains a decision-first research and coaching app. It is not a broker, not an execution platform, and not a buy/sell signal service. Empty attention is treated as a successful state.
+TradeAcademy remains a decision-first research and coaching app. It is not a broker, not an execution platform, and not a buy/sell signal service. Empty attention is treated as a successful state.
 
 Store GO/NO-GO is unchanged: **NO-GO** (`docs/FINAL_PRODUCTION_READINESS_REPORT.md`). Calm OS 3.0 does not unblock App Store or Play Console work. Device QA was not run.
 
@@ -225,4 +225,4 @@ Educational FOMO inside Academy / Replay **lesson content** was not scrubbed. Te
 
 **90 / 100 (repo).** Device QA **0**. Store **NO-GO**.
 
-This is a composition and language pass. It is not a new product, not a visual redesign, and not store-ready. Opening TradeInsight should feel quieter than Calm OS 2.0. It should never manufacture an opportunity, a trade, or a reason to hurry.
+This is a composition and language pass. It is not a new product, not a visual redesign, and not store-ready. Opening TradeAcademy should feel quieter than Calm OS 2.0. It should never manufacture an opportunity, a trade, or a reason to hurry.

@@ -68,7 +68,7 @@ describe('local feature services', () => {
   });
 
   it('provides a coherent idempotent demo seed and selective reset', async () => {
-    await AsyncStorage.setItem('tradevision-settings', 'preserved');
+    await AsyncStorage.setItem('tradeacademy-settings', 'preserved');
     await ensureDemoSeedData(UID);
     await ensureDemoSeedData(UID);
 
@@ -81,7 +81,7 @@ describe('local feature services', () => {
     expect(await getDecisionRecords(UID)).toHaveLength(3);
 
     await resetDemoSeedData(UID);
-    expect(await AsyncStorage.getItem('tradevision-settings')).toBe('preserved');
+    expect(await AsyncStorage.getItem('tradeacademy-settings')).toBe('preserved');
     expect(await getHoldings(UID)).toEqual([]);
   });
 

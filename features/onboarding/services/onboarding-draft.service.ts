@@ -4,7 +4,7 @@ import type { OnboardingDraft } from '../types/onboarding.types';
 
 import { migrateOnboardingDraft } from './onboarding-migration.service';
 
-export const ONBOARDING_DRAFT_KEY_PREFIX = 'tradevision:onboarding-draft:v1';
+export const ONBOARDING_DRAFT_KEY_PREFIX = 'tradeacademy:onboarding-draft:v1';
 const queues = new Map<string, Promise<unknown>>();
 
 export function onboardingDraftStorageKey(uid: string): string {

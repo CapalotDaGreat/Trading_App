@@ -261,7 +261,7 @@ export const useReplayTvStore = create<ReplayTvState>()(
       },
     }),
     {
-      name: 'tradevision-replay-tv-v2',
+      name: 'tradeacademy-replay-tv-v2',
       storage: createDebouncedPersistedStorage(),
       version: 3,
       partialize: (state) => ({

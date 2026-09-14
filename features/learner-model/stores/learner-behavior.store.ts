@@ -7,7 +7,7 @@ import type { HelpLevel } from '@/features/competency';
 
 import type { LearnerBehaviorEvent, LearnerBehaviorEventType, SelfConfidenceReport } from '../types/learner-model.types';
 
-export const LEARNER_BEHAVIOR_STORAGE_KEY = 'tradevision-learner-behavior-v1';
+export const LEARNER_BEHAVIOR_STORAGE_KEY = 'tradeacademy-learner-behavior-v1';
 
 const PER_USER_EVENT_CAP = 400;
 const PER_USER_CONFIDENCE_CAP = 40;

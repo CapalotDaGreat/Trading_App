@@ -1,4 +1,4 @@
-# TradeVision AI — Phase 2 AI Trust & Explainability
+# TradeAcademy AI — Phase 2 AI Trust & Explainability
 
 **Date:** 2026-08-03  
 **Principle:** Educational decision support — never prediction hype.

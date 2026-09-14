@@ -14,7 +14,7 @@ import {
   type AnalyticsProps,
 } from './events';
 
-const INSTALL_ID_KEY = 'tradevision-install-id-v1';
+const INSTALL_ID_KEY = 'tradeacademy-install-id-v1';
 const eventSet = new Set<string>(ANALYTICS_EVENTS);
 const propSet = new Set<string>(ANALYTICS_PROP_KEYS);
 

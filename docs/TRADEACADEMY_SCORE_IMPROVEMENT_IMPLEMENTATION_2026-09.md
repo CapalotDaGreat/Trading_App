@@ -18,7 +18,7 @@
 - Simulation outcomes remain stochastic. Scenario *selection* may use learner weaknesses; price paths are not rigged.
 - Guest UID `demo-guest`. Synthetic starting balance USD 100,000.
 - Cloud AI remains off unless already configured.
-- Frozen IDs unchanged: bundle `ai.tradevision.app`, scheme `tradevision`, AsyncStorage prefix `tradevision-*`, Expo slug `traders`, npm `tradevision-ai`, legal host `tradevision.ai`.
+- Frozen IDs: bundle `ai.tradeacademy.app`, scheme `tradeacademy`, AsyncStorage prefix `tradeacademy-*`, Expo slug `tradeacademy`, npm `tradeacademy-ai`, legal host `tradeacademy.cloud`.
 - Expo SDK 54. Two charts only (`EducationalChart`, `CandlestickChart`).
 - One planner (`composeTrainingPlan`), one learner model (`composeLearnerModel`), one competency ledger.
 
@@ -33,7 +33,7 @@
 | `npm run functions:build` | **PASS** |
 | `npm --prefix functions test` | **PASS** — **19** tests, 0 fail |
 | `npm run test:rules` | **PASS** — 2 suites, **14** tests |
-| `npx expo config --type public` | **PASS** — SDK **54.0.0**, name TradeAcademy, bundle `ai.tradevision.app`, scheme `tradevision`, slug `traders` |
+| `npx expo config --type public` | **PASS** — SDK **54.0.0**, name TradeAcademy, bundle `ai.tradeacademy.app`, scheme `tradeacademy`, slug `tradeacademy` |
 
 Coverage increased. No existing suite was dropped.
 
@@ -134,9 +134,9 @@ Same frozen AsyncStorage key names. Payloads are now per-uid:
 
 | Store | Persist version |
 | --- | --- |
-| `tradevision-academy-progress` | 5 (`byUser` + `activeUid`) |
-| `tradevision-practice-progress-v1` | 2 (`attemptsByUser`) |
-| `tradevision-learning-queue-v1` | 5 (`byUser`) |
+| `tradeacademy-academy-progress` | 5 (`byUser` + `activeUid`) |
+| `tradeacademy-practice-progress-v1` | 2 (`attemptsByUser`) |
+| `tradeacademy-learning-queue-v1` | 5 (`byUser`) |
 
 - `isolateGuestProgressIfNeeded` **switches uid** instead of wiping guest work.
 - Guest academy survives login; switching back restores the guest slice.
@@ -197,7 +197,7 @@ These cannot be marked PASS from this environment:
 - Production Functions deployment
 - Production RevenueCat webhook verification
 - App Store Connect / Play Console
-- Legal host `https://tradevision.ai` (last checked HTTP 500)
+- Legal host `https://tradeacademy.cloud` (last checked HTTP 500)
 - Real legal entity, VAT, support emails, ASC app id, App Check tokens, production secrets
 
 Placeholders were **not** invented.

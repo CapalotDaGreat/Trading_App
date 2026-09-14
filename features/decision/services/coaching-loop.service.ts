@@ -12,9 +12,9 @@ import type {
 
 import type { ResearchPriority } from './research-prioritizer.service';
 
-const STREAK_KEY = 'tradevision-discipline-streak-v1';
-const PLAN_DONE_KEY = 'tradevision-day-plan-done-v1';
-const QUEUE_DONE_KEY = 'tradevision-research-queue-done-v1';
+const STREAK_KEY = 'tradeacademy-discipline-streak-v1';
+const PLAN_DONE_KEY = 'tradeacademy-day-plan-done-v1';
+const QUEUE_DONE_KEY = 'tradeacademy-research-queue-done-v1';
 
 interface StreakStore {
   lastActiveDay: string;

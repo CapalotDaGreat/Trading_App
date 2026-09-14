@@ -1,6 +1,6 @@
 # Asset Resolution
 
-Universal instrument identity for TradeInsight (TradeVision AI) — used before portfolio holding creation and as shared identity for Decision OS, charts, news, and AI.
+Universal instrument identity for TradeAcademy (TradeAcademy AI) — used before portfolio holding creation and as shared identity for Decision OS, charts, news, and AI.
 
 ## Principle
 
@@ -68,7 +68,7 @@ Exact catalog matches do **not** call the search provider. Resolve results are c
 ## Ambiguity & unsupported
 
 - **Ambiguous:** multiple plausible supported instruments — UI asks “Which asset did you mean?” Never guess silently.  
-- **Unsupported:** “We couldn't verify this instrument.” + “TradeInsight can only manage assets for which reliable market data is available.”  
+- **Unsupported:** “We couldn't verify this instrument.” + “TradeAcademy can only manage assets for which reliable market data is available.”  
 - **Not found:** no reliable identification.
 
 Missing/zero quotes render **Price unavailable** — never 0, fake, or synthetic prices in portfolio math.

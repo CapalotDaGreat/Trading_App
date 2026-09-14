@@ -1,12 +1,12 @@
 # Phase 10 — Product Excellence
 
 **Date:** 2026-08-24  
-**Product:** TradeInsight by Aithera  
+**Product:** TradeAcademy by Aithera  
 **SDK:** Expo 54 (`expo@54.0.36`)
 
 **Naming:** Asset identity work already shipped as [PHASE10_ASSET_RESOLUTION_REPORT.md](./PHASE10_ASSET_RESOLUTION_REPORT.md). This document is a **separate** Product Excellence pass on Calm OS, Trusted AI, Replay TV, Trading DNA, and onboarding. It does not replace the asset-resolution report.
 
-TradeInsight remains a decision-first research and coaching app. It is not a broker, not an execution platform, not a signal service, and not a prediction engine. **RVS** is research priority. **DQS** is process quality. Neither predicts price.
+TradeAcademy remains a decision-first research and coaching app. It is not a broker, not an execution platform, not a signal service, and not a prediction engine. **RVS** is research priority. **DQS** is process quality. Neither predicts price.
 
 This pass **extends** existing Decision OS, Replay TV, Trading DNA, AI trust, Academy, and ops architecture. It does **not** add a second store, scoring engine, replay runtime, AI memory system, or analytics system.
 
@@ -116,7 +116,7 @@ Not rewritten. Canonical resolve → verify → confirm remains as in the asset-
 - Cloud AI (`CLOUD_AI_ENABLED = false`)
 - Analytics allowlist (no journal, prompts, portfolio values, DNA scores)
 - Monetization catalog, trial rules, entitlement id `Aithera Pro`
-- Identity freeze (`ai.tradevision.app`, `tradevision` scheme)
+- Identity freeze (`ai.tradeacademy.app`, `tradeacademy` scheme)
 - Native App Check placeholder, legal placeholders, EAS project id
 - Decision Lab, Heatmap, Passport, Analysis/backtest, Radar, Journal hub structure
 - A second Replay or DNA database

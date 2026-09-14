@@ -180,7 +180,7 @@ export const useLearningQueueStore = create<LearningQueueState>()(
       },
     }),
     {
-      name: 'tradevision-learning-queue-v1',
+      name: 'tradeacademy-learning-queue-v1',
       storage: createPersistedStorage(),
       version: 5,
       partialize: (state) => ({

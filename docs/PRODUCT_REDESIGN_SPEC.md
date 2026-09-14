@@ -1,4 +1,4 @@
-# TradeVision AI — Product Redesign Specification
+# TradeAcademy AI — Product Redesign Specification
 
 **Status:** Spec freeze (R0)  
 **Scope:** Experience / information architecture / product narrative — **not** a visual rebrand  
@@ -15,7 +15,7 @@ This document is the product contract for the next implementation phases. It doe
 
 ### Thesis
 
-TradeVision AI helps discretionary traders answer one question well:
+TradeAcademy AI helps discretionary traders answer one question well:
 
 > **Should I spend time researching this — and if I do, did I decide with a complete process?**
 

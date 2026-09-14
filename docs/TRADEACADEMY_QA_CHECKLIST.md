@@ -7,7 +7,7 @@
 - [ ] `npm run functions:build`
 - [ ] `npm --prefix functions test`
 - [ ] `npm run test:rules`
-- [ ] `npx expo config --type public` (name TradeAcademy; bundle `ai.tradevision.app`; scheme `tradevision`)
+- [ ] `npx expo config --type public` (name TradeAcademy; bundle `ai.tradeacademy.app`; scheme `tradeacademy`)
 
 ## Identity / safety
 

@@ -44,7 +44,7 @@ export const DEFAULT_OPS_FLAGS: OpsFeatureFlags = {
 
 export const DEFAULT_OPS_REMOTE: OpsRemoteConfig = {
   schemaVersion: 1,
-  aiModel: 'tradevision-engine-2.0',
+  aiModel: 'tradeacademy-engine-2.0',
   aiDailyLimitFree: 3,
   aiDailyLimitPremium: 100,
   aiMentorMonthlyFree: 3,

@@ -107,7 +107,7 @@ Engines and infrastructure (not deleted):
 - Ops bootstrap / health / backup
 - On-device mentor engine
 - Hidden-tab files and redirect stubs
-- Frozen IDs: bundle `ai.tradevision.app`, scheme `tradevision`, `tradevision-*` storage keys
+- Frozen IDs: bundle `ai.tradeacademy.app`, scheme `tradeacademy`, `tradeacademy-*` storage keys
 
 Flags kept: `globalKill`, `aiChatEnabled`, `personalIntelligenceEnabled`, `mentorEnabled`, `academyEnabled`, `decisionReinforcementEnabled`, `aggressiveMarketPollingEnabled`.
 
@@ -182,7 +182,7 @@ No new test files. Existing tests were updated so they assert the educational pr
 | `npm run functions:build` | Pass |
 | `npm --prefix functions test` | **18** pass |
 | `npm run test:rules` | **2** suites, **12** tests pass |
-| `npx expo config --type public` | Pass — TradeAcademy, SDK 54, scheme `tradevision`, bundle `ai.tradevision.app` |
+| `npx expo config --type public` | Pass — TradeAcademy, SDK 54, scheme `tradeacademy`, bundle `ai.tradeacademy.app` |
 
 First Jest run failed one assertion (`TRUST_LANGUAGE.rvs.meaning` still expected `/research/i` after the quality-of-evidence rewrite). Test updated; full suite re-run green.
 

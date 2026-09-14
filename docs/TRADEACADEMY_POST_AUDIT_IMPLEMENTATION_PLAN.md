@@ -5,7 +5,7 @@
 **Score-improvement pass (10 September 2026):** [TRADEACADEMY_SCORE_IMPROVEMENT_IMPLEMENTATION_2026-09.md](./TRADEACADEMY_SCORE_IMPROVEMENT_IMPLEMENTATION_2026-09.md) — planner authority, session-length ranking, ChartExercise retry, simulation process gate, UID-keyed stores. Operator/store items remain open.  
 **Rule:** execute **phase by phase**. After each major phase, run relevant tests and inspect the diff. Do not polish stores or screenshots while the loop is still fragmented.
 
-Frozen IDs stay frozen (`ai.tradevision.app`, `tradevision`, `tradevision-*`, slug `traders`). Expo SDK 54. Two charts only. USD 100k synthetic sim. Cloud AI off. Do not invent legal entity, VAT, emails, or store credentials.
+Frozen IDs: `ai.tradeacademy.app`, scheme `tradeacademy`, `tradeacademy-*`, slug `tradeacademy`. Expo SDK 54. Two charts only. USD 100k synthetic sim. Cloud AI off. Do not invent legal entity, VAT, emails, or store credentials.
 
 ---
 
@@ -59,7 +59,7 @@ Academy hub, Practice, Review, Mentor, and Replay TV consume `composeTrainingPla
 
 ## Phase 3 (done in product code)
 
-Persist `tradevision-last-auth-uid` so guest academy/practice cannot attach to the first login after a process kill. Four-dimension learner model remains `composeLearnerModel`.
+Persist `tradeacademy-last-auth-uid` so guest academy/practice cannot attach to the first login after a process kill. Four-dimension learner model remains `composeLearnerModel`.
 
 ## Phase 4–17 (this pass)
 

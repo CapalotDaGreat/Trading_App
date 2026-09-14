@@ -33,7 +33,7 @@ export const useChecklistStore = create<ChecklistProgressState>()(
         (get().checkedItems[checklistId] ?? []).includes(itemId),
     }),
     {
-      name: 'tradevision-checklist-progress',
+      name: 'tradeacademy-checklist-progress',
       storage: createPersistedStorage(),
     },
   ),

@@ -1,6 +1,6 @@
 # Phase A — Product Excellence Redesign
 
-**Goal:** Make TradeVision feel calmer after open than before — without removing functionality or changing architecture.
+**Goal:** Make TradeAcademy feel calmer after open than before — without removing functionality or changing architecture.
 
 **Companion:** [PRODUCT_REDESIGN_SPEC.md](./PRODUCT_REDESIGN_SPEC.md) (IA / narrative). This doc is the **visual & interaction system** for that calm Decision OS.
 

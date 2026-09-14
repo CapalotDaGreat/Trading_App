@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const DEMO_TAPE_KEY = 'tradevision-decision-replay-demo-seed-v1';
-const LOCAL_LOG_KEY = 'tradevision-decision-log';
+const DEMO_TAPE_KEY = 'tradeacademy-decision-replay-demo-seed-v1';
+const LOCAL_LOG_KEY = 'tradeacademy-decision-log';
 
 /**
  * Seeds a short labelled demo decision tape once so Expo Go / guest users

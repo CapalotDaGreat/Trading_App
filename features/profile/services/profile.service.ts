@@ -88,7 +88,7 @@ function demoProfile(uid: string, patch?: Partial<UserProfile>): UserProfile {
   const now = new Date().toISOString();
   return {
     uid,
-    email: patch?.email ?? 'demo@tradevision.local',
+    email: patch?.email ?? 'demo@tradeacademy.local',
     displayName: patch?.displayName ?? 'Demo Trader',
     photoURL: patch?.photoURL ?? null,
     bio: patch?.bio ?? '',

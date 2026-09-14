@@ -20,7 +20,7 @@ It is a coach, not a content library. Recommendations are evidence-based. They a
 | Difficulty | `services/adaptive-difficulty.service.ts` |
 | After-lesson chain | `services/lesson-next.service.ts` |
 | Today’s Training | `services/practice-queue.service.ts` |
-| User control | `stores/learning-queue.store.ts` (`tradevision-learning-queue-v1`) |
+| User control | `stores/learning-queue.store.ts` (`tradeacademy-learning-queue-v1`) |
 
 Home renders **Today’s Training**. Each mapped lesson ends with **What to practice next**.
 

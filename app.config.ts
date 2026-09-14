@@ -1,7 +1,7 @@
 import type { ExpoConfig, ConfigContext } from 'expo/config';
 
-const APP_SCHEME = 'tradevision';
-const BUNDLE_IDENTIFIER = 'ai.tradevision.app';
+const APP_SCHEME = 'tradeacademy';
+const BUNDLE_IDENTIFIER = 'ai.tradeacademy.app';
 const EAS_PROJECT_ID = process.env.EXPO_PUBLIC_EAS_PROJECT_ID?.trim();
 const EAS_OWNER = process.env.EAS_OWNER?.trim();
 const EAS_BUILD_PROFILE = process.env.EAS_BUILD_PROFILE?.trim();
@@ -60,7 +60,7 @@ const sentryPlugin: NonNullable<ExpoConfig['plugins']> =
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
   name: 'TradeAcademy',
-  slug: 'traders',
+  slug: 'tradeacademy',
   version: '1.0.0',
   orientation: 'default',
   icon: './assets/images/icon.png',
@@ -77,7 +77,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     usesAppleSignIn: true,
     bundleIdentifier: BUNDLE_IDENTIFIER,
     buildNumber: '1',
-    associatedDomains: ['applinks:tradevision.ai', 'applinks:www.tradevision.ai'],
+    associatedDomains: ['applinks:tradeacademy.cloud', 'applinks:www.tradeacademy.cloud'],
     infoPlist: {
       // remote-notification = push; processing = expo-background-task (BGTaskScheduler)
       UIBackgroundModes: ['remote-notification', 'processing'],
@@ -108,12 +108,12 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         data: [
           {
             scheme: 'https',
-            host: 'tradevision.ai',
+            host: 'tradeacademy.cloud',
             pathPrefix: '/',
           },
           {
             scheme: 'https',
-            host: 'www.tradevision.ai',
+            host: 'www.tradeacademy.cloud',
             pathPrefix: '/',
           },
         ],

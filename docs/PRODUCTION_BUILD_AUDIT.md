@@ -1,9 +1,9 @@
-# Production build audit — TradeInsight (Expo SDK 54)
+# Production build audit — TradeAcademy (Expo SDK 54)
 
 **Date:** 2026-08-24  
-**Product:** TradeInsight by Aithera  
-**Application id:** `ai.tradevision.app` (frozen)  
-**Scheme:** `tradevision` (frozen)
+**Product:** TradeAcademy by Aithera  
+**Application id:** `ai.tradeacademy.app` (frozen)  
+**Scheme:** `tradeacademy` (frozen)
 
 ## Verdict
 
@@ -30,7 +30,7 @@ SDK was **not** upgraded. `package.json` remains `expo@54.0.36`.
 | `npm run functions:build` | PASS |
 | `npm --prefix functions test` | PASS (11 tests) |
 | `npm run test:rules` | PASS (10 tests; holdings payload aligned with `isValidHoldingCreate`) |
-| `npx expo config --type public` | PASS — `sdkVersion: 54.0.0`, bundle/package `ai.tradevision.app`, scheme `tradevision` |
+| `npx expo config --type public` | PASS — `sdkVersion: 54.0.0`, bundle/package `ai.tradeacademy.app`, scheme `tradeacademy` |
 | `npx expo install --check` | **WARN** — Expo version API `fetch failed` (network); versions were not re-validated against Expo’s registry |
 
 ---
@@ -75,10 +75,10 @@ Capability probes: `features/subscription/services/subscription.service.ts`, `fe
 
 | Item | Value |
 | --- | --- |
-| Display name | TradeInsight |
-| iOS bundle id | `ai.tradevision.app` |
-| Android package | `ai.tradevision.app` |
-| URL scheme | `tradevision` |
+| Display name | TradeAcademy |
+| iOS bundle id | `ai.tradeacademy.app` |
+| Android package | `ai.tradeacademy.app` |
+| URL scheme | `tradeacademy` |
 | Version | `1.0.0` (`ios.buildNumber` / `android.versionCode` = 1; EAS `autoIncrement` on beta/production) |
 | New Architecture | `newArchEnabled: true` (must be QA’d on devices — see WARN) |
 | ITSAppUsesNonExemptEncryption | `ios.config.usesNonExemptEncryption: false` in `app.config.ts` |
@@ -127,17 +127,17 @@ Splash plugin + `expo-splash-screen` both point at the same splash image (`#1519
 
 ## WARN
 
-1. **Expo slug is still `traders`.** Store id is frozen; the Expo project slug is a dashboard identifier only. Rename later in Expo if you want it to match TradeInsight — do not change the bundle id.
+1. **Expo slug is `tradeacademy`.** It matches the product and bundle family. Changing it again requires an EAS project update.
 2. **`npx expo install --check` could not reach Expo’s version API** in this environment. Re-run before the first EAS build on a network that can reach `expo.dev`.
 3. **Sentry plugin:** `[@sentry/react-native/expo] Missing config for organization, project`. Set `SENTRY_ORG` / `SENTRY_PROJECT` (and `SENTRY_AUTH_TOKEN` as an EAS **secret**, never `EXPO_PUBLIC_*`) if you upload source maps.
 4. **Notification icon** uses `android-icon-monochrome.png` (432×432). Android status-bar icons should be a **white silhouette on transparent**. Verify on a device; add a dedicated 96×96 notification glyph if the monochrome asset is not white-only.
 5. **`POST_NOTIFICATIONS`** does not appear on the public Expo config dump. Confirm `expo-notifications` injects it at prebuild (expected) in the Android manifest.
 6. **No `googleServicesFile` / `GoogleService-Info.plist` in repo.** Expo push can work via EAS credentials; FCM still requires uploading the Firebase Android/iOS apps in EAS. Do not commit service-account JSON.
-7. **Associated domains still `tradevision.ai`.** Universal links / App Links will not verify until AASA + Digital Asset Links are hosted (legal hosting blocker). Custom scheme `tradevision://` still works without that.
+7. **Associated domains still `tradeacademy.cloud`.** Universal links / App Links will not verify until AASA + Digital Asset Links are hosted (legal hosting blocker). Custom scheme `tradeacademy://` still works without that.
 8. **New Architecture is on.** Run signed-device QA (IAP, background task, push, Face ID) before treating it as proven.
 9. **Local `.env` (gitignored)** currently has a RevenueCat **public** SDK key and still sets `EXPO_PUBLIC_RC_PRODUCT_LIFETIME`. Do not import that file into EAS production. Use iOS/Android **production** public SDK keys; Lifetime is not a launch product.
 10. **Widgets are not implemented.** Do not claim them in store copy.
-11. **`EXPO_PUBLIC_API_BASE_URL` default `https://api.tradevision.ai/v1`** is a technical fallback. Market/news production path is Cloud Functions, not that host.
+11. **`EXPO_PUBLIC_API_BASE_URL` default `https://api.tradeacademy.cloud/v1`** is a technical fallback. Market/news production path is Cloud Functions, not that host.
 12. **Firebase emulator CLI warned “not currently authenticated”** during rules tests. Rules still passed against a demo project; production deploy still needs `firebase login`.
 
 ---
@@ -163,7 +163,7 @@ These must be done **outside the repo** (or with real values in EAS/Firebase con
 
 8. RevenueCat + store products (`monthly` / `yearly`, yearly 7-day trial, entitlement `Aithera Pro`) are not created in the consoles from this repo.
 9. Cloud Functions (`revenueCatWebhook`, `deleteAccount`, market proxies) are not deployed from this pass.
-10. Hosted Privacy/Terms/Support URLs on `[OFFICIAL DOMAIN REQUIRED]` are not live. `tradevision.ai` remains a technical fallback, not Aithera legal hosting.
+10. Hosted Privacy/Terms/Support URLs on `[OFFICIAL DOMAIN REQUIRED]` are not live. `tradeacademy.cloud` remains a technical fallback, not Aithera legal hosting.
 
 ---
 

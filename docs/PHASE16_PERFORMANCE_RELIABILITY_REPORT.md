@@ -1,12 +1,12 @@
 # Phase 16 — Performance & Reliability Excellence
 
 **Date:** 2026-08-25  
-**Product:** TradeInsight by Aithera  
+**Product:** TradeAcademy by Aithera  
 **SDK:** Expo 54 (`expo@54.0.36`)
 
 This pass makes the existing application faster, more predictable, and harder to brick. It does **not** add product modules, change RVS/DQS/reinforcement semantics, add a second event store, or pull in FlashList (not in `package.json`; would require a native rebuild and break Expo Go).
 
-TradeInsight remains a decision-first research and coaching app. It is not a broker, not an execution platform, and not a buy/sell signal service. Cached coaching is allowed. **Market data is never fabricated.**
+TradeAcademy remains a decision-first research and coaching app. It is not a broker, not an execution platform, and not a buy/sell signal service. Cached coaching is allowed. **Market data is never fabricated.**
 
 Store GO/NO-GO is unchanged: **NO-GO** (`docs/FINAL_PRODUCTION_READINESS_REPORT.md`). Device QA was not run. No cold-start TTI, Today render time, or Replay FPS was measured on hardware.
 

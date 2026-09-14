@@ -50,7 +50,7 @@ Self-confidence, if collected, lives in a **separate** channel (`SelfConfidenceR
 ```text
 Academy / Practice / Replay / Simulation / Journal flags / Review
         ↓  ingest* producers (structured fields only)
-Competency evidence ledger   tradevision-competency-evidence-v1
+Competency evidence ledger   tradeacademy-competency-evidence-v1
         ↓  scoreAllCompetencyMastery (unchanged)
         ↓  composeLearnerModel
 LearnerModelSnapshot (derived, not persisted as a blob)
@@ -60,13 +60,13 @@ Review, Events, Mentor (on-device labels), Personal Intelligence,
 Mistake Library (derived process observations)
 ```
 
-**Persisted (local, uid-scoped, `tradevision-*` keys):**
+**Persisted (local, uid-scoped, `tradeacademy-*` keys):**
 
 | Store | Key | Contents |
 | --- | --- | --- |
-| Competency evidence | `tradevision-competency-evidence-v1` | Append-only evidence records (source of truth) |
-| Learner behavior | `tradevision-learner-behavior-v1` | Session/open/abandon/help events + optional self-confidence numbers |
-| Learning queue | `tradevision-learning-queue-v1` | Deferrals/skips (counts only in the model; defer reasons stay on the queue) |
+| Competency evidence | `tradeacademy-competency-evidence-v1` | Append-only evidence records (source of truth) |
+| Learner behavior | `tradeacademy-learner-behavior-v1` | Session/open/abandon/help events + optional self-confidence numbers |
+| Learning queue | `tradeacademy-learning-queue-v1` | Deferrals/skips (counts only in the model; defer reasons stay on the queue) |
 
 Authenticated users also sync **structured** copies via `features/learner-state` (`users/{uid}/learnerEvidence`, `users/{uid}/learnerState/progress`). Journal prose, AI chats, and simulated equity are not on that channel. See [TRADEACADEMY_LEARNER_STATE.md](./TRADEACADEMY_LEARNER_STATE.md).
 

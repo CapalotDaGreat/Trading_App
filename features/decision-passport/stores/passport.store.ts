@@ -103,7 +103,7 @@ export const useDecisionPassportStore = create<PassportState>()(
         }),
     }),
     {
-      name: 'tradevision-decision-passport-v1',
+      name: 'tradeacademy-decision-passport-v1',
       storage: createPersistedStorage(),
     },
   ),

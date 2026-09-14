@@ -26,7 +26,7 @@ npx expo export --platform all --output-dir .expo-export-test
 The checked-in `.maestro/demo-activation.yaml` and
 `.maestro/decision-loop.yaml` flows are device-ready smoke specifications for
 guest activation and Today → Research/Skip → Journal → Review. They require a
-running signed or development client with app id `ai.tradevision.app`; their
+running signed or development client with app id `ai.tradeacademy.app`; their
 presence is not evidence that either platform executed them.
 
 ## Signed-build smoke test

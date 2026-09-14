@@ -149,7 +149,7 @@ Interpreting a simplified company, comparing two businesses, naming what informa
 
 ## Backward compatibility
 
-Storage key stays `tradevision-competency-evidence-v1`. Persist version is `2`.
+Storage key stays `tradeacademy-competency-evidence-v1`. Persist version is `2`.
 
 On read/migrate, missing `evidenceLayer` / `helpLevel` are filled **conservatively**:
 

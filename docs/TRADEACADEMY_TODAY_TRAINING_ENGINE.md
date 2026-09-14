@@ -14,7 +14,7 @@ Related systems:
 - Demonstration recipes, remediation, spaced re-demo: `docs/TRADEACADEMY_MASTERY_SYSTEM.md`
 - Long-term stages, interleaving, transfer, anti-grinding: `docs/TRADEACADEMY_DELIBERATE_PRACTICE.md`
 
-Frozen identifiers (`ai.tradevision.app`, `tradevision` URL scheme, `tradevision-*` AsyncStorage keys) are unchanged. Queue persistence remains `tradevision-learning-queue-v1`.
+Frozen identifiers (`ai.tradeacademy.app`, `tradeacademy` URL scheme, `tradeacademy-*` AsyncStorage keys) are unchanged. Queue persistence remains `tradeacademy-learning-queue-v1`.
 
 ---
 
@@ -85,7 +85,7 @@ Copy stays non-certain: process pattern, not a verdict; P/L is context; skip/def
 
 Users may **Defer** (hide ~1 day) or **Skip** (hide ~3 days). There is **no lockout**.
 
-Each defer increments `deferCount` on the queue item and, when known, `conceptDeferCounts[conceptId]` in `tradevision-learning-queue-v1`.
+Each defer increments `deferCount` on the queue item and, when known, `conceptDeferCounts[conceptId]` in `tradeacademy-learning-queue-v1`.
 
 After the window, the item returns. If it has been deferred twice or more, the explanation adds:
 

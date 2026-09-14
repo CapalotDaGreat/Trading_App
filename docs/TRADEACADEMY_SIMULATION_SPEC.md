@@ -22,7 +22,7 @@ Transactions: append-only ledger (`id`, `accountId`, timestamp, symbol, asset ty
 
 Money: integer minor units (cents) via `simulation-money.service.ts`. Ratios may use IEEE floats.
 
-Engine: `features/simulation/services/simulation-engine.service.ts` (pure functions). Store: Zustand + AsyncStorage `tradevision-simulation-v1` (persist **version 2**), keyed by Firebase UID (or `demo-guest`). Archives live in `archivesByUser`.
+Engine: `features/simulation/services/simulation-engine.service.ts` (pure functions). Store: Zustand + AsyncStorage `tradeacademy-simulation-v1` (persist **version 2**), keyed by Firebase UID (or `demo-guest`). Archives live in `archivesByUser`.
 
 ## Prices
 

@@ -42,14 +42,14 @@ test('maps purchase, cancellation, expiration, refund, grace, and product change
   const changed = mapRevenueCatEvent({
     ...baseEvent,
     type: 'PRODUCT_CHANGE',
-    new_product_id: 'tradevision_premium_monthly',
+    new_product_id: 'tradeacademy_premium_monthly',
   });
   assert.equal(changed.planId, 'monthly');
 
   const catalogYearly = mapRevenueCatEvent({
     ...baseEvent,
     type: 'INITIAL_PURCHASE',
-    product_id: 'tradevision_premium_yearly',
+    product_id: 'tradeacademy_premium_yearly',
   });
   assert.equal(catalogYearly.planId, 'yearly');
   assert.equal(catalogYearly.isPremium, true);

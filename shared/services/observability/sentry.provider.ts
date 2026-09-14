@@ -10,7 +10,7 @@ import type { ObservabilityProvider } from './types';
 const dsn = process.env.EXPO_PUBLIC_SENTRY_DSN?.trim();
 
 function releaseName(): string {
-  const appId = Application.applicationId ?? 'tradevision';
+  const appId = Application.applicationId ?? 'tradeacademy';
   const version =
     Application.nativeApplicationVersion ?? Constants.expoConfig?.version ?? 'unknown';
   return `${appId}@${version}`;

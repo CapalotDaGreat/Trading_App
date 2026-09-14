@@ -4,7 +4,7 @@
 **Phase:** Audit complete. Cleanup executed — see `docs/TRADEACADEMY_CLEANUP_REPORT.md`.  
 **Note:** Inventory below is the pre-cleanup snapshot. Do not treat “REMOVE candidate” rows as still pending.  
 **Loop:** Learn → Practice → Simulate → Review → Improve  
-**Question:** What still exists from the TradeInsight / TradeVision research-terminal product, and is it still useful for education?
+**Question:** What still exists from the TradeAcademy / TradeAcademy research-terminal product, and is it still useful for education?
 
 **Method:** Expo Router file inventory, `href` / `router.push` / notification / search / settings / lesson-link greps, feature-folder import checks, ops flags, Cloud Functions exports, and provider call sites. A symbol that appears unused in UI may still be required by a service, test, deep link, or redirect. Those are marked **verify first**.
 
@@ -235,7 +235,7 @@ Nothing in this list should be deleted in this phase. These are **candidates for
 | `betaReplayStudioEnabled` | Default off; no UI consumer | Same | Same |
 | `internalDiagnosticsEnabled` | Default off; no UI consumer | Same | Same |
 | User-facing `/calendar` **screen** | Duplicate of Events | Academy hrefs; redirect | `app/calendar/index.tsx` → Redirect; keep service |
-| TradeInsight splash string | Wrong product metaphor | None | `app/_layout.tsx` copy only |
+| TradeAcademy splash string | Wrong product metaphor | None | `app/_layout.tsx` copy only |
 
 **Do not remove:** radar/RVS **services**, watchlist **service**, alerts **runtime**, news **client**, Finnhub **proxies**, cloud-AI **stub**, hidden tab **routes**, `createPortfolioHolding`, or on-device mentor engine.
 
@@ -378,7 +378,7 @@ Remote leftovers (`watchlistCountFree`, `decisionBriefMinRvs`, `researchQueueDep
 | `ops/analytics.ts`, `aggregates.ts` | Production / privacy-safe counters | **KEEP** |
 | `ops/ai-ops.ts` | Metadata only; no prompts | **KEEP** |
 | `portfolio-holdings.ts`, `instruments-catalog.ts` | Live book + identity | **KEEP** until holdings decision |
-| Internal “TradeVision ops spike” names | Naming only | **DEFER** rename; not a delete reason |
+| Internal “TradeAcademy ops spike” names | Naming only | **DEFER** rename; not a delete reason |
 | `features/ops-config` client | Flag + remote cache | **KEEP** |
 
 ---
@@ -391,7 +391,7 @@ Remote leftovers (`watchlistCountFree`, `decisionBriefMinRvs`, `researchQueueDep
 | `README.md` | Current enough; Events was under-specified (updated) |
 | `docs/TRADEACADEMY_*.md` | Current product specs — **KEEP** |
 | `docs/TRADEACADEMY_PRODUCT_ARCHITECTURE.md` | Current; now points here |
-| `docs/MARKET_DATA_COST_AUDIT.md` | Still titled **TradeInsight**; facts still useful — **DEFER** title fix |
+| `docs/MARKET_DATA_COST_AUDIT.md` | Still titled **TradeAcademy**; facts still useful — **DEFER** title fix |
 | `docs/DECISION_REPLAY_TV.md` vs `TRADEACADEMY_REPLAY_SYSTEM.md` | Overlap — **DEFER** merge |
 | `docs/PRODUCT_REDESIGN_SPEC.md`, `FULL_PRODUCT_IMPROVEMENT_AUDIT.md` | Mixed-era — treat as historical-plus |
 | `more-hub` comments / Review tests | Describe retired More as live IA — **update in cleanup** |

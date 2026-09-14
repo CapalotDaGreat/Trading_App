@@ -66,7 +66,7 @@ Copy is explainable, for example:
 
 ## Session length
 
-`quick` (~10m), `normal` (~20m), `deep` (~45m), from onboarding `timeBudgetMinutes` or the Home chips (`tradevision-learning-queue-v1.sessionLength`). Deep simulation can still lead when it is remediation or overdue re-demo.
+`quick` (~10m), `normal` (~20m), `deep` (~45m), from onboarding `timeBudgetMinutes` or the Home chips (`tradeacademy-learning-queue-v1.sessionLength`). Deep simulation can still lead when it is remediation or overdue re-demo.
 
 ## Deferral
 

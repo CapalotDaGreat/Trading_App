@@ -32,7 +32,7 @@ export const useThemeStore = create<ThemeState>()(
       },
     }),
     {
-      name: 'tradevision-theme-v2',
+      name: 'tradeacademy-theme-v2',
       storage: createPersistedStorage(),
       partialize: (state) => ({ mode: state.mode }),
     },

@@ -1,6 +1,6 @@
 {
-  "name": "tradevision-ai",
-  "main": "expo-router/entry",
+  "name": "tradeacademy-ai",
+  "main": "index.js",
   "version": "1.0.0",
   "private": true,
   "scripts": {

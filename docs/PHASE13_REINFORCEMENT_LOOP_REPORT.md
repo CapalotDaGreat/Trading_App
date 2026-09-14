@@ -1,7 +1,7 @@
 # Phase 13 — Reinforcement Loop 2.0
 
 **Date:** 2026-08-25  
-**Product:** TradeInsight by Aithera  
+**Product:** TradeAcademy by Aithera  
 **SDK:** Expo 54 (`expo@54.0.36`)
 
 This phase does **not** add a product surface. It makes the existing loop feel like one coaching system:

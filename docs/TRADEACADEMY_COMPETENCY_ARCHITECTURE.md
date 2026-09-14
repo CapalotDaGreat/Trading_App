@@ -225,7 +225,7 @@ Difficulty weights: foundations `0.85`, applied `1.0`, complex `1.15`.
 Local-first, same pattern as practice progress and simulation:
 
 - Zustand + AsyncStorage
-- Key: `tradevision-competency-evidence-v1` (frozen `tradevision-*` prefix)
+- Key: `tradeacademy-competency-evidence-v1` (frozen `tradeacademy-*` prefix)
 - Shape: `recordsByUser[uid] = CompetencyEvidenceRecord[]`
 - Cap: 800 records per user
 - Wiped on logout / account deletion via `USER_LOCAL_STORAGE_KEYS` and `resetAll()`

@@ -1,6 +1,6 @@
 # Decision Replay TV
 
-Educational historical decision rooms — the “Netflix of trading education” for process practice (Aithera / TradeVision AI).
+Educational historical decision rooms — the “Netflix of trading education” for process practice (Aithera / TradeAcademy AI).
 
 **Expansion report:** see [`DECISION_REPLAY_TV_REPORT.md`](./DECISION_REPLAY_TV_REPORT.md) for architecture, content model, scoring, blindness contract, monetisation, and how to add episodes without an engine rewrite.
 

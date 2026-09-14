@@ -84,7 +84,7 @@ Added `*.log`, emulator debug logs, and `coverage/` so local caches and logs are
 
 | Change | Why |
 | --- | --- |
-| Logout wipe no longer resets `decision-ui` store | Store deleted; AsyncStorage key `tradevision-decision-ui` still wiped so leftover persist data clears |
+| Logout wipe no longer resets `decision-ui` store | Store deleted; AsyncStorage key `tradeacademy-decision-ui` still wiped so leftover persist data clears |
 | Analysis feature folder gone | Redirects at `/analysis/*` remain; no second analysis stack |
 | README env sample | Cloud AI documented as off, with no fake client URL |
 
@@ -108,7 +108,7 @@ No design-system mega-merge. `GlassCard` and `Surface` both have many live calle
 | Zustand stores (except deleted `decision-ui`) | Every remaining store has a consumer. Simulation isolation preserved. |
 | React Query caching | Ops bootstrap, quotes, events — performance-sensitive. |
 | Feature flags that default on | Remote Firestore can still override them. |
-| Frozen IDs | `ai.tradevision.app`, scheme `tradevision`, `tradevision-*`, slug `traders`, package `tradevision-ai` |
+| Identifiers | `ai.tradeacademy.app`, scheme `tradeacademy`, `tradeacademy-*`, slug `tradeacademy`, package `tradeacademy-ai` |
 
 ### Remaining feature flags (operational)
 
@@ -157,7 +157,7 @@ Each file was grepped for export name and path. Deletion proceeded only when the
 | `npm run functions:build` | Pass | Pass |
 | `npm --prefix functions test` | 18 | 18 |
 | `npm run test:rules` | 12 | 12 |
-| `npx expo config --type public` | Pass | Pass (SDK 54, `tradevision`, `ai.tradevision.app`) |
+| `npx expo config --type public` | Pass | Pass (SDK 54, `tradeacademy`, `ai.tradeacademy.app`) |
 
 No test files were deleted in this pass (the unused analysis module had none). `clear-all-user-local-state.test.ts` dropped a mock for the deleted store.
 

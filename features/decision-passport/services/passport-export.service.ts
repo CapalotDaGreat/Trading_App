@@ -21,7 +21,7 @@ export function buildPassportExportPackage(profile: DecisionPassportProfile): Pa
   const stamp = new Date(profile.generatedAt).toISOString().slice(0, 10);
   return {
     status: 'ready',
-    suggestedFilename: `tradevision-decision-passport-${stamp}.json`,
+    suggestedFilename: `tradeacademy-decision-passport-${stamp}.json`,
     sections: [
       'Trading Identity',
       'Process patterns',

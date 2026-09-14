@@ -1,4 +1,4 @@
-# TradeVision AI — Comprehensive Production Audit Report
+# TradeAcademy AI — Comprehensive Production Audit Report
 
 **Date:** 2026-08-03  
 **Scope:** Full repository review + hardening pass (Expo SDK 54)  
@@ -8,7 +8,7 @@
 
 ## SECTION 1 — Executive Summary
 
-TradeVision AI is **production-capable** for store submission as a decision-first educational research app, with residual work concentrated in **backend-enforced limits**, **vendor API key proxying**, and continued product-depth polish. Architecture, Firebase gating, demo mode, and educational framing are strong.
+TradeAcademy AI is **production-capable** for store submission as a decision-first educational research app, with residual work concentrated in **backend-enforced limits**, **vendor API key proxying**, and continued product-depth polish. Architecture, Firebase gating, demo mode, and educational framing are strong.
 
 | Score area | Score (0–100) |
 |---|---:|

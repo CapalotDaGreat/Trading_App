@@ -15,7 +15,7 @@ The repository backend can **fail closed** for vendor secrets, paid-data callabl
 
 1. Deploy Functions with `FINNHUB_API_KEY`, `ALPHA_VANTAGE_API_KEY`, `NEWS_API_KEY`, and `REVENUECAT_WEBHOOK_AUTH_TOKEN` set as server secrets — never as `EXPO_PUBLIC_*`.
 2. Wire native App Check (DeviceCheck + Play Integrity) in the EAS Dev Client / store builds. Production native currently **does not attach a fake debug token**; callables reject missing attestation until native providers exist. Do **not** set `APP_CHECK_SOFT=true` on production Functions.
-3. Create store products `tradevision_premium_monthly` and `tradevision_premium_yearly`, attach them to entitlement **`Aithera Pro`**, and point RevenueCat’s webhook at `revenueCatWebhook`.
+3. Create store products `tradeacademy_premium_monthly` and `tradeacademy_premium_yearly`, attach them to entitlement **`Aithera Pro`**, and point RevenueCat’s webhook at `revenueCatWebhook`.
 
 On-device mentor/rules remain the default. Cloud AI stays disabled.
 
@@ -28,7 +28,7 @@ On-device mentor/rules remain the default. Cloud AI stays disabled.
 | Cloud Functions env | `FINNHUB_API_KEY`, `ALPHA_VANTAGE_API_KEY`, `NEWS_API_KEY` in `functions/src/vendors.ts` |
 | Client | Direct vendor keys only when `__DEV__` **and** `EXPO_PUBLIC_MARKET_DATA_DIRECT=true` (`allowDevDirectVendors()`) |
 | EAS store-like profiles (`preview` / `beta` / `production`) | `app.config.ts` `assertStoreLikeClientEnv()` fails the build if Finnhub / Alpha Vantage / News / App Check debug / `EXPO_PUBLIC_AI_API_KEY` / `EXPO_PUBLIC_AI_API_URL` / `EXPO_PUBLIC_MARKET_DATA_DIRECT=true` would be baked in |
-| Public SDK values | Firebase web config, RevenueCat **public** SDK keys, ReCaptcha **site** key, and catalog product IDs (`tradevision_premium_*`) are not vendor secrets |
+| Public SDK values | Firebase web config, RevenueCat **public** SDK keys, ReCaptcha **site** key, and catalog product IDs (`tradeacademy_premium_*`) are not vendor secrets |
 
 Guest / `demo-guest` never calls vendor proxies (`canUseVendorProxy`).
 
@@ -91,9 +91,9 @@ Client-only limits are not used as the authority for Functions.
 | Item | Value |
 | --- | --- |
 | Entitlement | `Aithera Pro` |
-| Monthly | `tradevision_premium_monthly` |
-| Yearly | `tradevision_premium_yearly` |
-| Lifetime (optional SKU) | `tradevision_premium_lifetime` |
+| Monthly | `tradeacademy_premium_monthly` |
+| Yearly | `tradeacademy_premium_yearly` |
+| Lifetime (optional SKU) | `tradeacademy_premium_lifetime` |
 
 - Webhook maps those product IDs (and legacy IDs that still contain `monthly` / `yearly` / `lifetime`).
 - Missing expiry fails closed unless lifetime or an explicit promotional grant.
@@ -148,7 +148,7 @@ Bootstrap is intentionally readable so the app can apply kill switches and daily
 
 1. Production App Check no longer attaches debug tokens (`resolveAppCheckInitMode`).
 2. `APP_CHECK_ENFORCE=false` cannot disable production enforcement.
-3. Catalog product IDs aligned to `tradevision_premium_monthly` / `tradevision_premium_yearly`.
+3. Catalog product IDs aligned to `tradeacademy_premium_monthly` / `tradeacademy_premium_yearly`.
 4. Store-like EAS also rejects `EXPO_PUBLIC_AI_API_URL`.
 5. Vendor callables reject anonymous and unverified Firebase users (server + `canUseVendorProxyForUser`).
 6. Signed-in local AI consumes server quota before generating; quota errors fail closed.

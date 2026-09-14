@@ -33,7 +33,7 @@ import { completeOnboarding } from './onboarding-completion.service';
 import { clearMentorSetupDraft } from './mentor-setup-draft.service';
 import { recommendResearchUniverse } from './research-universe.catalog';
 
-const PROFILE_KEY_PREFIX = 'tradevision:coach-profile:v1';
+const PROFILE_KEY_PREFIX = 'tradeacademy:coach-profile:v1';
 const RESEARCH_UNIVERSE_LIST = 'My research universe';
 
 export function coachProfileStorageKey(uid: string): string {

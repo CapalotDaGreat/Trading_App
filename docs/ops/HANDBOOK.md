@@ -21,7 +21,7 @@
 ## Release notes template
 
 ```
-## TradeVision AI x.y.z
+## TradeAcademy AI x.y.z
 - Process / coaching changes (never market prediction claims)
 - Flags / remote defaults touched:
 - Ops / monitoring notes:

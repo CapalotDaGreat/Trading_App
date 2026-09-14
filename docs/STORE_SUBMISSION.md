@@ -1,4 +1,4 @@
-# Store submission gate — TradeInsight by Aithera
+# Store submission gate — TradeAcademy by Aithera
 
 **Living execution status:** [STORE_LAUNCH_CHECKLIST.md](./STORE_LAUNCH_CHECKLIST.md)  
 **Monetization catalog:** [MONETIZATION.md](./MONETIZATION.md)  
@@ -7,7 +7,7 @@
 **Evidence form:** [`store/EVIDENCE_TEMPLATE.md`](../store/EVIDENCE_TEMPLATE.md)  
 **Hostable legal pages:** [`store/hosted/README.md`](../store/hosted/README.md)
 
-Listing display name: **TradeInsight**. Company: **Aithera**. Application id: **`ai.tradevision.app`**.
+Listing display name: **TradeAcademy**. Company: **Aithera**. Application id: **`ai.tradeacademy.app`**.
 
 **This repository is not submission-ready** until MANUAL ACTION REQUIRED items on the launch checklist are complete (especially legal hosting).
 

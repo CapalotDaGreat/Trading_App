@@ -1,4 +1,4 @@
-# TradeVision AI — Phase 1 Security & Backend Hardening Report
+# TradeAcademy AI — Phase 1 Security & Backend Hardening Report
 
 **Date:** 2026-08-03  
 **Scope:** Production security, Cloud Functions vendor proxy, App Check, server quotas, auth/local hardening  

@@ -1,6 +1,6 @@
 # Phase 4 — World-Class Product Polish Report
 
-TradeVision AI polish pass for App Store / Google Play featured-quality bar, while preserving the decision-first philosophy and existing architecture.
+TradeAcademy AI polish pass for App Store / Google Play featured-quality bar, while preserving the decision-first philosophy and existing architecture.
 
 ## Scores (0–100)
 

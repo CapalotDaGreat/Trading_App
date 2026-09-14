@@ -1,13 +1,13 @@
-# Calm OS 2.0 — TradeInsight
+# Calm OS 2.0 — TradeAcademy
 
 **Date:** 2026-08-24  
-**Product:** TradeInsight by Aithera  
+**Product:** TradeAcademy by Aithera  
 **SDK:** Expo 54 (`expo@54.0.36`)  
-**Principle:** Opening TradeInsight should reduce cognitive load.
+**Principle:** Opening TradeAcademy should reduce cognitive load.
 
 This pass extends Phase 6 (`docs/PHASE6_CALM_OS_REPORT.md`). It does **not** rebuild Decision OS, Replay, DNA, AI memory, analytics, or the design system. It does **not** change RVS or DQS calculations. It does **not** create new stores.
 
-TradeInsight remains a decision-first research and coaching app. It is not a broker, not an execution platform, and not a buy/sell signal service. Empty attention is treated as a successful state.
+TradeAcademy remains a decision-first research and coaching app. It is not a broker, not an execution platform, and not a buy/sell signal service. Empty attention is treated as a successful state.
 
 This pass does **not** change the store GO/NO-GO in `docs/FINAL_PRODUCTION_READINESS_REPORT.md`. Calm OS 2.0 does not unblock App Store or Play Console work.
 
@@ -136,7 +136,7 @@ Preserved testIDs: `today-more-disclosure`, `today-nothing-requires-attention`, 
 - Firestore schemas, Zustand stores, entitlements, monetization
 - Educational FOMO vocabulary inside Academy / Replay lesson content (teaches a named pattern)
 - Defer/Dismiss waiting reviews remain session-only
-- Identity freeze (`ai.tradevision.app`, `tradevision`, `tradevision-*`)
+- Identity freeze (`ai.tradeacademy.app`, `tradeacademy`, `tradeacademy-*`)
 - Cloud AI remains disabled
 - Store GO/NO-GO remains **NO-GO**
 

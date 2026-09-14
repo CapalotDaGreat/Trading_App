@@ -43,10 +43,10 @@ describe('RevenueCat offering package mapping', () => {
 
   it('uses the catalog product identifiers for Aithera Pro', () => {
     expect(FALLBACK_SUBSCRIPTION_PLANS.find((plan) => plan.id === 'monthly')?.productId).toBe(
-      'tradevision_premium_monthly',
+      'tradeacademy_premium_monthly',
     );
     expect(FALLBACK_SUBSCRIPTION_PLANS.find((plan) => plan.id === 'yearly')?.productId).toBe(
-      'tradevision_premium_yearly',
+      'tradeacademy_premium_yearly',
     );
   });
 

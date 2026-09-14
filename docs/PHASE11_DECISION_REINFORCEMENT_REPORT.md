@@ -1,7 +1,7 @@
 # Phase 11 — Decision Reinforcement Layer
 
 **Date:** 2026-08-25  
-**Product:** TradeInsight by Aithera  
+**Product:** TradeAcademy by Aithera  
 **SDK:** Expo 54 (`expo@54.0.36`)
 
 This phase **connects** Replay TV, Decision Log, Trading DNA, Mentor, Academy, and Today so the loop is felt as one coaching system. It does **not** add a product surface, a second event store, a personality database, or a new scoring engine.

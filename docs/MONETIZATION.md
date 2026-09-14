@@ -26,9 +26,9 @@ TradeAcademy is not a broker and does not sell buy/sell signals.
 | Plan | In paywall | Trial | Notes |
 | --- | --- | --- | --- |
 | Free | — | — | Default; ads **not** shipped at launch |
-| Monthly | Yes (`tradevision_premium_monthly`) | No | Auto-renewing |
-| Yearly | Yes (`tradevision_premium_yearly`) | **7 days**, only if the store intro offer is attached | Best-value plan |
-| Lifetime | Yes (`tradevision_premium_lifetime`) | No | One-time purchase. Does not auto-renew. Create as a **non-consumable** in App Store Connect / Play |
+| Monthly | Yes (`tradeacademy_premium_monthly`) | No | Auto-renewing |
+| Yearly | Yes (`tradeacademy_premium_yearly`) | **7 days**, only if the store intro offer is attached | Best-value plan |
+| Lifetime | Yes (`tradeacademy_premium_lifetime`) | No | One-time purchase. Does not auto-renew. Create as a **non-consumable** in App Store Connect / Play |
 
 Entitlement identifier: **`Aithera Pro`** (do not rename to a generic `premium` string).
 
@@ -72,7 +72,7 @@ AI Ask / analysis / mentor-style uses share **one UTC daily cap**.
 
 ## MANUAL ACTION REQUIRED
 
-1. App Store Connect + Play Console: create **`tradevision_premium_monthly`**, **`tradevision_premium_yearly`**, and **`tradevision_premium_lifetime`**. Lifetime must be a non-consumable (or non-renewing) IAP, not an auto-renewing subscription.
+1. App Store Connect + Play Console: create **`tradeacademy_premium_monthly`**, **`tradeacademy_premium_yearly`**, and **`tradeacademy_premium_lifetime`**. Lifetime must be a non-consumable (or non-renewing) IAP, not an auto-renewing subscription.
 2. Attach a **7-day introductory offer to yearly only**, identical on both stores.
 3. RevenueCat: entitlement **`Aithera Pro`**, current offering with monthly + yearly + lifetime packages, Paywall + Customer Center.
 4. Set public SDK keys in EAS; webhook secret on Functions; App User ID = Firebase UID.

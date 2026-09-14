@@ -195,7 +195,7 @@ Account rails and Premium gates are unchanged.
 
 ## Persistence
 
-Replay TV progress and the active session are stored **per uid** (`progressByUser`, `activeSessionByUser`) under AsyncStorage key `tradevision-replay-tv-v2`. Guest (`demo-guest`) and signed-in ledgers stay isolated. Legacy v2 `{ progress, activeSession }` migrates onto `demo-guest`.
+Replay TV progress and the active session are stored **per uid** (`progressByUser`, `activeSessionByUser`) under AsyncStorage key `tradeacademy-replay-tv-v2`. Guest (`demo-guest`) and signed-in ledgers stay isolated. Legacy v2 `{ progress, activeSession }` migrates onto `demo-guest`.
 
 ---
 

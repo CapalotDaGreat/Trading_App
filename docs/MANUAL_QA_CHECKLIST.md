@@ -1,4 +1,4 @@
-# Manual QA checklist — TradeInsight
+# Manual QA checklist — TradeAcademy
 
 Use a **fresh install** on an EAS Dev Client when testing IAP, background alerts, or push. Expo Go can cover Academy, search, journal, and most research UI; native IAP will be disabled there.
 
@@ -88,7 +88,7 @@ Mark each row Pass / Fail / N/A. Do not submit to the store with open P0 failure
 54. Plan selection: monthly / yearly / lifetime as configured. Trial copy matches store intro offer (yearly).
 55. Purchase (sandbox Dev Client). Restore purchases. Customer Center if Premium.
 56. Expired / cancelled: client does not keep Premium from stale local state (kill and relaunch).
-57. Terms and Privacy from paywall open **in-app** (`tradevision://legal/…`), not only Safari.
+57. Terms and Privacy from paywall open **in-app** (`tradeacademy://legal/…`), not only Safari.
 
 ## Settings, account, legal
 
@@ -109,8 +109,8 @@ Mark each row Pass / Fail / N/A. Do not submit to the store with open P0 failure
 
 ## Branding
 
-69. User-facing name is **TradeInsight** (Aithera where company credit is needed). No TradeVision in UI copy.
-70. Technical scheme `tradevision` and bundle `ai.tradevision.app` still work for deep links.
+69. User-facing name is **TradeAcademy** (Aithera where company credit is needed). No TradeAcademy in UI copy.
+70. Technical scheme `tradeacademy` and bundle `ai.tradeacademy.app` still work for deep links.
 
 ---
 

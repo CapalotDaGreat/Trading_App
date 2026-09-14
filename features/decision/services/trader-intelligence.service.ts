@@ -11,7 +11,7 @@ export interface MemoryProfileHints {
   riskTolerance?: TraderMemory['riskTolerance'];
 }
 
-const MEMORY_KEY_PREFIX = 'tradevision:trader-memory:v2';
+const MEMORY_KEY_PREFIX = 'tradeacademy:trader-memory:v2';
 
 export function traderMemoryStorageKey(uid?: string | null): string {
   return `${MEMORY_KEY_PREFIX}:${encodeURIComponent(uid || 'guest')}`;

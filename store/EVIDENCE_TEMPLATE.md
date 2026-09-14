@@ -52,11 +52,11 @@ Copy this into your release ticket for **each** of iOS sandbox and Android licen
 
 | URL | HTTP status | Timestamp |
 | --- | --- | --- |
-| https://tradevision.ai/privacy | | |
-| https://tradevision.ai/terms | | |
-| https://tradevision.ai/risk | | |
-| https://tradevision.ai/security | | |
-| https://tradevision.ai/support | | |
-| https://tradevision.ai/account-deletion | | |
-| https://tradevision.ai/.well-known/apple-app-site-association | | |
-| https://tradevision.ai/.well-known/assetlinks.json | | |
+| https://tradeacademy.cloud/privacy | | |
+| https://tradeacademy.cloud/terms | | |
+| https://tradeacademy.cloud/risk | | |
+| https://tradeacademy.cloud/security | | |
+| https://tradeacademy.cloud/support | | |
+| https://tradeacademy.cloud/account-deletion | | |
+| https://tradeacademy.cloud/.well-known/apple-app-site-association | | |
+| https://tradeacademy.cloud/.well-known/assetlinks.json | | |

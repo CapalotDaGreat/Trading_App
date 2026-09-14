@@ -2,7 +2,7 @@
 
 ## Scope and baseline
 
-Calm OS reframes TradeVision/Aithera as a calm, evidence-first decision operating system. Work proceeded in order: trust/data foundations → design-system consolidation → primary and learning surface hierarchy → five-tab IA → calm language and static accessibility → automated validation.
+Calm OS reframes TradeAcademy/Aithera as a calm, evidence-first decision operating system. Work proceeded in order: trust/data foundations → design-system consolidation → primary and learning surface hierarchy → five-tab IA → calm language and static accessibility → automated validation.
 
 Expo SDK 54 (`expo@54.0.36`), existing Firebase schemas, RevenueCat identifiers, Decision OS services, demo-mode fallbacks, and legacy deep-link contracts remain preserved.
 

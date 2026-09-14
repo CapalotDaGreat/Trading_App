@@ -7,7 +7,7 @@ import type {
   AiWhyChanged,
 } from '../types/ai-trust.types';
 
-const HISTORY_KEY = 'tradevision-ai-recommendation-history-v1';
+const HISTORY_KEY = 'tradeacademy-ai-recommendation-history-v1';
 const MAX_PER_SYMBOL = 12;
 
 interface HistoryStore {

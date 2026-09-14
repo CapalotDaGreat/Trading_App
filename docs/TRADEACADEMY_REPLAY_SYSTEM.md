@@ -59,7 +59,7 @@ Filter by difficulty (beginner, intermediate, advanced, mixed/unlabeled), market
 
 Advanced and mixed rooms require independent reasoning: the competency under test is not advertised.
 
-Progress and the active session persist **per uid** (`tradevision-replay-tv-v2`). Guest and signed-in ledgers stay isolated.
+Progress and the active session persist **per uid** (`tradeacademy-replay-tv-v2`). Guest and signed-in ledgers stay isolated.
 
 ## Scoring
 

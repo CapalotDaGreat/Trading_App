@@ -7,7 +7,7 @@ TradeAcademy is an educational **trading education and simulated-practice** app 
 It is **not** a broker, **does not** execute trades, **does not** handle customer
 funds, and **does not** provide buy/sell signals or guaranteed returns.
 
-**Technical identity:** iOS/Android application id remains `ai.tradevision.app`
+**Technical identity:** iOS/Android application id remains `ai.tradeacademy.app`
 (frozen). Display name and branding are TradeAcademy / Aithera.
 
 **Age layers (please do not collapse these):**
@@ -83,7 +83,7 @@ and education. FX candles are never fabricated.
 ## Subscription and 7-day trial
 
 - Entitlement: `Aithera Pro`
-- Launch products: `tradevision_premium_monthly`, `tradevision_premium_yearly`, and `tradevision_premium_lifetime`. Lifetime is a one-time purchase and does not auto-renew.
+- Launch products: `tradeacademy_premium_monthly`, `tradeacademy_premium_yearly`, and `tradeacademy_premium_lifetime`. Lifetime is a one-time purchase and does not auto-renew.
 - Native App Store / Play billing via RevenueCat (not available in Expo Go).
 - Restore Purchases is on the subscription screen.
 - Cancel / Manage Subscription opens the platform subscription page.

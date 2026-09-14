@@ -16,9 +16,9 @@
 
 ### Firebase Console
 
-1. Enable App Check for the Firebase project used by `ai.tradevision.app`.
-2. Register **DeviceCheck** for the iOS app (Team ID, bundle `ai.tradevision.app`).
-3. Register **Play Integrity** for the Android app (package `ai.tradevision.app`, Play signing SHA).
+1. Enable App Check for the Firebase project used by `ai.tradeacademy.app`.
+2. Register **DeviceCheck** for the iOS app (Team ID, bundle `ai.tradeacademy.app`).
+3. Register **Play Integrity** for the Android app (package `ai.tradeacademy.app`, Play signing SHA).
 4. Register **reCAPTCHA v3** for web / Expo web if used.
 5. Keep debug tokens out of production apps.
 

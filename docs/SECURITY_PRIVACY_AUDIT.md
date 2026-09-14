@@ -1,4 +1,4 @@
-# TradeVision AI — Security & Privacy Audit (2026-07-25)
+# TradeAcademy AI — Security & Privacy Audit (2026-07-25)
 
 Verified from the codebase only. Companion interactive report:
 `~/.cursor/projects/c-Money-Trading-App/canvases/security-privacy-audit.canvas.tsx`

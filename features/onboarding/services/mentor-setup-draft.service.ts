@@ -3,7 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { CoachProfileAnswers, MentorSetupDraft } from '../types/mentor-setup.types';
 import { EMPTY_COACH_ANSWERS, MENTOR_SETUP_DRAFT_VERSION } from '../types/mentor-setup.types';
 
-export const MENTOR_SETUP_DRAFT_KEY_PREFIX = 'tradevision:mentor-setup-draft:v2';
+export const MENTOR_SETUP_DRAFT_KEY_PREFIX = 'tradeacademy:mentor-setup-draft:v2';
 const queues = new Map<string, Promise<unknown>>();
 
 export function mentorSetupDraftStorageKey(uid: string): string {

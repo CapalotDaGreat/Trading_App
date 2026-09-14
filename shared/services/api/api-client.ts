@@ -55,7 +55,7 @@ export class ApiError extends Error {
   }
 }
 
-const BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL ?? 'https://api.tradevision.ai/v1';
+const BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL ?? 'https://api.tradeacademy.cloud/v1';
 const DEFAULT_TIMEOUT = 30_000;
 const DEFAULT_RETRIES = 2;
 const DEFAULT_RETRY_DELAY = 1_000;

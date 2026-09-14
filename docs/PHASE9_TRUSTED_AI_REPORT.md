@@ -1,7 +1,7 @@
 # Phase 9 — Trusted AI / Mentor 2.0
 
 **Date:** 2026-08-24  
-**Product:** TradeInsight by Aithera  
+**Product:** TradeAcademy by Aithera  
 **SDK:** Expo 54 (`expo@54.0.36`)
 
 The AI is a **high-trust research mentor**. Fluency is secondary. It must never appear more certain than the evidence allows.

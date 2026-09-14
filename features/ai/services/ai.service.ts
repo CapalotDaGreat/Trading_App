@@ -28,7 +28,7 @@ import { generateEngineAnalysis, generateEngineChatResponse } from './ai-engine.
 import { priorEvidenceLevelFromHistory } from './ai-evidence-level.service';
 import { attachWhyChanged } from './ai-trust.service';
 
-const AI_USAGE_KEY = 'tradevision-ai-usage-daily-v1';
+const AI_USAGE_KEY = 'tradeacademy-ai-usage-daily-v1';
 
 interface StoredUsage {
   date: string;

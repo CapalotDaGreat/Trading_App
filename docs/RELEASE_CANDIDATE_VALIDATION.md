@@ -93,7 +93,7 @@ export. Unsupported priority-cloud-AI and faster-data claims were removed.
 
 No EAS project ID or owner is active in the current Expo configuration, so OTA
 and rollback validation cannot run. Requests to `/privacy`, `/terms`,
-`/support`, and `/account-deletion` on `tradevision.ai` timed out with HTTP
+`/support`, and `/account-deletion` on `tradeacademy.cloud` timed out with HTTP
 status `000`. Production account deletion, push credentials/deep links,
 reviewer access, store metadata, and screenshot uploads have no recorded
 external proof in this repository.

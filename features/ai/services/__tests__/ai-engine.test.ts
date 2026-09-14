@@ -47,7 +47,7 @@ describe('ai-engine', () => {
     expect(result.tradeSuggestion?.invalidationLevel).toBeDefined();
     expect(result.tradeSuggestion?.nextResearchLevel).toBeDefined();
     expect(result.metadata?.trust?.confidence.pillars.length).toBeGreaterThanOrEqual(9);
-    expect(result.metadata?.modelVersion).toBe('tradevision-engine-2.0');
+    expect(result.metadata?.modelVersion).toBe('tradeacademy-engine-2.0');
   });
 
   it('does not invent a last price or support when the quote is missing', async () => {

@@ -81,7 +81,7 @@ export const useSimulatorStore = create<SimulatorState>()(
       clearActive: () => set({ activeSession: null }),
     }),
     {
-      name: 'tradevision-decision-simulator-v1',
+      name: 'tradeacademy-decision-simulator-v1',
       storage: createPersistedStorage(),
       partialize: (state) => ({
         // Do not persist full candle arrays (large). Keep history summaries only.

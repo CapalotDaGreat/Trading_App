@@ -2,7 +2,7 @@
 
 **Date:** 10 September 2026 (updated same day after the score-improvement implementation pass)  
 **Product:** TradeAcademy by Aithera  
-**Auditor method:** inspect the current tree; do not assume earlier prompts landed. Automated tests were re-run in this pass. Learner journeys were **code-traced**, not walked on a device. Live store consoles, EAS production binaries, and native App Check tokens were **not** available in this repository. `https://tradevision.ai` and `https://tradevision.ai/privacy` were fetched again and still returned **HTTP 500**.
+**Auditor method:** inspect the current tree; do not assume earlier prompts landed. Automated tests were re-run in this pass. Learner journeys were **code-traced**, not walked on a device. Live store consoles, EAS production binaries, and native App Check tokens were **not** available in this repository. `https://tradeacademy.cloud` and `https://tradeacademy.cloud/privacy` were fetched again and still returned **HTTP 500**.
 
 **Implementation report:** [TRADEACADEMY_SCORE_IMPROVEMENT_IMPLEMENTATION_2026-09.md](./TRADEACADEMY_SCORE_IMPROVEMENT_IMPLEMENTATION_2026-09.md)
 
@@ -23,7 +23,7 @@ It is **not** a production App Store / Play release.
 Blocking reasons (all verified in this pass):
 
 1. Legal operator identity is still template text (`[LEGAL ENTITY NAME REQUIRED]`, VAT, emails, official domain). Hosted HTML still shows a **template banner**.
-2. `https://tradevision.ai` and `https://tradevision.ai/privacy` returned **HTTP 500** when fetched on 10 September 2026 (re-checked after this pass). Store metadata already sets `listingUrlsReady: false`.
+2. `https://tradeacademy.cloud` and `https://tradeacademy.cloud/privacy` returned **HTTP 500** when fetched on 10 September 2026 (re-checked after this pass). Store metadata already sets `listingUrlsReady: false`.
 3. Store screenshots are empty (`store/screenshots/**` still `.gitkeep` only). `eas.json` still has `REPLACE_WITH_ASC_APP_ID`.
 4. Production native App Check is **unattested**. Callables fail closed until DeviceCheck / Play Integrity exist. See [TRADEACADEMY_APP_CHECK.md](./TRADEACADEMY_APP_CHECK.md). That is correct fail-closed behavior, and it also means paid cloud paths cannot work on a store binary today.
 5. Production Functions secrets, RevenueCat webhook, store products, and Firebase/EAS consoles are **UNVERIFIED** in this repo. They cannot be assumed deployed.
@@ -41,7 +41,7 @@ A closed internal preview of the on-device educational core is possible with doc
 | `npm run functions:build` | **PASS** |
 | `npm --prefix functions test` | **PASS** — **19** tests, 0 fail |
 | `npm run test:rules` | **PASS** — 2 suites, **14** tests (Firestore + Storage) |
-| `npx expo config --type public` | **PASS** — Expo SDK **54.0.0**, name TradeAcademy, bundle `ai.tradevision.app`, scheme `tradevision` |
+| `npx expo config --type public` | **PASS** — Expo SDK **54.0.0**, name TradeAcademy, bundle `ai.tradeacademy.app`, scheme `tradeacademy` |
 
 No other release-gate script exists besides `expo:config`. Device QA, EAS production build, and store-console submission were **not** run.
 
@@ -262,7 +262,7 @@ Production Functions env and webhook URL: **UNVERIFIED**.
 
 Same-session guest → authenticated **switches** the active uid on academy, practice attempts, and learning queue (`isolateGuestProgressIfNeeded`). Guest work is retained under `demo-guest` and restored when that uid is active again (tested).
 
-Cold start: `tradevision-last-auth-uid` is persisted so isolation can still run after a process kill (tested). Storage **key names** stay `tradevision-*` (frozen); payloads are now `byUser` / `attemptsByUser`.
+Cold start: `tradeacademy-last-auth-uid` is persisted so isolation can still run after a process kill (tested). Storage **key names** stay `tradeacademy-*` (frozen); payloads are now `byUser` / `attemptsByUser`.
 
 Competency evidence is uid-keyed and does not mix. Journal under Firestore is owner-scoped. Guest never calls vendor proxies.
 
@@ -273,13 +273,13 @@ Competency evidence is uid-keyed and does not mix. Journal under Firestore is ow
 | Item | Status |
 | --- | --- |
 | Expo SDK 54 | `expo@54.0.36`; public config `sdkVersion: 54.0.0` |
-| Production bundle | `ai.tradevision.app` (iOS + Android) |
-| Frozen identifiers | Scheme `tradevision`; `tradevision-*` storage keys unchanged |
+| Production bundle | `ai.tradeacademy.app` (iOS + Android) |
+| Frozen identifiers | Scheme `tradeacademy`; `tradeacademy-*` storage keys unchanged |
 | Sentry | Plugin only when `SENTRY_ORG` + `SENTRY_PROJECT` set. This public config dump **omitted** the plugin. Runtime still consent + DSN + native client. |
 | Firebase | Optional; demo mode without env |
 | RevenueCat | Public keys + catalog IDs in eas env; webhook deploy **UNVERIFIED** |
-| Legal host | Fallback `https://tradevision.ai` — **HTTP 500** this pass |
-| Dev-only URLs | `.env.example` documents Functions-first vendors. `EXPO_PUBLIC_API_BASE_URL=https://api.tradevision.ai/v1` is an unused-looking fallback — live behavior of that host **UNVERIFIED** (root already 500) |
+| Legal host | Fallback `https://tradeacademy.cloud` — **HTTP 500** this pass |
+| Dev-only URLs | `.env.example` documents Functions-first vendors. `EXPO_PUBLIC_API_BASE_URL=https://api.tradeacademy.cloud/v1` is an unused-looking fallback — live behavior of that host **UNVERIFIED** (root already 500) |
 | Test credentials | `.env.example` empty placeholders. Do not commit `.env`. |
 | Mock as live | DataSourceBadge contract unchanged; default synthetic/sample. Device confirmation **UNVERIFIED**. |
 
@@ -289,7 +289,7 @@ Icons/splash: `assets/images/icon.png` exists (Aithera A). Splash and adaptive i
 
 Permissions: vibrate, boot completed, wake lock, biometric. Face ID copy states biometrics never authorize trades. Background modes: remote-notification + processing (inexact OS schedule — copy must not promise instant alerts).
 
-Deep links: `tradevision://` plus `applinks:tradevision.ai`. Associated domains on a host that 500s are not verified.
+Deep links: `tradeacademy://` plus `applinks:tradeacademy.cloud`. Associated domains on a host that 500s are not verified.
 
 ---
 
@@ -297,7 +297,7 @@ Deep links: `tradevision://` plus `applinks:tradevision.ai`. Associated domains 
 
 See tables above. Build audit summary:
 
-- App name TradeAcademy, slug `traders`, version 1.0.0, buildNumber/versionCode 1.
+- App name TradeAcademy, slug `tradeacademy`, version 1.0.0, buildNumber/versionCode 1.
 - New Architecture enabled.
 - Notification plugin present; sounds empty.
 - Submit profile `REPLACE_WITH_ASC_APP_ID`.
@@ -353,10 +353,10 @@ Event → educational explanation → related lesson/replay/sim with `concept=` 
 Must be true before any production store binary is submitted:
 
 1. Replace legal operator fields (entity, VAT/UID, support/privacy/security email, official domain) with real counsel-approved values. Remove the hosted **template banner**.
-2. Serve Privacy, Terms, Risk, Support, Security, Account deletion at the official origin with **HTTP 200** and no template notice. Re-check: `https://tradevision.ai` returned **500** on 10 September 2026.
+2. Serve Privacy, Terms, Risk, Support, Security, Account deletion at the official origin with **HTTP 200** and no template notice. Re-check: `https://tradeacademy.cloud` returned **500** on 10 September 2026.
 3. Capture store screenshots; stop shipping empty `store/screenshots` / empty metadata arrays.
 4. Wire native App Check (DeviceCheck + Play Integrity) in the EAS store client. Keep Functions fail-closed (`APP_CHECK_SOFT` must not be true in production).
-5. Deploy Cloud Functions with server secrets only (`FINNHUB_API_KEY`, `ALPHA_VANTAGE_API_KEY`, `NEWS_API_KEY`, `REVENUECAT_WEBHOOK_AUTH_TOKEN`). Confirm webhook, SKUs `tradevision_premium_monthly` / `yearly` / optional lifetime, entitlement **Aithera Pro**.
+5. Deploy Cloud Functions with server secrets only (`FINNHUB_API_KEY`, `ALPHA_VANTAGE_API_KEY`, `NEWS_API_KEY`, `REVENUECAT_WEBHOOK_AUTH_TOKEN`). Confirm webhook, SKUs `tradeacademy_premium_monthly` / `yearly` / optional lifetime, entitlement **Aithera Pro**.
 6. Fill store-console identifiers (`ascAppId`, Play signing SHA, privacy questionnaire) outside this repo. Do not invent them here.
 
 Until 1–3 are done, `listingUrlsReady` must stay `false`.

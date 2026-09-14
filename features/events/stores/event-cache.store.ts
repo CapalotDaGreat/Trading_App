@@ -25,7 +25,7 @@ export const useEventCacheStore = create<EventCacheState>()(
         }),
     }),
     {
-      name: 'tradevision-event-cache-v1',
+      name: 'tradeacademy-event-cache-v1',
       storage: createPersistedStorage(),
       version: 1,
     },

@@ -6,7 +6,7 @@ The product loop is **Learn → Practice → Replay → Simulate → Journal →
 
 It is **not** a broker, not an execution venue, not a live trading terminal, and **not** a source of buy/sell signals or guaranteed returns. Simulated P/L does **not** grade a decision. Setup “confidence” is a **decision-quality score (DQS)** — process quality, never a price prediction.
 
-> **Identity note:** display name is **TradeAcademy**. Company is **Aithera**. The store application id remains `ai.tradevision.app` (frozen). Persist keys keep the `tradevision-*` prefix. See [`docs/IDENTITY_MIGRATION_PHASE0.md`](docs/IDENTITY_MIGRATION_PHASE0.md).
+> **Identity:** display name is **TradeAcademy**. Company is **Aithera**. Application id is `ai.tradeacademy.app`. Persist keys use the `tradeacademy-*` prefix. See [`docs/IDENTITY_MIGRATION_PHASE0.md`](docs/IDENTITY_MIGRATION_PHASE0.md).
 
 Default market data is **labelled synthetic/sample**. Cloud AI stays disabled. Runs in **Expo Go** for most UI work; native IAP, OS-scheduled background alerts, production push, and widgets require an EAS Dev Client — see [`docs/DEV_BUILD.md`](docs/DEV_BUILD.md).
 
@@ -79,9 +79,9 @@ EXPO_PUBLIC_REVENUECAT_API_KEY=
 EXPO_PUBLIC_REVENUECAT_IOS_API_KEY=
 EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY=
 EXPO_PUBLIC_REVENUECAT_ENTITLEMENT_ID=Aithera Pro
-EXPO_PUBLIC_RC_PRODUCT_MONTHLY=tradevision_premium_monthly
-EXPO_PUBLIC_RC_PRODUCT_YEARLY=tradevision_premium_yearly
-EXPO_PUBLIC_RC_PRODUCT_LIFETIME=tradevision_premium_lifetime
+EXPO_PUBLIC_RC_PRODUCT_MONTHLY=tradeacademy_premium_monthly
+EXPO_PUBLIC_RC_PRODUCT_YEARLY=tradeacademy_premium_yearly
+EXPO_PUBLIC_RC_PRODUCT_LIFETIME=tradeacademy_premium_lifetime
 
 # Cloud AI stays off. There is no client AI URL or key.
 

@@ -20,7 +20,7 @@ interface MfaScreenProps {
 }
 
 export function MfaScreen({ mode = 'verify' }: MfaScreenProps) {
-  usePreventScreenCapture('tradevision-mfa');
+  usePreventScreenCapture('tradeacademy-mfa');
   const { colors } = useTheme();
   const {
     mfaChallenge,

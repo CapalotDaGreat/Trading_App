@@ -497,7 +497,7 @@ class SubscriptionServiceImpl implements SubscriptionService {
     if (record?.store === 'play_store') {
       const sku = record.productId ? `&sku=${encodeURIComponent(record.productId)}` : '';
       await openExternalUrl(
-        `https://play.google.com/store/account/subscriptions?package=ai.tradevision.app${sku}`,
+        `https://play.google.com/store/account/subscriptions?package=ai.tradeacademy.app${sku}`,
       );
       return;
     }
@@ -507,7 +507,7 @@ class SubscriptionServiceImpl implements SubscriptionService {
     }
     if (Platform.OS === 'android') {
       await openExternalUrl(
-        'https://play.google.com/store/account/subscriptions?package=ai.tradevision.app',
+        'https://play.google.com/store/account/subscriptions?package=ai.tradeacademy.app',
       );
       return;
     }

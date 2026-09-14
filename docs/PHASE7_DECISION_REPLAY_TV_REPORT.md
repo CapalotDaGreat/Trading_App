@@ -1,7 +1,7 @@
 # Phase 7 — Decision Replay TV
 
 **Date:** 2026-08-24  
-**Product:** TradeInsight by Aithera  
+**Product:** TradeAcademy by Aithera  
 **SDK:** Expo 54 (`expo@54.0.36`)
 
 Decision Replay TV is a guided historical **process** room: the future stays hidden until the user commits a research-time decision. It is not a broker, not a simulator for P&L, and not a buy/sell classroom.

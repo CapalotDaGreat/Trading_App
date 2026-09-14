@@ -1,4 +1,4 @@
-# Product improvement roadmap — TradeInsight
+# Product improvement roadmap — TradeAcademy
 
 Items are ranked by launch risk and user value. **P0 is only what blocks a responsible store release**, not every interesting idea.
 
@@ -57,7 +57,7 @@ Until these are done, treat store submission as **NO-GO**. See [STORE_LAUNCH_CHE
 
 ## Explicitly out of scope unless strategy changes
 
-- Changing bundle id `ai.tradevision.app` or URL scheme `tradevision` without an Apple migration plan.
+- Changing bundle id `ai.tradeacademy.app` or URL scheme `tradeacademy` without an Apple migration plan.
 - Finnhub Enterprise (tick, 35y OHLC, redistribution).
 - Turning DQS/RVS into price predictions or buy/sell signals.
 - Fake live candles, fake DNA, or fake AI confidence to fill empty states.

@@ -4,7 +4,7 @@
 **Product:** TradeAcademy by Aithera  
 **SDK:** Expo 54 (`expo@54.0.36`)
 
-This pass closes remaining production gaps after [Phase 16](./PHASE16_PERFORMANCE_RELIABILITY_REPORT.md). It does **not** merge chart stacks, add FlashList, add a third chart library, rename `tradevision-*` storage keys, or treat live vendors as a product dependency.
+This pass closes remaining production gaps after [Phase 16](./PHASE16_PERFORMANCE_RELIABILITY_REPORT.md). It does **not** merge chart stacks, add FlashList, add a third chart library, rename `tradeacademy-*` storage keys, or treat live vendors as a product dependency.
 
 TradeAcademy remains education, simulation, and coaching. Simulated P/L does not grade a decision. Default market data stays labelled sample/synthetic. Cloud AI stays off.
 

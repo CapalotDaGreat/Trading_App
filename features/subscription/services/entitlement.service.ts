@@ -17,7 +17,7 @@ function monthKey(date = new Date()): string {
 }
 
 function usageStorageKey(uid: string, capability: EntitlementCapability): string {
-  return `tradevision:entitlement-usage:v1:${encodeURIComponent(uid)}:${capability}:${monthKey()}`;
+  return `tradeacademy:entitlement-usage:v1:${encodeURIComponent(uid)}:${capability}:${monthKey()}`;
 }
 
 export function getRemoteEntitlementOverrides(): EntitlementRemoteOverrides {

@@ -1,7 +1,7 @@
 # Phase 10 — Trading DNA 3.0
 
 **Date:** 2026-08-24  
-**Product:** TradeInsight by Aithera  
+**Product:** TradeAcademy by Aithera  
 **SDK:** Expo 54 (`expo@54.0.36`)
 
 Trading DNA 3.0 upgrades the **existing** process profile into a **trustworthy longitudinal improvement system**. It still answers **how you make decisions** and **how that process is changing**. It does not answer **whether you are profitable**, and it does not diagnose personality.

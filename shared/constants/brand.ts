@@ -1,9 +1,8 @@
 /**
  * TradeAcademy by Aithera — user-facing product identity.
  *
- * Phase 0 freezes technical identifiers that would break installs, deep links,
- * or local persistence if renamed casually. See docs/IDENTITY_MIGRATION_PHASE0.md.
- * Public brand may change without migrating those IDs.
+ * Technical identifiers live in FROZEN_TECHNICAL_IDS. See
+ * docs/IDENTITY_MIGRATION_PHASE0.md. Do not mix in retired product names.
  */
 
 export const BRAND = {
@@ -25,26 +24,26 @@ export const BRAND = {
 } as const;
 
 /**
- * Technical IDs intentionally frozen in Phase 0.
- * Changing these requires a dedicated migration project (new store listing, data migration, App Links).
+ * Store / persistence identifiers for TradeAcademy.
+ * Changing these requires a new store listing, persist migration, and App Links.
  */
 export const FROZEN_TECHNICAL_IDS = {
   /** iOS bundleIdentifier + Android applicationId */
-  bundleIdentifier: 'ai.tradevision.app',
+  bundleIdentifier: 'ai.tradeacademy.app',
   /** Expo / deep-link URL scheme */
-  urlScheme: 'tradevision',
+  urlScheme: 'tradeacademy',
   /** Expo project slug (EAS continuity) */
-  expoSlug: 'traders',
+  expoSlug: 'tradeacademy',
   /** npm package name (private) */
-  npmPackageName: 'tradevision-ai',
+  npmPackageName: 'tradeacademy-ai',
   /**
    * AsyncStorage / Zustand persist key prefix — do not rename without a key-migration helper.
    * Full list lives in shared/services/user-data/clear-all-user-local-state.ts
    */
-  persistKeyPrefix: 'tradevision-',
+  persistKeyPrefix: 'tradeacademy-',
   /** RevenueCat entitlement (already Aithera-branded) */
   revenueCatEntitlement: 'Aithera Pro',
 } as const;
 
-/** Fallback legal/marketing site until the official Aithera domain is hosted and verified. */
-export const DEFAULT_LEGAL_SITE_ORIGIN = 'https://tradevision.ai';
+/** Official legal and marketing site origin: https://tradeacademy.cloud */
+export const DEFAULT_LEGAL_SITE_ORIGIN = 'https://tradeacademy.cloud';
