@@ -2,11 +2,11 @@
 
 **Last updated:** 15 September 2026
 **Version:** 2026.09.15
-**Operator:** [LEGAL ENTITY NAME REQUIRED], trading as Aithera
+**Operator:** CML Electronics, trading as Aithera
 **Registered address:** Höglerstrasse 55, 8600 Dübendorf, Switzerland
-**Contact:** [SUPPORT EMAIL REQUIRED]
+**Contact:** support@tradeacademy.cloud
 
-This Risk & Investment Disclaimer forms part of your agreement with Aithera / [LEGAL ENTITY NAME REQUIRED] together with the Terms of Service and Privacy Policy. **Read it carefully before using the app.**
+This Risk & Investment Disclaimer forms part of your agreement with Aithera / CML Electronics together with the Terms of Service and Privacy Policy. **Read it carefully before using the app.**
 
 ---
 
@@ -93,6 +93,6 @@ By using the Service you acknowledge that:
 
 ## 8. Contact
 
-[SUPPORT EMAIL REQUIRED]
+support@tradeacademy.cloud
 Höglerstrasse 55, 8600 Dübendorf, Switzerland
-[OFFICIAL DOMAIN REQUIRED]
+https://tradeacademy.cloud

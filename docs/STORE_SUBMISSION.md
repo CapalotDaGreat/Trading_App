@@ -1,15 +1,19 @@
 # Store submission gate — TradeAcademy by Aithera
 
-**Living execution status:** [STORE_LAUNCH_CHECKLIST.md](./STORE_LAUNCH_CHECKLIST.md)  
-**Monetization catalog:** [MONETIZATION.md](./MONETIZATION.md)  
-**Privacy / processors:** [PRIVACY_AUDIT.md](./PRIVACY_AUDIT.md)  
-**Identity (Phase 0 freeze):** [IDENTITY_MIGRATION_PHASE0.md](./IDENTITY_MIGRATION_PHASE0.md)  
-**Evidence form:** [`store/EVIDENCE_TEMPLATE.md`](../store/EVIDENCE_TEMPLATE.md)  
+**Living execution status:** [STORE_LAUNCH_CHECKLIST.md](./STORE_LAUNCH_CHECKLIST.md)
+**Monetization catalog:** [MONETIZATION.md](./MONETIZATION.md)
+**Privacy / processors:** [PRIVACY_AUDIT.md](./PRIVACY_AUDIT.md)
+**Identity (Phase 0 freeze):** [IDENTITY_MIGRATION_PHASE0.md](./IDENTITY_MIGRATION_PHASE0.md)
+**Evidence form:** [`store/EVIDENCE_TEMPLATE.md`](../store/EVIDENCE_TEMPLATE.md)
 **Hostable legal pages:** [`store/hosted/README.md`](../store/hosted/README.md)
 
-Listing display name: **TradeAcademy**. Company: **Aithera**. Application id: **`ai.tradeacademy.app`**.
+Listing display name: **TradeAcademy**. Brand: **Aithera**. Legal entity: **CML Electronics**.
+Application id: **`ai.tradeacademy.app`**. App Store Connect Apple ID: **`6812049061`**.
+Official domain: **https://tradeacademy.cloud**.
 
-**This repository is not submission-ready** until MANUAL ACTION REQUIRED items on the launch checklist are complete (especially legal hosting).
+**Code and legal operator identity are submission-oriented.** Remaining blockers are hosting
+HTTP 200 for legal URLs, store consoles, RevenueCat, Firebase App Check, and device QA — see
+[FINAL_RELEASE_VERIFICATION_2026-09.md](./FINAL_RELEASE_VERIFICATION_2026-09.md).
 
 ## Age — three layers
 
@@ -51,10 +55,10 @@ Do not describe the 4+ rating as permission to trade.
 ## Compliance and review
 
 - Publish Terms, Privacy, Risk Disclaimer, Security Notice, Support, and Account
-  Deletion on `[OFFICIAL DOMAIN REQUIRED]` and verify HTTP 200. Canonical sources
-  are in `store/legal/` (`npm run legal` after edits). Counsel must replace
-  `[LEGAL ENTITY NAME REQUIRED]` and `[VAT/UID REQUIRED]` before treating pages
-  as production.
+  Deletion on **https://tradeacademy.cloud** and verify HTTP 200. Canonical sources
+  are in `store/legal/` (`npm run legal` after edits). Operator: **CML Electronics**,
+  trading as Aithera. VAT/UID intentionally omitted until provided. Mailboxes:
+  privacy@ / support@ / security@tradeacademy.cloud.
 - Complete Apple privacy labels and Google Play Data Safety from shipped
   behaviour: crash diagnostics and product analytics optional, off by default,
   consent required; no ATT tracking product; analytics never includes journal

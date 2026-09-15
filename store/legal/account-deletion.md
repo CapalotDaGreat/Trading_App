@@ -2,7 +2,7 @@
 
 **Last updated:** 15 September 2026
 **Version:** 2026.09.15
-**Operator:** [LEGAL ENTITY NAME REQUIRED], trading as Aithera
+**Operator:** CML Electronics, trading as Aithera
 **Registered address:** Höglerstrasse 55, 8600 Dübendorf, Switzerland
 
 This notice explains how to delete your TradeAcademy account and what happens to your data. It supports Apple App Store and Google Play account-deletion requirements and privacy rights under Swiss nFADP, EU/UK GDPR, and U.S. state privacy laws (including CCPA/CPRA deletion rights).
@@ -50,7 +50,7 @@ We **do not** delete shared educational content (Academy lessons, public catalog
 
 ## 4. Other ways to request deletion
 
-Email **[PRIVACY EMAIL REQUIRED]** or **[SUPPORT EMAIL REQUIRED]** from your account email with subject “Account deletion request”. We will verify your identity and process the request within applicable statutory timelines (e.g. GDPR one month, subject to extensions; CCPA timelines as required).
+Email **privacy@tradeacademy.cloud** or **support@tradeacademy.cloud** from your account email with subject “Account deletion request”. We will verify your identity and process the request within applicable statutory timelines (e.g. GDPR one month, subject to extensions; CCPA timelines as required).
 
 ---
 
@@ -66,7 +66,7 @@ Deleting the account removes TradeAcademy access to Premium features tied to tha
 
 ## 6. Contact
 
-[PRIVACY EMAIL REQUIRED]
-[SUPPORT EMAIL REQUIRED]
+privacy@tradeacademy.cloud
+support@tradeacademy.cloud
 Höglerstrasse 55, 8600 Dübendorf, Switzerland
-[OFFICIAL DOMAIN REQUIRED]
+https://tradeacademy.cloud

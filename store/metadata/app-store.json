@@ -4,6 +4,8 @@
   "bundleId": "ai.tradeacademy.app",
   "sku": "tradeacademy-ai-ios-001",
   "developerName": "Aithera",
+  "legalEntity": "CML Electronics",
+  "appleId": "6812049061",
   "primaryCategory": "FINANCE",
   "secondaryCategory": "PRODUCTIVITY",
   "contentRating": "4+",
@@ -30,7 +32,7 @@
     "ipadPro129": []
   },
   "listingUrlsReady": false,
-  "listingUrlNote": "Official domain is https://tradeacademy.cloud. Do not paste these URLs into App Store Connect until that host serves HTTP 200 copies of store/hosted/ (no template banner).",
+  "listingUrlNote": "Official domain is https://tradeacademy.cloud. Paste privacy/support URLs into App Store Connect only after that host serves HTTP 200 copies of store/hosted/.",
   "supportUrl": "https://tradeacademy.cloud/support",
   "termsUrl": "https://tradeacademy.cloud/terms",
   "riskDisclaimerUrl": "https://tradeacademy.cloud/risk",
@@ -38,8 +40,10 @@
   "accountDeletionUrl": "https://tradeacademy.cloud/account-deletion",
   "marketingUrl": "https://tradeacademy.cloud",
   "privacyPolicyUrl": "https://tradeacademy.cloud/privacy",
-  "contactEmail": "[SUPPORT EMAIL REQUIRED]",
-  "legalOperatorFieldsComplete": false,
+  "contactEmail": "support@tradeacademy.cloud",
+  "legalOperatorFieldsComplete": true,
+  "vatUid": null,
+  "vatUidNote": "VAT/UID intentionally omitted until provided.",
   "privacyDisclosure": {
     "crashDiagnostics": "Optional; disabled by default and sent to Sentry only after explicit consent",
     "usageAnalytics": "Optional first-party allowlisted aggregates; disabled by default; explicit consent required",
@@ -58,5 +62,5 @@
     "jurisdictions": ["CH", "EU", "US"]
   },
   "screenshotInventory": "store/screenshots/README.md",
-  "copyright": "© 2026 Aithera"
+  "copyright": "© 2026 CML Electronics, trading as Aithera"
 }

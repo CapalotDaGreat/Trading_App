@@ -2,6 +2,7 @@
   "appName": "TradeAcademy",
   "packageName": "ai.tradeacademy.app",
   "developerName": "Aithera",
+  "legalEntity": "CML Electronics",
   "versionCode": 1,
   "versionName": "1.0.0",
   "primaryCategory": "FINANCE",
@@ -25,9 +26,11 @@
     "featureGraphic": null
   },
   "listingUrlsReady": false,
-  "listingUrlNote": "Official domain is https://tradeacademy.cloud. Do not paste these URLs into Play Console until that host serves HTTP 200 copies of store/hosted/ (no template banner).",
-  "contactEmail": "[SUPPORT EMAIL REQUIRED]",
-  "legalOperatorFieldsComplete": false,
+  "listingUrlNote": "Official domain is https://tradeacademy.cloud. Paste privacy/support URLs into Play Console only after that host serves HTTP 200 copies of store/hosted/.",
+  "contactEmail": "support@tradeacademy.cloud",
+  "legalOperatorFieldsComplete": true,
+  "vatUid": null,
+  "vatUidNote": "VAT/UID intentionally omitted until provided.",
   "supportUrl": "https://tradeacademy.cloud/support",
   "termsUrl": "https://tradeacademy.cloud/terms",
   "privacyPolicyUrl": "https://tradeacademy.cloud/privacy",
@@ -52,5 +55,5 @@
   },
   "accountDeletionUrl": "https://tradeacademy.cloud/account-deletion",
   "screenshotInventory": "store/screenshots/README.md",
-  "website": "[OFFICIAL DOMAIN REQUIRED]"
+  "website": "https://tradeacademy.cloud"
 }

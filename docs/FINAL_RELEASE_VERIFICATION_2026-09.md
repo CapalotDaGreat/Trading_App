@@ -2,7 +2,9 @@
 
 **Date:** 2026-09-15
 **Product:** TradeAcademy by Aithera
-**Commit baseline for this pass:** `669b41a` + final polish commits on `main`
+**Legal entity:** CML Electronics
+**Domain:** https://tradeacademy.cloud
+**ASC Apple ID:** 6812049061
 **Stack:** Expo `57.0.22` · React `19.2.3` · React Native `0.86.3` · TypeScript `~6.0.3`
 **Native:** CNG (no checked-in `ios/` / `android/`)
 
@@ -10,8 +12,8 @@
 
 | Check | Command | Status |
 | --- | --- | --- |
-| Typecheck | `npm run typecheck` | **PASS** (re-run after final polish) |
-| Jest | `npx jest --runInBand --forceExit` | **PASS** (**118 / 753**) |
+| Typecheck | `npm run typecheck` | **PASS** |
+| Jest | `npx jest --runInBand --forceExit` | **PASS** (**118 / 753** baseline; re-run after legal identity update) |
 | Functions build | `npm run functions:build` | **PASS** |
 | Functions tests | `npm run functions:test` | **PASS** (19) |
 | Rules | `npm run test:rules` | **PASS** (14) when JDK 21 available |
@@ -20,10 +22,25 @@
 | Expo export | `npx expo export --platform all` | **PASS** |
 | Whitespace | `git diff --check` | **PASS** |
 
-Frozen IDs verified in public config: `ai.tradeacademy.app`, scheme `tradeacademy`, slug `tradeacademy`, entitlement `Aithera Pro`.
+Frozen IDs: `ai.tradeacademy.app`, scheme `tradeacademy`, slug `tradeacademy`, entitlement `Aithera Pro`.
+Products: `tradeacademy_premium_monthly`, `tradeacademy_premium_yearly` (lifetime operator decision).
+`eas.json` submit profiles use ASC App ID **6812049061**.
 
-Store product IDs (do not rename): `tradeacademy_premium_monthly`, `tradeacademy_premium_yearly`.
-Lifetime ID `tradeacademy_premium_lifetime` exists in `eas.json` / monetization catalog (`LIFETIME_OFFERED_AT_LAUNCH = true`) — **operator must confirm** whether lifetime ships in ASC/Play before marketing it as available.
+## Operator identity (published in legal pack)
+
+| Field | Value |
+| --- | --- |
+| Legal entity | CML Electronics |
+| Brand | Aithera |
+| Product | TradeAcademy |
+| Address | Höglerstrasse 55, 8600 Dübendorf, Switzerland |
+| Website | https://tradeacademy.cloud |
+| Privacy | privacy@tradeacademy.cloud |
+| Support | support@tradeacademy.cloud |
+| Security | security@tradeacademy.cloud |
+| VAT/UID | Omitted until provided |
+
+Template banners and `[… REQUIRED]` placeholders are removed from `store/legal/` and regenerated hosted pages.
 
 ## iOS — DEVICE REQUIRED
 
@@ -31,65 +48,55 @@ Lifetime ID `tradeacademy_premium_lifetime` exists in `eas.json` / monetization 
 | --- | --- |
 | EAS Dev Client build | **BUILD REQUIRED** — `eas build --profile development --platform ios` |
 | Launch / onboarding / tabs | **DEVICE REQUIRED** |
-| Charts / Replay gestures / blind mode | **DEVICE REQUIRED** |
-| Simulation ticket + journal handoff | **DEVICE REQUIRED** |
+| Charts / Replay / Simulation / Journal | **DEVICE REQUIRED** |
 | Notifications + quiet hours | **DEVICE REQUIRED** |
-| Biometrics (`BiometricGate`) | **DEVICE REQUIRED** — local unlock only |
+| Biometrics | **DEVICE REQUIRED** |
 | IAP purchase / restore (Aithera Pro) | **DEVICE REQUIRED** + RevenueCat / ASC products |
-| Deep links `tradeacademy://` + universal links | **DEVICE REQUIRED** + AASA live |
+| Deep links + universal links | **DEVICE REQUIRED** + AASA live on tradeacademy.cloud |
 | Accessibility VoiceOver | **DEVICE REQUIRED** |
 | Account deletion vs store billing | **DEVICE REQUIRED** |
+| `eas submit` (ASC 6812049061) | **OPERATOR** after production build |
 
 ## Android — DEVICE REQUIRED
 
-Same matrix as iOS, plus:
-
-| Area | Status |
-| --- | --- |
-| Back navigation | **DEVICE REQUIRED** |
-| Notification channels | **DEVICE REQUIRED** |
-| Edge-to-edge / keyboard | **DEVICE REQUIRED** |
-| Play Billing + assetlinks SHA | **OPERATOR** + **DEVICE REQUIRED** |
+Same matrix as iOS, plus back navigation, notification channels, edge-to-edge, Play Billing, and assetlinks SHA (**OPERATOR**).
 
 ## Web
 
 | Area | Status |
 | --- | --- |
-| Static export | **CODE COMPLETE** (export PASS) |
-| Interactive keyboard / focus QA | **DEVICE/OPERATOR** (browser smoke) |
-| Legal portal pages in `store/hosted/` | **CODE COMPLETE** (hosting **OPERATOR**) |
+| Static export | **CODE COMPLETE** |
+| Legal portal in `store/hosted/` | **CODE COMPLETE** — deploy to tradeacademy.cloud (**OPERATOR**) |
+| Interactive browser QA | **OPERATOR** |
 
-## Operator checklist (exact actions)
+## Operator checklist (submission order)
 
-| # | System | Action | Expected result | Dependency | Status |
-| --- | --- | --- | --- | --- | --- |
-| 1 | Apple Developer / ASC | Create/confirm app `ai.tradeacademy.app`; set privacy/support/legal URLs to live `https://tradeacademy.cloud/*` only after placeholders replaced | Listing accepts URLs (HTTP 200) | Legal pages live | OPEN |
-| 2 | App Store Connect | Configure IAP `tradeacademy_premium_monthly` / `tradeacademy_premium_yearly`; attach to Aithera Pro; decide lifetime product | Products Available for Sale | ASC app record | OPEN |
-| 3 | Google Play Console | Same package + products; fill Play App Signing SHA-256 into `store/hosted/.well-known/assetlinks.json` replacing `REPLACE_WITH_PLAY_APP_SIGNING_SHA256` | assetlinks validates | Play signing cert | OPEN |
-| 4 | RevenueCat | Entitlement `Aithera Pro`; map store products; set API keys in EAS secrets / `.env` (never commit) | Offerings load in Dev Client | Store products | OPEN |
-| 5 | Firebase Console | Production project; Auth providers; App Check DeviceCheck / Play Integrity; register debug tokens for staging only | Production Functions accept attested tokens | Firebase project | OPEN |
-| 6 | DNS / hosting | Deploy `store/hosted/` to `https://tradeacademy.cloud` site root | `/privacy`…`/support` and well-known return 200 | DNS access | OPEN |
-| 7 | Domain mail | Create real privacy/support/security mailboxes; replace `[… EMAIL REQUIRED]` in `store/legal/*`; run `npm run legal` | Template notice can be removed after counsel review | Domain mail | OPEN |
-| 8 | Legal / finance | Confirm legal entity name, VAT/UID, registered occupant of Höglerstrasse address | Counsel-approved publication | Counsel | OPEN |
-| 9 | EAS | `eas build --profile development` then preview/production after device QA | Artifacts installable | EAS credentials | OPEN |
-| 10 | Physical QA | Complete iOS + Android matrices above | Evidence attached to release ticket | Dev Client builds | OPEN |
+| # | System | Action | Expected result | Status |
+| --- | --- | --- | --- | --- |
+| 1 | DNS / hosting | Deploy `store/hosted/` to `https://tradeacademy.cloud` | `/privacy`…`/support` and well-known return 200 | OPEN |
+| 2 | Domain mail | Ensure privacy@ / support@ / security@tradeacademy.cloud deliver | Mailboxes receive mail | OPEN |
+| 3 | Apple Developer / ASC | App `ai.tradeacademy.app` (Apple ID **6812049061**); set privacy/support/legal URLs to live tradeacademy.cloud paths | Listing accepts URLs | OPEN |
+| 4 | App Store Connect | IAP monthly/yearly (+ lifetime only if confirmed); attach to Aithera Pro | Products Available for Sale | OPEN |
+| 5 | Google Play Console | Same package + products; fill Play Signing SHA into assetlinks.json | assetlinks validates | OPEN |
+| 6 | RevenueCat | Entitlement Aithera Pro; map products; EAS secrets for API keys | Offerings load in Dev Client | OPEN |
+| 7 | Firebase | Production Auth; App Check DeviceCheck / Play Integrity | Functions accept attested tokens | OPEN |
+| 8 | EAS | `eas build --profile development` then production; `eas submit` uses 6812049061 | Artifacts installable / submitted | OPEN |
+| 9 | Physical QA | Complete iOS + Android matrices | Evidence on release ticket | OPEN |
 
-## Legal verification required
+## Legal verification remaining
 
-- `[LEGAL ENTITY NAME REQUIRED]`
-- `[VAT/UID REQUIRED]`
-- `[PRIVACY EMAIL REQUIRED]` / `[SUPPORT EMAIL REQUIRED]` / `[SECURITY EMAIL REQUIRED]`
-- `[OFFICIAL DOMAIN REQUIRED]` if distinct from technical fallback origin
-- Human counsel review of Privacy / Terms / Risk for target jurisdictions
+- VAT/UID (intentionally omitted for now)
+- Optional counsel review of jurisdiction-specific adaptations
+- Confirm mailboxes deliver on tradeacademy.cloud
 
 ## Explicitly not claimed
 
-IAP, push, biometrics, background wake, App Check production enforcement, store approval, hardware accessibility, and production Firebase behaviour are **not** marked verified until operator/device evidence exists.
+IAP, push, biometrics, background wake, App Check production enforcement, store approval, and live hosting HTTP 200 are **not** verified until operator/device evidence exists.
 
 ## Recommendation
 
-1. Run EAS development builds for iOS + Android
-2. Complete operator checklist in order **5 → 4 → 2/3 → 6 → 7 → 8 → 9 → 10**
-3. Submit stores only with live legal pages and verified operator fields
-
-**Do not claim IAP/push/biometrics/App Check production enforcement until verified on device/console.**
+1. Deploy legal hosting + mailboxes
+2. EAS development builds
+3. RevenueCat + store products
+4. Device QA
+5. Production build + `eas submit` to ASC **6812049061**

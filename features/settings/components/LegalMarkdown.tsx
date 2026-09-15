@@ -219,9 +219,8 @@ export function LegalSupportBody({ onEmail }: LegalSupportBodyProps) {
             Email
           </Text>
           <Text variant="body" className="mt-0.5 leading-6 text-text-primary">
-            Aithera has not published a production support mailbox yet. Use the in-app legal
-            documents below, or Settings → Privacy for deletion and data requests. Do not treat
-            bracketed template fields in the policies as live email addresses.
+            Contact support@tradeacademy.cloud, or use Settings → Privacy for deletion and data
+            requests. In-app legal documents remain available offline.
           </Text>
         </View>
       )}

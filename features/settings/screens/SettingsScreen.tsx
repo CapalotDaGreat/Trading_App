@@ -406,6 +406,9 @@ export function SettingsScreen() {
             {Constants.nativeBuildVersion ? ` · build ${Constants.nativeBuildVersion}` : ''}
           </Text>
           <Text variant="body-sm" className="mt-1 text-text-secondary">
+            Operated by {BRAND.legalEntity}
+          </Text>
+          <Text variant="body-sm" className="mt-1 text-text-secondary">
             Legal acceptance pack {LEGAL_ACCEPTANCE_VERSION}
           </Text>
           <Text variant="caption" className="mt-2 text-text-tertiary">

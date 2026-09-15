@@ -6,7 +6,7 @@ import {
   LEGAL_COUNSEL_NOTICE,
   LEGAL_URLS,
 } from '@/shared/constants/legal';
-import { DEFAULT_LEGAL_SITE_ORIGIN } from '@/shared/constants/brand';
+import { BRAND, DEFAULT_LEGAL_SITE_ORIGIN } from '@/shared/constants/brand';
 import {
   LEGAL_DOCUMENT_META,
   LEGAL_DOCUMENT_TEXT,
@@ -28,31 +28,37 @@ describe('legal compliance pack', () => {
     expect(LEGAL_COUNSEL_NOTICE.toLowerCase()).toContain('counsel');
     expect(LEGAL_COUNSEL_NOTICE).toContain('TradeAcademy');
     expect(LEGAL_COUNSEL_NOTICE).toContain('Aithera');
-    expect(LEGAL_COUNSEL_NOTICE.toLowerCase()).toContain('not production');
+    expect(LEGAL_COUNSEL_NOTICE).toContain('CML Electronics');
+    expect(BRAND.legalEntity).toBe('CML Electronics');
+    expect(BRAND.company).toBe('Aithera');
   });
 
   it('keeps in-app text aligned with required policy topics', () => {
     const privacy = LEGAL_DOCUMENT_TEXT.privacy.toLowerCase();
     expect(privacy).toContain('aithera');
     expect(privacy).toContain('tradeacademy');
+    expect(privacy).toContain('cml electronics');
     expect(privacy).toContain('nfadp');
     expect(privacy).toContain('gdpr');
     expect(privacy).toContain('ccpa');
     expect(privacy).toContain('crash');
     expect(privacy).toContain('do not sell');
-    expect(privacy).toContain('[legal entity name required]');
     expect(privacy).toContain('höglerstrasse 55');
-    expect(privacy).toContain('[official domain required]');
+    expect(privacy).toContain('https://tradeacademy.cloud');
+    expect(privacy).toContain('privacy@tradeacademy.cloud');
     expect(privacy).toContain('journal text');
     expect(privacy).toContain('cloud_ai_enabled');
     expect(privacy).toContain('4+');
     expect(privacy).toContain('does not mean a minor may legally trade');
+    expect(privacy).not.toMatch(/\[legal entity name required\]|\[vat\/uid required\]|\[official domain required\]/i);
     expect(privacy).not.toMatch(/tradeinsight|tradevision/i);
+    expect(privacy).not.toMatch(/\*\*vat\/uid:\*\*/i);
 
     const terms = LEGAL_DOCUMENT_TEXT.terms.toLowerCase();
     expect(terms).toContain('not');
     expect(terms).toContain('broker');
     expect(terms).toContain('switzerland');
+    expect(terms).toContain('cml electronics');
     expect(terms).toContain('create an account or purchase a subscription');
     expect(terms).toContain('guest/demo mode');
     expect(terms).toContain('store content rating is separate');
@@ -60,6 +66,7 @@ describe('legal compliance pack', () => {
     expect(terms).toContain('tradeacademy_premium_monthly');
     expect(terms).toContain('tradeacademy_premium_yearly');
     expect(terms).not.toMatch(/tradeinsight|tradevision/i);
+    expect(terms).not.toMatch(/\[legal entity name required\]|\[vat\/uid required\]/i);
 
     expect(privacy).toContain('general audience');
     expect(privacy).toContain('not directed toward young children');
@@ -81,7 +88,7 @@ describe('legal compliance pack', () => {
     const security = LEGAL_DOCUMENT_TEXT.security.toLowerCase();
     expect(security).toContain('tls');
     expect(security).toContain('breach');
-    expect(security).toContain('[security email required]');
+    expect(security).toContain('security@tradeacademy.cloud');
   });
 
   it('maps every document to meta, text, and hosted URL', () => {
@@ -95,10 +102,10 @@ describe('legal compliance pack', () => {
     expect(DEFAULT_LEGAL_SITE_ORIGIN).toBe('https://tradeacademy.cloud');
   });
 
-  it('does not invent production mailboxes from the technical URL fallback', () => {
-    expect(LEGAL_URLS.privacyEmail).not.toMatch(/@tradeacademy\.cloud/i);
-    expect(LEGAL_URLS.securityEmail).not.toMatch(/@tradeacademy\.cloud/i);
-    expect(LEGAL_URLS.supportEmail).not.toMatch(/@tradeacademy\.cloud/i);
+  it('publishes official @tradeacademy.cloud mailboxes by default', () => {
+    expect(LEGAL_URLS.privacyEmail).toBe('mailto:privacy@tradeacademy.cloud');
+    expect(LEGAL_URLS.securityEmail).toBe('mailto:security@tradeacademy.cloud');
+    expect(LEGAL_URLS.supportEmail).toBe('mailto:support@tradeacademy.cloud');
   });
 
   it('keeps product analytics on an allowlist without user-content fields', () => {
@@ -108,12 +115,14 @@ describe('legal compliance pack', () => {
     expect(props).not.toMatch(/journal|prompt|chat|holding|password|token/i);
   });
 
-  it('keeps hosted legal pages on TradeAcademy and not retired product names', () => {
+  it('keeps hosted legal pages on TradeAcademy without template placeholders', () => {
     const hosted = readFileSync(join(__dirname, '../../../store/hosted/terms.html'), 'utf8');
     expect(hosted).toContain('TradeAcademy');
+    expect(hosted).toContain('CML Electronics');
     expect(hosted).not.toMatch(/TradeInsight|TradeVision/);
-    expect(hosted).toContain('Template — not a live operator publication');
-    expect(hosted).toContain('[LEGAL ENTITY NAME REQUIRED]');
+    expect(hosted).not.toContain('Template — not a live operator publication');
+    expect(hosted).not.toContain('[LEGAL ENTITY NAME REQUIRED]');
+    expect(hosted).not.toContain('[VAT/UID REQUIRED]');
   });
 
   it('renders hosted legal HTML with app chrome and readable tables', () => {
@@ -124,17 +133,22 @@ describe('legal compliance pack', () => {
     expect(home).toContain('Official legal, privacy, security &amp; support center');
     expect(home).toContain('TradeAcademy');
     expect(home).toContain('by Aithera');
+    expect(home).toContain('CML Electronics');
     expect(home).toContain('Learn → Practice → Replay → Simulate → Journal → Review → Improve');
     expect(home).toContain('Updated 15 September 2026');
     expect(home).toContain('Read document');
     expect(home).toContain('/site.css');
     expect(home).not.toMatch(/TradeInsight|TradeVision/);
+    expect(home).not.toContain('Bracketed operator fields');
 
     expect(privacy).toContain('site.css');
     expect(privacy).toContain('<table');
     expect(privacy).toContain('data-label');
     expect(privacy).toContain('doc-meta');
     expect(privacy).toContain('Last updated');
+    expect(privacy).toContain('CML Electronics');
+    expect(privacy).toContain('privacy@tradeacademy.cloud');
     expect(privacy).not.toContain('<pre>');
+    expect(privacy).not.toContain('VAT/UID');
   });
 });

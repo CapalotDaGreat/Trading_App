@@ -2,7 +2,7 @@
 
 **Last updated:** 15 September 2026
 **Version:** 2026.09.15
-**Operator:** [LEGAL ENTITY NAME REQUIRED], trading as Aithera
+**Operator:** CML Electronics, trading as Aithera
 **Registered address:** Höglerstrasse 55, 8600 Dübendorf, Switzerland
 
 This notice summarises Aithera’s security posture for users, reviewers, and enterprise diligence. It complements the Privacy Policy and is aligned with expectations under Swiss nFADP, GDPR security principles (Art. 32), and commonly referenced U.S. frameworks (e.g. reasonable security under state law, FTC Act Section 5 unfairness for unreasonable security).
@@ -66,7 +66,7 @@ This notice summarises Aithera’s security posture for users, reviewers, and en
 
 ## 4. Vulnerability disclosure
 
-Email **[SECURITY EMAIL REQUIRED]** (or [SUPPORT EMAIL REQUIRED]) with a good-faith report. Include steps to reproduce and avoid accessing other users’ data. We will acknowledge and remediate according to severity. Do not publicly disclose before a reasonable remediation window unless required by law.
+Email **security@tradeacademy.cloud** (or support@tradeacademy.cloud) with a good-faith report. Include steps to reproduce and avoid accessing other users’ data. We will acknowledge and remediate according to severity. Do not publicly disclose before a reasonable remediation window unless required by law.
 
 ---
 
@@ -78,7 +78,7 @@ If a personal-data breach is likely to result in a high risk to individuals, we 
 
 ## 6. Contact
 
-[SECURITY EMAIL REQUIRED]
-[PRIVACY EMAIL REQUIRED]
-[SUPPORT EMAIL REQUIRED]
+security@tradeacademy.cloud
+privacy@tradeacademy.cloud
+support@tradeacademy.cloud
 Höglerstrasse 55, 8600 Dübendorf, Switzerland

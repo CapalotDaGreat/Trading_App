@@ -3,12 +3,11 @@
 **Last updated:** 15 September 2026
 **Version:** 2026.09.15
 **Brand / product:** Aithera / TradeAcademy
-**Controller / Operator:** [LEGAL ENTITY NAME REQUIRED], trading as Aithera (“Aithera”, “we”, “us”, “our”), operator of the TradeAcademy mobile application
+**Controller / Operator:** CML Electronics, trading as Aithera (“Aithera”, “we”, “us”, “our”), operator of the TradeAcademy mobile application
 **Registered address:** Höglerstrasse 55, 8600 Dübendorf, Switzerland
-**VAT/UID:** [VAT/UID REQUIRED]
-**Privacy contact:** [PRIVACY EMAIL REQUIRED]
-**Support contact:** [SUPPORT EMAIL REQUIRED]
-**Website:** [OFFICIAL DOMAIN REQUIRED]
+**Privacy contact:** privacy@tradeacademy.cloud
+**Support contact:** support@tradeacademy.cloud
+**Website:** https://tradeacademy.cloud
 
 This Privacy Policy explains how we collect, use, store, share, and protect personal data when you use TradeAcademy. It is designed to meet transparency and rights requirements under:
 
@@ -17,7 +16,7 @@ This Privacy Policy explains how we collect, use, store, share, and protect pers
 - U.S. state privacy laws including the California Consumer Privacy Act as amended by the CPRA (**CCPA/CPRA**), and similar state laws; and
 - related cybersecurity and breach-notification expectations.
 
-**This document is a compliance-oriented template for the shipped product behaviour.** Bracketed fields are not production values. Have qualified counsel in Switzerland, the EU/EEA, and relevant U.S. states review and adapt it (including the registered legal entity name, VAT/UID, and official contact mailboxes) before production launch.
+**This document describes the shipped product behaviour for TradeAcademy by Aithera, operated by CML Electronics.** Have qualified counsel in Switzerland, the EU/EEA, and relevant U.S. states review jurisdiction-specific adaptations before relying on it as legal advice.
 
 ---
 
@@ -29,7 +28,7 @@ This Policy applies to:
 
 - the iOS and Android apps (including demo/guest mode);
 - related cloud services we operate when configured (Firebase Auth, Firestore, Storage, Cloud Functions); and
-- public legal/support pages once they are hosted on [OFFICIAL DOMAIN REQUIRED].
+- public legal/support pages once they are hosted on https://tradeacademy.cloud.
 
 It does **not** govern third-party stores (Apple, Google), payment processors, or market-data vendors’ own processing beyond what we disclose below.
 
@@ -156,7 +155,7 @@ Servers and processors may be located in the **United States**, **EU/EEA**, **Sw
 - **Standard Contractual Clauses** (or Swiss-recognised equivalents) and vendor DPAs; and/or
 - other lawful transfer tools.
 
-You may request information about transfer safeguards via [PRIVACY EMAIL REQUIRED].
+You may request information about transfer safeguards via privacy@tradeacademy.cloud.
 
 ---
 
@@ -192,7 +191,7 @@ We do **not** use solely automated decision-making that produces legal or simila
 
 Depending on your state, you may have rights to **know/access**, **delete**, **correct**, and **opt out of sale/sharing**. We do not sell or share personal information for cross-context behavioural advertising. We do not use or disclose sensitive personal information for purposes that require a right to limit under CPRA beyond what is necessary to provide the service.
 
-**How to exercise rights:** use in-app controls (Privacy & Security, Delete Account, Manage Subscription) or email [PRIVACY EMAIL REQUIRED]. We will verify requests as required by law and will not discriminate against you for exercising privacy rights.
+**How to exercise rights:** use in-app controls (Privacy & Security, Delete Account, Manage Subscription) or email privacy@tradeacademy.cloud. We will verify requests as required by law and will not discriminate against you for exercising privacy rights.
 
 ---
 
@@ -200,7 +199,7 @@ Depending on your state, you may have rights to **know/access**, **delete**, **c
 
 TradeAcademy is intended for a **general audience**. Anyone may download the app and explore educational Guest/demo features that remain local on the device.
 
-**Cloud account features** — including registration, cloud sync, online journals, online portfolios, and paid subscriptions — are available only to users who meet the minimum eligibility requirements: at least **18** years old, or the age of majority in their jurisdiction. We do not knowingly collect personal data from young children through cloud accounts. The application is **not directed toward young children**. If you believe a minor has created an account or provided personal data, contact [PRIVACY EMAIL REQUIRED] and we will delete it.
+**Cloud account features** — including registration, cloud sync, online journals, online portfolios, and paid subscriptions — are available only to users who meet the minimum eligibility requirements: at least **18** years old, or the age of majority in their jurisdiction. We do not knowingly collect personal data from young children through cloud accounts. The application is **not directed toward young children**. If you believe a minor has created an account or provided personal data, contact privacy@tradeacademy.cloud and we will delete it.
 
 A **4+ / Everyone store rating does not change this.** It does not mean a minor may legally trade, receive investment advice, or open a TradeAcademy cloud account.
 
@@ -208,7 +207,7 @@ A **4+ / Everyone store rating does not change this.** It does not mean a minor 
 
 ## 10. Cookies and similar technologies
 
-The native apps do not use web advertising cookies. If you visit [OFFICIAL DOMAIN REQUIRED] in a browser, any cookies or local storage will be described on that site. Push tokens and local preference stores are used as described above.
+The native apps do not use web advertising cookies. If you visit https://tradeacademy.cloud in a browser, any cookies or local storage will be described on that site. Push tokens and local preference stores are used as described above.
 
 ---
 
@@ -225,7 +224,7 @@ We implement technical and organisational measures appropriate to the risk, incl
 
 No method of transmission or storage is perfectly secure. If a breach is likely to result in a high risk to your rights, we will notify you and/or competent authorities as required under Swiss nFADP, GDPR (including the 72-hour supervisory notification rule where applicable), and applicable U.S. state breach laws.
 
-Report suspected security issues to **[SECURITY EMAIL REQUIRED]** (or [SUPPORT EMAIL REQUIRED] if that address is not yet active).
+Report suspected security issues to **security@tradeacademy.cloud** (or support@tradeacademy.cloud).
 
 ---
 
@@ -244,7 +243,7 @@ Shared educational content (Academy lessons, public catalogs) is **not** deleted
 
 **Deleting the TradeAcademy account does not cancel Apple App Store or Google Play billing.** Manage or cancel the store subscription first via **Settings → Manage Subscription**. Store purchase records remain with Apple/Google under their policies.
 
-More detail: in-app **Settings → Account deletion information**, and the hosted Account Deletion notice once [OFFICIAL DOMAIN REQUIRED] is live.
+More detail: in-app **Settings → Account deletion information**, and the hosted Account Deletion notice at https://tradeacademy.cloud/account-deletion.
 
 ---
 
@@ -256,9 +255,9 @@ We may update this Policy. Material changes will be indicated by updating the �
 
 ## 14. Contact
 
-**Privacy:** [PRIVACY EMAIL REQUIRED]
-**Support:** [SUPPORT EMAIL REQUIRED]
+**Privacy:** privacy@tradeacademy.cloud
+**Support:** support@tradeacademy.cloud
 **Registered address:** Höglerstrasse 55, 8600 Dübendorf, Switzerland
-**Website:** [OFFICIAL DOMAIN REQUIRED]
+**Website:** https://tradeacademy.cloud
 
 Please include your registered email / account identifier so we can verify your request.

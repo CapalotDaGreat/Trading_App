@@ -2,9 +2,8 @@ import { BRAND, DEFAULT_LEGAL_SITE_ORIGIN } from '@/shared/constants/brand';
 
 /**
  * Legal / support site origin.
- * Set EXPO_PUBLIC_LEGAL_SITE_ORIGIN when the official TradeAcademy
- * legal site is hosted. Until then, defaults to https://tradeacademy.cloud — do not claim
- * those pages are live until hosting is verified.
+ * Official host: https://tradeacademy.cloud
+ * Override with EXPO_PUBLIC_LEGAL_SITE_ORIGIN only if the legal site moves.
  */
 function legalSiteOrigin(): string {
   const configured = process.env.EXPO_PUBLIC_LEGAL_SITE_ORIGIN?.trim();
@@ -14,15 +13,18 @@ function legalSiteOrigin(): string {
   return DEFAULT_LEGAL_SITE_ORIGIN;
 }
 
+const DEFAULT_LEGAL_MAILBOXES = {
+  EXPO_PUBLIC_LEGAL_PRIVACY_EMAIL: 'privacy@tradeacademy.cloud',
+  EXPO_PUBLIC_LEGAL_SECURITY_EMAIL: 'security@tradeacademy.cloud',
+  EXPO_PUBLIC_LEGAL_SUPPORT_EMAIL: 'support@tradeacademy.cloud',
+} as const;
+
 /**
- * Official mailboxes are env-only. Do not synthesise privacy@ / support@
- * addresses from the technical URL fallback — those are not production values.
+ * Official mailboxes for CML Electronics / TradeAcademy.
+ * Env overrides win; otherwise defaults to @tradeacademy.cloud addresses.
  */
-function legalEmail(envKey: string): string {
-  const configured = process.env[envKey]?.trim();
-  if (!configured) {
-    return '';
-  }
+function legalEmail(envKey: keyof typeof DEFAULT_LEGAL_MAILBOXES): string {
+  const configured = process.env[envKey]?.trim() || DEFAULT_LEGAL_MAILBOXES[envKey];
   return configured.startsWith('mailto:') ? configured : `mailto:${configured}`;
 }
 
@@ -48,7 +50,7 @@ export const LEGAL_URLS = {
 export const LEGAL_ACCEPTANCE_VERSION = '2026.09.15' as const;
 
 export const LEGAL_COUNSEL_NOTICE =
-  `These documents are compliance-oriented templates for ${BRAND.product} by ${BRAND.company}. ` +
-  'Bracketed fields (legal entity name, VAT/UID, contact emails, official domain) are not production values. ' +
-  'Have qualified counsel in Switzerland, the EU/EEA/UK, and relevant U.S. states review them ' +
-  'before production launch. Do not treat legal URLs as live until the official site is hosted and verified.';
+  `${BRAND.product} by ${BRAND.company} is operated by ${BRAND.legalEntity}. ` +
+  'These documents describe shipped product behaviour for Swiss nFADP, EU/UK GDPR, and relevant U.S. state privacy laws. ' +
+  'Have qualified counsel review jurisdiction-specific adaptations before relying on them as legal advice. ' +
+  `Official site: ${DEFAULT_LEGAL_SITE_ORIGIN}.`;

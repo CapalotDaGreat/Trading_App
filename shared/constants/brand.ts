@@ -6,12 +6,16 @@
  */
 
 export const BRAND = {
-  /** Company / legal operator brand */
+  /** Registered legal entity / controller */
+  legalEntity: 'CML Electronics',
+  /** Company / trading brand */
   company: 'Aithera',
   /** App / product name shown to users */
   product: 'TradeAcademy',
   /** Attribution line where company credit is useful */
   attribution: 'TradeAcademy by Aithera',
+  /** Operator line for legal footers */
+  operatorLine: 'CML Electronics, trading as Aithera',
   /** Store / marketing positioning */
   positioning: 'Learn the concepts. Read the chart. Practice the decision. Manage simulated money. Review your reasoning. Improve your process.',
   /** Short loop label for headers and empty states */

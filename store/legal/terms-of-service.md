@@ -3,15 +3,14 @@
 **Last updated:** 15 September 2026
 **Version:** 2026.09.15
 **Brand / product:** Aithera / TradeAcademy
-**Operator:** [LEGAL ENTITY NAME REQUIRED], trading as Aithera (“Aithera”, “we”, “us”, “our”)
+**Operator:** CML Electronics, trading as Aithera (“Aithera”, “we”, “us”, “our”)
 **Registered address:** Höglerstrasse 55, 8600 Dübendorf, Switzerland
-**VAT/UID:** [VAT/UID REQUIRED]
-**Contact:** [SUPPORT EMAIL REQUIRED]
-**Website:** [OFFICIAL DOMAIN REQUIRED]
+**Contact:** support@tradeacademy.cloud
+**Website:** https://tradeacademy.cloud
 
 These Terms of Service (“Terms”) govern your access to and use of the TradeAcademy mobile application and related services (the “Service”). By creating an account, tapping accept, or using cloud features of the Service, you agree to these Terms and our Privacy Policy, Risk & Investment Disclaimer, and Account Deletion Notice. Exploring Guest/demo mode remains subject to the educational and risk notices shown in the app.
 
-**This document is a compliance-oriented template.** Bracketed fields are not production values. Have Swiss, EU/EEA, and U.S. counsel review these Terms (including the legal entity name, VAT/UID, and consumer-law adaptations) before production launch. Mandatory consumer protections in your country of residence that cannot be waived remain unaffected.
+**These Terms describe TradeAcademy by Aithera, operated by CML Electronics.** Have Swiss, EU/EEA, and U.S. counsel review consumer-law adaptations for your market before relying on them as legal advice. Mandatory consumer protections in your country of residence that cannot be waived remain unaffected.
 
 ---
 
@@ -47,7 +46,7 @@ You alone decide whether, when, and how to trade or invest, including with any t
 
 ## 3. Accounts and security
 
-You must provide accurate registration information and keep credentials confidential. You are responsible for activity under your account. Enable multi-factor authentication where available. Notify us promptly of unauthorised access at [SUPPORT EMAIL REQUIRED].
+You must provide accurate registration information and keep credentials confidential. You are responsible for activity under your account. Enable multi-factor authentication where available. Notify us promptly of unauthorised access at support@tradeacademy.cloud.
 
 We may require email verification before cloud sync. **Guest/demo mode** lets anyone explore educational features locally (interface, demo data, Academy, Decision Replay, Decision Lab, charts, and AI explanations). Guest mode does **not** create cloud journals, sync data, store portfolios online, or allow subscription purchases.
 
@@ -133,7 +132,7 @@ Some jurisdictions do not allow certain limitations; in those cases, our liabili
 
 ## 10. Indemnity
 
-To the extent permitted by law, you will indemnify [LEGAL ENTITY NAME REQUIRED] (trading as Aithera) and its operators against claims arising from your misuse of the Service, your trading decisions, or your violation of these Terms or law, except to the extent caused by our wilful misconduct.
+To the extent permitted by law, you will indemnify CML Electronics (trading as Aithera) and its operators against claims arising from your misuse of the Service, your trading decisions, or your violation of these Terms or law, except to the extent caused by our wilful misconduct.
 
 ---
 
@@ -167,7 +166,7 @@ These Terms are governed by the substantive laws of **Switzerland**, excluding c
 
 Courts of **Zurich, Switzerland** have jurisdiction, except that consumers may bring proceedings in the courts of their residence where mandatory law so provides, and we may seek injunctive relief in any venue for IP or security breaches.
 
-Optional amicable resolution: contact [SUPPORT EMAIL REQUIRED] before formal proceedings.
+Optional amicable resolution: contact support@tradeacademy.cloud before formal proceedings.
 
 ---
 
@@ -179,7 +178,7 @@ If any provision is unenforceable, the remainder stays in effect. Failure to enf
 
 ## 17. Contact
 
-[SUPPORT EMAIL REQUIRED]
-[PRIVACY EMAIL REQUIRED]
+support@tradeacademy.cloud
+privacy@tradeacademy.cloud
 Registered address: Höglerstrasse 55, 8600 Dübendorf, Switzerland
-[OFFICIAL DOMAIN REQUIRED]
+https://tradeacademy.cloud
