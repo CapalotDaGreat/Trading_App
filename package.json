@@ -23,7 +23,10 @@
     "legal:sync": "python scripts/sync-legal-docs.py",
     "legal:host": "python scripts/build-hosted-legal.py",
     "functions:build": "npm --prefix functions run build",
-    "functions:test": "npm --prefix functions test"
+    "functions:test": "npm --prefix functions test",
+    "eas:dev-builds": "eas workflow:run .eas/workflows/create-development-builds.yml",
+    "eas:preview-builds": "eas workflow:run .eas/workflows/create-preview-builds.yml",
+    "eas:production-builds": "eas workflow:run .eas/workflows/create-production-builds.yml"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",

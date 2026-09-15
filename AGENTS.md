@@ -22,6 +22,8 @@ It is **not** a broker, not an execution venue, not a live trading terminal, not
 User-facing brand constants live in `shared/constants/brand.ts`. Phase 0 freezes the store
 bundle id `ai.tradeacademy.app`, URL scheme `tradeacademy`, and `tradeacademy-*` AsyncStorage keys
 — see `docs/IDENTITY_MIGRATION_PHASE0.md`. Do not rename those technical IDs without a migration.
+EAS project slug is `traders` (linked project id `45b77785-1075-478a-aef4-75bdc54f90c7` on
+`boddibossis-team`) — Expo project slugs are immutable per project ID.
 
 Default market data is **labelled synthetic/sample**. Do not treat Finnhub or other live vendors as a product dependency. Cloud AI stays disabled.
 

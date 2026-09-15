@@ -2,14 +2,15 @@ import type { ExpoConfig, ConfigContext } from 'expo/config';
 
 const APP_SCHEME = 'tradeacademy';
 const BUNDLE_IDENTIFIER = 'ai.tradeacademy.app';
-const EAS_PROJECT_ID = process.env.EXPO_PUBLIC_EAS_PROJECT_ID?.trim();
-const EAS_OWNER = process.env.EAS_OWNER?.trim();
+/** Expo dashboard project (account boddibossis-team, slug "traders"). */
+const DEFAULT_EAS_PROJECT_ID = '45b77785-1075-478a-aef4-75bdc54f90c7';
+const DEFAULT_EAS_OWNER = 'boddibossis-team';
+
+const EAS_PROJECT_ID = process.env.EXPO_PUBLIC_EAS_PROJECT_ID?.trim() || DEFAULT_EAS_PROJECT_ID;
+const EAS_OWNER = process.env.EAS_OWNER?.trim() || DEFAULT_EAS_OWNER;
 const EAS_BUILD_PROFILE = process.env.EAS_BUILD_PROFILE?.trim();
 
-if (
-  EAS_PROJECT_ID &&
-  !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(EAS_PROJECT_ID)
-) {
+if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(EAS_PROJECT_ID)) {
   throw new Error('EXPO_PUBLIC_EAS_PROJECT_ID must be a valid EAS project UUID.');
 }
 
@@ -60,7 +61,8 @@ const sentryPlugin: NonNullable<ExpoConfig['plugins']> =
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
   name: 'TradeAcademy',
-  slug: 'tradeacademy',
+  // Must match the linked EAS project slug (immutable per project ID). Bundle/scheme stay tradeacademy.
+  slug: 'traders',
   version: '1.0.0',
   orientation: 'default',
   icon: './assets/images/icon.png',
@@ -171,24 +173,20 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   experiments: {
     typedRoutes: true,
   },
-  updates: EAS_PROJECT_ID
-    ? {
-        url: `https://u.expo.dev/${EAS_PROJECT_ID}`,
-        enabled: true,
-        checkAutomatically: 'ON_LOAD',
-        fallbackToCacheTimeout: 0,
-      }
-    : {
-        enabled: false,
-      },
+  updates: {
+    url: `https://u.expo.dev/${EAS_PROJECT_ID}`,
+    enabled: true,
+    checkAutomatically: 'ON_LOAD',
+    fallbackToCacheTimeout: 0,
+  },
   runtimeVersion: {
     policy: 'appVersion',
   },
   extra: {
-    ...(EAS_PROJECT_ID ? { eas: { projectId: EAS_PROJECT_ID } } : {}),
+    eas: { projectId: EAS_PROJECT_ID },
     router: {
       origin: false,
     },
   },
-  ...(EAS_OWNER ? { owner: EAS_OWNER } : {}),
+  owner: EAS_OWNER,
 });

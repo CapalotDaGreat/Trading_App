@@ -22,9 +22,11 @@
 | Expo export | `npx expo export --platform all` | **PASS** |
 | Whitespace | `git diff --check` | **PASS** |
 
-Frozen IDs: `ai.tradeacademy.app`, scheme `tradeacademy`, slug `tradeacademy`, entitlement `Aithera Pro`.
+Frozen IDs: `ai.tradeacademy.app`, scheme `tradeacademy`, EAS slug `traders` (project
+`45b77785-1075-478a-aef4-75bdc54f90c7`), entitlement `Aithera Pro`.
 Products: `tradeacademy_premium_monthly`, `tradeacademy_premium_yearly` (lifetime operator decision).
 `eas.json` submit profiles use ASC App ID **6812049061**.
+While domain transfer is pending, see `docs/DOMAIN_TRANSFER_WAITLIST.md`.
 
 ## Operator identity (published in legal pack)
 
@@ -95,8 +97,9 @@ IAP, push, biometrics, background wake, App Check production enforcement, store 
 
 ## Recommendation
 
-1. Deploy legal hosting + mailboxes
-2. EAS development builds
-3. RevenueCat + store products
-4. Device QA
-5. Production build + `eas submit` to ASC **6812049061**
+1. **Domain (blocked):** Deploy `store/hosted/` when Cloudflare has tradeacademy.cloud — see DOMAIN_TRANSFER_WAITLIST.md
+2. **EAS Dev Client (started):** workflow https://expo.dev/accounts/boddibossis-team/projects/traders/workflows/01a0a665-200c-744b-8a6d-8a5b5538f082 — configure credentials if builds fail
+3. RevenueCat + store IAPs + Firebase App Check
+4. Play assetlinks SHA
+5. Device QA matrix
+6. Production build → `eas submit` (ASC **6812049061**)

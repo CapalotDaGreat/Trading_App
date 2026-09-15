@@ -38,6 +38,7 @@ Verified in code (commit baseline `d4f2309` + Phase 6):
 | Profile | `developmentClient` | Channel | Use |
 |---------|---------------------|---------|-----|
 | `development` | `true` | `development` | Daily native QA (APK on Android) |
+| `development-simulator` | `true` | `development` | iOS Simulator Dev Client |
 | `internal` | `true` | `internal` | Internal dogfood |
 | `preview` | false | `preview` | Internal preview (store-like, no Dev Client menu) |
 | `beta` | false | `beta` | TestFlight / Play internal testing |
@@ -47,9 +48,20 @@ Verified in code (commit baseline `d4f2309` + Phase 6):
 
 ```bash
 npx expo install expo-dev-client   # already in package.json
-eas build --profile development --platform android
-eas build --profile development --platform ios
+
+# Preferred: EAS Workflow (Android device + iOS device + iOS simulator in parallel)
+npx eas-cli workflow:run .eas/workflows/create-development-builds.yml
+
+# Or single-platform:
+npx eas-cli build --profile development --platform android
+npx eas-cli build --profile development --platform ios
+npx eas-cli build --profile development-simulator --platform ios
 ```
+
+EAS project: `45b77785-1075-478a-aef4-75bdc54f90c7` · owner `boddibossis-team`  
+While `tradeacademy.cloud` DNS is transferring, Dev Client builds do **not** need the domain.
+See [DOMAIN_TRANSFER_WAITLIST.md](./DOMAIN_TRANSFER_WAITLIST.md).
+
 
 1. Install the artifact on a **physical device** (background tasks + push do not behave like production on simulators).
 2. Start Metro against the Dev Client:

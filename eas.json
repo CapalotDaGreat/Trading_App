@@ -12,6 +12,26 @@
         "buildType": "apk"
       },
       "env": {
+        "EXPO_PUBLIC_EAS_PROJECT_ID": "45b77785-1075-478a-aef4-75bdc54f90c7",
+        "EAS_OWNER": "boddibossis-team",
+        "EAS_BUILD_PROFILE": "development",
+        "EXPO_PUBLIC_REVENUECAT_ENTITLEMENT_ID": "Aithera Pro",
+        "EXPO_PUBLIC_RC_PRODUCT_MONTHLY": "tradeacademy_premium_monthly",
+        "EXPO_PUBLIC_RC_PRODUCT_YEARLY": "tradeacademy_premium_yearly",
+        "EXPO_PUBLIC_RC_PRODUCT_LIFETIME": "tradeacademy_premium_lifetime"
+      }
+    },
+    "development-simulator": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "channel": "development",
+      "ios": {
+        "simulator": true
+      },
+      "env": {
+        "EXPO_PUBLIC_EAS_PROJECT_ID": "45b77785-1075-478a-aef4-75bdc54f90c7",
+        "EAS_OWNER": "boddibossis-team",
+        "EAS_BUILD_PROFILE": "development",
         "EXPO_PUBLIC_REVENUECAT_ENTITLEMENT_ID": "Aithera Pro",
         "EXPO_PUBLIC_RC_PRODUCT_MONTHLY": "tradeacademy_premium_monthly",
         "EXPO_PUBLIC_RC_PRODUCT_YEARLY": "tradeacademy_premium_yearly",
@@ -26,6 +46,9 @@
         "buildType": "apk"
       },
       "env": {
+        "EXPO_PUBLIC_EAS_PROJECT_ID": "45b77785-1075-478a-aef4-75bdc54f90c7",
+        "EAS_OWNER": "boddibossis-team",
+        "EAS_BUILD_PROFILE": "internal",
         "EXPO_PUBLIC_REVENUECAT_ENTITLEMENT_ID": "Aithera Pro",
         "EXPO_PUBLIC_RC_PRODUCT_MONTHLY": "tradeacademy_premium_monthly",
         "EXPO_PUBLIC_RC_PRODUCT_YEARLY": "tradeacademy_premium_yearly",
@@ -36,6 +59,9 @@
       "distribution": "internal",
       "channel": "preview",
       "env": {
+        "EXPO_PUBLIC_EAS_PROJECT_ID": "45b77785-1075-478a-aef4-75bdc54f90c7",
+        "EAS_OWNER": "boddibossis-team",
+        "EAS_BUILD_PROFILE": "preview",
         "EXPO_PUBLIC_MARKET_DATA_DIRECT": "false",
         "EXPO_PUBLIC_REVENUECAT_ENTITLEMENT_ID": "Aithera Pro",
         "EXPO_PUBLIC_RC_PRODUCT_MONTHLY": "tradeacademy_premium_monthly",
@@ -48,6 +74,9 @@
       "channel": "beta",
       "autoIncrement": true,
       "env": {
+        "EXPO_PUBLIC_EAS_PROJECT_ID": "45b77785-1075-478a-aef4-75bdc54f90c7",
+        "EAS_OWNER": "boddibossis-team",
+        "EAS_BUILD_PROFILE": "beta",
         "EXPO_PUBLIC_MARKET_DATA_DIRECT": "false",
         "EXPO_PUBLIC_REVENUECAT_ENTITLEMENT_ID": "Aithera Pro",
         "EXPO_PUBLIC_RC_PRODUCT_MONTHLY": "tradeacademy_premium_monthly",
@@ -59,7 +88,11 @@
       "channel": "production",
       "autoIncrement": true,
       "env": {
+        "EXPO_PUBLIC_EAS_PROJECT_ID": "45b77785-1075-478a-aef4-75bdc54f90c7",
+        "EAS_OWNER": "boddibossis-team",
+        "EAS_BUILD_PROFILE": "production",
         "EXPO_PUBLIC_MARKET_DATA_DIRECT": "false",
+        "EXPO_PUBLIC_LEGAL_SITE_ORIGIN": "https://tradeacademy.cloud",
         "EXPO_PUBLIC_REVENUECAT_ENTITLEMENT_ID": "Aithera Pro",
         "EXPO_PUBLIC_RC_PRODUCT_MONTHLY": "tradeacademy_premium_monthly",
         "EXPO_PUBLIC_RC_PRODUCT_YEARLY": "tradeacademy_premium_yearly",

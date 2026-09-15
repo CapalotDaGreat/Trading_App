@@ -36,8 +36,12 @@ export const FROZEN_TECHNICAL_IDS = {
   bundleIdentifier: 'ai.tradeacademy.app',
   /** Expo / deep-link URL scheme */
   urlScheme: 'tradeacademy',
-  /** Expo project slug (EAS continuity) */
-  expoSlug: 'tradeacademy',
+  /**
+   * Expo / EAS project slug — must match the linked EAS project
+   * (`45b77785-1075-478a-aef4-75bdc54f90c7` on boddibossis-team). Immutable per project ID.
+   * Product URL scheme and bundle id remain `tradeacademy` / `ai.tradeacademy.app`.
+   */
+  expoSlug: 'traders',
   /** npm package name (private) */
   npmPackageName: 'tradeacademy-ai',
   /**
