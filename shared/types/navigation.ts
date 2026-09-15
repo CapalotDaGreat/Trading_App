@@ -40,9 +40,3 @@ export interface NavigationState {
   previousRoute: AppRoutes | null;
   params: Record<string, string | undefined>;
 }
-
-declare global {
-  namespace ReactNavigation {
-    interface RootParamList extends RootStackParamList {}
-  }
-}

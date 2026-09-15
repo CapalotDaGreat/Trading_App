@@ -66,12 +66,6 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   icon: './assets/images/icon.png',
   scheme: APP_SCHEME,
   userInterfaceStyle: 'automatic',
-  newArchEnabled: true,
-  splash: {
-    image: './assets/images/splash-icon.png',
-    resizeMode: 'contain',
-    backgroundColor: '#151922',
-  },
   ios: {
     supportsTablet: true,
     usesAppleSignIn: true,
@@ -139,6 +133,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   plugins: [
     'expo-router',
     'expo-apple-authentication',
+    'expo-status-bar',
     ...sentryPlugin,
     'expo-secure-store',
     [

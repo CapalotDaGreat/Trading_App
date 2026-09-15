@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
-import { Platform, StyleSheet } from 'react-native';
+import { Platform, StyleSheet, type ColorValue } from 'react-native';
 
 import { IA_GLOSSARY, SIMULATE_TAB_ICON } from '@/features/navigation/config/navigation-ia.config';
 import { ErrorBoundary } from '@/shared/components/feedback/ErrorBoundary';
@@ -8,7 +8,7 @@ import { useTheme } from '@/shared/hooks/useTheme';
 
 type TabIconName = keyof typeof Ionicons.glyphMap;
 
-function TabIcon({ name, color }: { name: TabIconName; color: string }) {
+function TabIcon({ name, color }: { name: TabIconName; color: ColorValue }) {
   return <Ionicons name={name} size={20} color={color} />;
 }
 

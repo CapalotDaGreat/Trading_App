@@ -2,12 +2,12 @@
 
 ## Expo version (READ FIRST)
 
-This project runs **Expo SDK 54** (`expo@54.0.36`, React 19.1, React Native 0.81).
+This project runs **Expo SDK 57** (`expo@^57.0.0`, React 19.2, React Native 0.86).
 
-Before writing any Expo/React Native code, consult the **SDK 54** docs, not newer versions:
+Before writing any Expo/React Native code, consult the **SDK 57** docs, not newer versions:
 
-- API reference: https://docs.expo.dev/versions/v54.0.0/
-- Do **not** assume APIs from SDK 55/56/57. Verify anything version-sensitive against `package.json`.
+- API reference: https://docs.expo.dev/versions/v57.0.0/
+- Do **not** assume APIs from newer SDKs. Verify anything version-sensitive against `package.json`.
 
 If you upgrade the SDK, update this file and `package.json` in the same change.
 
