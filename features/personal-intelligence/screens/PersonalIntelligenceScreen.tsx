@@ -32,7 +32,7 @@ export function PersonalIntelligenceScreen() {
   return (
     <ScreenScaffold
       title="Process patterns"
-      subtitle="How do I make decisions — and how am I changing over time?"
+      subtitle="What you're improving, what keeps recurring, and what to practice next — not investment advice."
       contentClassName="pb-12"
       showBack
       onBack={() => router.back()}

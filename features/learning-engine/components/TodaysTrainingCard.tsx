@@ -62,7 +62,7 @@ export function TodaysTrainingCard({
   return (
     <Surface tone="accent" emphasis="outlined" testID="home-todays-training">
       <Text variant="label" className="text-accent">
-        Today&apos;s Training
+        Today&apos;s focus
       </Text>
       <Text variant="caption" className="mt-1 text-text-tertiary">
         {STAGE_COPY[plan.stage]}
@@ -77,8 +77,8 @@ export function TodaysTrainingCard({
             {KIND_LABEL[lead.kind]}
             {lead.estimatedMinutes ? ` · ~${lead.estimatedMinutes} min` : ''}
           </Text>
-          <Text variant="label" className="mt-2 text-accent" testID="home-why-this">
-            Why this?
+          <Text variant="label" className="mt-3 text-accent" testID="home-why-this">
+            Why it matters
           </Text>
           <Text variant="body-sm" className="mt-1 text-text-secondary">
             {reason}
@@ -90,12 +90,16 @@ export function TodaysTrainingCard({
           ) : null}
           {nextStepCaption ? (
             <Text variant="caption" className="mt-2 text-text-tertiary" testID="home-next-step">
-              Next meaningful step after this: {nextStepCaption}
+              After this: {nextStepCaption}
             </Text>
           ) : null}
-          <View className="mt-3 flex-row flex-wrap gap-2">
-            <Button size="sm" onPress={() => open(lead)}>
-              Start this training
+          <View className="mt-4 flex-row flex-wrap gap-2">
+            <Button
+              size="sm"
+              onPress={() => open(lead)}
+              accessibilityLabel={`Start today's focus: ${primary?.title ?? lead.title ?? plan.headline}`}
+            >
+              Start
             </Button>
             {lead.deferralEligible !== false ? (
               <Button size="sm" variant="outline" onPress={() => onDefer(lead.id, lead.conceptId)}>

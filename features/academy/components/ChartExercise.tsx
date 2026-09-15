@@ -75,7 +75,9 @@ export function ChartExercise({ exercise, kind, retryBank, onAttempt }: ChartExe
 
   return (
     <View className="border-t border-border px-3 py-3" testID="chart-exercise">
-      <Text variant="label">Chart exercise</Text>
+      <Text variant="label" className="text-accent">
+        Instructions
+      </Text>
       <Text variant="body-sm" className="mt-1 text-text-secondary" testID="chart-exercise-prompt">
         {current.prompt}
       </Text>

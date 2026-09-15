@@ -10,7 +10,7 @@ export function ReviewProcessBrief({ brief }: { brief: ReviewBrief }) {
     <View className="gap-4">
       <Surface tone="accent" emphasis="outlined" testID="review-insight-hero">
         <Text variant="label" className="text-accent">
-          What did I learn about my decision process?
+          What am I repeatedly doing — and how can I improve?
         </Text>
         <Text variant="h2" headingLevel={2} className="mt-2">
           {brief.headline}

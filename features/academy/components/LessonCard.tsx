@@ -80,10 +80,10 @@ export function LessonCard({ lesson, matchWhy }: LessonCardProps) {
             <Badge label="Read" variant="success" size="sm" />
           ) : null}
         </View>
-        <Text variant="h3" numberOfLines={2}>
+        <Text variant="h3" numberOfLines={2} headingLevel={3}>
           {lesson.title}
         </Text>
-        <Text variant="body-sm" numberOfLines={2} className="mt-1">
+        <Text variant="body-sm" numberOfLines={2} className="mt-1 text-text-secondary">
           {lesson.description}
         </Text>
         {matchWhy ? (
@@ -91,10 +91,18 @@ export function LessonCard({ lesson, matchWhy }: LessonCardProps) {
             {matchWhy}
           </Text>
         ) : null}
+        <Text variant="caption" className="mt-2 text-accent">
+          {isPremiumLesson
+            ? 'Included with Premium — view plans'
+            : practiced
+              ? 'Continue · practiced'
+              : read
+                ? 'Continue lesson'
+                : 'Start lesson'}
+          {' · '}
+          ~{lesson.durationMinutes} min
+        </Text>
       </View>
-      <Text variant="caption" className="text-text-tertiary">
-        {lesson.durationMinutes}m
-      </Text>
     </Pressable>
   );
 }

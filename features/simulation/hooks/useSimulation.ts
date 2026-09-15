@@ -4,6 +4,8 @@ import { useAuth } from '@/features/auth/hooks/useAuth';
 import { inferScenarioContext, ingestSimulationCheckpoint, ingestSimulationDecision } from '@/features/competency';
 import { DEMO_USER_UID } from '@/firebase/config';
 import { useDisplayCurrency } from '@/shared/hooks/useDisplayCurrency';
+import { feedbackHaptic } from '@/shared/utils/feedback-haptics';
+import { queueEducationalReminder } from '@/features/notifications/services/queue-educational-reminder';
 
 import { SYNTHETIC_UNIVERSE } from '../constants/simulation.constants';
 import { getSyntheticQuote, listedSyntheticName } from '../services/synthetic-market.service';
@@ -112,10 +114,25 @@ export function useSimulation(options?: { autoStart?: boolean }) {
     previewSell: (input: Omit<SimulationTradeInput, 'price'> & { price?: number }) => previewSell(userId, input),
     buy: (input: Omit<SimulationTradeInput, 'price'> & { price?: number }) => {
       const result = buy(userId, input);
-      if (result.ok) publishProcessEvidence(result.value);
+      if (result.ok) {
+        publishProcessEvidence(result.value);
+        feedbackHaptic('success');
+        queueEducationalReminder('journal', 60 * 60 * 4);
+      } else {
+        feedbackHaptic('warning');
+      }
       return result;
     },
-    sell: (input: Omit<SimulationTradeInput, 'price'> & { price?: number }) => sell(userId, input),
+    sell: (input: Omit<SimulationTradeInput, 'price'> & { price?: number }) => {
+      const result = sell(userId, input);
+      if (result.ok) {
+        feedbackHaptic('selection');
+        queueEducationalReminder('journal', 60 * 60 * 4);
+      } else {
+        feedbackHaptic('warning');
+      }
+      return result;
+    },
     recordCloseReview: (decisionId: string, review: SimulationCloseReview) => {
       const account = recordCloseReview(userId, decisionId, review);
       publishProcessEvidence(account);

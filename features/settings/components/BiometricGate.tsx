@@ -92,7 +92,8 @@ export function BiometricGate({ children }: { children: ReactNode }) {
         Unlock TradeAcademy
       </Text>
       <Text variant="body-sm" className="mb-6 text-center text-text-secondary">
-        Biometric unlock is enabled for this account on this device.
+        Biometric unlock protects access to this app on this device. It does not replace account
+        passwords or encrypt cloud data beyond normal authentication.
       </Text>
       {error ? (
         <Text variant="caption" className="mb-4 text-center text-danger">

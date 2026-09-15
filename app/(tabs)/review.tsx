@@ -91,8 +91,8 @@ export default function ReviewScreen() {
   return (
     <ScreenScaffold
       eyebrow={IA_GLOSSARY.review}
-      title="What did I learn about my decision process?"
-      subtitle="Recurring patterns, evidence quality, and the next training step. Simulated P/L is context, not the grade."
+      title="What am I repeatedly doing?"
+      subtitle="Process patterns, concept gaps, and the next training step. Simulated P/L is context, not the grade."
       contentClassName="pb-12"
       testID="review-screen"
     >

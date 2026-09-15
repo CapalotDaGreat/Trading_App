@@ -1,14 +1,15 @@
+import Constants from 'expo-constants';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { TextInput, View } from 'react-native';
 
 import { useAuth } from '@/features/auth/hooks/useAuth';
-import { SettingsRow } from '@/features/settings/components/SettingsRow';
-import { CurrencyPicker } from '@/features/settings/components/CurrencyPicker';
-import { ThemeToggle } from '@/features/settings/components/ThemeToggle';
-import { useSettings } from '@/features/settings/hooks/useSettings';
 import { MentorSetupInviteCard } from '@/features/onboarding/components/MentorSetupInviteCard';
 import { useCoachProfile } from '@/features/onboarding/hooks/useCoachProfile';
+import { CurrencyPicker } from '@/features/settings/components/CurrencyPicker';
+import { SettingsRow } from '@/features/settings/components/SettingsRow';
+import { ThemeToggle } from '@/features/settings/components/ThemeToggle';
+import { useSettings } from '@/features/settings/hooks/useSettings';
 import { PremiumBadge } from '@/features/subscription/components/PremiumBadge';
 import { useSubscription } from '@/features/subscription/hooks/useSubscription';
 import { DEMO_USER_UID } from '@/firebase/config';
@@ -17,6 +18,8 @@ import { CollapsibleSection } from '@/shared/components/patterns/CollapsibleSect
 import { Button } from '@/shared/components/ui/Button';
 import { Surface } from '@/shared/components/ui/Surface';
 import { Text } from '@/shared/components/ui/Text';
+import { BRAND } from '@/shared/constants/brand';
+import { LEGAL_ACCEPTANCE_VERSION } from '@/shared/constants/legal';
 import { legalPath, LEGAL_DOCUMENT_META } from '@/shared/legal';
 
 export function SettingsScreen() {
@@ -87,33 +90,11 @@ export function SettingsScreen() {
         </Surface>
       ) : null}
 
-      <Text variant="label" className="mb-2 px-1">
-        Appearance
-      </Text>
-      <ThemeToggle />
-
-      <CollapsibleSection
-        title="Currency"
-        description="Amounts default to US dollars. Change it if you think in another currency."
-        defaultExpanded
-        className="mt-6"
-      >
-        <Text variant="body-sm" className="mb-3 text-text-secondary">
-          This is how paper cash, portfolio totals, and sizing examples are labelled. It is not a live
-          FX account. Simulated P/L still does not grade a decision.
-        </Text>
-        <CurrencyPicker
-          value={settings.preferences.currency}
-          onChange={(currency) => void updateSettings({ preferences: { currency } })}
-          testID="settings-currency-picker"
-        />
-      </CollapsibleSection>
-
       <CollapsibleSection
         title="Account"
-        description="Coach profile, account, market data, notifications, and privacy."
+        description="Profile, coach preferences, and market data health."
         defaultExpanded
-        className="mt-6"
+        className="mt-2"
       >
         <SettingsRow
           icon="compass-outline"
@@ -140,23 +121,11 @@ export function SettingsScreen() {
           showChevron
           onPress={() => router.push('/settings/market-data' as never)}
         />
-        <SettingsRow
-          icon="notifications-outline"
-          label="Notifications"
-          showChevron
-          onPress={() => router.push('/settings/notifications')}
-        />
-        <SettingsRow
-          icon="shield-checkmark-outline"
-          label="Privacy Dashboard"
-          showChevron
-          onPress={() => router.push('/settings/privacy')}
-        />
       </CollapsibleSection>
 
       <CollapsibleSection
-        title="Learning & AI"
-        description="Educational Mode and AI limitations."
+        title="Learning"
+        description="Search, Educational Mode, and AI limitations."
         className="mt-4"
       >
         <SettingsRow
@@ -183,8 +152,68 @@ export function SettingsScreen() {
       </CollapsibleSection>
 
       <CollapsibleSection
-        title="Accessibility & Preferences"
-        description="Reduce Motion, Dynamic Type, VoiceOver / TalkBack, haptics, and biometrics."
+        title="Notifications"
+        description="Training reminders, quiet hours, and delivery capability."
+        className="mt-4"
+      >
+        <SettingsRow
+          icon="notifications-outline"
+          label="Notification preferences"
+          description="Practice, journal, review, and replay reminders"
+          showChevron
+          onPress={() => router.push('/settings/notifications')}
+        />
+      </CollapsibleSection>
+
+      <CollapsibleSection
+        title="Privacy"
+        description="Consent, analytics, and data controls."
+        className="mt-4"
+      >
+        <SettingsRow
+          icon="shield-checkmark-outline"
+          label="Privacy Dashboard"
+          description="Analytics consent and local data controls"
+          showChevron
+          onPress={() => router.push('/settings/privacy')}
+        />
+      </CollapsibleSection>
+
+      <CollapsibleSection
+        title="Security"
+        description="Device unlock for this app. Does not encrypt cloud services beyond App Check and auth."
+        className="mt-4"
+      >
+        <SettingsRow
+          icon="finger-print-outline"
+          label="Biometric Login"
+          description="Opt-in device unlock when supported (Dev Client / production)"
+          toggle
+          toggleValue={settings.biometricAuthEnabled}
+          onToggle={(value) => void updateSettings({ biometricAuthEnabled: value })}
+        />
+      </CollapsibleSection>
+
+      <CollapsibleSection
+        title="Appearance"
+        description="Theme and display currency for simulated amounts."
+        className="mt-4"
+      >
+        <ThemeToggle />
+        <Text variant="body-sm" className="mb-3 mt-4 text-text-secondary">
+          Currency labels paper cash and sizing examples. It is not a live FX account. Simulated P/L
+          still does not grade a decision.
+        </Text>
+        <CurrencyPicker
+          value={settings.preferences.currency}
+          onChange={(currency) => void updateSettings({ preferences: { currency } })}
+          testID="settings-currency-picker"
+        />
+      </CollapsibleSection>
+
+      <CollapsibleSection
+        title="Accessibility"
+        description="Reduce Motion, Dynamic Type, VoiceOver / TalkBack, and haptics."
         className="mt-4"
       >
         <SettingsRow
@@ -200,13 +229,6 @@ export function SettingsScreen() {
           toggle
           toggleValue={settings.hapticsEnabled}
           onToggle={(value) => void updateSettings({ hapticsEnabled: value })}
-        />
-        <SettingsRow
-          icon="finger-print-outline"
-          label="Biometric Login"
-          toggle
-          toggleValue={settings.biometricAuthEnabled}
-          onToggle={(value) => void updateSettings({ biometricAuthEnabled: value })}
         />
       </CollapsibleSection>
 
@@ -370,9 +392,31 @@ export function SettingsScreen() {
         </Button>
       </View>
 
-      <Text variant="caption" className="mt-6 text-center">
-        TradeAcademy by Aithera · v1.0.0
-      </Text>
+      <CollapsibleSection
+        title="About"
+        description="Version, legal pack, and product identity."
+        className="mt-6"
+      >
+        <Surface className="p-4">
+          <Text variant="label" className="text-text-tertiary">
+            {BRAND.attribution}
+          </Text>
+          <Text variant="body-sm" className="mt-2 text-text-secondary">
+            App version {Constants.expoConfig?.version ?? '1.0.0'}
+            {Constants.nativeBuildVersion ? ` · build ${Constants.nativeBuildVersion}` : ''}
+          </Text>
+          <Text variant="body-sm" className="mt-1 text-text-secondary">
+            Legal acceptance pack {LEGAL_ACCEPTANCE_VERSION}
+          </Text>
+          <Text variant="caption" className="mt-2 text-text-tertiary">
+            Privacy updated {LEGAL_DOCUMENT_META.privacy.lastUpdated} · Terms updated{' '}
+            {LEGAL_DOCUMENT_META.terms.lastUpdated}
+          </Text>
+          <Text variant="caption" className="mt-3 text-text-tertiary">
+            Educational simulation only. Not a broker. Simulated P/L does not grade a decision.
+          </Text>
+        </Surface>
+      </CollapsibleSection>
     </ScreenScaffold>
   );
 }
