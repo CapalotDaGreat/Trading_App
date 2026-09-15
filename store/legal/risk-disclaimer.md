@@ -1,10 +1,10 @@
 # Risk & Investment Disclaimer
 
-**Last updated:** 24 August 2026  
-**Version:** 2026.08.24  
-**Operator:** [LEGAL ENTITY NAME REQUIRED], trading as Aithera  
-**Registered address:** Höglerstrasse 55, 8600 Dübendorf, Switzerland  
-**Contact:** [SUPPORT EMAIL REQUIRED]  
+**Last updated:** 15 September 2026
+**Version:** 2026.09.15
+**Operator:** [LEGAL ENTITY NAME REQUIRED], trading as Aithera
+**Registered address:** Höglerstrasse 55, 8600 Dübendorf, Switzerland
+**Contact:** [SUPPORT EMAIL REQUIRED]
 
 This Risk & Investment Disclaimer forms part of your agreement with Aithera / [LEGAL ENTITY NAME REQUIRED] together with the Terms of Service and Privacy Policy. **Read it carefully before using the app.**
 
@@ -58,6 +58,10 @@ Rules-based or model outputs can be biased, unstable, or unsuitable for your sit
 
 Coaching, journals, replays, Academy lessons, and checklists aim to support discipline. We do not guarantee improved performance, reduced losses, or any psychological or financial outcome.
 
+**Simulation performance does not demonstrate live trading competence.** A high simulated P/L, a completed lesson streak, or a favourable Decision Quality Score does **not** mean you are ready to trade with real money.
+
+Any **training-readiness** or progress indicator in the app measures educational process and practice habits only. It is **not** a certification, licence, or permission to trade live markets.
+
 ---
 
 ## 6. Jurisdictional notices
@@ -89,6 +93,6 @@ By using the Service you acknowledge that:
 
 ## 8. Contact
 
-[SUPPORT EMAIL REQUIRED]  
-Höglerstrasse 55, 8600 Dübendorf, Switzerland  
+[SUPPORT EMAIL REQUIRED]
+Höglerstrasse 55, 8600 Dübendorf, Switzerland
 [OFFICIAL DOMAIN REQUIRED]

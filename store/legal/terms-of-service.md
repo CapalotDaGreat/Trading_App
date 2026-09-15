@@ -1,13 +1,13 @@
 # Terms of Service
 
-**Last updated:** 24 August 2026  
-**Version:** 2026.08.24  
-**Brand / product:** Aithera / TradeAcademy  
-**Operator:** [LEGAL ENTITY NAME REQUIRED], trading as Aithera (“Aithera”, “we”, “us”, “our”)  
-**Registered address:** Höglerstrasse 55, 8600 Dübendorf, Switzerland  
-**VAT/UID:** [VAT/UID REQUIRED]  
-**Contact:** [SUPPORT EMAIL REQUIRED]  
-**Website:** [OFFICIAL DOMAIN REQUIRED]  
+**Last updated:** 15 September 2026
+**Version:** 2026.09.15
+**Brand / product:** Aithera / TradeAcademy
+**Operator:** [LEGAL ENTITY NAME REQUIRED], trading as Aithera (“Aithera”, “we”, “us”, “our”)
+**Registered address:** Höglerstrasse 55, 8600 Dübendorf, Switzerland
+**VAT/UID:** [VAT/UID REQUIRED]
+**Contact:** [SUPPORT EMAIL REQUIRED]
+**Website:** [OFFICIAL DOMAIN REQUIRED]
 
 These Terms of Service (“Terms”) govern your access to and use of the TradeAcademy mobile application and related services (the “Service”). By creating an account, tapping accept, or using cloud features of the Service, you agree to these Terms and our Privacy Policy, Risk & Investment Disclaimer, and Account Deletion Notice. Exploring Guest/demo mode remains subject to the educational and risk notices shown in the app.
 
@@ -179,7 +179,7 @@ If any provision is unenforceable, the remainder stays in effect. Failure to enf
 
 ## 17. Contact
 
-[SUPPORT EMAIL REQUIRED]  
-[PRIVACY EMAIL REQUIRED]  
-Registered address: Höglerstrasse 55, 8600 Dübendorf, Switzerland  
+[SUPPORT EMAIL REQUIRED]
+[PRIVACY EMAIL REQUIRED]
+Registered address: Höglerstrasse 55, 8600 Dübendorf, Switzerland
 [OFFICIAL DOMAIN REQUIRED]

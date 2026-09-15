@@ -6,6 +6,8 @@ import { ingestJournalReflection } from '@/features/competency';
 import { useAppendDecisionRecord } from '@/features/decision-log/hooks/useDecisionLog';
 import { canAccessFeature } from '@/shared/constants/subscription';
 import { useSubscriptionStore } from '@/shared/stores/subscription.store';
+import { feedbackHaptic } from '@/shared/utils/feedback-haptics';
+import { queueEducationalReminder } from '@/features/notifications/services/queue-educational-reminder';
 
 import {
   calculateJournalStats,
@@ -84,6 +86,8 @@ export function useJournal() {
       });
       void queryClient.invalidateQueries({ queryKey: journalQueryKey(uid) });
       invalidateLearningQueries(queryClient);
+      feedbackHaptic('success');
+      queueEducationalReminder('review', 60 * 60 * 18);
     },
   });
 
@@ -98,6 +102,7 @@ export function useJournal() {
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: journalQueryKey(uid) });
       invalidateLearningQueries(queryClient);
+      feedbackHaptic('selection');
     },
   });
 

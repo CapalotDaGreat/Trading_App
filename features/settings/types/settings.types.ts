@@ -17,6 +17,12 @@ export interface NotificationSettings {
   marketNews: boolean;
   portfolioUpdates: boolean;
   emailDigest: boolean;
+  /** Opt-in educational reminders (practice / journal / review / replay). Never market signals. */
+  trainingReminders: boolean;
+  /** Quiet hours start (0–23, local). Default 22. */
+  quietHoursStart: number;
+  /** Quiet hours end (0–23, local). Default 7. */
+  quietHoursEnd: number;
 }
 
 /** Idle minutes before optional automatic sign-out. 0 = disabled. */

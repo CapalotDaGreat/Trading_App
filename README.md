@@ -1,6 +1,6 @@
 # TradeAcademy by Aithera
 
-**TradeAcademy** is a **trading education, simulation, decision-practice, and coaching** app from **Aithera**, built with **Expo SDK 54**.
+**TradeAcademy** is a **trading education, simulation, decision-practice, and coaching** app from **Aithera**, built with **Expo SDK 57**.
 
 The product loop is **Learn → Practice → Replay → Simulate → Journal → Review → Improve**.
 

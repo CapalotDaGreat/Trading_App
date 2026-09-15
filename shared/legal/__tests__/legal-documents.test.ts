@@ -17,7 +17,7 @@ import { ANALYTICS_EVENTS, ANALYTICS_PROP_KEYS } from '@/shared/services/analyti
 
 describe('legal compliance pack', () => {
   it('exposes CH/EU/US-oriented document set with versioned acceptance', () => {
-    expect(LEGAL_ACCEPTANCE_VERSION).toBe('2026.08.24');
+    expect(LEGAL_ACCEPTANCE_VERSION).toBe('2026.09.15');
     expect(LEGAL_DOCUMENTS).toEqual([
       'terms',
       'privacy',
@@ -70,6 +70,8 @@ describe('legal compliance pack', () => {
     expect(risk).toContain('neither score predicts');
     expect(risk).toContain('investment advice');
     expect(risk).toContain('not permission to trade');
+    expect(risk).toContain('simulation performance does not demonstrate live trading competence');
+    expect(risk).toContain('training-readiness');
 
     const deletion = LEGAL_DOCUMENT_TEXT.accountDeletion.toLowerCase();
     expect(deletion).toContain('does not cancel');
@@ -119,8 +121,12 @@ describe('legal compliance pack', () => {
     const home = readFileSync(join(hostedDir, 'index.html'), 'utf8');
     const privacy = readFileSync(join(hostedDir, 'privacy.html'), 'utf8');
 
-    expect(home).toContain('Practice the decision');
-    expect(home).toContain('SIMULATED');
+    expect(home).toContain('Official legal &amp; support center');
+    expect(home).toContain('TradeAcademy');
+    expect(home).toContain('by Aithera');
+    expect(home).toContain('Learn → Practice → Replay → Simulate → Journal → Review → Improve');
+    expect(home).toContain('Updated 15 September 2026');
+    expect(home).toContain('Read document');
     expect(home).toContain('/site.css');
     expect(home).not.toMatch(/TradeInsight|TradeVision/);
 

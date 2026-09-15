@@ -228,6 +228,20 @@ def md_to_html(md: str) -> str:
             i += 1
             continue
 
+        # Consecutive **Key:** value lines form the document meta panel (no hard-break required).
+        if META_LINE.match(line.strip()):
+            meta_lines: list[str] = []
+            while i < len(lines):
+                candidate = (lines[i] or "").strip()
+                if not candidate:
+                    break
+                if not META_LINE.match(candidate):
+                    break
+                meta_lines.append(candidate)
+                i += 1
+            out.append(render_paragraph("\n".join(meta_lines)))
+            continue
+
         if TABLE_ROW.match(line.strip()):
             table_lines: list[str] = []
             while i < len(lines) and TABLE_ROW.match((lines[i] or "").strip()):
@@ -337,6 +351,32 @@ def nav_html(current: str | None) -> str:
     return f'<nav class="site-nav" aria-label="Legal">{"".join(links)}</nav>'
 
 
+def extract_meta(md: str, label: str) -> str | None:
+    pattern = re.compile(rf"^\*\*{re.escape(label)}:\*\*\s*(.+)$", re.M)
+    match = pattern.search(md)
+    return match.group(1).strip() if match else None
+
+
+def footer_html() -> str:
+    links = "".join(
+        f'<a href="/{slug}">{html.escape(label)}</a>' for slug, label in NAV
+    )
+    return f"""  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <p class="footer-name">TradeAcademy <span class="footer-by">by Aithera</span></p>
+        <p>Official legal and support center for the TradeAcademy education and simulation app.</p>
+      </div>
+      <nav class="footer-nav" aria-label="Footer legal">
+        {links}
+      </nav>
+      <p class="mute">Not a broker. Not an execution venue. Not buy/sell signals. Simulated P/L does not grade a decision. Decision Quality Score (DQS) measures process quality — never a price prediction. Training readiness never certifies live trading.</p>
+      <p class="mute footer-copy">© TradeAcademy by Aithera. Operator legal entity, VAT/UID, and official mailboxes remain bracketed placeholders until verified.</p>
+    </div>
+  </footer>
+"""
+
+
 def chrome(title: str, body: str, *, current: str | None, description: str) -> str:
     home_current = ' aria-current="page"' if current is None else ""
     page_title = (
@@ -371,72 +411,76 @@ def chrome(title: str, body: str, *, current: str | None, description: str) -> s
     </div>
   </header>
   <main id="content">
-    {body}
+    {body.strip()}
   </main>
-  <footer class="site-footer">
-    <div class="footer-inner">
-      <p>TradeAcademy by Aithera is a trading education and simulated-practice app.</p>
-      <p class="mute">Not a broker. Not an execution venue. Not buy/sell signals. Simulated P/L does not grade a decision. Decision Quality Score is process quality, not a price prediction.</p>
-    </div>
-  </footer>
-</body>
+{footer_html()}</body>
 </html>
 """
 
 
 def home_page() -> str:
-    principles = [
+    trust = [
         (
-            "Learn the concepts",
-            "Academy paths teach usable skills — charts, risk, psychology — not get-rich slogans.",
+            "Educational purpose",
+            "TradeAcademy teaches concepts and decision process through Academy, practice, replay, simulation, journal, and review — not live execution.",
         ),
         (
-            "Practice the decision",
-            "Short drills and replay rooms train judgment. A simulated profit is not automatically a good decision.",
+            "Simulation only",
+            "Paper capital starts at USD 100,000. Prices may be synthetic, sample, delayed, or licensed historical and are labelled. Simulated P/L never grades competence.",
         ),
         (
-            "Simulated money only",
-            "Paper trading with labelled synthetic prices. No brokerage. No live execution.",
+            "Privacy principles",
+            "Optional analytics are opt-in and allowlisted. Raw journal text, AI chat content, and portfolio values are not sent to analytics.",
         ),
         (
-            "Review and improve",
-            "Journal reasoning. Simulated profit is not automatically a good decision.",
+            "Account control",
+            "You can review legal documents, manage subscription billing in the store, and request account deletion from Settings.",
         ),
     ]
-    principle_html = "".join(
+    trust_html = "".join(
         f'<article class="principle"><h2>{html.escape(title)}</h2><p>{html.escape(body)}</p></article>'
-        for title, body in principles
+        for title, body in trust
     )
-    cards = "".join(
-        f'<a class="card" href="/{slug}"><h2>{html.escape(title)}</h2><p>{html.escape(blurb)}</p></a>'
-        for slug, (_filename, title, blurb) in PAGES.items()
-    )
+    card_bits: list[str] = []
+    for slug, (filename, title, blurb) in PAGES.items():
+        md = (LEGAL / filename).read_text(encoding="utf-8")
+        updated = extract_meta(md, "Last updated") or "See document"
+        card_bits.append(
+            f'<a class="card doc-card" href="/{slug}">'
+            f'<div class="card-top"><h2>{html.escape(title)}</h2>'
+            f'<span class="card-updated">Updated {html.escape(updated)}</span></div>'
+            f'<p>{html.escape(blurb)}</p>'
+            f'<span class="card-action">Read document</span></a>'
+        )
+    cards = "".join(card_bits)
     body = f"""
     <div class="wrap">
-      <section class="hero">
-        <p class="pills">
-          <span class="pill">SIMULATED</span>
-          <span class="pill quiet">Learn → Practice → Replay → Simulate → Journal → Review → Improve</span>
-        </p>
-        <h1>Learn trading.<br /><span class="accent">Practice the decision.</span></h1>
-        <p class="lede">TradeAcademy helps you learn trading through education and simulated practice. No real money. No brokerage. No guaranteed signals. Anyone can try Guest mode. Accounts and purchases require age of majority.</p>
+      <section class="hero legal-hero">
+        <p class="eyebrow">Official legal &amp; support center</p>
+        <h1>TradeAcademy<br /><span class="accent">by Aithera</span></h1>
+        <p class="lede">Policies, risk disclosures, security practices, account controls, and support for TradeAcademy — a trading education and simulated-practice application. Not a broker. Not investment advice. Not buy/sell signals.</p>
+        <p class="hero-loop" aria-label="Product learning loop">Learn → Practice → Replay → Simulate → Journal → Review → Improve</p>
       </section>
-      <section class="principles" aria-label="How TradeAcademy works">
-        {principle_html}
-      </section>
-      <section>
-        <h2 class="section-title">Legal &amp; support</h2>
+      <section aria-labelledby="docs-heading">
+        <h2 id="docs-heading" class="section-title">Legal documents</h2>
+        <p class="section-lede">Each document describes how TradeAcademy actually behaves. Bracketed operator fields still require verification before store publication.</p>
         <div class="cards">
           {cards}
+        </div>
+      </section>
+      <section class="trust" aria-labelledby="trust-heading">
+        <h2 id="trust-heading" class="section-title">What you can trust us to say</h2>
+        <div class="principles">
+          {trust_html}
         </div>
       </section>
     </div>
     """
     return chrome(
-        "TradeAcademy by Aithera",
+        "TradeAcademy by Aithera — Legal & Support",
         body,
         current=None,
-        description="TradeAcademy by Aithera is a trading education and simulated-practice app. Not a broker and not a source of buy/sell signals.",
+        description="Official legal and support center for TradeAcademy by Aithera. Education and simulation only — not a broker and not buy/sell signals.",
     )
 
 
@@ -468,7 +512,8 @@ def wrap_legal(slug: str, title: str, md: str, blurb: str) -> str:
 
 def write_page(path: Path, html_text: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(html_text, encoding="utf-8")
+    cleaned = "\n".join(line.rstrip() for line in html_text.splitlines()) + "\n"
+    path.write_text(cleaned, encoding="utf-8")
 
 
 def main() -> None:

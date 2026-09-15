@@ -1,14 +1,14 @@
 # Privacy Policy
 
-**Last updated:** 24 August 2026  
-**Version:** 2026.08.24  
-**Brand / product:** Aithera / TradeAcademy  
-**Controller / Operator:** [LEGAL ENTITY NAME REQUIRED], trading as Aithera (“Aithera”, “we”, “us”, “our”), operator of the TradeAcademy mobile application  
-**Registered address:** Höglerstrasse 55, 8600 Dübendorf, Switzerland  
-**VAT/UID:** [VAT/UID REQUIRED]  
-**Privacy contact:** [PRIVACY EMAIL REQUIRED]  
-**Support contact:** [SUPPORT EMAIL REQUIRED]  
-**Website:** [OFFICIAL DOMAIN REQUIRED]  
+**Last updated:** 15 September 2026
+**Version:** 2026.09.15
+**Brand / product:** Aithera / TradeAcademy
+**Controller / Operator:** [LEGAL ENTITY NAME REQUIRED], trading as Aithera (“Aithera”, “we”, “us”, “our”), operator of the TradeAcademy mobile application
+**Registered address:** Höglerstrasse 55, 8600 Dübendorf, Switzerland
+**VAT/UID:** [VAT/UID REQUIRED]
+**Privacy contact:** [PRIVACY EMAIL REQUIRED]
+**Support contact:** [SUPPORT EMAIL REQUIRED]
+**Website:** [OFFICIAL DOMAIN REQUIRED]
 
 This Privacy Policy explains how we collect, use, store, share, and protect personal data when you use TradeAcademy. It is designed to meet transparency and rights requirements under:
 
@@ -23,7 +23,7 @@ This Privacy Policy explains how we collect, use, store, share, and protect pers
 
 ## 1. Who we are and scope
 
-TradeAcademy is a **decision-first trading research and coaching application**. It is **not** a broker-dealer, bank, investment adviser, portfolio manager, or execution venue. Scores such as Research Value Score (RVS) and Decision Quality Score (DQS) describe research priority and process quality; they **do not** predict price direction.
+TradeAcademy is a **trading education, simulation, decision-practice, and coaching** application. It is **not** a broker-dealer, bank, investment adviser, portfolio manager, or execution venue. Scores such as Research Value Score (RVS) and Decision Quality Score (DQS) describe research priority and process quality; they **do not** predict price direction.
 
 This Policy applies to:
 
@@ -256,9 +256,9 @@ We may update this Policy. Material changes will be indicated by updating the �
 
 ## 14. Contact
 
-**Privacy:** [PRIVACY EMAIL REQUIRED]  
-**Support:** [SUPPORT EMAIL REQUIRED]  
-**Registered address:** Höglerstrasse 55, 8600 Dübendorf, Switzerland  
-**Website:** [OFFICIAL DOMAIN REQUIRED]  
+**Privacy:** [PRIVACY EMAIL REQUIRED]
+**Support:** [SUPPORT EMAIL REQUIRED]
+**Registered address:** Höglerstrasse 55, 8600 Dübendorf, Switzerland
+**Website:** [OFFICIAL DOMAIN REQUIRED]
 
 Please include your registered email / account identifier so we can verify your request.

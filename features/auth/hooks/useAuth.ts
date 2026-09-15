@@ -367,3 +367,8 @@ export function useAuth(): AuthContextValue {
   }
   return context;
 }
+
+/** Safe for banners/tests rendered outside AuthProvider. */
+export function useAuthOptional(): AuthContextValue | null {
+  return useContext(AuthContext);
+}

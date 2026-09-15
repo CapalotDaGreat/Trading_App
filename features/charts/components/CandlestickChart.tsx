@@ -168,7 +168,12 @@ function CandlestickChartComponent({
 
   if (!candles.length) {
     return (
-      <View className={cn('w-full items-center justify-center', className)} style={{ height }}>
+      <View
+        className={cn('w-full items-center justify-center', className)}
+        style={{ height }}
+        accessibilityRole="image"
+        accessibilityLabel="Chart summary: no candle data is available for this range."
+      >
         <Text variant="body-sm" className="text-text-tertiary">
           No chart data available
         </Text>

@@ -1,6 +1,8 @@
 # TradeAcademy Dev Client & native reliability
 
-Production EAS audit (SDK 54, PASS / WARN / BLOCKER): [PRODUCTION_BUILD_AUDIT.md](./PRODUCTION_BUILD_AUDIT.md).
+Production EAS audit (historical SDK 54 notes may exist in older docs): prefer this file and
+[SDK_57_FEATURE_MAXIMIZATION_REPORT_2026-09.md](./SDK_57_FEATURE_MAXIMIZATION_REPORT_2026-09.md)
+for current SDK **57** / RN **0.86** behaviour.
 
 Expo Go remains fine for most UI and Decision OS work. **Native IAP, reliable
 background alert evaluation, production push credentials, and home-screen widgets**
@@ -9,6 +11,10 @@ require an **EAS development or production build** (`expo-dev-client`).
 Phase 6 shipped client-side background alert evaluation (`expo-background-task` +
 `expo-task-manager`) and capability-aware copy. Real-device verification on both
 platforms is still required before store marketing claims “background alerts.”
+
+**SDK 57:** New Architecture is the only path (no `newArchEnabled` toggle). Splash is
+configured via the `expo-splash-screen` plugin. Reanimated 4.5 / Worklets 0.10 require the
+Jest stubs documented in the migration report.
 
 ## Why these share one build track
 

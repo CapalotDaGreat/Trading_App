@@ -31,6 +31,7 @@ import { useDecisionPassportStore } from '@/features/decision-passport/stores/pa
 import { useEntitlement } from '@/features/subscription/hooks/useEntitlement';
 import { DEMO_USER_UID } from '@/firebase/config';
 import { trackEvent } from '@/shared/services/analytics';
+import { feedbackHaptic } from '@/shared/utils/feedback-haptics';
 
 export function useReplayTv() {
   const router = useRouter();
@@ -229,6 +230,7 @@ export function useReplayTv() {
     updateChecklist: (patch: Partial<ReplayTvChecklist>) => updateChecklist(uid, patch),
     submitDecision: (decision: ReplayTvDecision, reasoning: string, structured?: ReplayTvReasoning) => {
       submitDecision(uid, decision, reasoning, structured);
+      feedbackHaptic('success');
       const session = useReplayTvStore.getState().sessionFor(uid);
       const ep = session ? getReplayTvEpisode(session.episodeId) : episode;
       const last = session?.decisions[session.decisions.length - 1];

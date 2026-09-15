@@ -1,9 +1,9 @@
 # Security & Cybersecurity Notice
 
-**Last updated:** 24 August 2026  
-**Version:** 2026.08.24  
-**Operator:** [LEGAL ENTITY NAME REQUIRED], trading as Aithera  
-**Registered address:** Höglerstrasse 55, 8600 Dübendorf, Switzerland  
+**Last updated:** 15 September 2026
+**Version:** 2026.09.15
+**Operator:** [LEGAL ENTITY NAME REQUIRED], trading as Aithera
+**Registered address:** Höglerstrasse 55, 8600 Dübendorf, Switzerland
 
 This notice summarises Aithera’s security posture for users, reviewers, and enterprise diligence. It complements the Privacy Policy and is aligned with expectations under Swiss nFADP, GDPR security principles (Art. 32), and commonly referenced U.S. frameworks (e.g. reasonable security under state law, FTC Act Section 5 unfairness for unreasonable security).
 
@@ -36,6 +36,21 @@ This notice summarises Aithera’s security posture for users, reviewers, and en
 | Guest mode | Local demo without verified cloud write privileges |
 | Screen privacy | Screen-capture protections on sensitive MFA secret reveal flows where implemented |
 | Development | Typecheck/tests/rules emulator gates in CI; dependency isolation for Functions |
+| Optional app lock | On-device biometric / device authentication gate when enabled in Settings (protects local app reveal — not a bank-grade vault claim) |
+
+---
+
+## 2A. Implemented vs planned
+
+| Topic | Status |
+| --- | --- |
+| Firestore/Storage rules fail-closed for unverified users | **Implemented** |
+| RevenueCat webhook signature verification | **Implemented** (server) |
+| App Check hard-enforce in production Functions path | **Implemented** when configured; soft mode only for explicit emulator/dev |
+| Optional crash reporting (Sentry) with consent | **Implemented** |
+| Allowlisted product analytics | **Implemented** (opt-in) |
+| SOC 2 / ISO 27001 / PCI attestations | **Not claimed** |
+| Guaranteed breach immunity | **Not claimed** |
 
 ---
 
@@ -63,7 +78,7 @@ If a personal-data breach is likely to result in a high risk to individuals, we 
 
 ## 6. Contact
 
-[SECURITY EMAIL REQUIRED]  
-[PRIVACY EMAIL REQUIRED]  
-[SUPPORT EMAIL REQUIRED]  
+[SECURITY EMAIL REQUIRED]
+[PRIVACY EMAIL REQUIRED]
+[SUPPORT EMAIL REQUIRED]
 Höglerstrasse 55, 8600 Dübendorf, Switzerland

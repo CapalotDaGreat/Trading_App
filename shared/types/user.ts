@@ -19,6 +19,12 @@ export interface UserPreferences {
   notificationsEnabled: boolean;
   priceAlertsEnabled: boolean;
   aiInsightsEnabled: boolean;
+  /** Opt-in educational training reminders (never market signals). */
+  trainingRemindersEnabled: boolean;
+  /** Quiet hours start hour 0–23 local for educational reminders. */
+  quietHoursStart: number;
+  /** Quiet hours end hour 0–23 local for educational reminders. */
+  quietHoursEnd: number;
   biometricAuthEnabled: boolean;
   /** Daily research budget used to size the decision queue. */
   timeBudgetMinutes: number;
@@ -58,6 +64,9 @@ export const DEFAULT_USER_PREFERENCES: UserPreferences = {
   notificationsEnabled: true,
   priceAlertsEnabled: true,
   aiInsightsEnabled: true,
+  trainingRemindersEnabled: false,
+  quietHoursStart: 22,
+  quietHoursEnd: 7,
   biometricAuthEnabled: false,
   timeBudgetMinutes: 20,
   activationGoal: 'research_more_selectively',

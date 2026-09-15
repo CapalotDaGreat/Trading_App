@@ -37,7 +37,7 @@ export default function HomeScreen() {
     <ScreenScaffold
       eyebrow={BRAND.product}
       title="Your training center"
-      subtitle="What to train now, why, and what to revisit. Not a market terminal."
+      subtitle={`${BRAND.loop} — what to train now, why, and what to revisit. Not a market terminal.`}
       contentClassName="pb-12"
       testID="home-screen"
     >

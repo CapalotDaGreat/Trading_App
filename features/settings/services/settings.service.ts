@@ -21,6 +21,9 @@ const DEFAULT_NOTIFICATIONS: NotificationSettings = {
   marketNews: false,
   portfolioUpdates: true,
   emailDigest: false,
+  trainingReminders: false,
+  quietHoursStart: 22,
+  quietHoursEnd: 7,
 };
 
 const DEFAULT_PRIVACY: PrivacySettings = {
@@ -94,6 +97,9 @@ class SettingsServiceImpl implements SettingsService {
       marketNews: DEFAULT_NOTIFICATIONS.marketNews,
       portfolioUpdates: DEFAULT_NOTIFICATIONS.portfolioUpdates,
       emailDigest: DEFAULT_NOTIFICATIONS.emailDigest,
+      trainingReminders: preferences.trainingRemindersEnabled ?? false,
+      quietHoursStart: preferences.quietHoursStart ?? 22,
+      quietHoursEnd: preferences.quietHoursEnd ?? 7,
     };
   }
 
@@ -106,6 +112,10 @@ class SettingsServiceImpl implements SettingsService {
       notificationsEnabled: updates.pushEnabled ?? settingsStore.preferences.notificationsEnabled,
       priceAlertsEnabled: updates.priceAlerts ?? settingsStore.preferences.priceAlertsEnabled,
       aiInsightsEnabled: updates.aiInsights ?? settingsStore.preferences.aiInsightsEnabled,
+      trainingRemindersEnabled:
+        updates.trainingReminders ?? settingsStore.preferences.trainingRemindersEnabled ?? false,
+      quietHoursStart: updates.quietHoursStart ?? settingsStore.preferences.quietHoursStart ?? 22,
+      quietHoursEnd: updates.quietHoursEnd ?? settingsStore.preferences.quietHoursEnd ?? 7,
     });
 
     settingsStore.setLastSyncAt(Date.now());

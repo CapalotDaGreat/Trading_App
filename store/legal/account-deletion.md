@@ -1,9 +1,9 @@
 # Account Deletion Notice
 
-**Last updated:** 24 August 2026  
-**Version:** 2026.08.24  
-**Operator:** [LEGAL ENTITY NAME REQUIRED], trading as Aithera  
-**Registered address:** Höglerstrasse 55, 8600 Dübendorf, Switzerland  
+**Last updated:** 15 September 2026
+**Version:** 2026.09.15
+**Operator:** [LEGAL ENTITY NAME REQUIRED], trading as Aithera
+**Registered address:** Höglerstrasse 55, 8600 Dübendorf, Switzerland
 
 This notice explains how to delete your TradeAcademy account and what happens to your data. It supports Apple App Store and Google Play account-deletion requirements and privacy rights under Swiss nFADP, EU/UK GDPR, and U.S. state privacy laws (including CCPA/CPRA deletion rights).
 
@@ -66,7 +66,7 @@ Deleting the account removes TradeAcademy access to Premium features tied to tha
 
 ## 6. Contact
 
-[PRIVACY EMAIL REQUIRED]  
-[SUPPORT EMAIL REQUIRED]  
-Höglerstrasse 55, 8600 Dübendorf, Switzerland  
+[PRIVACY EMAIL REQUIRED]
+[SUPPORT EMAIL REQUIRED]
+Höglerstrasse 55, 8600 Dübendorf, Switzerland
 [OFFICIAL DOMAIN REQUIRED]

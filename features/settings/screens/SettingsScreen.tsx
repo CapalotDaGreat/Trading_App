@@ -17,7 +17,7 @@ import { CollapsibleSection } from '@/shared/components/patterns/CollapsibleSect
 import { Button } from '@/shared/components/ui/Button';
 import { Surface } from '@/shared/components/ui/Surface';
 import { Text } from '@/shared/components/ui/Text';
-import { legalPath } from '@/shared/legal';
+import { legalPath, LEGAL_DOCUMENT_META } from '@/shared/legal';
 
 export function SettingsScreen() {
   const router = useRouter();
@@ -242,42 +242,48 @@ export function SettingsScreen() {
 
       <CollapsibleSection
         title="Legal & Support"
-        description="Terms, privacy, risk, security, and support."
+        description="Official policies, risk, security, account deletion, and support."
         className="mt-4"
       >
         <SettingsRow
           icon="document-text-outline"
           label="Terms of Service"
+          value={`Updated ${LEGAL_DOCUMENT_META.terms.lastUpdated}`}
           showChevron
           onPress={() => router.push(legalPath('terms'))}
         />
         <SettingsRow
           icon="lock-closed-outline"
           label="Privacy Policy"
+          value={`Updated ${LEGAL_DOCUMENT_META.privacy.lastUpdated}`}
           showChevron
           onPress={() => router.push(legalPath('privacy'))}
         />
         <SettingsRow
           icon="warning-outline"
           label="Risk & Investment Disclaimer"
+          value={`Updated ${LEGAL_DOCUMENT_META.risk.lastUpdated}`}
           showChevron
           onPress={() => router.push(legalPath('risk'))}
         />
         <SettingsRow
           icon="shield-outline"
           label="Security & Cybersecurity"
+          value={`Updated ${LEGAL_DOCUMENT_META.security.lastUpdated}`}
           showChevron
           onPress={() => router.push(legalPath('security'))}
         />
         <SettingsRow
           icon="information-circle-outline"
           label="Account deletion information"
+          value={`Updated ${LEGAL_DOCUMENT_META.accountDeletion.lastUpdated}`}
           showChevron
           onPress={() => router.push(legalPath('accountDeletion'))}
         />
         <SettingsRow
           icon="help-circle-outline"
           label="Support"
+          value="In-app help center"
           showChevron
           onPress={() => router.push(legalPath('support'))}
         />

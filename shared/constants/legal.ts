@@ -45,7 +45,7 @@ export const LEGAL_URLS = {
 } as const;
 
 /** Bump when material legal terms change and re-consent is required. */
-export const LEGAL_ACCEPTANCE_VERSION = '2026.08.24' as const;
+export const LEGAL_ACCEPTANCE_VERSION = '2026.09.15' as const;
 
 export const LEGAL_COUNSEL_NOTICE =
   `These documents are compliance-oriented templates for ${BRAND.product} by ${BRAND.company}. ` +

@@ -104,12 +104,31 @@ export function NotificationsScreen() {
           onToggle={(value) => void updateNotifications({ portfolioUpdates: value })}
         />
         <SettingsRow
+          icon="school-outline"
+          label="Training reminders"
+          description="Practice, journal, review, and replay nudges — never buy/sell alerts"
+          toggle
+          toggleValue={notifications.trainingReminders}
+          onToggle={(value) => void updateNotifications({ trainingReminders: value })}
+        />
+        <SettingsRow
           icon="mail-outline"
           label="Weekly process digest"
           toggle
           toggleValue={notifications.emailDigest}
           onToggle={(value) => void updateNotifications({ emailDigest: value })}
         />
+      </Surface>
+
+      <Surface className="mt-4 p-4">
+        <Text variant="label" className="text-text-tertiary">
+          Quiet hours
+        </Text>
+        <Text variant="body-sm" className="mt-2 text-text-secondary">
+          Educational reminders pause from {notifications.quietHoursStart}:00 to{' '}
+          {notifications.quietHoursEnd}:00 local time (default 22:00–07:00). They never claim a
+          trading opportunity.
+        </Text>
       </Surface>
 
       <View className="mt-6">

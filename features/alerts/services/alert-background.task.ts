@@ -2,7 +2,7 @@
  * Background alert evaluation — must be imported from app entry so
  * TaskManager.defineTask runs in global scope (not inside a React component).
  *
- * Uses expo-background-task (SDK 54) + expo-task-manager. OS schedules wakes;
+ * Uses expo-background-task (SDK 57) + expo-task-manager. OS schedules wakes;
  * minimumInterval is a lower bound, not a guarantee.
  */
 import AsyncStorage from '@react-native-async-storage/async-storage';

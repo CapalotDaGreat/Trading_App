@@ -3,6 +3,8 @@ import { persist } from 'zustand/middleware';
 
 import { DEMO_USER_UID } from '@/firebase/config';
 import { createPersistedStorage } from '@/shared/stores/create-persisted-storage';
+import { feedbackHaptic } from '@/shared/utils/feedback-haptics';
+import { queueEducationalReminder } from '@/features/notifications/services/queue-educational-reminder';
 
 export interface PracticeAttempt {
   drillId: string;
@@ -59,6 +61,8 @@ export const usePracticeProgressStore = create<PracticeProgressState>()(
           attempts,
           attemptsByUser: { ...get().attemptsByUser, [uid]: attempts },
         });
+        feedbackHaptic(attempt.correct ? 'success' : 'warning');
+        queueEducationalReminder('journal', 60 * 60 * 6);
       },
       mergeAttempts: (attempts) => {
         const byKey = new Map(get().attempts.map((row) => [`${row.drillId}:${row.at}`, row]));
