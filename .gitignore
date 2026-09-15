@@ -9,6 +9,8 @@ node_modules/
 .expo-export-p1-validation/
 .expo-export-ci/
 .expo-export-sdk57/
+.expo-export-sdk57-max/
+.expo-export-sdk57-final/
 dist/
 web-build/
 expo-env.d.ts

@@ -121,7 +121,7 @@ describe('legal compliance pack', () => {
     const home = readFileSync(join(hostedDir, 'index.html'), 'utf8');
     const privacy = readFileSync(join(hostedDir, 'privacy.html'), 'utf8');
 
-    expect(home).toContain('Official legal &amp; support center');
+    expect(home).toContain('Official legal, privacy, security &amp; support center');
     expect(home).toContain('TradeAcademy');
     expect(home).toContain('by Aithera');
     expect(home).toContain('Learn → Practice → Replay → Simulate → Journal → Review → Improve');
