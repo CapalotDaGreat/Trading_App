@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 
 import { scoreAllCompetencyMastery, useCompetencyEvidenceStore } from '@/features/competency';
 import { useLearningQueueStore } from '@/features/learning-engine/stores/learning-queue.store';
@@ -23,21 +23,23 @@ export function useLearnerModel(now?: number): LearnerModelSnapshot {
   const selfConfidence = useLearnerBehaviorStore((state) => state.selfConfidenceByUser[uid]);
   const dispositions = useLearningQueueStore((state) => state.dispositions);
   const conceptDeferCounts = useLearningQueueStore((state) => state.conceptDeferCounts);
+  // Capture once per mount — Date.now() during render violates react-hooks/purity.
+  const [mountedAt] = useState(() => Date.now());
+  const clock = now ?? mountedAt;
 
   return useMemo(() => {
     if (!records.length && !events?.length && !selfConfidence?.length) {
-      return emptyLearnerModel(uid, now ?? Date.now());
+      return emptyLearnerModel(uid, clock);
     }
-    const generatedAt = now ?? Date.now();
     return composeLearnerModel({
       uid,
       records,
-      now: generatedAt,
-      mastery: scoreAllCompetencyMastery(records, generatedAt),
+      now: clock,
+      mastery: scoreAllCompetencyMastery(records, clock),
       dispositions,
       conceptDeferCounts,
       behaviorEvents: events,
       selfConfidenceReports: selfConfidence,
     });
-  }, [conceptDeferCounts, dispositions, events, now, records, selfConfidence, uid]);
+  }, [clock, conceptDeferCounts, dispositions, events, records, selfConfidence, uid]);
 }

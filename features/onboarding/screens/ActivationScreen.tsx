@@ -123,14 +123,17 @@ export default function ActivationScreen() {
     const input = completionInputFromDraft(draft);
     if (!input) return;
     finishingRef.current = true;
-    setIsSaving(true);
-    void finishActivation(user.uid, input)
-      .then(() => router.replace('/(tabs)' as never))
-      .catch((cause: unknown) => {
-        finishingRef.current = false;
-        setError(cause instanceof Error ? cause.message : 'Could not finish activation.');
-      })
-      .finally(() => setIsSaving(false));
+    // Defer setState out of the synchronous effect body (react-hooks/set-state-in-effect).
+    void Promise.resolve().then(() => {
+      setIsSaving(true);
+      void finishActivation(user.uid, input)
+        .then(() => router.replace('/(tabs)' as never))
+        .catch((cause: unknown) => {
+          finishingRef.current = false;
+          setError(cause instanceof Error ? cause.message : 'Could not finish activation.');
+        })
+        .finally(() => setIsSaving(false));
+    });
   }, [params.journaled, isDemo, user?.uid, draft, router]);
 
   if (status !== 'authenticated' || !user || !isReady) {

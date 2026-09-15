@@ -1,5 +1,4 @@
 import * as Haptics from 'expo-haptics';
-import { useEffect } from 'react';
 import type { PressableProps } from 'react-native';
 import { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 
@@ -33,14 +32,10 @@ export function useInteractivePress({
   const reduceMotion = useReducedMotion();
   const scale = useSharedValue(1);
 
-  useEffect(() => {
-    if (reduceMotion || disabled) {
-      scale.value = 1;
-    }
-  }, [disabled, reduceMotion, scale]);
-
   const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
+    // Collapse motion in the style node so we never sync shared values from an effect
+    // (react-hooks/immutability). Use get/set for React Compiler–safe SharedValue access.
+    transform: [{ scale: reduceMotion || disabled ? 1 : scale.get() }],
   }));
 
   const handlePress: PressableProps['onPress'] = (event) => {
@@ -59,13 +54,13 @@ export function useInteractivePress({
 
   const handlePressIn: PressableProps['onPressIn'] = (event) => {
     if (!disabled && !reduceMotion) {
-      scale.value = withSpring(pressedScale, { damping: 15, stiffness: 400 });
+      scale.set(withSpring(pressedScale, { damping: 15, stiffness: 400 }));
     }
     onPressIn?.(event);
   };
 
   const handlePressOut: PressableProps['onPressOut'] = (event) => {
-    scale.value = reduceMotion ? 1 : withSpring(1, { damping: 15, stiffness: 400 });
+    scale.set(reduceMotion ? 1 : withSpring(1, { damping: 15, stiffness: 400 }));
     onPressOut?.(event);
   };
 

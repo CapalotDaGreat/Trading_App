@@ -48,7 +48,7 @@ export function useSettings() {
     if (!user?.uid) return;
     await settingsService.syncToFirestore(user.uid);
     await queryClient.invalidateQueries({ queryKey: [SETTINGS_QUERY_KEY] });
-  }, [user?.uid, queryClient]);
+  }, [user, queryClient]);
 
   return {
     settings: settingsQuery.data ?? settingsService.getSettings(),

@@ -53,9 +53,15 @@ export function PaywallScreen() {
     nativeBillingAvailable,
   } = useSubscription();
 
-  const defaultPlan = plans.find((p) => p.isPopular)?.id ?? 'yearly';
+  const defaultPlan = plans.find((p) => p.isPopular)?.id ?? plans[0]?.id ?? 'yearly';
   const [selectedPlan, setSelectedPlan] = useState<SubscriptionPlanId>(defaultPlan);
   const [actionMessage, setActionMessage] = useState<string | null>(null);
+  const resolvedPlan: SubscriptionPlanId = plans.some((plan) => plan.id === selectedPlan)
+    ? selectedPlan
+    : defaultPlan;
+  if (resolvedPlan !== selectedPlan) {
+    setSelectedPlan(resolvedPlan);
+  }
   const freeLimits = useMemo(
     () => ({
       aiDaily: getLimit('aiDaily', 'free'),
@@ -69,21 +75,15 @@ export function PaywallScreen() {
     if (actionMessage) AccessibilityInfo.announceForAccessibility(actionMessage);
   }, [actionMessage]);
 
-  useEffect(() => {
-    if (plans.length && !plans.some((plan) => plan.id === selectedPlan)) {
-      setSelectedPlan(plans.find((plan) => plan.isPopular)?.id ?? plans[0].id);
-    }
-  }, [plans, selectedPlan]);
-
   const selected = useMemo(
-    () => plans.find((p) => p.id === selectedPlan) ?? plans[0],
-    [plans, selectedPlan],
+    () => plans.find((p) => p.id === resolvedPlan) ?? plans[0],
+    [plans, resolvedPlan],
   );
 
   const handlePurchase = async () => {
     setActionMessage(null);
     try {
-      const result = await purchase(selectedPlan);
+      const result = await purchase(resolvedPlan);
       setActionMessage(result.message);
       await refresh();
     } catch (error) {

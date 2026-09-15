@@ -38,6 +38,8 @@ export const personalIntelligenceKeys = {
 
 export function usePersonalIntelligence(initialPeriod: DecisionGraphPeriod = 'weekly') {
   const [graphPeriod, setGraphPeriod] = useState<DecisionGraphPeriod>(initialPeriod);
+  // Stable clock for render-time fallback timestamps (react-hooks/purity).
+  const [nowMs] = useState(() => Date.now());
   const { user } = useAuth();
   const uid = user?.uid ?? DEMO_USER_UID;
   const timeBudgetMinutes = useSettingsStore(selectTodayTimeBudget);
@@ -101,13 +103,13 @@ export function usePersonalIntelligence(initialPeriod: DecisionGraphPeriod = 'we
         }
         if (!progress.readAt && !progress.practicedAt && (progress.read || progress.practiced)) {
           events.push({
-            at: Date.now() - 86_400_000,
+            at: nowMs - 86_400_000,
             kind: progress.practiced ? 'academy_practiced' : 'academy_read',
           });
         }
         return events;
       }),
-    [lessons],
+    [lessons, nowMs],
   );
 
   const signature = useMemo(

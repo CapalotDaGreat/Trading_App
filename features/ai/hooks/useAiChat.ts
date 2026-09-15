@@ -12,22 +12,26 @@ function generateId(): string {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
 }
 
-const WELCOME_MESSAGE: AiMessage = {
-  id: 'welcome',
-  role: 'assistant',
-  content:
-    'TradeAcademy educational mentor. I explain concepts, review process, and suggest what to learn next — never a buy/sell call, never guaranteed signals, never financial advice.',
-  timestamp: Date.now(),
-};
+const WELCOME_CONTENT =
+  'TradeAcademy educational mentor. I explain concepts, review process, and suggest what to learn next — never a buy/sell call, never guaranteed signals, never financial advice.';
+
+function createWelcomeMessage(): AiMessage {
+  return {
+    id: 'welcome',
+    role: 'assistant',
+    content: WELCOME_CONTENT,
+    timestamp: Date.now(),
+  };
+}
 
 export function useAiChat(initialContext?: AiRequestContext) {
   const { user } = useAuth();
   const tier = useSubscriptionStore((s) => s.tier);
   const queryClient = useQueryClient();
-  const sessionIdRef = useRef(generateId());
   const contextRef = useRef(initialContext);
 
-  const [messages, setMessages] = useState<AiMessage[]>([WELCOME_MESSAGE]);
+  const [sessionId, setSessionId] = useState(generateId);
+  const [messages, setMessages] = useState<AiMessage[]>(() => [createWelcomeMessage()]);
 
   const chatMutation = useMutation({
     mutationFn: async (userMessage: string) => {
@@ -43,7 +47,7 @@ export function useAiChat(initialContext?: AiRequestContext) {
 
       const request: AiChatRequest = {
         message: userMessage,
-        sessionId: sessionIdRef.current,
+        sessionId,
         context: { ...contextRef.current, userScopeUid: user?.uid },
         history: messages
           .filter((m) => m.id !== 'welcome')
@@ -53,7 +57,7 @@ export function useAiChat(initialContext?: AiRequestContext) {
       return aiService.chat(request, tier);
     },
     onSuccess: (response) => {
-      sessionIdRef.current = response.sessionId;
+      setSessionId(response.sessionId);
       setMessages((prev) => [...prev, response.message]);
       void queryClient.invalidateQueries({ queryKey: AI_USAGE_QUERY_KEY });
     },
@@ -73,8 +77,8 @@ export function useAiChat(initialContext?: AiRequestContext) {
   }, []);
 
   const clearChat = useCallback(() => {
-    sessionIdRef.current = generateId();
-    setMessages([WELCOME_MESSAGE]);
+    setSessionId(generateId());
+    setMessages([createWelcomeMessage()]);
     chatMutation.reset();
   }, [chatMutation]);
 
@@ -85,6 +89,6 @@ export function useAiChat(initialContext?: AiRequestContext) {
     clearChat,
     isSending: chatMutation.isPending,
     error: chatMutation.error,
-    sessionId: sessionIdRef.current,
+    sessionId,
   };
 }

@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Pressable, View } from 'react-native';
 
 import { useSubscription } from '@/features/subscription/hooks/useSubscription';
@@ -15,6 +15,9 @@ const LEGAL_LINKS: { id: LegalRouteId; label: string }[] = [
   { id: 'risk', label: 'Risk Disclaimer' },
 ];
 
+/** Resolved once at module load — never create components during render. */
+const RevenueCatPaywallView = loadRevenueCatPaywallView();
+
 interface RevenueCatPaywallScreenProps {
   onFallback: () => void;
 }
@@ -23,13 +26,12 @@ export function RevenueCatPaywallScreen({ onFallback }: RevenueCatPaywallScreenP
   const router = useRouter();
   const { refresh } = useSubscription();
   const [actionMessage, setActionMessage] = useState<string | null>(null);
-  const Paywall = useMemo(() => loadRevenueCatPaywallView(), []);
 
   useEffect(() => {
-    if (!Paywall) onFallback();
-  }, [Paywall, onFallback]);
+    if (!RevenueCatPaywallView) onFallback();
+  }, [onFallback]);
 
-  if (!Paywall) return null;
+  if (!RevenueCatPaywallView) return null;
 
   return (
     <View className="flex-1 bg-background">
@@ -48,7 +50,7 @@ export function RevenueCatPaywallScreen({ onFallback }: RevenueCatPaywallScreenP
           </Pressable>
         ))}
       </View>
-      <Paywall
+      <RevenueCatPaywallView
         style={{ flex: 1 }}
         options={{ displayCloseButton: false }}
         onPurchaseCompleted={() => {

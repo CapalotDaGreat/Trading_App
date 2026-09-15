@@ -31,7 +31,9 @@ export function SocialAuthButtons({
   const onGoogleSuccessRef = useRef(onGoogleSuccess);
   const handledResponseKeyRef = useRef<string | null>(null);
 
-  onGoogleSuccessRef.current = onGoogleSuccess;
+  useEffect(() => {
+    onGoogleSuccessRef.current = onGoogleSuccess;
+  }, [onGoogleSuccess]);
 
   const [request, response, promptAsync] = Google.useAuthRequest({
     webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,

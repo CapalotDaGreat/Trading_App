@@ -13,6 +13,7 @@ module.exports = defineConfig([
       '.expo-export-test/',
       '.expo-export-p1-validation/',
       '.expo-export-ci/',
+      '.expo-export-sdk57/',
       'dist/',
       'build/',
       'coverage/',

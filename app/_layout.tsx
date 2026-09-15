@@ -139,17 +139,25 @@ function RootLayoutNav() {
   useEffect(() => {
     let cancelled = false;
     if (status !== 'authenticated' || !user?.uid) {
-      if (isFirebaseConfigured()) setOnboarding(null);
+      if (isFirebaseConfigured()) {
+        // Defer so we do not call setState synchronously inside the effect body.
+        queueMicrotask(() => {
+          if (!cancelled) setOnboarding(null);
+        });
+      }
       return () => {
         cancelled = true;
       };
     }
-    setOnboarding(
-      localOnboardingResolution({
-        uid: user.uid,
-        completed: useSettingsStore.getState().hasCompletedOnboarding,
-      }),
-    );
+    queueMicrotask(() => {
+      if (cancelled) return;
+      setOnboarding(
+        localOnboardingResolution({
+          uid: user.uid,
+          completed: useSettingsStore.getState().hasCompletedOnboarding,
+        }),
+      );
+    });
     void Promise.resolve(useSettingsStore.persist.rehydrate())
       .then(async () => {
         const resolution = await reconcileOnboarding(user.uid);

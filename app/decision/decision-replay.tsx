@@ -46,7 +46,6 @@ export default function ReviewHubScreen() {
   const { colors } = useTheme();
   const segment = normalizeReviewSegment(params.segment);
   const [range, setRange] = useState<ReplayRange>('today');
-  const [frameIdx, setFrameIdx] = useState(0);
 
   const sessionQuery = useDecisionReplaySession(range);
   const tapeQuery = useWeeklyGameTape();
@@ -55,12 +54,15 @@ export default function ReviewHubScreen() {
 
   const session = sessionQuery.data;
   const frames = session?.frames ?? [];
+  const [frameIdx, setFrameIdx] = useState(0);
+  const sessionResetKey = `${range}:${session?.id ?? ''}`;
+  const [frameResetKey, setFrameResetKey] = useState(sessionResetKey);
+  if (sessionResetKey !== frameResetKey) {
+    setFrameResetKey(sessionResetKey);
+    setFrameIdx(0);
+  }
   const safeIdx = frames.length ? Math.min(frameIdx, frames.length - 1) : 0;
   const frame = frames[safeIdx];
-
-  useEffect(() => {
-    setFrameIdx(0);
-  }, [range, session?.id]);
 
   useEffect(() => {
     void ensureDemoDecisionTape().then(() => {

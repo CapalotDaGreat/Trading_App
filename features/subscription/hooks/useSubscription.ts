@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { router } from 'expo-router';
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { subscriptionService } from '@/features/subscription/services/subscription.service';
@@ -17,6 +17,8 @@ export function useSubscription() {
   const { user } = useAuth();
   const uid = user?.uid ?? null;
   const queryClient = useQueryClient();
+  // Stable clock for render-time expiry checks (react-hooks/purity).
+  const [nowMs] = useState(() => Date.now());
   const {
     setPremium,
     setLoading,
@@ -192,7 +194,7 @@ export function useSubscription() {
   const cachedPremium =
     ownerUid === uid &&
     isPremium &&
-    (!expirationDate || Date.parse(expirationDate) > Date.now());
+    (!expirationDate || Date.parse(expirationDate) > nowMs);
 
   return {
     uid,

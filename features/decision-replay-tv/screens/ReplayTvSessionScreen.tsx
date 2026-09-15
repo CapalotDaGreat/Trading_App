@@ -90,18 +90,21 @@ export function ReplayTvSessionScreen() {
   } = useReplayTv();
   const [reasoning, setReasoning] = useState<ReplayTvReasoning>(() => emptyReplayTvReasoning());
   const [tapeFrame, setTapeFrame] = useState<ReplayTapeTimeframe>('1d');
+  const draftKey = `${activeSession?.id ?? ''}:${activeSession?.checkpointIndex ?? 0}`;
+  const [appliedDraftKey, setAppliedDraftKey] = useState(draftKey);
+  if (
+    activeSession?.draftReasoning &&
+    draftKey !== appliedDraftKey
+  ) {
+    setAppliedDraftKey(draftKey);
+    setReasoning(activeSession.draftReasoning);
+  }
 
   useEffect(() => {
     if (!activeSession) {
       router.replace('/decision/replay-tv' as never);
     }
   }, [activeSession, router]);
-
-  useEffect(() => {
-    if (activeSession?.draftReasoning) {
-      setReasoning(activeSession.draftReasoning);
-    }
-  }, [activeSession?.id, activeSession?.checkpointIndex]);
 
   useEffect(() => {
     if (!activeSession) return;

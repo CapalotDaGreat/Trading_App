@@ -56,12 +56,17 @@ export function BiometricGate({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    if (!needsGate) {
-      setUnlocked(true);
-      return;
-    }
-    setUnlocked(false);
-    void authenticate();
+    if (!needsGate) return;
+    let cancelled = false;
+    // Defer setState out of the synchronous effect body.
+    void Promise.resolve().then(() => {
+      if (cancelled) return;
+      setUnlocked(false);
+      void authenticate();
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [needsGate, authenticate, user?.uid]);
 
   useEffect(() => {

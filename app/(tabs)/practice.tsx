@@ -1,5 +1,5 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 import { ScrollView, View } from 'react-native';
 
 import { EducationalChart } from '@/features/academy/components/EducationalChart';
@@ -205,11 +205,12 @@ export default function PracticeScreen() {
   const [filters, setFilters] = useState<PracticeLibraryFilters>(() =>
     topicFromQuery ? { ...DEFAULT_PRACTICE_FILTERS, topic: topicFromQuery } : DEFAULT_PRACTICE_FILTERS,
   );
-
-  useEffect(() => {
-    if (!topicFromQuery) return;
+  const [syncedTopic, setSyncedTopic] = useState(topicFromQuery);
+  // Adjust filters during render when the query topic changes (no syncing effect).
+  if (topicFromQuery && topicFromQuery !== syncedTopic) {
+    setSyncedTopic(topicFromQuery);
     setFilters((prev) => (prev.topic === topicFromQuery ? prev : { ...prev, topic: topicFromQuery }));
-  }, [topicFromQuery]);
+  }
   const plannerDrillId =
     primary?.activityType === 'practice' ? new URLSearchParams(primary.href.split('?')[1] ?? '').get('drill') : null;
   const featuredId =

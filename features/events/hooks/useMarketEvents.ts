@@ -26,7 +26,8 @@ export function useMarketEvents(options?: {
 
   const fromCache = Boolean(calendar.isError && cached.length > 0);
   const calendarEvents = calendar.isError ? cached : calendar.events;
-  const fetchedAt = fromCache ? cachedAt || Date.now() : calendar.dataUpdatedAt || Date.now();
+  // Prefer store/query timestamps; avoid Date.now() during render (react-hooks/purity).
+  const fetchedAt = fromCache ? (cachedAt ?? 0) : (calendar.dataUpdatedAt ?? cachedAt ?? 0);
 
   const hub = useMemo(
     () =>
