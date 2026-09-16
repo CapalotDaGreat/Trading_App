@@ -59,7 +59,7 @@ Source of truth for in-app constants: [`shared/constants/brand.ts`](../shared/co
 
 ## Later identifier alignment (14 September 2026)
 
-Bundle, scheme, Expo slug, persist keys, AASA/assetlinks, Maestro `appId`, and the official site origin **`https://tradeacademy.cloud`**. Existing local data is copied by `migrateLegacyPersistKeys` before Expo Router loads.
+Bundle, scheme, Expo slug, persist keys, AASA/assetlinks, Maestro `appId`, and the official site origin **`https://tradeacademy.cloud`**. Existing local data is copied by `migrateLegacyPersistKeys` (kicked off from `index.js` before/alongside Expo Router). AppRegistry registration of `main` stays synchronous so Expo Go does not fail with “App entry not found”.
 
 ## Still operator-owned
 

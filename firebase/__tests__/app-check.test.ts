@@ -25,4 +25,14 @@ describe('App Check init mode', () => {
       }),
     ).toBe('recaptcha');
   });
+
+  it('keeps production native unattested even when a debug-looking site key exists', () => {
+    expect(
+      resolveAppCheckInitMode({
+        isDev: false,
+        platform: 'ios',
+        recaptchaSiteKey: 'should-not-matter',
+      }),
+    ).toBe('unattested');
+  });
 });

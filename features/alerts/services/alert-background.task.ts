@@ -6,6 +6,7 @@
  * minimumInterval is a lower bound, not a guarantee.
  */
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Platform } from 'react-native';
 
 import { logger } from '@/shared/services/observability/logger';
 
@@ -106,6 +107,7 @@ export async function registerAlertBackgroundTask(uid: string): Promise<boolean>
 
 export async function unregisterAlertBackgroundTask(): Promise<void> {
   await persistAlertBackgroundUid(null);
+  if (Platform.OS === 'web') return;
   try {
     const TaskManager = await import('expo-task-manager');
     const BackgroundTask = await import('expo-background-task');

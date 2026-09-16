@@ -233,14 +233,20 @@ export const useSimulationStore = create<SimulationState>()(
         return writeLive(set, get, userId, recordCloseReview(account, decisionId, review));
       },
       refreshPrices: (userId, nowMs = Date.now()) => {
-        const account = get().ensureAccount(userId);
-        const provider = account.scenario ? createScenarioPriceProvider(account.scenario) : priceProvider;
+        const existing = get().accountsByUser[userId];
+        if (!existing) return get().ensureAccount(userId);
+        if (existing.positions.length === 0) return existing;
+        const provider = existing.scenario ? createScenarioPriceProvider(existing.scenario) : priceProvider;
         const prices: Record<string, number> = {};
-        for (const position of account.positions) {
+        let changed = false;
+        for (const position of existing.positions) {
           const quote = provider.getQuote(position.symbol, nowMs);
-          if (quote) prices[position.symbol] = quote.price;
+          if (!quote) continue;
+          prices[position.symbol] = quote.price;
+          if (quote.price !== position.currentPrice) changed = true;
         }
-        return writeLive(set, get, userId, markToMarket(account, prices, new Date(nowMs).toISOString()));
+        if (!changed) return existing;
+        return writeLive(set, get, userId, markToMarket(existing, prices, new Date(nowMs).toISOString()));
       },
       advanceClock: (userId) => {
         const account = get().ensureAccount(userId);

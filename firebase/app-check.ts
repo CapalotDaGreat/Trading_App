@@ -10,20 +10,37 @@ export { resolveAppCheckInitMode } from '@/firebase/app-check-mode';
 
 let appCheck: AppCheck | null = null;
 
-function debugTokenValue(): string | boolean {
+/**
+ * Always return a concrete string. Firebase treats `true` as “generate a UUID”,
+ * which calls bare `crypto.randomUUID()` — missing on RN Hermes without a polyfill.
+ */
+function debugTokenValue(): string {
   const configured = process.env.EXPO_PUBLIC_APPCHECK_DEBUG_TOKEN?.trim();
-  return configured && configured.length > 0 ? configured : true;
+  if (configured && configured.length > 0) return configured;
+  return `expo-${Platform.OS}-debug`;
+}
+
+function isServerRenderContext(): boolean {
+  return Platform.OS === 'web' && typeof window === 'undefined';
 }
 
 /**
  * Initialize Firebase App Check.
- * - __DEV__ / Expo Go: debug token (register the printed token in Firebase Console).
+ * - __DEV__ / Expo Go: CustomProvider debug token (register in Firebase Console if testing callables).
  * - Production web: ReCaptcha v3 when `EXPO_PUBLIC_RECAPTCHA_SITE_KEY` is set.
  * - Production native: no fake token. Cloud Functions reject missing App Check
  *   unless APP_CHECK_SOFT=true (staging only — never production).
+ *
+ * Do not set `FIREBASE_APPCHECK_DEBUG_TOKEN = true`. That enables Firebase's
+ * built-in debug path (`crypto.randomUUID` + IndexedDB), which is hostile to
+ * Hermes and to Expo Router web SSR.
  */
 export function initializeFirebaseAppCheck(app: FirebaseApp): AppCheck | null {
   if (appCheck) return appCheck;
+  if (isServerRenderContext()) {
+    logger.info('app_check.skipped_ssr', { platform: Platform.OS });
+    return null;
+  }
 
   const isDev = typeof __DEV__ !== 'undefined' && __DEV__;
   const recaptchaSiteKey = process.env.EXPO_PUBLIC_RECAPTCHA_SITE_KEY?.trim();
@@ -35,31 +52,33 @@ export function initializeFirebaseAppCheck(app: FirebaseApp): AppCheck | null {
 
   try {
     if (mode === 'debug') {
-      (
-        globalThis as typeof globalThis & { FIREBASE_APPCHECK_DEBUG_TOKEN?: string | boolean }
-      ).FIREBASE_APPCHECK_DEBUG_TOKEN = debugTokenValue();
-
+      const token = debugTokenValue();
+      // Clear any leftover `true` debug flag from hot reload / prior builds.
+      for (const g of [globalThis, typeof global !== 'undefined' ? global : null]) {
+        if (!g) continue;
+        try {
+          delete (g as { FIREBASE_APPCHECK_DEBUG_TOKEN?: unknown }).FIREBASE_APPCHECK_DEBUG_TOKEN;
+        } catch {
+          (g as { FIREBASE_APPCHECK_DEBUG_TOKEN?: unknown }).FIREBASE_APPCHECK_DEBUG_TOKEN = undefined;
+        }
+      }
       const provider = new CustomProvider({
-        getToken: async () => {
-          const debug = (
-            globalThis as typeof globalThis & { FIREBASE_APPCHECK_DEBUG_TOKEN?: string | boolean }
-          ).FIREBASE_APPCHECK_DEBUG_TOKEN;
-          const token =
-            typeof debug === 'string' && debug.length > 0
-              ? debug
-              : process.env.EXPO_PUBLIC_APPCHECK_DEBUG_TOKEN?.trim() || `expo-${Platform.OS}-debug`;
-          return {
-            token,
-            expireTimeMillis: Date.now() + 60 * 60 * 1000,
-          };
-        },
+        getToken: async () => ({
+          token,
+          expireTimeMillis: Date.now() + 60 * 60 * 1000,
+        }),
       });
 
       appCheck = initializeAppCheck(app, {
         provider,
-        isTokenAutoRefreshEnabled: true,
+        // Avoid background IndexedDB/debug exchange noise on Expo Go / Hermes.
+        isTokenAutoRefreshEnabled: false,
       });
-      logger.info('app_check.initialized', { platform: Platform.OS, mode: 'debug' });
+      logger.info('app_check.initialized', {
+        platform: Platform.OS,
+        mode: 'debug',
+        tokenSource: process.env.EXPO_PUBLIC_APPCHECK_DEBUG_TOKEN?.trim() ? 'env' : 'platform_fallback',
+      });
       return appCheck;
     }
 

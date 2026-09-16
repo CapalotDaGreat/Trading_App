@@ -214,7 +214,7 @@ export function buildAdaptiveGoals(input: {
     goals.push({
       id: 'dna_growth',
       title: `Grow ${weakest}`,
-      detail: `Your DNA marks ${weakest} as a growth edge — one deliberate session moves the needle.`,
+      detail: `Your process patterns mark ${weakest} as a growth edge — one deliberate session moves the needle.`,
       progress: clamp(
         100 - (input.dna.traits.find((t) => t.label === weakest)?.score ?? 50),
       ),

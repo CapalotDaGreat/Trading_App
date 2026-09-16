@@ -118,6 +118,7 @@ Guests do not see Delete Account (there is no cloud account).
 ## Legal in the app
 
 Settings → Legal & Support opens **in-app** Terms, Privacy, Risk, Security,
-Account deletion, and Support. Hosted public URLs must still return HTTP 200 in
-the store consoles before submission; they are a **manual hosting** item, not
-claimed live in this repository.
+Account deletion, and Support. Public hosted URLs on **https://tradeacademy.cloud**
+(privacy, terms, support, risk, security, account-deletion) returned **HTTP 200**
+when verified on 2026-09-16 — paste them into App Store Connect / Play Console
+(see `docs/ASC_LISTING_URLS.md`).

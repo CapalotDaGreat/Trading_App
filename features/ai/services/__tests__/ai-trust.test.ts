@@ -54,6 +54,9 @@ describe('ai trust engine', () => {
     expect(pack.observation.length).toBeGreaterThan(10);
     expect(pack.items.find((i) => i.id === 'rsi')?.present).toBe(true);
     expect(pack.items.find((i) => i.id === 'regime')?.href).toBe('/decision/regime');
+    expect(pack.items.find((i) => i.id === 'portfolio')?.href).toBe('/simulate');
+    expect(pack.items.find((i) => i.id === 'portfolio')?.href).not.toMatch(/portfolio/i);
+    expect(pack.items.find((i) => i.id === 'portfolio')?.label.toLowerCase()).toMatch(/paper|simulat/);
   });
 
   it('builds educational counterfactuals', () => {

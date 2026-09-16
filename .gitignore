@@ -27,6 +27,10 @@ expo-env.d.ts
 # Metro
 .metro-health-check*
 
+# Accidental Windows device-name files
+/NUL
+/nul
+
 # debug
 npm-debug.*
 yarn-debug.*

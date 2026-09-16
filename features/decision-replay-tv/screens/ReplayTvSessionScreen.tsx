@@ -92,13 +92,14 @@ export function ReplayTvSessionScreen() {
   const [tapeFrame, setTapeFrame] = useState<ReplayTapeTimeframe>('1d');
   const draftKey = `${activeSession?.id ?? ''}:${activeSession?.checkpointIndex ?? 0}`;
   const [appliedDraftKey, setAppliedDraftKey] = useState(draftKey);
-  if (
-    activeSession?.draftReasoning &&
-    draftKey !== appliedDraftKey
-  ) {
+  const draftReasoning = activeSession?.draftReasoning;
+
+  useEffect(() => {
+    if (!draftReasoning) return;
+    if (draftKey === appliedDraftKey) return;
     setAppliedDraftKey(draftKey);
-    setReasoning(activeSession.draftReasoning);
-  }
+    setReasoning(draftReasoning);
+  }, [appliedDraftKey, draftKey, draftReasoning]);
 
   useEffect(() => {
     if (!activeSession) {

@@ -42,8 +42,8 @@ export function LessonQuiz({ questions, onComplete, onAnswer, bestScore }: Lesso
         </Text>
         <Text variant="caption" className="mt-2">
           {passed
-            ? 'A passing score means you can explain the idea — not that the next paper trade will be profitable.'
-            : 'Aim for 70%. Wrong answers include an explanation. Weak concepts will be recommended next.'}
+            ? 'A passing score means you can explain the idea — not that the next paper trade will be profitable. Lesson completion is not mastery.'
+            : 'Aim for 70%. Wrong answers include an explanation. Missed concepts become revisit candidates for Home’s training plan — not a separate mastery grade.'}
         </Text>
         <Button
           className="mt-4"

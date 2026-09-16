@@ -189,11 +189,14 @@ export function useLearningEngine(options?: { lessonId?: string }) {
     ],
   );
 
+  const primaryLabel = plan.primary?.title ?? null;
+  const primaryHref = plan.primary?.href ?? null;
+
   useEffect(() => {
     setPlannerPrimaryCta(
-      plan.primary ? { label: plan.primary.title, href: plan.primary.href } : null,
+      primaryLabel && primaryHref ? { label: primaryLabel, href: primaryHref } : null,
     );
-  }, [plan.primary, setPlannerPrimaryCta]);
+  }, [primaryHref, primaryLabel, setPlannerPrimaryCta]);
 
   const today = plan.today;
   const lessonChain = options?.lessonId ? nextAfterLesson(options.lessonId) : today.lessonChain;

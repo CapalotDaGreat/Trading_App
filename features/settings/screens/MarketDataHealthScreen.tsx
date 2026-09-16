@@ -1,68 +1,81 @@
 import { View } from 'react-native';
 
-import { DataSourceBadge } from '@/features/markets/components/DataSourceBadge';
 import { Header } from '@/shared/components/layout/Header';
 import { Screen } from '@/shared/components/layout/Screen';
+import { Badge } from '@/shared/components/ui/Badge';
 import { GlassCard } from '@/shared/components/ui/GlassCard';
 import { Text } from '@/shared/components/ui/Text';
+
 import {
-  allowDevDirectVendors,
-  canUseVendorProxy,
-} from '@/shared/services/firebase/callable-proxy';
+  getMarketDataHealthSnapshot,
+  type MarketDataPathStatus,
+} from '../services/market-data-health.service';
+
+const BADGE_VARIANT: Record<
+  MarketDataPathStatus,
+  'success' | 'warning' | 'default' | 'outline'
+> = {
+  active: 'success',
+  available: 'warning',
+  optional_idle: 'outline',
+  not_configured: 'default',
+  not_applicable: 'outline',
+};
 
 export function MarketDataHealthScreen() {
-  const proxy = canUseVendorProxy();
-  const devDirect = allowDevDirectVendors();
-  const finnhubDev = devDirect && Boolean(process.env.EXPO_PUBLIC_FINNHUB_API_KEY);
-  const alphaDev = devDirect && Boolean(process.env.EXPO_PUBLIC_ALPHA_VANTAGE_API_KEY);
-
-  const providers = [
-    {
-      name: 'Cloud Functions proxy (signed-in)',
-      kind: proxy ? ('live' as const) : ('mock' as const),
-    },
-    {
-      name: 'Finnhub via Functions secrets',
-      kind: proxy ? ('delayed' as const) : ('mock' as const),
-    },
-    {
-      name: 'Alpha Vantage via Functions secrets',
-      kind: proxy ? ('delayed' as const) : ('mock' as const),
-    },
-    {
-      name: 'Dev-direct Finnhub key (never production)',
-      kind: finnhubDev ? ('live' as const) : ('mock' as const),
-    },
-    {
-      name: 'Dev-direct Alpha Vantage key (never production)',
-      kind: alphaDev ? ('live' as const) : ('mock' as const),
-    },
-    { name: 'CoinGecko (public crypto)', kind: 'delayed' as const },
-    { name: 'ExchangeRate API (public FX quotes)', kind: 'delayed' as const },
-  ];
+  const health = getMarketDataHealthSnapshot();
+  const modeLabel =
+    health.runtimeMode === 'synthetic' ? 'Synthetic / sample (default)' : 'Vendor (opt-in)';
 
   return (
     <Screen scrollable>
-      <Header title="Market data health" subtitle="API status & honesty" />
+      <Header title="Market data health" subtitle="Sources & refresh policy" />
 
       <View className="mt-4 gap-3">
-        {providers.map((p) => (
-          <GlassCard key={p.name} className="flex-row items-center justify-between p-4">
-            <Text variant="body-sm" className="mr-3 flex-1">
-              {p.name}
+        <GlassCard className="p-4">
+          <Text variant="h3" className="mb-2">
+            This build
+          </Text>
+          <View className="mb-2 flex-row items-center justify-between gap-3">
+            <Text variant="body-sm" className="flex-1 text-text-secondary">
+              Runtime mode
             </Text>
-            <DataSourceBadge kind={p.kind} />
+            <Badge label={modeLabel} variant="outline" size="sm" />
+          </View>
+          <Text variant="body-sm" className="text-text-secondary">
+            TradeAcademy does not need Finnhub, Alpha Vantage, CoinGecko, or News API keys on the
+            device. Learning, Practice, and Simulation run on labelled sample/synthetic data.
+            Optional live Markets quotes for verified signed-in users go through Cloud Functions
+            secrets — never Expo public client keys.
+          </Text>
+        </GlassCard>
+
+        {health.rows.map((row) => (
+          <GlassCard key={row.id} className="p-4">
+            <View className="mb-2 flex-row items-start justify-between gap-3">
+              <Text variant="body-sm" className="flex-1 font-semibold">
+                {row.title}
+              </Text>
+              <Badge
+                label={row.statusLabel}
+                variant={BADGE_VARIANT[row.status]}
+                size="sm"
+              />
+            </View>
+            <Text variant="caption" className="text-text-tertiary">
+              {row.detail}
+            </Text>
           </GlassCard>
         ))}
 
         <GlassCard className="p-4">
           <Text variant="h3" className="mb-2">
-            Production path
+            Refresh policy
           </Text>
           <Text variant="body-sm" className="text-text-secondary">
-            Signed-in users fetch Finnhub / Alpha Vantage / News through authenticated Cloud
-            Functions with quotas and App Check. Guest and demo modes use sample or public no-key
-            sources — vendor secrets must not ship in EAS production env.
+            Quote refetch ~{Math.round(health.refreshPolicy.quoteRefetchMs / 1000)}s · Candle
+            refetch ~{Math.round(health.refreshPolicy.candleRefetchMs / 1000)}s when a live or
+            public path is used. Synthetic training data is local and does not poll vendors.
           </Text>
         </GlassCard>
       </View>

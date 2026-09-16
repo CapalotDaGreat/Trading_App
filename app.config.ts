@@ -72,7 +72,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     supportsTablet: true,
     usesAppleSignIn: true,
     bundleIdentifier: BUNDLE_IDENTIFIER,
-    buildNumber: '1',
+    // buildNumber is owned by EAS remote appVersionSource — do not hardcode here.
     associatedDomains: ['applinks:tradeacademy.cloud', 'applinks:www.tradeacademy.cloud'],
     infoPlist: {
       // remote-notification = push; processing = expo-background-task (BGTaskScheduler)

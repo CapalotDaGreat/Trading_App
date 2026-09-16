@@ -382,7 +382,7 @@ export function TradingDnaCard({ dna, compact = false, limited = false }: Tradin
 
         {limited && !compact ? (
           <CollapsibleSection
-            title="Full DNA"
+            title="Full process profile"
             description="Premium includes all traits, history, and monthly review."
           >
             <Text variant="body-sm" className="text-text-secondary">

@@ -10,33 +10,63 @@ interface ThemeProviderProps {
   children: ReactNode;
 }
 
+function resolveTheme(
+  mode: 'light' | 'dark' | 'system',
+  systemScheme: string | null | undefined,
+): 'light' | 'dark' {
+  if (mode === 'system') {
+    return systemScheme === 'light' ? 'light' : 'dark';
+  }
+  return mode;
+}
+
+/**
+ * Keep NativeWind + Zustand theme in sync without synchronous setState in effects
+ * (React 19 / Expo web treats that as a hard error).
+ */
 export function ThemeProvider({ children }: ThemeProviderProps) {
   const systemScheme = useSystemColorScheme();
-  const { mode, resolvedTheme, setResolvedTheme } = useThemeStore();
+  const mode = useThemeStore((s) => s.mode);
+  const setResolvedTheme = useThemeStore((s) => s.setResolvedTheme);
+
+  const displayTheme = resolveTheme(mode, systemScheme);
 
   useEffect(() => {
-    if (mode === 'system') {
-      colorScheme.set('system');
-      const next = systemScheme === 'light' ? 'light' : 'dark';
-      setResolvedTheme(next);
-    } else {
-      colorScheme.set(mode);
-      setResolvedTheme(mode);
-    }
-  }, [mode, systemScheme, setResolvedTheme]);
+    let cancelled = false;
+    const timer = setTimeout(() => {
+      if (cancelled) return;
+      try {
+        colorScheme.set(mode === 'system' ? 'system' : mode);
+      } catch {
+        // NativeWind may not expose colorScheme on every web SSR path.
+      }
+      if (useThemeStore.getState().resolvedTheme !== displayTheme) {
+        setResolvedTheme(displayTheme);
+      }
+    }, 0);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [mode, displayTheme, setResolvedTheme]);
 
   useEffect(() => {
     const sub = Appearance.addChangeListener(({ colorScheme: scheme }) => {
       if (useThemeStore.getState().mode !== 'system') return;
-      setResolvedTheme(scheme === 'light' ? 'light' : 'dark');
+      const next = scheme === 'light' ? 'light' : 'dark';
+      setTimeout(() => {
+        if (useThemeStore.getState().resolvedTheme !== next) {
+          setResolvedTheme(next);
+        }
+      }, 0);
     });
     return () => sub.remove();
   }, [setResolvedTheme]);
 
-  const isDark = resolvedTheme === 'dark';
+  const isDark = displayTheme === 'dark';
 
   return (
-    <View style={[{ flex: 1 }, themeVars[resolvedTheme]]} className="flex-1 bg-background">
+    <View style={[{ flex: 1 }, themeVars[displayTheme]]} className="flex-1 bg-background">
       <StatusBar style={isDark ? 'light' : 'dark'} />
       {children}
     </View>

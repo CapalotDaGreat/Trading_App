@@ -125,9 +125,11 @@ export default function SimulateScreen() {
     if (startParam === '1' && !account) start(scenarioStartOptions(prepParam, focusParam, difficulty));
   }, [account, difficultyParam, focusParam, prepParam, start, startParam]);
 
+  // Mark-to-market once per session id. refresh is stable via useCallback.
   useEffect(() => {
-    if (account) refresh();
-  }, [account, refresh]);
+    if (!account?.id) return;
+    refresh();
+  }, [account?.id, refresh]);
 
   const openJournal = (symbol: string) => {
     const decision = account?.decisions

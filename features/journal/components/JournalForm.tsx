@@ -93,6 +93,24 @@ export function JournalForm({ onSubmit, isSubmitting, initialSymbol = '', initia
     },
   });
   const watched = useWatch({ control });
+  const draftSnapshot = [
+    watched.symbol,
+    watched.direction,
+    watched.entryPrice,
+    watched.exitPrice,
+    watched.quantity,
+    watched.stopLoss,
+    watched.takeProfit,
+    watched.strategy,
+    watched.tags,
+    watched.emotion,
+    watched.planAdhered,
+    watched.mistakeCategory,
+    watched.notes,
+    watched.lessonsLearned,
+    watched.improvementCommitment,
+    watched.linkedReplayHref,
+  ].join('\u0001');
 
   useEffect(() => {
     const notes = typeof watched.notes === 'string' ? watched.notes.trim() : '';
@@ -119,7 +137,9 @@ export function JournalForm({ onSubmit, isSubmitting, initialSymbol = '', initia
       });
     }, 500);
     return () => clearTimeout(timer);
-  }, [saveDraft, watched]);
+    // Primitive snapshot avoids re-firing when useWatch returns a new object identity.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- draftSnapshot encodes watched fields
+  }, [draftSnapshot, saveDraft]);
 
   const submit = handleSubmit(async (values) => {
     const tags = (values.tags ?? '')

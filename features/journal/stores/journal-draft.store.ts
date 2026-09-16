@@ -29,12 +29,20 @@ interface JournalDraftState {
   clearDraft: () => void;
 }
 
+function sameDraft(a: JournalDraftValues | null, b: JournalDraftValues): boolean {
+  if (!a) return false;
+  return JSON.stringify(a) === JSON.stringify(b);
+}
+
 export const useJournalDraftStore = create<JournalDraftState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       draft: null,
       savedAt: null,
-      saveDraft: (draft) => set({ draft, savedAt: new Date().toISOString() }),
+      saveDraft: (draft) => {
+        if (sameDraft(get().draft, draft)) return;
+        set({ draft, savedAt: new Date().toISOString() });
+      },
       clearDraft: () => set({ draft: null, savedAt: null }),
     }),
     {

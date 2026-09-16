@@ -102,4 +102,9 @@ describe('release UX navigation smoke', () => {
     expect(COLD_DEEP_LINK_FALLBACKS.portfolio).toBe('/simulate');
     expect(COLD_DEEP_LINK_FALLBACKS.ask).toBe('/ai');
   });
+
+  it('does not treat retired Portfolio as a cold-start destination', () => {
+    expect(Object.values(COLD_DEEP_LINK_FALLBACKS)).not.toContain('/portfolio');
+    expect(COLD_DEEP_LINK_FALLBACKS.portfolio).toBe('/simulate');
+  });
 });

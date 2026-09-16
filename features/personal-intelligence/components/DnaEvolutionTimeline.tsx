@@ -18,7 +18,7 @@ export function DnaEvolutionTimeline({ points }: DnaEvolutionTimelineProps) {
     return (
       <GlassCard className="p-4">
         <Text variant="body-sm" className="text-text-secondary">
-          DNA evolution appears as your Decision Log accumulates monthly process patterns.
+          Process-pattern history appears as your Decision Log accumulates monthly evidence.
         </Text>
       </GlassCard>
     );
@@ -27,7 +27,7 @@ export function DnaEvolutionTimeline({ points }: DnaEvolutionTimelineProps) {
   return (
     <View className="gap-3" testID="dna-evolution-timeline">
       <Text variant="caption" className="font-semibold uppercase tracking-wide text-text-tertiary">
-        DNA evolution
+        Process-pattern history
       </Text>
       {points.map((point, index) => (
         <Animated.View key={point.monthKey} entering={fadeInDown(reduceMotion, { delay: index * 40 })}>

@@ -194,12 +194,7 @@ function CandlestickChartComponent({
       style={{ height }}
     >
       {dimensions.width > 0 ? (
-        <Svg
-          width={dimensions.width}
-          height={dimensions.height}
-          accessible={false}
-          importantForAccessibility="no-hide-descendants"
-        >
+        <Svg width={dimensions.width} height={dimensions.height}>
           {priceLabels.map((price, i) => {
             const y =
               CHART_PADDING.top +

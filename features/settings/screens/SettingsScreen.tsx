@@ -126,7 +126,7 @@ export function SettingsScreen() {
         <SettingsRow
           icon="pulse-outline"
           label="Market data health"
-          description="API keys & refresh policy"
+          description="Sources, honesty labels & refresh policy"
           showChevron
           onPress={() => router.push('/settings/market-data' as never)}
         />

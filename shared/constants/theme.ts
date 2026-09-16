@@ -65,8 +65,9 @@ export const colors = {
     secondary: '#A8B4C4',
     tertiary: '#8492A6',
     inverse: '#151922',
-    onAccent: '#06201D',
-    onDanger: '#270707',
+    /** High-contrast label on teal accent (was near-black and read as broken on dark UI). */
+    onAccent: '#FFFFFF',
+    onDanger: '#FFFFFF',
   },
   light: {
     background: {

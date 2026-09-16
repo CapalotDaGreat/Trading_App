@@ -69,7 +69,7 @@ export function buildCoachingReferences(input: {
     {
       id: 'journal',
       label: 'Journal',
-      reason: 'Close the loop so DNA and the graph can update.',
+      reason: 'Close the loop so process patterns and the graph can update.',
       href: '/journal',
     },
     {

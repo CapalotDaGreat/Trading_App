@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useCallback, useEffect } from 'react';
 
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { inferScenarioContext, ingestSimulationCheckpoint, ingestSimulationDecision } from '@/features/competency';
@@ -22,6 +22,10 @@ import type {
   SimulationTradeInput,
 } from '../types/simulation.types';
 
+const EMPTY_ARCHIVES: NonNullable<
+  ReturnType<typeof useSimulationStore.getState>['archivesByUser'][string]
+> = [];
+
 export function useSimulation(options?: { autoStart?: boolean }) {
   const autoStart = options?.autoStart ?? false;
   const { user } = useAuth();
@@ -29,65 +33,72 @@ export function useSimulation(options?: { autoStart?: boolean }) {
   const displayCurrency = useDisplayCurrency();
   const ensureAccount = useSimulationStore((state) => state.ensureAccount);
   const account = useSimulationStore((state) => state.accountsByUser[userId]);
-  const archives = useSimulationStore((state) => state.archivesByUser[userId] ?? []);
-  const buy = useSimulationStore((state) => state.buy);
-  const sell = useSimulationStore((state) => state.sell);
-  const previewBuy = useSimulationStore((state) => state.previewBuy);
-  const previewSell = useSimulationStore((state) => state.previewSell);
-  const recordCloseReview = useSimulationStore((state) => state.recordCloseReview);
+  const archives = useSimulationStore((state) => state.archivesByUser[userId] ?? EMPTY_ARCHIVES);
+  const buyStore = useSimulationStore((state) => state.buy);
+  const sellStore = useSimulationStore((state) => state.sell);
+  const previewBuyStore = useSimulationStore((state) => state.previewBuy);
+  const previewSellStore = useSimulationStore((state) => state.previewSell);
+  const recordCloseReviewStore = useSimulationStore((state) => state.recordCloseReview);
   const refreshPrices = useSimulationStore((state) => state.refreshPrices);
-  const reset = useSimulationStore((state) => state.reset);
-  const advanceClock = useSimulationStore((state) => state.advanceClock);
-  const advanceToNextInformation = useSimulationStore((state) => state.advanceToNextInformation);
-  const answerDecision = useSimulationStore((state) => state.answerDecision);
+  const resetStore = useSimulationStore((state) => state.reset);
+  const advanceClockStore = useSimulationStore((state) => state.advanceClock);
+  const advanceToNextInformationStore = useSimulationStore((state) => state.advanceToNextInformation);
+  const answerDecisionStore = useSimulationStore((state) => state.answerDecision);
 
   useEffect(() => {
     if (!autoStart) return;
     ensureAccount(userId, undefined, undefined, displayCurrency);
   }, [autoStart, ensureAccount, userId, displayCurrency]);
 
-  const start = (options?: ScenarioStartOptions) =>
-    ensureAccount(userId, undefined, undefined, displayCurrency, options);
+  const start = useCallback(
+    (startOptions?: ScenarioStartOptions) =>
+      ensureAccount(userId, undefined, undefined, displayCurrency, startOptions),
+    [displayCurrency, ensureAccount, userId],
+  );
 
-  const publishProcessEvidence = (account: SimulationAccount) => {
-    const decision = account.decisions.at(-1);
-    if (!decision) return;
-    const process = scoreSimulationProcess(account);
-    const violation = account.lastChallengeViolation?.toLowerCase() ?? '';
-    ingestSimulationDecision({
-      uid: userId,
-      sourceId: decision.id,
-      occurredAt: Date.parse(account.updatedAt) || Date.now(),
-      processQuality: process.composite,
-      thesis: process.thesis,
-      evidence: process.evidence,
-      invalidation: process.invalidation,
-      risk: process.risk,
-      discipline: process.discipline,
-      positionSizing: process.positionSizing,
-      uncertainty: process.uncertainty,
-      eventAwareness: process.informationResponse,
-      emotionalDiscipline: process.behavioral,
-      reflection: process.reflection,
-      simulatedPnl: account.realizedPnL + account.unrealizedPnL,
-      simulatedProfitable: account.totalReturn > 0,
-      flags: {
-        missingInvalidation: !decision.invalidation?.trim(),
-        missingThesis: !decision.thesis?.trim() || decision.thesis === 'Simulated entry',
-        missingEvidence: !decision.evidence?.trim(),
-        exceededRiskLimit: violation.includes('risk') || violation.includes('weight') || violation.includes('drawdown'),
-        fomoEntry: decision.confidence === 'high' && !decision.evidence?.trim(),
-        movedInvalidation: decision.closeReview?.wouldChange?.toLowerCase().includes('invalidation'),
-      },
-      scenarioContext: inferScenarioContext({
-        totalReturn: account.totalReturn,
-        maxWeight: Math.max(0, ...account.positions.map((item) => item.portfolioWeight)),
-        highVolatility: (account.scenario?.complexity?.volatility ?? 0) >= 0.6,
-        earningsEvent: account.scenario?.events.some((item) => item.kind === 'earnings') ?? false,
-        eventWindow: (account.scenario?.events.length ?? 0) > 0,
-      }),
-    });
-  };
+  const publishProcessEvidence = useCallback(
+    (nextAccount: SimulationAccount) => {
+      const decision = nextAccount.decisions.at(-1);
+      if (!decision) return;
+      const process = scoreSimulationProcess(nextAccount);
+      const violation = nextAccount.lastChallengeViolation?.toLowerCase() ?? '';
+      ingestSimulationDecision({
+        uid: userId,
+        sourceId: decision.id,
+        occurredAt: Date.parse(nextAccount.updatedAt) || Date.now(),
+        processQuality: process.composite,
+        thesis: process.thesis,
+        evidence: process.evidence,
+        invalidation: process.invalidation,
+        risk: process.risk,
+        discipline: process.discipline,
+        positionSizing: process.positionSizing,
+        uncertainty: process.uncertainty,
+        eventAwareness: process.informationResponse,
+        emotionalDiscipline: process.behavioral,
+        reflection: process.reflection,
+        simulatedPnl: nextAccount.realizedPnL + nextAccount.unrealizedPnL,
+        simulatedProfitable: nextAccount.totalReturn > 0,
+        flags: {
+          missingInvalidation: !decision.invalidation?.trim(),
+          missingThesis: !decision.thesis?.trim() || decision.thesis === 'Simulated entry',
+          missingEvidence: !decision.evidence?.trim(),
+          exceededRiskLimit:
+            violation.includes('risk') || violation.includes('weight') || violation.includes('drawdown'),
+          fomoEntry: decision.confidence === 'high' && !decision.evidence?.trim(),
+          movedInvalidation: decision.closeReview?.wouldChange?.toLowerCase().includes('invalidation'),
+        },
+        scenarioContext: inferScenarioContext({
+          totalReturn: nextAccount.totalReturn,
+          maxWeight: Math.max(0, ...nextAccount.positions.map((item) => item.portfolioWeight)),
+          highVolatility: (nextAccount.scenario?.complexity?.volatility ?? 0) >= 0.6,
+          earningsEvent: nextAccount.scenario?.events.some((item) => item.kind === 'earnings') ?? false,
+          eventWindow: (nextAccount.scenario?.events.length ?? 0) > 0,
+        }),
+      });
+    },
+    [userId],
+  );
 
   const symbols = SYNTHETIC_UNIVERSE.map((item) => item.symbol);
   const scenarioSymbols = account?.scenario?.assets.map((item) => item.symbol) ?? symbols;
@@ -97,23 +108,24 @@ export function useSimulation(options?: { autoStart?: boolean }) {
         .map((symbol) => getSyntheticQuote(symbol))
         .filter((quote): quote is SimulationQuote => quote != null);
 
-  const listedName = (symbol: string) =>
-    account?.scenario?.assets.find((item) => item.symbol === symbol.toUpperCase())?.name ??
-    listedSyntheticName(symbol);
+  const listedName = useCallback(
+    (symbol: string) =>
+      account?.scenario?.assets.find((item) => item.symbol === symbol.toUpperCase())?.name ??
+      listedSyntheticName(symbol),
+    [account?.scenario?.assets],
+  );
 
-  return {
-    userId,
-    account,
-    archives,
-    quotes,
-    universe: account?.scenario?.assets ?? SYNTHETIC_UNIVERSE,
-    listedName,
-    snapshot: account ? resetSnapshot(account) : undefined,
-    start,
-    previewBuy: (input: Omit<SimulationTradeInput, 'price'> & { price?: number }) => previewBuy(userId, input),
-    previewSell: (input: Omit<SimulationTradeInput, 'price'> & { price?: number }) => previewSell(userId, input),
-    buy: (input: Omit<SimulationTradeInput, 'price'> & { price?: number }) => {
-      const result = buy(userId, input);
+  const previewBuy = useCallback(
+    (input: Omit<SimulationTradeInput, 'price'> & { price?: number }) => previewBuyStore(userId, input),
+    [previewBuyStore, userId],
+  );
+  const previewSell = useCallback(
+    (input: Omit<SimulationTradeInput, 'price'> & { price?: number }) => previewSellStore(userId, input),
+    [previewSellStore, userId],
+  );
+  const buy = useCallback(
+    (input: Omit<SimulationTradeInput, 'price'> & { price?: number }) => {
+      const result = buyStore(userId, input);
       if (result.ok) {
         publishProcessEvidence(result.value);
         feedbackHaptic('success');
@@ -123,8 +135,11 @@ export function useSimulation(options?: { autoStart?: boolean }) {
       }
       return result;
     },
-    sell: (input: Omit<SimulationTradeInput, 'price'> & { price?: number }) => {
-      const result = sell(userId, input);
+    [buyStore, publishProcessEvidence, userId],
+  );
+  const sell = useCallback(
+    (input: Omit<SimulationTradeInput, 'price'> & { price?: number }) => {
+      const result = sellStore(userId, input);
       if (result.ok) {
         feedbackHaptic('selection');
         queueEducationalReminder('journal', 60 * 60 * 4);
@@ -133,16 +148,25 @@ export function useSimulation(options?: { autoStart?: boolean }) {
       }
       return result;
     },
-    recordCloseReview: (decisionId: string, review: SimulationCloseReview) => {
-      const account = recordCloseReview(userId, decisionId, review);
-      publishProcessEvidence(account);
-      return account;
+    [sellStore, userId],
+  );
+  const recordCloseReview = useCallback(
+    (decisionId: string, review: SimulationCloseReview) => {
+      const next = recordCloseReviewStore(userId, decisionId, review);
+      publishProcessEvidence(next);
+      return next;
     },
-    refresh: () => refreshPrices(userId),
-    advanceClock: () => advanceClock(userId),
-    advanceToNextInformation: () => advanceToNextInformation(userId),
-    answerDecision: (windowId: string, option: ScenarioDecisionOption, reasoning?: string) => {
-      const next = answerDecision(userId, windowId, option, reasoning);
+    [publishProcessEvidence, recordCloseReviewStore, userId],
+  );
+  const refresh = useCallback(() => refreshPrices(userId), [refreshPrices, userId]);
+  const advanceClock = useCallback(() => advanceClockStore(userId), [advanceClockStore, userId]);
+  const advanceToNextInformation = useCallback(
+    () => advanceToNextInformationStore(userId),
+    [advanceToNextInformationStore, userId],
+  );
+  const answerDecision = useCallback(
+    (windowId: string, option: ScenarioDecisionOption, reasoning?: string) => {
+      const next = answerDecisionStore(userId, windowId, option, reasoning);
       const window = next.scenario?.decisionWindows.find((item) => item.id === windowId);
       ingestSimulationCheckpoint({
         uid: userId,
@@ -163,8 +187,33 @@ export function useSimulation(options?: { autoStart?: boolean }) {
       });
       return next;
     },
-    reset: (mode?: SimulationMode, challengeId?: string, currency?: string, options?: ScenarioStartOptions) =>
-      reset(userId, mode, challengeId, currency ?? displayCurrency, options),
+    [answerDecisionStore, userId],
+  );
+  const reset = useCallback(
+    (mode?: SimulationMode, challengeId?: string, currency?: string, startOptions?: ScenarioStartOptions) =>
+      resetStore(userId, mode, challengeId, currency ?? displayCurrency, startOptions),
+    [displayCurrency, resetStore, userId],
+  );
+
+  return {
+    userId,
+    account,
+    archives,
+    quotes,
+    universe: account?.scenario?.assets ?? SYNTHETIC_UNIVERSE,
+    listedName,
+    snapshot: account ? resetSnapshot(account) : undefined,
+    start,
+    previewBuy,
+    previewSell,
+    buy,
+    sell,
+    recordCloseReview,
+    refresh,
+    advanceClock,
+    advanceToNextInformation,
+    answerDecision,
+    reset,
     displayCurrency,
   };
 }

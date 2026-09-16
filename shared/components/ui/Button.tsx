@@ -1,5 +1,5 @@
 import { type ReactNode } from 'react';
-import { ActivityIndicator, Pressable, type PressableProps } from 'react-native';
+import { ActivityIndicator, Pressable, Text, type PressableProps } from 'react-native';
 import Animated from 'react-native-reanimated';
 
 import { useInteractivePress } from '@/shared/hooks/useInteractivePress';
@@ -42,7 +42,7 @@ const sizeStyles: Record<ButtonSize, string> = {
 const textVariantStyles: Record<ButtonVariant, string> = {
   primary: 'text-text-on-accent font-semibold',
   secondary: 'text-text-primary font-medium',
-  ghost: 'text-text-primary font-medium',
+  ghost: 'text-accent font-medium',
   danger: 'text-text-on-danger font-semibold',
   outline: 'text-accent font-semibold',
 };
@@ -85,6 +85,19 @@ export function Button({
     onPressOut,
   });
 
+  // Explicit paints: Reanimated's AnimatedPressable/Text often drop NativeWind
+  // className on web, which left CTAs as black-on-dark in store screenshots.
+  const paint =
+    variant === 'primary'
+      ? { backgroundColor: colors.accent.primary, color: colors.text.onAccent }
+      : variant === 'secondary'
+        ? { backgroundColor: colors.surface.default, color: colors.text.primary }
+        : variant === 'danger'
+          ? { backgroundColor: colors.bearish.primary, color: colors.text.onDanger }
+          : variant === 'outline'
+            ? { backgroundColor: colors.accent.muted, color: colors.accent.primary }
+            : { backgroundColor: 'transparent', color: colors.accent.primary };
+
   return (
     <AnimatedPressable
       accessibilityRole="button"
@@ -98,7 +111,13 @@ export function Button({
       onPress={interaction.handlePress}
       onPressIn={interaction.handlePressIn}
       onPressOut={interaction.handlePressOut}
-      style={[interaction.animatedStyle, { minHeight: minTouch }]}
+      style={[
+        interaction.animatedStyle,
+        {
+          minHeight: minTouch,
+          backgroundColor: isDisabled ? colors.disabled.background : paint.backgroundColor,
+        },
+      ]}
       className={cn(
         'flex-row flex-wrap items-center justify-center py-2',
         variantStyles[variant],
@@ -123,7 +142,7 @@ export function Button({
       ) : (
         <>
           {leftIcon}
-          <Animated.Text
+          <Text
             className={cn(
               textVariantStyles[variant],
               textSizeStyles[size],
@@ -132,11 +151,12 @@ export function Button({
               isDisabled && 'text-disabled-foreground',
               textClassName,
             )}
+            style={{ color: isDisabled ? colors.disabled.foreground : paint.color }}
             allowFontScaling
             maxFontSizeMultiplier={1.8}
           >
             {children}
-          </Animated.Text>
+          </Text>
           {rightIcon}
         </>
       )}

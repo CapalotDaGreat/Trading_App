@@ -1,40 +1,39 @@
 # Store screenshot inventory
 
-Capture screenshots from the signed release candidate with production-like,
-honestly labelled data. Do not use generated market candles or cloud-AI output.
+## Status (2026-09-16 — real iPhone heroes)
 
-Required scenes:
+**App Store drafts** under `app-store/` are composed from **real iPhone
+screenshots** in `source/iphone-device/`, with marketing hero captions and a
+device frame.
 
-1. Today brief and Start Here decision flow
-2. Research Queue with RVS explanation
-3. Asset research with actual source/freshness badge
-4. Explicit Research / Skip / Ignore decision
-5. Journal and free basic Review / Process Tape
-6. Premium plan comparison showing only implemented deeper capabilities and cancellation terms
-7. Academy or coaching remediation
+Regenerate with:
 
-Required exports:
+```bash
+python scripts/export-store-screenshots.py
+```
 
-- App Store iPhone 6.7-inch: `store/screenshots/app-store/iphone-6.7/`
-- App Store iPhone 6.5-inch: `store/screenshots/app-store/iphone-6.5/`
-- App Store iPad Pro 12.9-inch: `store/screenshots/app-store/ipad-pro-12.9/`
-- Play Store phone: `store/screenshots/play-store/phone/`
-- Play Store 7-inch tablet: `store/screenshots/play-store/tablet-7/`
-- Play Store 10-inch tablet: `store/screenshots/play-store/tablet-10/`
-- Play Store feature graphic: `store/screenshots/play-store/feature-graphic/`
+### Scenes (01 → 07)
 
-These are target inventory paths, not evidence that assets have been captured.
-Keep metadata screenshot arrays empty until reviewed files exist.
+1. **Welcome** — Learn trading. / Practice the decision.
+2. **Home** — Your training center
+3. **Simulate** — $100,000 paper capital
+4. **Practice (trend)** — Train judgment
+5. **Practice (breakout)** — Process over urgency
+6. **Events** — Learn the event
+7. **Decision Replay TV** — Reason with the information you had then.
 
-Before upload, verify status bars contain no personal data, all legal copy is
-current, no screen implies brokerage execution or price-direction prediction,
-and each filename/device mapping is added to `store/metadata`. Also verify:
+### Sizes
 
-- [ ] Data source and freshness labels are legible.
-- [ ] No production screenshot shows cloud-AI output or cloud-AI marketing.
-- [ ] Free screenshots demonstrate Brief, top-three queue, journal, and basic Review without a
-      paywall.
-- [ ] Premium screenshots show renewal, cancellation, and paid-through wording.
-- [ ] Terms, Privacy, Support, and account-deletion links open.
-- [ ] Account-deletion screenshots warn that store billing is not cancelled.
-- [ ] Every image comes from the signed release candidate at the required size.
+| Folder | Pixels |
+| --- | --- |
+| `app-store/iphone-6.7/` | 1290 × 2796 |
+| `app-store/iphone-6.5/` | 1284 × 2778 (ASC 6.5" Display) |
+| `app-store/ipad-pro-12.9/` | 2048 × 2732 (ASC 13" / 12.9") |
+
+### ASC upload
+
+- **iPhone → 6.5" Display:** `iphone-6.5/*.png` in order 01→07  
+- **iPad → 13" Display:** `ipad-pro-12.9/*.png` in order 01→07  
+
+Sources keep the real status bar / Dynamic Island. Captions sit above a framed
+phone; UI is contain-scaled and top-aligned (headers never cover-cropped).

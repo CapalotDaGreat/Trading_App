@@ -108,11 +108,11 @@ export function buildEvidencePack(
     },
     {
       id: 'portfolio',
-      label: 'Portfolio Context',
+      label: 'Paper simulation context',
       detail: context.portfolioHoldings?.length
-        ? `${context.portfolioHoldings.length} holding(s) in context`
-        : 'No holdings in this request',
-      href: '/(tabs)/portfolio',
+        ? `${context.portfolioHoldings.length} simulated holding(s) in context`
+        : 'No simulated holdings in this request',
+      href: '/simulate',
       present: Boolean(context.portfolioHoldings?.length),
     },
     {

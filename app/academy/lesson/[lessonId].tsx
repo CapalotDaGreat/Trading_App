@@ -219,7 +219,7 @@ export default function AcademyLessonScreen() {
       <View className="mt-4 gap-3">
         <EducationalPanel
           variant="practice"
-          title="Practice recommendation"
+          title="Practice ideas from this lesson"
           body={framing.practiceRecommendation}
         />
         <EducationalPanel

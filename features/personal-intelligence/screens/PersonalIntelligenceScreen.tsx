@@ -69,7 +69,7 @@ export function PersonalIntelligenceScreen() {
             </CollapsibleSection>
             <CollapsibleSection
               title="Process goals"
-              description="Adaptive goals and DNA process targets."
+              description="Adaptive goals and process targets."
               defaultExpanded={false}
             >
               <DnaProcessGoalsCard isPremium={isPremium} />
@@ -105,8 +105,8 @@ export function PersonalIntelligenceScreen() {
             ) : (
               <PremiumOsGate feature="tradingDnaInsights">
                 <Text variant="body-sm" className="text-text-secondary">
-                  Premium includes DNA evolution, advanced patterns, monthly self-comparison, and
-                  deeper Mentor integration.
+                  Premium includes process-pattern history, advanced patterns, monthly self-comparison,
+                  and deeper Mentor integration.
                 </Text>
               </PremiumOsGate>
             )}

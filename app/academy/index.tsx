@@ -47,7 +47,20 @@ export default function AcademyScreen() {
   const { paths } = useLearningPaths();
   const { checklists } = useAcademyChecklists();
   const isPremium = useSubscriptionStore((s) => s.isPremium);
-  const discipline = useAcademyProgressStore((s) => s.getDisciplineStreak());
+  const disciplineStreakDays = useAcademyProgressStore((s) => s.disciplineStreakDays);
+  const disciplineSlice = useAcademyProgressStore((s) => s.discipline);
+  const discipline = useMemo(() => {
+    const day = new Date().toISOString().slice(0, 10);
+    const today =
+      disciplineSlice?.day === day
+        ? {
+            brief: disciplineSlice.brief,
+            lesson: disciplineSlice.lesson,
+            journal: disciplineSlice.journal,
+          }
+        : { brief: false, lesson: false, journal: false };
+    return { days: disciplineStreakDays, today };
+  }, [disciplineSlice, disciplineStreakDays]);
   const savedLessonIds = useAcademyProgressStore((s) => s.savedLessonIds);
   const { primary, openItem, defer } = useLearningEngine();
 

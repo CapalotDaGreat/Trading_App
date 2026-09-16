@@ -40,7 +40,7 @@ export function buildLegacyRouteRedirect(
     | '/you'
     | '/research'
     | '/review'
-    | '/portfolio'
+    | '/simulate'
     | '/decision/mentor'
     | '/decision/intelligence',
   params: RouteParams = {},

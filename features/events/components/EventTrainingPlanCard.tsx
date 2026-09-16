@@ -26,7 +26,7 @@ export function EventTrainingPlanCard({ plan }: { plan: EventTrainingPlan }) {
         </Text>
       ) : null}
       <Text variant="body-sm" className="mt-2 text-text-secondary">
-        Recommended study — not a trade alert, and not a prediction of this event. The Training Planner still picks what to do next.
+        Related study for this calendar — not a trade alert, not a prediction, and not an override of Today&apos;s Training. Home&apos;s planner still picks the next action.
       </Text>
       <View className="mt-3 gap-2">
         {plan.primary === 'practice' ? (

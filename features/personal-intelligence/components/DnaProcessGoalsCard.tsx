@@ -54,8 +54,8 @@ export function DnaProcessGoalsCard({ isPremium }: DnaProcessGoalsCardProps) {
       ) : (
         <PremiumOsGate feature="tradingDnaInsights">
           <Text variant="body-sm" className="text-text-secondary">
-            Free includes suggested goals from your DNA. Premium saves and tracks up to two process
-            goals.
+            Free includes suggested goals from your process patterns. Premium saves and tracks up to
+            two process goals.
           </Text>
         </PremiumOsGate>
       )}

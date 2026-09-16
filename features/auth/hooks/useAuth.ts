@@ -56,7 +56,7 @@ import {
 const DEMO_GUEST_USER: AuthUser = {
   uid: DEMO_USER_UID,
   email: null,
-  displayName: 'Guest Trader',
+  displayName: 'Guest',
   photoURL: null,
   emailVerified: false,
   isAnonymous: true,

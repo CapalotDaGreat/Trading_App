@@ -36,23 +36,46 @@ const initialState = {
 
 export const useSubscriptionStore = create<SubscriptionState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       ...initialState,
-      setTier: (tier) =>
+      setTier: (tier) => {
+        const current = get();
+        const isPremium = tier === 'premium';
+        if (current.tier === tier && current.isPremium === isPremium) return;
         set({
           tier,
-          isPremium: tier === 'premium',
-        }),
-      setPremium: (isPremium, productId, expirationDate, ownerUid) =>
-        set({
-          ownerUid: ownerUid ?? null,
           isPremium,
-          tier: isPremium ? 'premium' : 'free',
-          productId: productId ?? null,
-          expirationDate: expirationDate ?? null,
+        });
+      },
+      setPremium: (isPremium, productId, expirationDate, ownerUid) => {
+        const current = get();
+        const nextOwner = ownerUid ?? null;
+        const nextProduct = productId ?? null;
+        const nextExpires = expirationDate ?? null;
+        const nextTier = isPremium ? 'premium' : 'free';
+        if (
+          current.ownerUid === nextOwner &&
+          current.isPremium === isPremium &&
+          current.tier === nextTier &&
+          current.productId === nextProduct &&
+          current.expirationDate === nextExpires &&
+          current.isLoading === false
+        ) {
+          return;
+        }
+        set({
+          ownerUid: nextOwner,
+          isPremium,
+          tier: nextTier,
+          productId: nextProduct,
+          expirationDate: nextExpires,
           isLoading: false,
-        }),
-      setLoading: (isLoading) => set({ isLoading }),
+        });
+      },
+      setLoading: (isLoading) => {
+        if (get().isLoading === isLoading) return;
+        set({ isLoading });
+      },
       reset: () => set({ ...initialState, isLoading: false }),
     }),
     {

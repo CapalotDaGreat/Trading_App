@@ -13,16 +13,27 @@ interface EventCacheState {
 
 export const useEventCacheStore = create<EventCacheState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       events: [],
       fetchedAt: 0,
       source: null,
-      remember: (events, fetchedAt, source) =>
+      remember: (events, fetchedAt, source) => {
+        const current = get();
+        const nextSource = source ?? events[0]?.source ?? null;
+        if (
+          current.fetchedAt === fetchedAt &&
+          current.source === nextSource &&
+          current.events.length === events.length &&
+          (events.length === 0 || current.events[0]?.id === events[0]?.id)
+        ) {
+          return;
+        }
         set({
           events,
           fetchedAt,
-          source: source ?? events[0]?.source ?? null,
-        }),
+          source: nextSource,
+        });
+      },
     }),
     {
       name: 'tradeacademy-event-cache-v1',

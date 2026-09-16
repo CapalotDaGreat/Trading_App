@@ -19,10 +19,21 @@ export function useMarketEvents(options?: {
   const cachedAt = useEventCacheStore((state) => state.fetchedAt);
   const remember = useEventCacheStore((state) => state.remember);
 
+  const calendarEventCount = calendar.events.length;
+  const calendarHeadId = calendar.events[0]?.id;
+  const calendarFetchedAt = calendar.dataUpdatedAt ?? 0;
+
   useEffect(() => {
-    if (calendar.isError || calendar.events.length === 0) return;
-    remember(calendar.events, calendar.dataUpdatedAt || Date.now(), calendar.events[0]?.source);
-  }, [calendar.dataUpdatedAt, calendar.events, calendar.isError, remember]);
+    if (calendar.isError || calendarEventCount === 0) return;
+    remember(calendar.events, calendarFetchedAt || Date.now(), calendar.events[0]?.source);
+  }, [
+    calendar.isError,
+    calendar.events,
+    calendarEventCount,
+    calendarFetchedAt,
+    calendarHeadId,
+    remember,
+  ]);
 
   const fromCache = Boolean(calendar.isError && cached.length > 0);
   const calendarEvents = calendar.isError ? cached : calendar.events;

@@ -20,13 +20,32 @@ export const useOpsConfigStore = create<OpsConfigState>((set, get) => ({
   snapshot: createDefaultOpsBootstrap(),
   evaluated: evaluateAllFlags(createDefaultOpsBootstrap().flags),
   setSnapshot: (snapshot, context = {}) => {
+    const current = get();
+    const evaluated = evaluateAllFlags(snapshot.flags, context);
+    if (
+      current.snapshot === snapshot &&
+      Object.keys(evaluated).every(
+        (key) => evaluated[key as keyof OpsFeatureFlags] === current.evaluated[key as keyof OpsFeatureFlags],
+      )
+    ) {
+      return;
+    }
     set({
       snapshot,
-      evaluated: evaluateAllFlags(snapshot.flags, context),
+      evaluated,
     });
   },
   reevaluate: (context) => {
-    set({ evaluated: evaluateAllFlags(get().snapshot.flags, context) });
+    const evaluated = evaluateAllFlags(get().snapshot.flags, context);
+    const current = get().evaluated;
+    if (
+      Object.keys(evaluated).every(
+        (key) => evaluated[key as keyof OpsFeatureFlags] === current[key as keyof OpsFeatureFlags],
+      )
+    ) {
+      return;
+    }
+    set({ evaluated });
   },
 }));
 

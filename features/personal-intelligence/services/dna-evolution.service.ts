@@ -66,7 +66,7 @@ export function buildDnaEvolution(input: {
         monthKey: currentMonth,
         label: monthLabel(currentMonth),
         styleLabel: input.dna.becomingLabel,
-        summary: 'Not enough evidence yet to chart DNA evolution.',
+        summary: 'Not enough evidence yet to chart process-pattern history.',
         dominantTraits: [],
         hasEvidence: false,
       },

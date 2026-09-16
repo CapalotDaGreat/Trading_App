@@ -140,12 +140,19 @@ export const useLearningQueueStore = create<LearningQueueState>()(
       recordOpened: (activityKey) => {
         const key = activityKey.trim();
         if (!key) return;
-        const recent = [key, ...get().recentActivityKeys.filter((item) => item !== key)].slice(0, RECENT_CAP);
+        const existing = get().recentActivityKeys;
+        if (existing[0] === key) return;
+        const recent = [key, ...existing.filter((item) => item !== key)].slice(0, RECENT_CAP);
         set({ recentActivityKeys: recent });
       },
       setHandoff: (handoff) => set({ activeHandoff: handoff }),
       setSessionLength: (length) => set({ sessionLength: length }),
-      setPlannerPrimaryCta: (cta) => set({ plannerPrimaryCta: cta }),
+      setPlannerPrimaryCta: (cta) => {
+        const current = get().plannerPrimaryCta;
+        if (current?.label === cta?.label && current?.href === cta?.href) return;
+        if (current == null && cta == null) return;
+        set({ plannerPrimaryCta: cta });
+      },
       mergeFromRemote: (input) => {
         const dispositions = { ...get().dispositions };
         for (const [id, row] of Object.entries(input.dispositions)) {

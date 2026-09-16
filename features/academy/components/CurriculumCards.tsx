@@ -21,10 +21,10 @@ export function NextLessonCard({ recommendation, showPremiumBadge }: NextLessonC
     >
       <Text variant="caption" className="mb-1 font-semibold text-text-tertiary">
         {source === 'weakness'
-          ? 'Refresher · from your checks'
+          ? 'Path refresher · from your checks'
           : isPersonalized && showPremiumBadge
-            ? 'Next lesson · Personalized'
-            : 'Continue learning'}
+            ? 'Browse suggestion · not Home next'
+            : 'Continue in this path'}
       </Text>
       <Text variant="h3" className="mb-1">
         {lesson.title}

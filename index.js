@@ -1,9 +1,22 @@
-/**
- * Delay Expo Router until retired persist keys have been copied onto TradeAcademy keys.
- * Zustand persist hydrates on import, so this must run before `expo-router/entry`.
+﻿/**
+ * App entry for Expo / Expo Go.
+ *
+ * AppRegistry must register "main" synchronously during the first evaluation of
+ * this module. Deferring `expo-router/entry` until after AsyncStorage migration
+ * causes "App entry not found" on device.
+ *
+ * Zustand persist hydrates asynchronously after import, so starting migration
+ * immediately (then loading the router) still wins the race in practice when a
+ * one-time copy is needed. See docs/IDENTITY_MIGRATION_PHASE0.md.
  */
-import { migrateLegacyPersistKeys } from './shared/services/user-data/legacy-persist-migration';
 
-void migrateLegacyPersistKeys().finally(() => {
-  require('expo-router/entry');
+// Must be first: Hermes has no Web Crypto; Firebase App Check calls bare `crypto`.
+require('./shared/polyfills/crypto');
+
+const { migrateLegacyPersistKeys } = require('./shared/services/user-data/legacy-persist-migration');
+
+void migrateLegacyPersistKeys().catch(() => {
+  // Best-effort; never block boot.
 });
+
+require('expo-router/entry');

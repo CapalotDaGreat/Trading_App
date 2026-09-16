@@ -20,8 +20,8 @@ export default function ResearchScreen() {
   return (
     <ScreenScaffold
       eyebrow="Educational context"
-      title="Choose what to study next"
-      subtitle="Connect a concept, event, or asset study to your next practice. This is not a scanner."
+      title="Study context"
+      subtitle="Link a concept, event, or asset study to practice. Home’s Training Planner remains the next-action authority — this is not a scanner."
       contentClassName="pb-12 pt-2"
       testID="research-screen"
     >
