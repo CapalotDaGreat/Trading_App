@@ -1,6 +1,6 @@
 import type { SubscriptionTier } from '@/shared/constants/subscription';
 
-export type SubscriptionPlanId = 'monthly' | 'yearly' | 'lifetime';
+export type SubscriptionPlanId = 'monthly' | 'yearly' | 'lifetime' | 'monthly_12m_commitment';
 
 export type SubscriptionStatus =
   | 'active'
@@ -30,9 +30,18 @@ export interface SubscriptionPlan {
   isPopular?: boolean;
   /** One-time purchase — never renews. */
   isLifetime?: boolean;
+  /** Apple Monthly with a 12-Month Commitment (iOS only when available). */
+  isApple12mCommitment?: boolean;
+  /** Commitment length in months when {@link isApple12mCommitment} is true. */
+  commitmentMonths?: number;
   /** Intro free-trial days (configure matching offer in RevenueCat / store consoles). */
   trialDays?: number;
   trialLabel?: string;
+  /**
+   * True when the price string is a development fallback, not a live StoreKit/Play string.
+   * Never present fallback as the App Store price.
+   */
+  isFallbackPrice?: boolean;
 }
 
 export interface SubscriptionEntitlement {

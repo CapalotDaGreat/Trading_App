@@ -12,7 +12,7 @@ export type SubOpsEvent =
 /** Subscription funnel counters — product class only, never receipts or PII. */
 export async function recordSubscriptionOps(
   event: SubOpsEvent,
-  planId: 'monthly' | 'yearly' | 'lifetime' | null,
+  planId: 'monthly' | 'yearly' | 'lifetime' | 'monthly_12m_commitment' | null,
 ): Promise<void> {
   const fields: Record<string, number> = {
     events: 1,

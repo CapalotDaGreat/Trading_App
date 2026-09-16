@@ -101,17 +101,32 @@ export function PaywallScreen() {
 
   if (isPremium) {
     const isLifetime = subscription?.planId === 'lifetime';
+    const isCommitment = subscription?.planId === 'monthly_12m_commitment';
     const expiryLabel = subscription?.expiresAt
       ? new Date(subscription.expiresAt).toLocaleDateString()
       : null;
+    const planLabel =
+      subscription?.planId === 'monthly_12m_commitment'
+        ? 'Monthly with 12-month commitment'
+        : subscription?.planId === 'yearly'
+          ? 'Yearly'
+          : subscription?.planId === 'monthly'
+            ? 'Monthly'
+            : subscription?.planId === 'lifetime'
+              ? 'Lifetime'
+              : 'Aithera Pro';
     const statusText = isLifetime
       ? 'Aithera Pro Lifetime is active.'
       : subscription?.status === 'cancelled'
-        ? `Cancelled — Aithera Pro remains active until ${expiryLabel ?? 'the end of the paid period'}.`
+        ? isCommitment
+          ? `Renewal cancelled — Aithera Pro stays active while your commitment / paid period continues${expiryLabel ? ` (through ${expiryLabel})` : ''}. Remaining committed payments still apply until Apple shows the commitment complete.`
+          : `Cancelled — Aithera Pro remains active until ${expiryLabel ?? 'the end of the paid period'}.`
         : subscription?.status === 'grace_period' || subscription?.status === 'billing_issue'
           ? `Payment issue — Aithera Pro remains available until ${expiryLabel ?? 'the grace period ends'}.`
           : subscription?.willRenew
-            ? `Renews ${expiryLabel ? `on ${expiryLabel}` : 'automatically'}.`
+            ? isCommitment
+              ? `Monthly 12-month commitment active. Renews after the commitment unless cancelled${expiryLabel ? ` (next period reference ${expiryLabel})` : ''}.`
+              : `Renews ${expiryLabel ? `on ${expiryLabel}` : 'automatically'}.`
             : expiryLabel
               ? `Aithera Pro active until ${expiryLabel}.`
               : 'Aithera Pro is active.';
@@ -123,6 +138,9 @@ export function PaywallScreen() {
           <PremiumBadge size="md" />
           <Text variant="h2" className="mt-4 text-center">
             You&apos;re on Aithera Pro
+          </Text>
+          <Text variant="body-sm" className="mt-2 text-center">
+            Plan: {planLabel}
           </Text>
           <Text variant="body-sm" className="mt-2 text-center">
             Enjoy deeper Academy, Replay, process patterns, and review tools.
@@ -167,9 +185,11 @@ export function PaywallScreen() {
 
   const ctaLabel = selected?.isLifetime
     ? 'Continue with Lifetime'
-    : selected?.trialDays && selectedPlan === 'yearly'
-      ? `Start ${selected.trialLabel ?? `${selected.trialDays}-day free trial`}`
-      : `Continue with ${selected?.title ?? 'Aithera Pro'}`;
+    : selected?.isApple12mCommitment
+      ? 'Continue with Monthly 12-month commitment'
+      : selected?.trialDays && selectedPlan === 'yearly'
+        ? `Start ${selected.trialLabel ?? `${selected.trialDays}-day free trial`}`
+        : `Continue with ${selected?.title ?? 'Aithera Pro'}`;
 
   return (
     <Screen scrollable contentClassName="pb-8">
@@ -273,15 +293,18 @@ export function PaywallScreen() {
             <View className="mb-5 flex-row flex-wrap rounded-2xl bg-surface p-1">
               {plans.map((plan) => {
                 const active = selectedPlan === plan.id;
+                const a11yCommitment = plan.isApple12mCommitment
+                  ? '. Twelve-month commitment. Billed monthly. Cancelling stops renewal after the commitment; remaining committed payments still apply.'
+                  : '';
                 return (
                   <Pressable
                     key={plan.id}
                     accessibilityRole="radio"
-                    accessibilityLabel={`${plan.title}, ${plan.price}${plan.pricePerMonth ? `, ${plan.pricePerMonth}` : ''}${plan.trialLabel ? `, ${plan.trialLabel}` : ''}`}
+                    accessibilityLabel={`${plan.title}, ${plan.price}${plan.pricePerMonth ? `, ${plan.pricePerMonth}` : ''}${plan.trialLabel ? `, ${plan.trialLabel}` : ''}${a11yCommitment}`}
                     accessibilityState={{ checked: active }}
                     onPress={() => setSelectedPlan(plan.id)}
                     className={cn(
-                      'min-h-11 min-w-[30%] flex-1 items-center justify-center rounded-xl px-2 py-3',
+                      'min-h-11 min-w-[22%] flex-1 items-center justify-center rounded-xl px-2 py-3',
                       active && 'bg-background-elevated',
                     )}
                   >
@@ -327,12 +350,37 @@ export function PaywallScreen() {
                   <Text variant="body-sm" className="mt-1 text-text-secondary">
                     {selected?.description}
                   </Text>
+                  {selected?.isFallbackPrice ? (
+                    <Text variant="caption" className="mt-2 text-text-tertiary">
+                      Fallback price for development — App Store / Play price appears when the
+                      offering loads.
+                    </Text>
+                  ) : null}
+                  {selected?.isApple12mCommitment ? (
+                    <View
+                      accessible
+                      accessibilityRole="summary"
+                      accessibilityLabel="Twelve-month commitment. Pay monthly for twelve months. You can cancel renewal during the commitment period, but remaining committed payments still apply. After the twelve-month commitment ends, the subscription will not renew if you cancelled renewal."
+                      className="mt-3 rounded-xl bg-accent-muted/40 p-3"
+                    >
+                      <Text variant="label" className="text-accent">
+                        12-month commitment
+                      </Text>
+                      <Text variant="body-sm" className="mt-1 text-text-secondary">
+                        Pay monthly for 12 months. You can cancel renewal during the commitment,
+                        but the remaining committed payments still apply. After the 12-month
+                        commitment ends, the subscription will not renew if you cancelled renewal.
+                        Not available in all storefronts (including the United States and
+                        Singapore) or on older iOS versions.
+                      </Text>
+                    </View>
+                  ) : null}
                   {selected?.trialLabel ? (
                     <Text variant="caption" className="mt-2 text-accent">
                       Includes {selected.trialLabel} — cancel anytime before it ends
                     </Text>
                   ) : null}
-                  {selected?.savingsPercent && !selected.trialLabel ? (
+                  {selected?.savingsPercent && !selected.trialLabel && !selected.isApple12mCommitment ? (
                     <Text variant="caption" className="mt-2 text-accent">
                       Save {selected.savingsPercent}% vs monthly
                     </Text>
@@ -423,14 +471,16 @@ export function PaywallScreen() {
       ) : null}
 
       <Text variant="caption" className="mt-4 text-center leading-5 text-text-secondary">
-        Payment is charged to your Apple ID or Google Play account at confirmation. Subscriptions
-        auto-renew unless cancelled at least 24 hours before the end of the current period in your
-        store account settings. After a free trial, the listed plan price is charged. Cancelling
-        stops renewal; Aithera Pro remains available until the paid-through date. Free remains
-        available afterwards. Prices shown come from the store when available. Aithera Pro does
-        not provide brokerage execution or exchange-tick realtime data. Lifetime is a one-time
-        purchase and does not auto-renew. Free includes {freeLimits.aiDaily} AI uses/day and up to{' '}
-        {freeLimits.symbols} symbols in one research universe.
+        Payment is charged to your Apple ID or Google Play account at confirmation. Standard
+        subscriptions auto-renew unless cancelled at least 24 hours before the end of the current
+        period in your store account settings. After a free trial, the listed plan price is charged.
+        Cancelling stops renewal; Aithera Pro remains available until the paid-through date. For
+        Monthly with a 12-month commitment (Apple only, when offered), billing is monthly for 12
+        months; cancelling prevents renewal after the commitment, but remaining committed payments
+        still apply. Free remains available afterwards. Prices shown come from the store when
+        available. Aithera Pro does not provide brokerage execution or exchange-tick realtime data.
+        Lifetime is a one-time purchase and does not auto-renew. Free includes {freeLimits.aiDaily}{' '}
+        AI uses/day and up to {freeLimits.symbols} symbols in one research universe.
       </Text>
 
       <View className="mt-3 flex-row flex-wrap items-center justify-center gap-x-3 gap-y-2 pb-4">

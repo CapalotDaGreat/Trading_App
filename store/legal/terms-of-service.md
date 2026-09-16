@@ -1,11 +1,12 @@
 # Terms of Service
 
-**Last updated:** 15 September 2026
-**Version:** 2026.09.15
+**Last updated:** 16 September 2026
+**Version:** 2026.09.16
 **Brand / product:** Aithera / TradeAcademy
 **Operator:** CML Electronics, trading as Aithera (“Aithera”, “we”, “us”, “our”)
 **Registered address:** Höglerstrasse 55, 8600 Dübendorf, Switzerland
-**Contact:** support@tradeacademy.cloud
+**Contact email:** support@tradeacademy.cloud
+**Claims telephone:** +41 78 672 88 05
 **Website:** https://tradeacademy.cloud
 
 These Terms of Service (“Terms”) govern your access to and use of the TradeAcademy mobile application and related services (the “Service”). By creating an account, tapping accept, or using cloud features of the Service, you agree to these Terms and our Privacy Policy, Risk & Investment Disclaimer, and Account Deletion Notice. Exploring Guest/demo mode remains subject to the educational and risk notices shown in the app.
@@ -72,7 +73,9 @@ Refunds are handled by Apple, Google, or the payment provider under their polici
 
 ### Illustrative plan identifiers
 
-Product IDs (subject to store configuration): `tradeacademy_premium_monthly`, `tradeacademy_premium_yearly`, and `tradeacademy_premium_lifetime` (entitlement **Aithera Pro**). Lifetime is a one-time purchase and does not auto-renew. Displayed prices control over any marketing copy. A seven-day trial, if offered, applies only to the yearly product when shown on the store purchase sheet.
+Product IDs (subject to store configuration): `tradeacademy_premium_monthly`, `tradeacademy_premium_yearly`, `tradeacademy_premium_lifetime`, and on Apple (when offered) `tradeacademy_premium_monthly_12m_commitment` for **Monthly with a 12-month commitment** (entitlement **Aithera Pro**). Lifetime is a one-time purchase and does not auto-renew. Displayed prices control over any marketing copy. A seven-day trial, if offered, applies only to the yearly product when shown on the store purchase sheet.
+
+**Monthly with a 12-month commitment (Apple only):** billed monthly for 12 months. You may cancel renewal during the commitment; cancellation prevents renewal after the commitment is fulfilled but does **not** eliminate remaining committed payments. This option appears only when Apple and the store offering make it available (requires a supported iOS version and storefront; not offered in all countries). It is distinct from yearly (one annual charge) and from flexible monthly (cancel renewal without a multi-month commitment).
 
 ---
 
@@ -156,7 +159,9 @@ We may modify features (including disabling cloud AI or changing data providers)
 
 ## 14. Export, sanctions, and U.S. regulatory positioning
 
-You represent that you are not prohibited from receiving the Service under applicable export control or sanctions laws. TradeAcademy does not register as a broker-dealer or investment adviser with the U.S. SEC/FINRA or equivalent regulators by virtue of offering educational/research-coaching software. If your use would require such registration, you must not use the Service for that purpose.
+You represent and warrant that (i) you are not located in a country or region that is subject to a U.S. Government embargo, or that has been designated by the U.S. Government as a “terrorist supporting” country or region; and (ii) you are not listed on any U.S. Government list of prohibited or restricted parties. You further represent that you are not otherwise prohibited from receiving the Service under applicable export control or sanctions laws.
+
+TradeAcademy does not register as a broker-dealer or investment adviser with the U.S. SEC/FINRA or equivalent regulators by virtue of offering educational/research-coaching software. If your use would require such registration, you must not use the Service for that purpose.
 
 ---
 
@@ -176,9 +181,61 @@ If any provision is unenforceable, the remainder stays in effect. Failure to enf
 
 ---
 
-## 17. Contact
+## 17. Apple App Store Licensed Application terms
+
+If you obtained TradeAcademy from the Apple App Store, the following terms apply in addition to the rest of these Terms and are intended to satisfy Apple’s *Minimum Terms of Developer’s End-User License Agreement*. In this section, “Licensed Application” means the iOS TradeAcademy app obtained from Apple.
+
+### 17.1 Acknowledgement
+
+You and CML Electronics acknowledge that this EULA is concluded between you and CML Electronics only, and **not with Apple Inc. (“Apple”)**. CML Electronics, not Apple, is solely responsible for the Licensed Application and the content thereof. These Terms do not provide usage rules for the Licensed Application that conflict with the [Apple Media Services Terms and Conditions](https://www.apple.com/legal/internet-services/itunes/ww/) as of the effective date of your download (which CML Electronics acknowledges it has had the opportunity to review).
+
+### 17.2 Scope of licence (Apple-branded products)
+
+The licence granted to you for the Licensed Application is limited to a **non-transferable** licence to use the Licensed Application on any **Apple-branded products** that you own or control, and as permitted by the Usage Rules set forth in the Apple Media Services Terms and Conditions, except that the Licensed Application may be accessed and used by other accounts associated with the purchaser via Family Sharing, volume purchasing, or Legacy Contacts where Apple makes those features available.
+
+### 17.3 Maintenance and support
+
+CML Electronics is solely responsible for providing any maintenance and support services with respect to the Licensed Application, as specified in these Terms or as required under applicable law. **You and CML Electronics acknowledge that Apple has no obligation whatsoever to furnish any maintenance and support services with respect to the Licensed Application.**
+
+### 17.4 Warranty
+
+CML Electronics is solely responsible for any product warranties, whether express or implied by law, to the extent not effectively disclaimed. In the event of any failure of the Licensed Application to conform to any applicable warranty, you may notify Apple, and Apple will refund the purchase price (if any) for the Licensed Application to you; and, to the maximum extent permitted by applicable law, **Apple will have no other warranty obligation whatsoever with respect to the Licensed Application**, and any other claims, losses, liabilities, damages, costs, or expenses attributable to any failure to conform to any warranty are CML Electronics’ sole responsibility.
+
+### 17.5 Product claims
+
+You and CML Electronics acknowledge that CML Electronics, **not Apple**, is responsible for addressing any claims by you or any third party relating to the Licensed Application or your possession and/or use of the Licensed Application, including but not limited to: (i) product liability claims; (ii) any claim that the Licensed Application fails to conform to any applicable legal or regulatory requirement; and (iii) claims arising under consumer protection, privacy, or similar legislation. Nothing in these Terms limits CML Electronics’ liability to you beyond what is permitted by applicable law.
+
+### 17.6 Intellectual property claims
+
+You and CML Electronics acknowledge that, in the event of any third-party claim that the Licensed Application or your possession and use of the Licensed Application infringes that third party’s intellectual property rights, CML Electronics, **not Apple**, will be solely responsible for the investigation, defence, settlement, and discharge of any such intellectual property infringement claim.
+
+### 17.7 Legal compliance
+
+You represent and warrant that (i) you are not located in a country or region that is subject to a U.S. Government embargo, or that has been designated by the U.S. Government as a “terrorist supporting” country or region; and (ii) you are not listed on any U.S. Government list of prohibited or restricted parties.
+
+### 17.8 Developer name, address, and contact
+
+Questions, complaints, or claims with respect to the Licensed Application should be directed to:
+
+- **Name:** CML Electronics (trading as Aithera)
+- **Address:** Höglerstrasse 55, 8600 Dübendorf, Switzerland
+- **Telephone:** +41 78 672 88 05
+- **Email:** support@tradeacademy.cloud
+
+### 17.9 Third-party terms of agreement
+
+You must comply with applicable third-party terms of agreement when using the Licensed Application (including, without limitation, wireless data service agreements and the terms of Apple, Google, Firebase, RevenueCat, and any other integrated services you use).
+
+### 17.10 Third-party beneficiary
+
+You and CML Electronics acknowledge and agree that **Apple and Apple’s subsidiaries are third-party beneficiaries** of these Terms as they relate to your licence of the Licensed Application, and that, upon your acceptance of these Terms, Apple will have the right (and will be deemed to have accepted the right) to enforce these Terms against you as a third-party beneficiary thereof.
+
+---
+
+## 18. Contact
 
 support@tradeacademy.cloud
 privacy@tradeacademy.cloud
+Telephone: +41 78 672 88 05
 Registered address: Höglerstrasse 55, 8600 Dübendorf, Switzerland
 https://tradeacademy.cloud

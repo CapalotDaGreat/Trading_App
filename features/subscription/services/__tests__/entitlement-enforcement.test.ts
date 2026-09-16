@@ -15,9 +15,12 @@ describe('entitlement enforcement', () => {
     expect(getLimit('aiDaily', 'premium')).toBe(100);
   });
 
-  it('maps store products to monthly and yearly Aithera Pro SKUs', () => {
+  it('maps store products to monthly, yearly, and 12m commitment Aithera Pro SKUs', () => {
     expect(PREMIUM_PRODUCT_IDS.monthly).toBe('tradeacademy_premium_monthly');
     expect(PREMIUM_PRODUCT_IDS.yearly).toBe('tradeacademy_premium_yearly');
+    expect(PREMIUM_PRODUCT_IDS.monthly_12m_commitment).toBe(
+      'tradeacademy_premium_monthly_12m_commitment',
+    );
   });
 
   it('blocks monthly consumption at the configured allowance', async () => {

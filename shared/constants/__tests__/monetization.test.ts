@@ -9,11 +9,17 @@ import {
 } from '../monetization';
 
 describe('launch monetization catalog', () => {
-  it('offers monthly, yearly, and lifetime, with a yearly trial', () => {
-    expect(LAUNCH_PLAN_IDS).toEqual(['monthly', 'yearly', 'lifetime']);
+  it('offers monthly, yearly, lifetime, and Apple 12m commitment catalog ids', () => {
+    expect(LAUNCH_PLAN_IDS).toEqual([
+      'monthly',
+      'yearly',
+      'lifetime',
+      'monthly_12m_commitment',
+    ]);
     expect(isLaunchPlanId('monthly')).toBe(true);
     expect(isLaunchPlanId('yearly')).toBe(true);
     expect(isLaunchPlanId('lifetime')).toBe(true);
+    expect(isLaunchPlanId('monthly_12m_commitment')).toBe(true);
     expect(LIFETIME_OFFERED_AT_LAUNCH).toBe(true);
     expect(YEARLY_TRIAL_DAYS).toBe(7);
   });

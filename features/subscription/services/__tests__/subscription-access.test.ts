@@ -36,7 +36,18 @@ describe('hasEffectivePremiumAccess', () => {
     ).toBe(false);
   });
 
-  it('grants lifetime access when status is active and expiry is null', () => {
-    expect(hasEffectivePremiumAccess({ status: 'active', expiresAt: null }, now)).toBe(true);
+  it('retains cancelled 12-month commitment benefits until expiry (willRenew false ≠ expired)', () => {
+    expect(
+      hasEffectivePremiumAccess(
+        { status: 'cancelled', expiresAt: '2026-07-22T12:00:00.000Z' },
+        now,
+      ),
+    ).toBe(true);
+    expect(
+      hasEffectivePremiumAccess(
+        { status: 'expired', expiresAt: '2026-07-22T12:00:00.000Z' },
+        now,
+      ),
+    ).toBe(false);
   });
 });

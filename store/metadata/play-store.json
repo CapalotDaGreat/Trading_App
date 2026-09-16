@@ -25,8 +25,8 @@
     "tablet": [],
     "featureGraphic": null
   },
-  "listingUrlsReady": false,
-  "listingUrlNote": "Official domain is https://tradeacademy.cloud. Paste privacy/support URLs into Play Console only after that host serves HTTP 200 copies of store/hosted/.",
+  "listingUrlsReady": true,
+  "listingUrlNote": "Verified HTTP 200 on tradeacademy.cloud privacy/terms/support/risk/security/account-deletion (2026-09-16). assetlinks SHA still needs Play App Signing fingerprint before Android deep links.",
   "contactEmail": "support@tradeacademy.cloud",
   "legalOperatorFieldsComplete": true,
   "vatUid": null,

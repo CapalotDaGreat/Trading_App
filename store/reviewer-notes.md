@@ -83,12 +83,13 @@ and education. FX candles are never fabricated.
 ## Subscription and 7-day trial
 
 - Entitlement: `Aithera Pro`
-- Launch products: `tradeacademy_premium_monthly`, `tradeacademy_premium_yearly`, and `tradeacademy_premium_lifetime`. Lifetime is a one-time purchase and does not auto-renew.
+- Launch products: `tradeacademy_premium_monthly`, `tradeacademy_premium_yearly`, `tradeacademy_premium_lifetime`, and on Apple when offered `tradeacademy_premium_monthly_12m_commitment` (**Monthly with a 12-month commitment**). Lifetime is a one-time purchase and does not auto-renew.
+- The commitment plan is **iOS-only**, requires a supported OS (26.4+), and is omitted when the store offering does not include it. It is distinct from yearly (one annual charge).
+- Cancelling a commitment stops renewal after the commitment; remaining committed payments may still apply per Apple. Premium remains while the subscription period is active (`willRenew === false` does not mean expired).
 - Native App Store / Play billing via RevenueCat (not available in Expo Go).
 - Restore Purchases is on the subscription screen.
 - Cancel / Manage Subscription opens the platform subscription page.
-- Cancelling stops renewal; Premium remains until the store-reported
-  paid-through date.
+- Cancelling a standard subscription stops renewal; Premium remains until the store-reported paid-through date.
 - A **7-day trial**, if shown, applies only to **yearly** and must match the
   console offer.
 - Free is a complete daily product (Today, basic research, basic journal,

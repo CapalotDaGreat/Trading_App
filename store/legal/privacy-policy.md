@@ -1,7 +1,7 @@
 # Privacy Policy
 
-**Last updated:** 15 September 2026
-**Version:** 2026.09.15
+**Last updated:** 16 September 2026
+**Version:** 2026.09.16
 **Brand / product:** Aithera / TradeAcademy
 **Controller / Operator:** CML Electronics, trading as Aithera (“Aithera”, “we”, “us”, “our”), operator of the TradeAcademy mobile application
 **Registered address:** Höglerstrasse 55, 8600 Dübendorf, Switzerland

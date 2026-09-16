@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { useAuthOptional } from '@/features/auth/hooks/useAuth';
 import { hasLearnerSyncPending } from '@/features/learner-state';
@@ -21,28 +21,41 @@ export function useConnectivityStatus() {
   const isGuest = Boolean(authReady && (!uid || uid === DEMO_USER_UID));
   const cloudEligible = Boolean(uid && canUseFirestore(uid));
 
-  const refreshSync = useCallback(async () => {
+  useEffect(() => {
     if (!uid || !cloudEligible) {
-      setSyncPending(false);
       return;
     }
-    setSyncPending(await hasLearnerSyncPending(uid));
-  }, [uid, cloudEligible]);
 
-  useEffect(() => {
-    void refreshSync();
+    let cancelled = false;
+
+    const poll = async () => {
+      const pending = await hasLearnerSyncPending(uid);
+      if (!cancelled) {
+        setSyncPending(pending);
+      }
+    };
+
+    // Interval (and any future external trigger) may call setState; initial poll
+    // only sets state after await so it is not synchronous in the effect body.
+    void poll();
     const timer = setInterval(() => {
-      void refreshSync();
+      void poll();
     }, 8_000);
-    return () => clearInterval(timer);
-  }, [refreshSync, isOnline]);
+
+    return () => {
+      cancelled = true;
+      clearInterval(timer);
+    };
+  }, [uid, cloudEligible, isOnline]);
+
+  const effectiveSyncPending = cloudEligible ? syncPending : false;
 
   let kind: ConnectivityKind = 'online';
   if (!isOnline) {
     kind = 'offline';
   } else if (authReady && isGuest) {
     kind = 'guest_local';
-  } else if (authReady && syncPending) {
+  } else if (authReady && effectiveSyncPending) {
     kind = 'sync_pending';
   }
 
@@ -50,10 +63,13 @@ export function useConnectivityStatus() {
     kind,
     isOnline,
     isGuest,
-    syncPending,
+    syncPending: effectiveSyncPending,
     refresh: async () => {
       await refresh();
-      await refreshSync();
+      if (!uid || !cloudEligible) {
+        return;
+      }
+      setSyncPending(await hasLearnerSyncPending(uid));
     },
   };
 }

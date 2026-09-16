@@ -27,7 +27,8 @@ TradeAcademy is not a broker and does not sell buy/sell signals.
 | --- | --- | --- | --- |
 | Free | — | — | Default; ads **not** shipped at launch |
 | Monthly | Yes (`tradeacademy_premium_monthly`) | No | Auto-renewing |
-| Yearly | Yes (`tradeacademy_premium_yearly`) | **7 days**, only if the store intro offer is attached | Best-value plan |
+| Yearly | Yes (`tradeacademy_premium_yearly`) | **7 days**, only if the store intro offer is attached | Best-value plan (annual charge) |
+| Monthly · 12-mo commitment | Yes on **iOS when offered** (`tradeacademy_premium_monthly_12m_commitment`) | No | Apple billing plan; see [APPLE_12M_COMMITMENT_SUBSCRIPTION_2026-09.md](./APPLE_12M_COMMITMENT_SUBSCRIPTION_2026-09.md) |
 | Lifetime | Yes (`tradeacademy_premium_lifetime`) | No | One-time purchase. Does not auto-renew. Create as a **non-consumable** in App Store Connect / Play |
 
 Entitlement identifier: **`Aithera Pro`** (do not rename to a generic `premium` string).

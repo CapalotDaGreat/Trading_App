@@ -1,7 +1,7 @@
 # Risk & Investment Disclaimer
 
-**Last updated:** 15 September 2026
-**Version:** 2026.09.15
+**Last updated:** 16 September 2026
+**Version:** 2026.09.16
 **Operator:** CML Electronics, trading as Aithera
 **Registered address:** Höglerstrasse 55, 8600 Dübendorf, Switzerland
 **Contact:** support@tradeacademy.cloud

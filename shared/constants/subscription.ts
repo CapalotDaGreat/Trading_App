@@ -77,12 +77,19 @@ export const REVENUECAT_ENTITLEMENT_ID =
 /**
  * Store product identifiers configured in App Store Connect / Play Console
  * and attached to the current RevenueCat offering.
- * Current offering: tradeacademy_premium_monthly, tradeacademy_premium_yearly, and lifetime — all attached to Aithera Pro.
+ * Current offering: monthly, yearly, lifetime, and (iOS) monthly_12m_commitment — all attached to Aithera Pro.
+ *
+ * Apple’s “Monthly with a 12-Month Commitment” is a StoreKit billing plan on a
+ * 1-year subscription. Prefer merchandising id `tradeacademy_premium_monthly_12m_commitment`
+ * in RevenueCat when available; ASC may attach the plan to the yearly product id.
  */
 export const PREMIUM_PRODUCT_IDS = {
   monthly: process.env.EXPO_PUBLIC_RC_PRODUCT_MONTHLY ?? 'tradeacademy_premium_monthly',
   yearly: process.env.EXPO_PUBLIC_RC_PRODUCT_YEARLY ?? 'tradeacademy_premium_yearly',
   lifetime: process.env.EXPO_PUBLIC_RC_PRODUCT_LIFETIME ?? 'tradeacademy_premium_lifetime',
+  monthly_12m_commitment:
+    process.env.EXPO_PUBLIC_RC_PRODUCT_MONTHLY_12M_COMMITMENT ??
+    'tradeacademy_premium_monthly_12m_commitment',
 } as const;
 
 export function getTierLimits(tier: SubscriptionTier): TierLimits {
@@ -120,13 +127,25 @@ export function isNearAiDailyLimit(usedToday: number, limit: number): boolean {
 
 export function planIdFromProductId(
   productId: string | null | undefined,
-): 'monthly' | 'yearly' | 'lifetime' | null {
+): 'monthly' | 'yearly' | 'lifetime' | 'monthly_12m_commitment' | null {
   if (!productId) return null;
-  if (productId === PREMIUM_PRODUCT_IDS.lifetime) return 'lifetime';
-  if (productId === PREMIUM_PRODUCT_IDS.yearly) return 'yearly';
-  if (productId === PREMIUM_PRODUCT_IDS.monthly) return 'monthly';
-  if (productId.includes('lifetime')) return 'lifetime';
-  if (productId.includes('yearly') || productId.includes('annual')) return 'yearly';
-  if (productId.includes('monthly')) return 'monthly';
+  const id = productId.toLowerCase();
+  if (
+    productId === PREMIUM_PRODUCT_IDS.monthly_12m_commitment ||
+    id.includes('12m_commitment') ||
+    id.includes('12m-commitment') ||
+    (id.includes('commitment') && id.includes('month'))
+  ) {
+    return 'monthly_12m_commitment';
+  }
+  if (productId === PREMIUM_PRODUCT_IDS.lifetime || id.includes('lifetime')) return 'lifetime';
+  if (
+    productId === PREMIUM_PRODUCT_IDS.yearly ||
+    id.includes('yearly') ||
+    id.includes('annual')
+  ) {
+    return 'yearly';
+  }
+  if (productId === PREMIUM_PRODUCT_IDS.monthly || id.includes('monthly')) return 'monthly';
   return null;
 }

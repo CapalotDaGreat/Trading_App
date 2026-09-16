@@ -14,9 +14,11 @@ import { openExternalUrl } from '@/shared/utils/open-url';
 
 import {
   FALLBACK_SUBSCRIPTION_PLANS,
+  filterPlansForRuntime,
   findPackageForPlan,
   plansFromOfferingPackages,
 } from './revenuecat-packages';
+import { isApple12mCommitmentPlatformEligible } from './apple-12m-commitment';
 import { withEffectiveAccess } from './subscription-access';
 import type {
   PaywallPresentationResult,
@@ -173,23 +175,26 @@ function mapPaywallResult(result: string): PaywallPresentationResult {
 
 class SubscriptionServiceImpl implements SubscriptionService {
   getPlans(): SubscriptionPlan[] {
-    return FALLBACK_SUBSCRIPTION_PLANS;
+    return filterPlansForRuntime(FALLBACK_SUBSCRIPTION_PLANS);
   }
 
   async getStorePlans(): Promise<SubscriptionPlan[]> {
     const Purchases = getPurchases();
-    if (!Purchases || !getPublicSdkKey()) return FALLBACK_SUBSCRIPTION_PLANS;
+    if (!Purchases || !getPublicSdkKey()) {
+      return filterPlansForRuntime(FALLBACK_SUBSCRIPTION_PLANS);
+    }
 
     try {
       const isConfigured = await Purchases.isConfigured();
-      if (!isConfigured) return FALLBACK_SUBSCRIPTION_PLANS;
+      if (!isConfigured) return filterPlansForRuntime(FALLBACK_SUBSCRIPTION_PLANS);
 
       const offerings = await Purchases.getOfferings();
       const packages = offerings.current?.availablePackages ?? [];
-      const fromOffering = plansFromOfferingPackages(packages);
-      return fromOffering.length ? fromOffering : FALLBACK_SUBSCRIPTION_PLANS;
+      const fromOffering = filterPlansForRuntime(plansFromOfferingPackages(packages));
+      if (fromOffering.length) return fromOffering;
+      return filterPlansForRuntime(FALLBACK_SUBSCRIPTION_PLANS);
     } catch {
-      return FALLBACK_SUBSCRIPTION_PLANS;
+      return filterPlansForRuntime(FALLBACK_SUBSCRIPTION_PLANS);
     }
   }
 
@@ -261,16 +266,25 @@ class SubscriptionServiceImpl implements SubscriptionService {
     const productId = entitlement.productIdentifier ?? null;
     const planId = planIdFromProductId(productId);
     const isLifetime = planId === 'lifetime' || entitlement.expirationDate == null;
+    const billingIssue = Boolean(
+      (entitlement as { billingIssueDetectedAt?: string | null }).billingIssueDetectedAt,
+    );
+    const willRenew = isLifetime ? false : Boolean(entitlement.willRenew);
+    const status: SubscriptionStatus = billingIssue
+      ? 'billing_issue'
+      : !isLifetime && !willRenew
+        ? 'cancelled'
+        : 'active';
 
     return withEffectiveAccess({
       ...buildFreeSubscription(uid),
       tier: 'premium',
       isPremium: true,
-      status: 'active',
+      status,
       productId,
       planId,
       expiresAt: entitlement.expirationDate ?? null,
-      willRenew: isLifetime ? false : Boolean(entitlement.willRenew),
+      willRenew,
       store: mapStore(entitlement.store),
       purchasedAt: entitlement.latestPurchaseDate ?? null,
       source: 'revenuecat',
@@ -334,12 +348,26 @@ class SubscriptionServiceImpl implements SubscriptionService {
 
     const before = await this.getSubscription(uid);
     const offerings = await Purchases.getOfferings();
-    const selectedPackage = findPackageForPlan(
-      offerings.current?.availablePackages ?? [],
-      planId,
-    );
+    const packages = offerings.current?.availablePackages ?? [];
+    const selectedPackage = findPackageForPlan(packages, planId);
     if (!selectedPackage) {
+      if (planId === 'monthly_12m_commitment') {
+        if (!isApple12mCommitmentPlatformEligible()) {
+          throw new Error(
+            'Monthly with a 12-month commitment requires iOS 26.4 or later on a supported Apple device.',
+          );
+        }
+        throw new Error(
+          'The 12-month commitment plan is not in the current store offering yet. Configure it in App Store Connect and RevenueCat, then try again.',
+        );
+      }
       throw new Error('This plan is not available from the store right now.');
+    }
+
+    if (planId === 'monthly_12m_commitment' && !isApple12mCommitmentPlatformEligible()) {
+      throw new Error(
+        'Monthly with a 12-month commitment requires iOS 26.4 or later on a supported Apple device.',
+      );
     }
 
     try {

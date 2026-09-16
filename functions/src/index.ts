@@ -3,7 +3,8 @@ import { timingSafeEqual } from 'crypto';
 
 import * as admin from 'firebase-admin';
 import * as functions from 'firebase-functions';
-import { onCall } from 'firebase-functions/v2/https';
+import { onCall, onRequest } from 'firebase-functions/v2/https';
+import { defineSecret } from 'firebase-functions/params';
 
 import { requireAppCheck, requireAuth } from './security';
 
@@ -30,6 +31,9 @@ const PREMIUM_ENTITLEMENT_ID = process.env.REVENUECAT_ENTITLEMENT_ID ?? 'Aithera
 const MONTHLY_PRODUCT_ID = process.env.REVENUECAT_PRODUCT_MONTHLY ?? 'tradeacademy_premium_monthly';
 const YEARLY_PRODUCT_ID = process.env.REVENUECAT_PRODUCT_YEARLY ?? 'tradeacademy_premium_yearly';
 const LIFETIME_PRODUCT_ID = process.env.REVENUECAT_PRODUCT_LIFETIME ?? 'tradeacademy_premium_lifetime';
+const MONTHLY_12M_COMMITMENT_PRODUCT_ID =
+  process.env.REVENUECAT_PRODUCT_MONTHLY_12M_COMMITMENT ??
+  'tradeacademy_premium_monthly_12m_commitment';
 const DELETION_ATTEMPT_COOLDOWN_MS = 60 * 1000;
 const DELETION_AUDIT_RETENTION_MS = 30 * 24 * 60 * 60 * 1000;
 
@@ -55,7 +59,7 @@ export interface SubscriptionEventUpdate {
   isPremium: boolean;
   willRenew: boolean;
   productId: string | null;
-  planId: 'monthly' | 'yearly' | 'lifetime' | null;
+  planId: 'monthly' | 'yearly' | 'lifetime' | 'monthly_12m_commitment' | null;
   store: 'app_store' | 'play_store' | 'stripe' | 'promotional' | 'unknown';
   purchasedAt: Date | null;
   expiresAt: Date | null;
@@ -67,9 +71,21 @@ function dateFromMs(value: number | null | undefined): Date | null {
 }
 
 function planFromProduct(productId: string | null): SubscriptionEventUpdate['planId'] {
-  if (productId === LIFETIME_PRODUCT_ID || productId?.includes('lifetime')) return 'lifetime';
-  if (productId === YEARLY_PRODUCT_ID || productId?.includes('yearly')) return 'yearly';
-  if (productId === MONTHLY_PRODUCT_ID || productId?.includes('monthly')) return 'monthly';
+  if (!productId) return null;
+  const id = productId.toLowerCase();
+  if (
+    productId === MONTHLY_12M_COMMITMENT_PRODUCT_ID ||
+    id.includes('12m_commitment') ||
+    id.includes('12m-commitment') ||
+    (id.includes('commitment') && id.includes('month'))
+  ) {
+    return 'monthly_12m_commitment';
+  }
+  if (productId === LIFETIME_PRODUCT_ID || id.includes('lifetime')) return 'lifetime';
+  if (productId === YEARLY_PRODUCT_ID || id.includes('yearly') || id.includes('annual')) {
+    return 'yearly';
+  }
+  if (productId === MONTHLY_PRODUCT_ID || id.includes('monthly')) return 'monthly';
   return null;
 }
 
@@ -254,13 +270,21 @@ export function accountDeletionPaths(uid: string): {
   };
 }
 
-export const revenueCatWebhook = functions.https.onRequest(async (req, res) => {
+const revenueCatWebhookAuthToken = defineSecret('REVENUECAT_WEBHOOK_AUTH_TOKEN');
+
+export const revenueCatWebhook = onRequest(
+  {
+    secrets: [revenueCatWebhookAuthToken],
+  },
+  async (req, res) => {
   if (req.method !== 'POST') {
     res.set('Allow', 'POST').status(405).send('Method not allowed');
     return;
   }
 
-  const secret = process.env.REVENUECAT_WEBHOOK_AUTH_TOKEN ?? '';
+  const secret =
+    process.env.REVENUECAT_WEBHOOK_AUTH_TOKEN?.trim() ||
+    revenueCatWebhookAuthToken.value().trim();
   if (!isValidWebhookAuthorization(req.get('authorization'), secret)) {
     res.status(401).send('Unauthorized');
     return;

@@ -1,7 +1,7 @@
 # Support
 
-**Last updated:** 15 September 2026
-**Version:** 2026.09.15
+**Last updated:** 16 September 2026
+**Version:** 2026.09.16
 **Product:** TradeAcademy by Aithera
 **Operator:** CML Electronics, trading as Aithera
 **Registered address:** Höglerstrasse 55, 8600 Dübendorf, Switzerland
@@ -35,8 +35,11 @@ Include: device OS, app version (Settings), whether you use Guest mode or a sign
 ### Subscriptions (Aithera Pro)
 
 - Billing is handled by the **Apple App Store** or **Google Play**.
+- Plans may include monthly, yearly, lifetime (one-time), and on Apple when offered **Monthly with a 12-month commitment** (monthly billing + 12-month commitment).
+- For the commitment plan: cancelling stops renewal after the commitment; remaining committed payments still apply until Apple shows the commitment complete. Aithera Pro stays available while the subscription / paid period remains active.
 - Use **Settings → Manage Subscription** (or the store’s subscription pages) to cancel or change plans.
 - **Deleting your TradeAcademy account does not cancel store billing.**
+- Restoring purchases uses your store account and signed-in TradeAcademy account (Firebase UID).
 
 ### Notifications
 

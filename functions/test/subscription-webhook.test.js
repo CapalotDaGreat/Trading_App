@@ -64,6 +64,27 @@ test('maps purchase, cancellation, expiration, refund, grace, and product change
   assert.equal(lifetime.isPremium, true);
   assert.equal(lifetime.planId, 'lifetime');
   assert.equal(lifetime.willRenew, false);
+
+  const commitment = mapRevenueCatEvent({
+    ...baseEvent,
+    type: 'INITIAL_PURCHASE',
+    product_id: 'tradeacademy_premium_monthly_12m_commitment',
+    store: 'APP_STORE',
+  });
+  assert.equal(commitment.planId, 'monthly_12m_commitment');
+  assert.equal(commitment.isPremium, true);
+  assert.equal(commitment.status, 'active');
+
+  const commitmentCancel = mapRevenueCatEvent({
+    ...baseEvent,
+    type: 'CANCELLATION',
+    product_id: 'tradeacademy_premium_monthly_12m_commitment',
+    store: 'APP_STORE',
+  });
+  assert.equal(commitmentCancel.status, 'cancelled');
+  assert.equal(commitmentCancel.willRenew, false);
+  assert.equal(commitmentCancel.isPremium, true);
+  assert.equal(commitmentCancel.tier, 'premium');
 });
 
 test('verifies exact raw or bearer webhook authorization', () => {

@@ -17,7 +17,7 @@ import { ANALYTICS_EVENTS, ANALYTICS_PROP_KEYS } from '@/shared/services/analyti
 
 describe('legal compliance pack', () => {
   it('exposes CH/EU/US-oriented document set with versioned acceptance', () => {
-    expect(LEGAL_ACCEPTANCE_VERSION).toBe('2026.09.15');
+    expect(LEGAL_ACCEPTANCE_VERSION).toBe('2026.09.16');
     expect(LEGAL_DOCUMENTS).toEqual([
       'terms',
       'privacy',
@@ -65,6 +65,8 @@ describe('legal compliance pack', () => {
     expect(terms).toContain('lifetime is a one-time purchase');
     expect(terms).toContain('tradeacademy_premium_monthly');
     expect(terms).toContain('tradeacademy_premium_yearly');
+    expect(terms).toContain('tradeacademy_premium_monthly_12m_commitment');
+    expect(terms).toContain('12-month commitment');
     expect(terms).not.toMatch(/tradeinsight|tradevision/i);
     expect(terms).not.toMatch(/\[legal entity name required\]|\[vat\/uid required\]/i);
 
@@ -135,7 +137,7 @@ describe('legal compliance pack', () => {
     expect(home).toContain('by Aithera');
     expect(home).toContain('CML Electronics');
     expect(home).toContain('Learn → Practice → Replay → Simulate → Journal → Review → Improve');
-    expect(home).toContain('Updated 15 September 2026');
+    expect(home).toContain('Updated 16 September 2026');
     expect(home).toContain('Read document');
     expect(home).toContain('/site.css');
     expect(home).not.toMatch(/TradeInsight|TradeVision/);

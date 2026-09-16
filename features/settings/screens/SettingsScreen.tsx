@@ -25,7 +25,16 @@ import { legalPath, LEGAL_DOCUMENT_META } from '@/shared/legal';
 export function SettingsScreen() {
   const router = useRouter();
   const { user, signOut, deleteAccount } = useAuth();
-  const { isPremium, manage, openCustomerCenter } = useSubscription();
+  const { isPremium, subscription, manage, openCustomerCenter } = useSubscription();
+  const premiumValue = !isPremium
+    ? 'Free'
+    : subscription?.status === 'cancelled'
+      ? subscription.planId === 'monthly_12m_commitment'
+        ? 'Active · commitment (won’t renew)'
+        : 'Active · won’t renew'
+      : subscription?.planId === 'monthly_12m_commitment'
+        ? 'Active · 12-mo commitment'
+        : 'Active';
   const { showMentorSetupInvite, dismissMentorInvite, mentorSetupCompleted } = useCoachProfile();
   const { settings, updateSettings, sync } = useSettings();
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
@@ -240,7 +249,7 @@ export function SettingsScreen() {
         <SettingsRow
           icon="diamond-outline"
           label="Aithera Pro"
-          value={isPremium ? 'Active' : 'Free'}
+          value={premiumValue}
           showChevron
           onPress={() => router.push('/subscription')}
         />

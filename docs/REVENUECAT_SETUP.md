@@ -75,9 +75,10 @@ Product IDs must match both stores and RevenueCat:
 | --- | --- | --- |
 | `tradeacademy_premium_monthly` | Auto-renewing subscription | None |
 | `tradeacademy_premium_yearly` | Auto-renewing subscription | **7-day introductory offer** |
+| `tradeacademy_premium_monthly_12m_commitment` | Apple commitment merchandising / package (see [APPLE_12M…](./APPLE_12M_COMMITMENT_SUBSCRIPTION_2026-09.md)) | None |
 | `tradeacademy_premium_lifetime` | **Non-consumable** (not a subscription) | None |
 
-Attach **all three** to entitlement `Aithera Pro`.
+Attach subscription products to entitlement `Aithera Pro`. Apple may attach the 12-month commitment **billing plan** to the yearly SKU; still add an RC package for the merchandising id when you want the in-app commitment CTA.
 
 ### 3.4 Offering (current)
 
@@ -85,11 +86,13 @@ Create an Offering and mark it **Current**. Packages:
 
 | RC package | Package type | Store product |
 | --- | --- | --- |
-| `$rc_monthly` | Monthly | `monthly` |
-| `$rc_annual` | Annual | `yearly` |
-| `$rc_lifetime` | Lifetime | `lifetime` |
+| `$rc_monthly` | Monthly | `tradeacademy_premium_monthly` |
+| `$rc_annual` | Annual | `tradeacademy_premium_yearly` |
+| custom / `monthly_12m_commitment` | Custom | `tradeacademy_premium_monthly_12m_commitment` (iOS) |
+| `$rc_lifetime` | Lifetime | `tradeacademy_premium_lifetime` |
 
 The client maps those identifiers in `features/subscription/services/revenuecat-packages.ts`.
+The commitment package is filtered out on Android/web and on iOS &lt; 26.4.
 
 ### 3.5 Paywall (attach to the current offering)
 
