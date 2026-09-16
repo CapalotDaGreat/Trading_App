@@ -2,6 +2,7 @@ import { useRouter } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import { Pressable, View } from 'react-native';
 
+
 import { CandlestickChart } from '@/features/charts/components/CandlestickChart';
 import {
   replayPracticeDifficulty,
@@ -88,18 +89,14 @@ export function ReplayTvSessionScreen() {
     nextPractice,
     clearActive,
   } = useReplayTv();
-  const [reasoning, setReasoning] = useState<ReplayTvReasoning>(() => emptyReplayTvReasoning());
+  const [localReasoning, setLocalReasoning] = useState<ReplayTvReasoning>(emptyReplayTvReasoning);
   const [tapeFrame, setTapeFrame] = useState<ReplayTapeTimeframe>('1d');
-  const draftKey = `${activeSession?.id ?? ''}:${activeSession?.checkpointIndex ?? 0}`;
-  const [appliedDraftKey, setAppliedDraftKey] = useState(draftKey);
-  const draftReasoning = activeSession?.draftReasoning;
-
-  useEffect(() => {
-    if (!draftReasoning) return;
-    if (draftKey === appliedDraftKey) return;
-    setAppliedDraftKey(draftKey);
-    setReasoning(draftReasoning);
-  }, [appliedDraftKey, draftKey, draftReasoning]);
+  // Persist is the source of truth; local state only covers the first keystrokes
+  // before the store draft exists (no setState-in-effect sync).
+  const reasoning = useMemo(
+    () => activeSession?.draftReasoning ?? localReasoning,
+    [activeSession?.draftReasoning, localReasoning],
+  );
 
   useEffect(() => {
     if (!activeSession) {
@@ -184,13 +181,15 @@ export function ReplayTvSessionScreen() {
   });
 
   const persistReasoning = (next: ReplayTvReasoning) => {
-    setReasoning(next);
+    setLocalReasoning(next);
     updateDraftReasoning(next);
   };
 
   const onChoose = (decision: ReplayTvDecision) => {
     submitDecision(decision, '', reasoning);
-    setReasoning(emptyReplayTvReasoning());
+    const empty = emptyReplayTvReasoning();
+    setLocalReasoning(empty);
+    updateDraftReasoning(empty);
   };
 
   const onFinish = async () => {
@@ -209,7 +208,9 @@ export function ReplayTvSessionScreen() {
 
   const onRestart = () => {
     restartEpisode();
-    setReasoning(emptyReplayTvReasoning());
+    const empty = emptyReplayTvReasoning();
+    setLocalReasoning(empty);
+    updateDraftReasoning(empty);
   };
 
   return (
