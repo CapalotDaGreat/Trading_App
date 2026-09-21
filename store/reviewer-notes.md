@@ -3,6 +3,10 @@
 Paste into App Store Connect / Play Console review notes. Do not commit reviewer
 passwords or sandbox emails here.
 
+**Limited App Review history / Resolution Center (6-point Apple request):**
+use the full paste pack in `store/asc-resolution-limited-history.md`
+(purpose, setup, services, regions, regulation + recording checklist).
+
 TradeAcademy is an educational **trading education and simulated-practice** app from Aithera.
 It is **not** a broker, **does not** execute trades, **does not** handle customer
 funds, and **does not** provide buy/sell signals or guaranteed returns.

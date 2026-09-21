@@ -2,42 +2,43 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useMemo, useState, type ReactNode } from 'react';
 import { ScrollView, View } from 'react-native';
 
-import { EducationalChart } from '@/features/academy/components/EducationalChart';
 import { ChartExercise } from '@/features/academy/components/ChartExercise';
-import { LoopCtaRow } from '@/features/navigation/components/LoopCtaRow';
-import {
-  PRACTICE_DRILLS,
-  LEARNING_TOPIC_LABELS,
-  getPracticeDrill,
-  type PracticeDrill,
-} from '@/features/practice/content/practice-drills';
-import {
-  DEFAULT_PRACTICE_FILTERS,
-  PRACTICE_TOPIC_FILTERS,
-  filterPracticeDrills,
-  parsePracticeTopicParam,
-  type PracticeLibraryFilters,
-} from '@/features/practice/services/practice-library.service';
-import { usePracticeProgressStore } from '@/features/practice/stores/practice-progress.store';
+import { EducationalChart } from '@/features/academy/components/EducationalChart';
+import { useAuth } from '@/features/auth/hooks/useAuth';
 import { ingestPracticeAttempt } from '@/features/competency';
 import { ALTERNATE_ACTIVITIES } from '@/features/competency/content/remediation-catalog';
 import { TrainingHandoffBanner } from '@/features/learning-engine/components/TrainingHandoffBanner';
 import { useLearningEngine } from '@/features/learning-engine/hooks/useLearningEngine';
 import { useTrainingHandoff } from '@/features/learning-engine/hooks/useTrainingHandoff';
-import { PlannerNextCard } from '@/features/training-planner/components/PlannerNextCard';
-import { useAuth } from '@/features/auth/hooks/useAuth';
-import { DEMO_USER_UID } from '@/firebase/config';
+import { LoopCtaRow } from '@/features/navigation/components/LoopCtaRow';
 import { IA_GLOSSARY, PRACTICE_HUB_SECTIONS } from '@/features/navigation/config/navigation-ia.config';
+import {
+    LEARNING_TOPIC_LABELS,
+    PRACTICE_DRILLS,
+    getPracticeDrill,
+    type PracticeDrill,
+} from '@/features/practice/content/practice-drills';
+import {
+    DEFAULT_PRACTICE_FILTERS,
+    PRACTICE_TOPIC_FILTERS,
+    filterPracticeDrills,
+    parsePracticeTopicParam,
+    type PracticeLibraryFilters,
+} from '@/features/practice/services/practice-library.service';
+import { usePracticeProgressStore } from '@/features/practice/stores/practice-progress.store';
+import { PlannerNextCard } from '@/features/training-planner/components/PlannerNextCard';
+import { DEMO_USER_UID } from '@/firebase/config';
 import { EmptyState } from '@/shared/components/feedback/EmptyState';
 import { ScreenScaffold } from '@/shared/components/layout/ScreenScaffold';
+import { ActivityStatusBadge } from '@/shared/components/patterns/ActivityCard';
 import { CollapsibleSection } from '@/shared/components/patterns/CollapsibleSection';
 import { HubPathList } from '@/shared/components/patterns/HubPathList';
 import { Button } from '@/shared/components/ui/Button';
 import { FilterChip } from '@/shared/components/ui/FilterChip';
 import { Surface } from '@/shared/components/ui/Surface';
 import { Text } from '@/shared/components/ui/Text';
-import { useOnlineStatus } from '@/shared/hooks/useOnlineStatus';
 import type { LearningTopic } from '@/shared/constants/learning-topics';
+import { useOnlineStatus } from '@/shared/hooks/useOnlineStatus';
 
 function FilterRow({
   label,
@@ -79,15 +80,20 @@ function DrillCard({ drill }: { drill: PracticeDrill }) {
 
   return (
     <Surface className="mb-3" testID={`practice-drill-${drill.id}`}>
-      <Text variant="caption" className="text-text-tertiary">
-        {LEARNING_TOPIC_LABELS[drill.topic]} · {drill.difficulty} · ~{drill.estimatedMinutes} min
-        {stats.attempts > 0
-          ? ` · ${stats.attempts} attempt${stats.attempts === 1 ? '' : 's'} · ${Math.round(stats.accuracy * 100)}% correct`
-          : ''}
-      </Text>
-      <Text variant="h3" headingLevel={3} className="mt-1">
-        {handoff?.concealConcept ? 'Assess this situation' : drill.title}
-      </Text>
+      <View className="flex-row items-start justify-between gap-3">
+        <View className="flex-1">
+          <Text variant="caption" className="text-text-tertiary">
+            {LEARNING_TOPIC_LABELS[drill.topic]} · {drill.difficulty} · ~{drill.estimatedMinutes} min
+            {stats.attempts > 0
+              ? ` · ${stats.attempts} attempt${stats.attempts === 1 ? '' : 's'} · ${Math.round(stats.accuracy * 100)}% correct`
+              : ''}
+          </Text>
+          <Text variant="h3" headingLevel={3} className="mt-1">
+            {handoff?.concealConcept ? 'Assess this situation' : drill.title}
+          </Text>
+        </View>
+        <ActivityStatusBadge status={stats.attempts > 0 ? 'in_progress' : 'available'} />
+      </View>
       {handoff?.showHints === false ? null : (
         <Text variant="body-sm" className="mt-2 text-text-secondary">
           {drill.whyItMatters}

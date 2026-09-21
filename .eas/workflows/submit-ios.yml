@@ -1,0 +1,26 @@
+name: Build and submit iOS to TestFlight
+
+# Run from Expo: eas workflow:run submit-ios.yml
+# Prerequisites (one-time, interactive):
+#   1. eas credentials -p ios  → generate App Store distribution cert + profile
+#      for ai.tradeacademy.app (do NOT upload a hand-made .p12 unless you already have one)
+#   2. eas credentials -p ios  → App Store Connect API Key for EAS Submit
+#   3. ASC app Apple ID 6812049061 already set in eas.json submit.production
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  build_ios:
+    name: Build iOS production
+    type: build
+    params:
+      platform: ios
+      profile: production
+
+  submit_ios:
+    name: Submit to App Store Connect / TestFlight
+    needs: [build_ios]
+    type: testflight
+    params:
+      build_id: ${{ needs.build_ios.outputs.build_id }}

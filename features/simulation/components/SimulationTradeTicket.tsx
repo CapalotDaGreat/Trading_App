@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react';
 import { useRouter } from 'expo-router';
+import { useMemo, useState } from 'react';
 import { View } from 'react-native';
 
 import { EducationalChart } from '@/features/academy/components/EducationalChart';
@@ -11,15 +11,15 @@ import { Surface } from '@/shared/components/ui/Surface';
 import { Text } from '@/shared/components/ui/Text';
 import { formatPercent, formatPrice } from '@/shared/utils/format';
 
-import { quantityForRisk } from '../services/simulation-engine.service';
 import { parseFxPair, unitPriceInAccountCurrency } from '../services/fx-conversion.service';
+import { quantityForRisk } from '../services/simulation-engine.service';
 import type {
-  SimulationAccount,
-  SimulationQuote,
-  SimulationResult,
-  SimulationSide,
-  SimulationTradeInput,
-  SimulationTradePreview,
+    SimulationAccount,
+    SimulationQuote,
+    SimulationResult,
+    SimulationSide,
+    SimulationTradeInput,
+    SimulationTradePreview,
 } from '../types/simulation.types';
 
 interface SimulationTradeTicketProps {
@@ -162,9 +162,7 @@ export function SimulationTradeTicket({
     }
     setPreview(null);
     setMessage(
-      side === 'buy'
-        ? 'Decision completed. Review whether the size and thesis still match your plan.'
-        : 'Position closed. Review your process — simulated P/L is not the grade.',
+      `${side === 'buy' ? 'SIMULATED BUY' : 'SIMULATED SELL'} recorded: ${symbol.toUpperCase()} ${input.quantity} unit${input.quantity === 1 ? '' : 's'} at ${formatPrice(input.price ?? quote?.price ?? 0, account.currency)}. ${side === 'buy' ? 'Position updated.' : 'Position closed.'} Review your process; simulated P/L is not the grade.`,
     );
   };
 

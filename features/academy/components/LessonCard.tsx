@@ -26,8 +26,9 @@ export function LessonCard({ lesson, matchWhy }: LessonCardProps) {
   const { colors } = useTheme();
   const isPremium = useSubscriptionStore((s) => s.isPremium);
   const isPremiumLesson = lesson.isPremium && !isPremium;
-  const read = useAcademyProgressStore((s) => s.isRead(lesson.id));
-  const practiced = useAcademyProgressStore((s) => s.isPracticed(lesson.id));
+  const progressRow = useAcademyProgressStore((s) => s.lessons[lesson.id]);
+  const read = Boolean(progressRow?.read || progressRow?.completed);
+  const practiced = Boolean(progressRow?.practiced);
 
   return (
     <Pressable

@@ -3,14 +3,20 @@ import { useMemo } from 'react';
 import { View } from 'react-native';
 
 import { useAcademy } from '@/features/academy/hooks/useAcademy';
+import { useAcademyProgressStore } from '@/features/academy/stores/academy-progress.store';
+import { useAuth } from '@/features/auth/hooks/useAuth';
+import { useReplayTvStore } from '@/features/decision-replay-tv/stores/replay-tv.store';
 import { EducationalModeBadge } from '@/features/educational/components/EducationalModeBadge';
 import { DevelopmentHistoryCard } from '@/features/learner-model';
 import { TodaysTrainingCard } from '@/features/learning-engine/components/TodaysTrainingCard';
 import { useLearningEngine } from '@/features/learning-engine/hooks/useLearningEngine';
 import { useCoachProfile } from '@/features/onboarding/hooks/useCoachProfile';
+import { useSimulation } from '@/features/simulation/hooks/useSimulation';
 import { HomePersonalizationSections } from '@/features/training-planner/components/HomePersonalizationSections';
 import { composeHomePersonalization } from '@/features/training-planner/services/home-personalization.service';
+import { DEMO_USER_UID } from '@/firebase/config';
 import { ScreenScaffold } from '@/shared/components/layout/ScreenScaffold';
+import { ActivityCard } from '@/shared/components/patterns/ActivityCard';
 import { CollapsibleSection } from '@/shared/components/patterns/CollapsibleSection';
 import { Button } from '@/shared/components/ui/Button';
 import { FilterChip } from '@/shared/components/ui/FilterChip';
@@ -22,7 +28,12 @@ const BEGINNER = new Set(['completely_new', 'beginner']);
 
 export default function HomeScreen() {
   const router = useRouter();
-  const { completedCount, practicedCount } = useAcademy();
+  const { completedCount, practicedCount, lessons } = useAcademy();
+  const lessonProgress = useAcademyProgressStore((state) => state.lessons);
+  const { user } = useAuth();
+  const uid = user?.uid ?? DEMO_USER_UID;
+  const activeReplay = useReplayTvStore((state) => state.activeSessionByUser[uid] ?? null);
+  const { account } = useSimulation();
   const { profile } = useCoachProfile();
   const { today, plan, learner, snapshot, skip, defer, bookmark, openItem, isBookmarked, sessionLength, setSessionLength } =
     useLearningEngine();
@@ -32,6 +43,14 @@ export default function HomeScreen() {
   );
   const noAcademyProgress = completedCount === 0 && practicedCount === 0;
   const beginner = !profile.experience || BEGINNER.has(profile.experience);
+  const activeLesson = useMemo(
+    () =>
+      lessons.find((lesson) => {
+        const progress = lessonProgress[lesson.id];
+        return progress?.read && !progress.practiced;
+      }),
+    [lessonProgress, lessons],
+  );
 
   return (
     <ScreenScaffold
@@ -43,6 +62,49 @@ export default function HomeScreen() {
     >
       <View className="gap-4">
         <EducationalModeBadge />
+
+        {activeLesson || activeReplay || account ? (
+          <View testID="home-active-activities" className="gap-3">
+            <Text variant="h2" headingLevel={2}>
+              Continue
+            </Text>
+            {activeLesson ? (
+              <ActivityCard
+                title={activeLesson.title}
+                eyebrow="Lesson in progress"
+                description="Pick up where you left off, then carry the idea into practice."
+                status="in_progress"
+                progress={0.5}
+                progressLabel="Saved on this device"
+                actionLabel="Continue lesson"
+                onAction={() => router.push(`/academy/lesson/${activeLesson.id}` as never)}
+                testID="home-active-lesson"
+              />
+            ) : null}
+            {activeReplay ? (
+              <ActivityCard
+                title="Historical decision replay"
+                eyebrow="Replay in progress"
+                description={`Episode ${activeReplay.episodeId} is saved at step ${activeReplay.phase}.`}
+                status="in_progress"
+                actionLabel="Continue replay"
+                onAction={() => router.push('/decision/replay-tv/session' as never)}
+                testID="home-active-replay"
+              />
+            ) : null}
+            {account ? (
+              <ActivityCard
+                title="Paper simulation"
+                eyebrow="Simulation in progress"
+                description={`${account.positions.length} position${account.positions.length === 1 ? '' : 's'} · ${account.transactions.length} simulated transaction${account.transactions.length === 1 ? '' : 's'}.`}
+                status="in_progress"
+                actionLabel="Continue simulation"
+                onAction={() => router.push('/simulate' as never)}
+                testID="home-active-simulation"
+              />
+            ) : null}
+          </View>
+        ) : null}
 
         {noAcademyProgress && today.emptyState !== 'new_user' ? (
           <Surface testID="home-continue-learning">

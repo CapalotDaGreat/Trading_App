@@ -329,10 +329,9 @@ export const useAcademyProgressStore = create<AcademyProgressState>()(
       isCompleted: (lessonId) => normalizeProgress(get().lessons[lessonId]).read,
       isRead: (lessonId) => normalizeProgress(get().lessons[lessonId]).read,
       isPracticed: (lessonId) => normalizeProgress(get().lessons[lessonId]).practiced,
-      getProgress: (lessonId) => {
-        const raw = get().lessons[lessonId];
-        return raw ? normalizeProgress(raw) : undefined;
-      },
+      // Return the stored row by reference so Zustand selectors stay referentially stable.
+      // Callers that need defaults should use isRead / isCompleted / isPracticed or normalize locally.
+      getProgress: (lessonId) => get().lessons[lessonId],
       getConceptResults: () => get().conceptResults,
       completedCount: (lessonIds) =>
         lessonIds.filter((id) => normalizeProgress(get().lessons[id]).read).length,

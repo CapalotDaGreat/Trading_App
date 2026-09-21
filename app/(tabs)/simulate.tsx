@@ -3,10 +3,13 @@ import { useEffect, useState } from 'react';
 import { Alert, View } from 'react-native';
 
 import { useAppendDecisionRecord } from '@/features/decision-log/hooks/useDecisionLog';
-import { LoopCtaRow } from '@/features/navigation/components/LoopCtaRow';
+import { PREP_TO_SCENARIO_KIND } from '@/features/events/services/event-simulation.service';
+import type { EventPrepKind } from '@/features/events/types/events.types';
 import { TrainingHandoffBanner } from '@/features/learning-engine/components/TrainingHandoffBanner';
-import { SimulationCurrencyPanel } from '@/features/simulation/components/SimulationCurrencyPanel';
+import { LoopCtaRow } from '@/features/navigation/components/LoopCtaRow';
+import { IA_GLOSSARY } from '@/features/navigation/config/navigation-ia.config';
 import { SimulationCloseReviewCard } from '@/features/simulation/components/SimulationCloseReviewCard';
+import { SimulationCurrencyPanel } from '@/features/simulation/components/SimulationCurrencyPanel';
 import { SimulationDisclaimer } from '@/features/simulation/components/SimulationDisclaimer';
 import { SimulationEducationLinks } from '@/features/simulation/components/SimulationEducationLinks';
 import { SimulationPositionList } from '@/features/simulation/components/SimulationPositionList';
@@ -17,27 +20,25 @@ import { SimulationTradeTicket } from '@/features/simulation/components/Simulati
 import { SimulationTransactionList } from '@/features/simulation/components/SimulationTransactionList';
 import { SELECTABLE_CHALLENGES } from '@/features/simulation/constants/simulation.constants';
 import { useSimulation } from '@/features/simulation/hooks/useSimulation';
-import { PREP_TO_SCENARIO_KIND } from '@/features/events/services/event-simulation.service';
-import type { EventPrepKind } from '@/features/events/types/events.types';
 import { SCENARIO_DIFFICULTY_LABELS } from '@/features/simulation/services/scenario-difficulty.service';
 import { resetSnapshot } from '@/features/simulation/services/simulation-engine.service';
 import { ALL_SCENARIO_FOCI, type ScenarioDifficulty, type ScenarioFocus, type ScenarioStartOptions } from '@/features/simulation/types/scenario.types';
 import type {
-  SimulationCloseReview,
-  SimulationMode,
-  SimulationSide,
-  SimulationTradeInput,
+    SimulationCloseReview,
+    SimulationMode,
+    SimulationSide,
+    SimulationTradeInput,
 } from '@/features/simulation/types/simulation.types';
-import { IA_GLOSSARY } from '@/features/navigation/config/navigation-ia.config';
 import { EmptyState } from '@/shared/components/feedback/EmptyState';
 import { ScreenScaffold } from '@/shared/components/layout/ScreenScaffold';
+import { ProgressHeader } from '@/shared/components/patterns/ActivityCard';
 import { CollapsibleSection } from '@/shared/components/patterns/CollapsibleSection';
 import { Button } from '@/shared/components/ui/Button';
 import { SegmentedControl } from '@/shared/components/ui/SegmentedControl';
 import { Surface } from '@/shared/components/ui/Surface';
 import { Text } from '@/shared/components/ui/Text';
-import { useOnlineStatus } from '@/shared/hooks/useOnlineStatus';
 import { BRAND } from '@/shared/constants/brand';
+import { useOnlineStatus } from '@/shared/hooks/useOnlineStatus';
 
 const MODE_OPTIONS: { value: SimulationMode; label: string }[] = [
   { value: 'beginner', label: 'Beginner rails' },
@@ -310,6 +311,14 @@ export default function SimulateScreen() {
             </Button>
           ) : null}
         </Surface>
+      ) : null}
+
+      {account ? (
+        <ProgressHeader
+          label="SIMULATION · PRACTICE ACCOUNT"
+          title="Simulation in progress"
+          detail={`${account.currency} ${account.cashBalance.toFixed(2)} available · ${account.positions.length} open position${account.positions.length === 1 ? '' : 's'} · ${account.transactions.length} simulated transaction${account.transactions.length === 1 ? '' : 's'}.`}
+        />
       ) : null}
 
       {!account ? (

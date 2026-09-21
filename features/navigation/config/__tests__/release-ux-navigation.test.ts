@@ -1,14 +1,14 @@
 import {
-  FORBIDDEN_PRIMARY_CTA_HREFS,
-  HIDDEN_TAB_ROUTES,
-  PRACTICE_HUB_SECTIONS,
-  PRIMARY_TAB_HREFS,
-  PRIMARY_TAB_LABELS,
-  PRODUCT_LOOP_STEPS,
-  RESEARCH_HUB_SECTIONS,
-  REVIEW_HUB_SECTIONS,
-  SIMULATE_TAB_ICON,
-  YOU_HUB_SECTIONS,
+    FORBIDDEN_PRIMARY_CTA_HREFS,
+    HIDDEN_TAB_ROUTES,
+    PRACTICE_HUB_SECTIONS,
+    PRIMARY_TAB_HREFS,
+    PRIMARY_TAB_LABELS,
+    PRODUCT_LOOP_STEPS,
+    RESEARCH_HUB_SECTIONS,
+    REVIEW_HUB_SECTIONS,
+    SIMULATE_TAB_ICON,
+    YOU_HUB_SECTIONS,
 } from '../navigation-ia.config';
 import { COLD_DEEP_LINK_FALLBACKS } from '../review-navigation.config';
 
@@ -26,20 +26,20 @@ function hubHrefs(): string[] {
 }
 
 describe('release UX navigation smoke', () => {
-  it('keeps the seven educational tabs and does not add Ask, Markets, or Portfolio', () => {
+  it('keeps six focused tabs and does not add Ask, Markets, or Portfolio', () => {
     expect(PRIMARY_TAB_LABELS).toEqual([
       'Home',
       'Learn',
       'Practice',
       'Simulate',
       'Review',
-      'Events',
       'You',
     ]);
     expect(PRIMARY_TAB_LABELS).not.toContain('Ask');
     expect(PRIMARY_TAB_LABELS).not.toContain('Markets');
     expect(PRIMARY_TAB_LABELS).not.toContain('Portfolio');
     expect(PRIMARY_TAB_HREFS).toHaveLength(PRIMARY_TAB_LABELS.length);
+    expect(COLD_DEEP_LINK_FALLBACKS.events).toBe('/events');
   });
 
   it('hides terminal leftover tabs instead of promoting them', () => {

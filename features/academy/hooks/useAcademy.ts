@@ -252,10 +252,12 @@ export function useLesson(lessonId: string) {
   const storeRecordQuizScore = useAcademyProgressStore((s) => s.recordQuizScore);
   const storeRecordConceptResult = useAcademyProgressStore((s) => s.recordConceptResult);
   const storeRecordExerciseAttempt = useAcademyProgressStore((s) => s.recordExerciseAttempt);
-  const progress = useAcademyProgressStore((s) => s.getProgress(lessonId));
-  const isCompleted = useAcademyProgressStore((s) => s.isCompleted(lessonId));
-  const isRead = useAcademyProgressStore((s) => s.isRead(lessonId));
-  const isPracticed = useAcademyProgressStore((s) => s.isPracticed(lessonId));
+  // Select the stored row by reference — never call getProgress()/normalize in the
+  // selector (it allocates a new object every read and triggers an infinite loop).
+  const progress = useAcademyProgressStore((s) => (lessonId ? s.lessons[lessonId] : undefined));
+  const isCompleted = Boolean(progress?.read || progress?.completed);
+  const isRead = Boolean(progress?.read || progress?.completed);
+  const isPracticed = Boolean(progress?.practiced);
 
   return {
     lesson: query.data ?? localLesson,

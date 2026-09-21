@@ -84,14 +84,6 @@ export default function TabLayout() {
           }}
         />
         <Tabs.Screen
-          name="events"
-          options={{
-            title: IA_GLOSSARY.events,
-            tabBarAccessibilityLabel: 'Market Events tab',
-            tabBarIcon: ({ color }) => <TabIcon name="calendar-outline" color={color} />,
-          }}
-        />
-        <Tabs.Screen
           name="you"
           options={{
             title: IA_GLOSSARY.you,

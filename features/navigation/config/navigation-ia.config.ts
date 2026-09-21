@@ -1,11 +1,10 @@
-/** Visible primary tabs — training loop plus Market Events and You. Ask stays a route, not a tab. */
+/** Visible primary tabs — the learning loop and account hub. Events lives under Learn. */
 export const PRIMARY_TAB_LABELS = [
   'Home',
   'Learn',
   'Practice',
   'Simulate',
   'Review',
-  'Events',
   'You',
 ] as const;
 
@@ -15,7 +14,6 @@ export const PRIMARY_TAB_HREFS = [
   '/practice',
   '/simulate',
   '/review',
-  '/events',
   '/you',
 ] as const;
 

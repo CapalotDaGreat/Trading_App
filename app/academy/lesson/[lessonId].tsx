@@ -1,12 +1,9 @@
+import { Ionicons } from '@expo/vector-icons';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect } from 'react';
 import { Pressable, View } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
 
 import { LessonLearningLoop } from '@/features/academy/components/LessonLearningLoop';
-import { LessonNextSteps } from '@/features/learning-engine/components/LessonNextSteps';
-import { TrainingHandoffBanner } from '@/features/learning-engine/components/TrainingHandoffBanner';
-import { nextAfterLesson } from '@/features/learning-engine/services/lesson-next.service';
 import { getLocalLessonById } from '@/features/academy/content';
 import { useLesson } from '@/features/academy/hooks/useAcademy';
 import { useAcademyProgressStore } from '@/features/academy/stores/academy-progress.store';
@@ -14,14 +11,18 @@ import { CATEGORY_LABELS } from '@/features/academy/types/academy.types';
 import { EducationalModeBadge } from '@/features/educational/components/EducationalModeBadge';
 import { EducationalPanel } from '@/features/educational/components/EducationalPanel';
 import { getLessonEducationalFraming } from '@/features/educational/services/lesson-framing.service';
+import { LessonNextSteps } from '@/features/learning-engine/components/LessonNextSteps';
+import { TrainingHandoffBanner } from '@/features/learning-engine/components/TrainingHandoffBanner';
+import { nextAfterLesson } from '@/features/learning-engine/services/lesson-next.service';
 import { StatusState } from '@/shared/components/feedback/StatusState';
 import { Header } from '@/shared/components/layout/Header';
 import { Screen } from '@/shared/components/layout/Screen';
+import { ProgressHeader } from '@/shared/components/patterns/ActivityCard';
 import { Badge } from '@/shared/components/ui/Badge';
 import { Button } from '@/shared/components/ui/Button';
 import { Text } from '@/shared/components/ui/Text';
-import { useSubscriptionStore } from '@/shared/stores/subscription.store';
 import { useTheme } from '@/shared/hooks/useTheme';
+import { useSubscriptionStore } from '@/shared/stores/subscription.store';
 
 export default function AcademyLessonScreen() {
   const router = useRouter();
@@ -42,7 +43,9 @@ export default function AcademyLessonScreen() {
     recordExerciseAttempt,
   } = useLesson(lessonId ?? '');
 
-  const isSaved = useAcademyProgressStore((s) => s.isSaved(lessonId ?? ''));
+  const isSaved = useAcademyProgressStore((s) =>
+    lessonId ? s.savedLessonIds.includes(lessonId) : false,
+  );
   const toggleSaved = useAcademyProgressStore((s) => s.toggleSaved);
 
   useEffect(() => {
@@ -126,6 +129,12 @@ export default function AcademyLessonScreen() {
       <View className="mt-3">
         <TrainingHandoffBanner />
       </View>
+
+      <ProgressHeader
+        label="LESSON IN PROGRESS"
+        title={lesson.title}
+        detail={`${lesson.durationMinutes} min lesson · ${isRead ? 'Continue your saved lesson.' : 'Started now; progress is saved on this device.'}`}
+      />
 
       <View className="mt-3 flex-row flex-wrap gap-2">
         <Badge

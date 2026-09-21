@@ -2,34 +2,35 @@ import { useRouter } from 'expo-router';
 import { useMemo } from 'react';
 import { View } from 'react-native';
 
+import { useAuth } from '@/features/auth/hooks/useAuth';
+import { useDecisionLog } from '@/features/decision-log/hooks/useDecisionLog';
+import { EMPTY_REPLAY_TV_PROGRESS, useReplayTvStore } from '@/features/decision-replay-tv/stores/replay-tv.store';
+import { useJournal } from '@/features/journal/hooks/useJournal';
+import { DevelopmentHistoryCard } from '@/features/learner-model';
+import { TrainingHandoffBanner } from '@/features/learning-engine/components/TrainingHandoffBanner';
+import { useLearningEngine } from '@/features/learning-engine/hooks/useLearningEngine';
+import { MistakeLibraryCard } from '@/features/mistake-library';
+import { LoopCtaRow } from '@/features/navigation/components/LoopCtaRow';
+import {
+    IA_GLOSSARY,
+    REVIEW_HUB_SECTIONS,
+    type NavigationHubSection,
+} from '@/features/navigation/config/navigation-ia.config';
+import { useSimulation } from '@/features/simulation/hooks/useSimulation';
+import { scoreSimulationProcess } from '@/features/simulation/services/scenario-process.service';
 import { PlannerNextCard } from '@/features/training-planner/components/PlannerNextCard';
 import { ReviewProcessBrief } from '@/features/training-planner/components/ReviewProcessBrief';
 import { composeReviewBrief } from '@/features/training-planner/services/review-brief.service';
-import { useLearningEngine } from '@/features/learning-engine/hooks/useLearningEngine';
-import { TrainingHandoffBanner } from '@/features/learning-engine/components/TrainingHandoffBanner';
-import { useDecisionLog } from '@/features/decision-log/hooks/useDecisionLog';
-import { useAuth } from '@/features/auth/hooks/useAuth';
-import { EMPTY_REPLAY_TV_PROGRESS, useReplayTvStore } from '@/features/decision-replay-tv/stores/replay-tv.store';
-import { useJournal } from '@/features/journal/hooks/useJournal';
-import { LoopCtaRow } from '@/features/navigation/components/LoopCtaRow';
-import {
-  IA_GLOSSARY,
-  REVIEW_HUB_SECTIONS,
-  type NavigationHubSection,
-} from '@/features/navigation/config/navigation-ia.config';
-import { MistakeLibraryCard } from '@/features/mistake-library';
-import { DevelopmentHistoryCard } from '@/features/learner-model';
-import { useSimulation } from '@/features/simulation/hooks/useSimulation';
-import { scoreSimulationProcess } from '@/features/simulation/services/scenario-process.service';
+import { DEMO_USER_UID } from '@/firebase/config';
 import { EmptyState } from '@/shared/components/feedback/EmptyState';
 import { ScreenScaffold } from '@/shared/components/layout/ScreenScaffold';
+import { ActivityCard } from '@/shared/components/patterns/ActivityCard';
 import { CollapsibleSection } from '@/shared/components/patterns/CollapsibleSection';
 import { HubPathList } from '@/shared/components/patterns/HubPathList';
 import { Button } from '@/shared/components/ui/Button';
 import { Surface } from '@/shared/components/ui/Surface';
 import { Text } from '@/shared/components/ui/Text';
 import { useOnlineStatus } from '@/shared/hooks/useOnlineStatus';
-import { DEMO_USER_UID } from '@/firebase/config';
 import { formatPrice } from '@/shared/utils/format';
 
 const WORK = REVIEW_HUB_SECTIONS.filter((section) => section.title === 'Your work');
@@ -50,6 +51,7 @@ export default function ReviewScreen() {
   const { user } = useAuth();
   const uid = user?.uid ?? DEMO_USER_UID;
   const replayProgress = useReplayTvStore((state) => state.progressByUser[uid] ?? EMPTY_REPLAY_TV_PROGRESS);
+  const activeReplay = useReplayTvStore((state) => state.activeSessionByUser[uid] ?? null);
   const recentJournal = entries[0];
   const recentDecision = records?.length ? records[records.length - 1] : undefined;
   const lastSimClose = account?.decisions?.slice().reverse().find((item) => item.closedAt);
@@ -101,6 +103,17 @@ export default function ReviewScreen() {
         <Text variant="caption" className="mb-3 text-text-tertiary" testID="review-offline-caption">
           Review uses on-device journal, simulation, and replay. Simulated P/L is not the grade.
         </Text>
+      ) : null}
+      {activeReplay ? (
+        <ActivityCard
+          title="Historical decision replay"
+          eyebrow="Resume saved work"
+          description={`Episode ${activeReplay.episodeId} is waiting at step ${activeReplay.phase}.`}
+          status="in_progress"
+          actionLabel="Continue replay"
+          onAction={() => router.push('/decision/replay-tv/session' as never)}
+          testID="review-active-replay"
+        />
       ) : null}
       {(journalError || logError) && hasAnyReviewWork ? (
         <Surface padding="sm" tone="warning" className="mb-3" testID="review-stale-banner">

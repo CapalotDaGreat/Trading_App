@@ -1,10 +1,10 @@
 import {
-  IA_GLOSSARY,
-  PRACTICE_HUB_SECTIONS,
-  PRIMARY_TAB_LABELS,
-  RESEARCH_HUB_SECTIONS,
-  REVIEW_HUB_SECTIONS,
-  YOU_HUB_SECTIONS,
+    IA_GLOSSARY,
+    PRACTICE_HUB_SECTIONS,
+    PRIMARY_TAB_LABELS,
+    RESEARCH_HUB_SECTIONS,
+    REVIEW_HUB_SECTIONS,
+    YOU_HUB_SECTIONS,
 } from '../navigation-ia.config';
 import { COLD_DEEP_LINK_FALLBACKS, buildLegacyRouteRedirect } from '../review-navigation.config';
 
@@ -16,7 +16,6 @@ describe('navigation information architecture', () => {
       'Practice',
       'Simulate',
       'Review',
-      'Events',
       'You',
     ]);
     expect([
@@ -25,9 +24,9 @@ describe('navigation information architecture', () => {
       IA_GLOSSARY.practice,
       IA_GLOSSARY.simulate,
       IA_GLOSSARY.review,
-      IA_GLOSSARY.events,
       IA_GLOSSARY.you,
     ]).toEqual([...PRIMARY_TAB_LABELS]);
+    expect(IA_GLOSSARY.events).toBe('Events');
   });
 
   it('keeps hub destinations unique within each hub', () => {

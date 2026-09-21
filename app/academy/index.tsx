@@ -4,27 +4,31 @@ import { View } from 'react-native';
 
 import { CategoryChips, type CategoryFilter } from '@/features/academy/components/CategoryChips';
 import {
-  AcademyDisciplineCard,
+    AcademyDisciplineCard,
 } from '@/features/academy/components/CurriculumCards';
 import { LessonCard } from '@/features/academy/components/LessonCard';
 import { PathCard } from '@/features/academy/components/PathCard';
 import { TradingChecklist } from '@/features/academy/components/TradingChecklist';
 import {
-  useAcademy,
-  useAcademyChecklists,
-  useLearningPaths,
+    useAcademy,
+    useAcademyChecklists,
+    useLearningPaths,
 } from '@/features/academy/hooks/useAcademy';
 import { searchEducation } from '@/features/academy/services/educational-search.service';
 import { useAcademyProgressStore } from '@/features/academy/stores/academy-progress.store';
+import type { LessonDifficulty } from '@/features/academy/types/academy.types';
+import { useAuth } from '@/features/auth/hooks/useAuth';
+import { useReplayTvStore } from '@/features/decision-replay-tv/stores/replay-tv.store';
+import { PremiumOsGate } from '@/features/decision/components/PremiumOsGate';
+import { EducationalModeBadge } from '@/features/educational/components/EducationalModeBadge';
 import { TrainingHandoffBanner } from '@/features/learning-engine/components/TrainingHandoffBanner';
 import { useLearningEngine } from '@/features/learning-engine/hooks/useLearningEngine';
-import { PlannerNextCard } from '@/features/training-planner/components/PlannerNextCard';
-import type { LessonDifficulty } from '@/features/academy/types/academy.types';
-import { PremiumOsGate } from '@/features/decision/components/PremiumOsGate';
 import { LoopCtaRow } from '@/features/navigation/components/LoopCtaRow';
-import { EducationalModeBadge } from '@/features/educational/components/EducationalModeBadge';
+import { PlannerNextCard } from '@/features/training-planner/components/PlannerNextCard';
+import { DEMO_USER_UID } from '@/firebase/config';
 import { StatusState } from '@/shared/components/feedback/StatusState';
 import { ScreenScaffold } from '@/shared/components/layout/ScreenScaffold';
+import { ActivityCard } from '@/shared/components/patterns/ActivityCard';
 import { CollapsibleSection } from '@/shared/components/patterns/CollapsibleSection';
 import { Button } from '@/shared/components/ui/Button';
 import { FilterChip } from '@/shared/components/ui/FilterChip';
@@ -62,12 +66,28 @@ export default function AcademyScreen() {
     return { days: disciplineStreakDays, today };
   }, [disciplineSlice, disciplineStreakDays]);
   const savedLessonIds = useAcademyProgressStore((s) => s.savedLessonIds);
+  const lessonProgress = useAcademyProgressStore((s) => s.lessons);
+  const { user } = useAuth();
+  const uid = user?.uid ?? DEMO_USER_UID;
+  const activeReplay = useReplayTvStore((state) => state.activeSessionByUser[uid] ?? null);
   const { primary, openItem, defer } = useLearningEngine();
 
   const searchHits = useMemo(() => searchEducation(lessons, query), [lessons, query]);
   const savedLessons = useMemo(
     () => lessons.filter((lesson) => savedLessonIds.includes(lesson.id)),
     [lessons, savedLessonIds],
+  );
+
+  const activeLesson = useMemo(
+    () =>
+      lessons
+        .filter((lesson) => lessonProgress[lesson.id]?.read && !lessonProgress[lesson.id]?.practiced)
+        .sort((left, right) => {
+          const leftAt = lessonProgress[left.id]?.lastOpenedAt ?? '';
+          const rightAt = lessonProgress[right.id]?.lastOpenedAt ?? '';
+          return rightAt.localeCompare(leftAt);
+        })[0],
+    [lessonProgress, lessons],
   );
 
   const isRead = useAcademyProgressStore((s) => s.isRead);
@@ -110,8 +130,9 @@ export default function AcademyScreen() {
 
   return (
     <ScreenScaffold
-      title="Academy"
-      subtitle="Learn by path, topic, difficulty, and progress. Search a question, not a ticker."
+      eyebrow="Learn"
+      title="Learning hub"
+      subtitle="Choose what to learn, practice, replay, or study next. Search a question, not a ticker."
       contentClassName="pb-10"
       headerAction={
         <Button size="sm" variant="ghost" onPress={() => router.push('/search' as never)}>
@@ -122,6 +143,94 @@ export default function AcademyScreen() {
       <View className="gap-4">
         <EducationalModeBadge />
         <TrainingHandoffBanner />
+        <View testID="learn-discovery-hub">
+          <Text variant="h2" headingLevel={2}>
+            Learn your way through the loop
+          </Text>
+          <Text variant="body-sm" className="mt-1 text-text-secondary">
+            Choose a focused activity, then carry the lesson into practice, replay, simulation, and review.
+          </Text>
+        </View>
+        {activeLesson || activeReplay ? (
+          <View className="gap-3" testID="learn-continue-section">
+            <Text variant="h3" headingLevel={3}>
+              Continue learning
+            </Text>
+            {activeLesson ? (
+              <ActivityCard
+                title={activeLesson.title}
+                eyebrow="Academy lesson"
+                description="You have read this lesson but have not yet carried it into practice."
+                status="in_progress"
+                progress={0.5}
+                progressLabel="Continue the lesson, then choose a practice handoff."
+                actionLabel="Continue lesson"
+                onAction={() => router.push(`/academy/lesson/${activeLesson.id}` as never)}
+                testID="learn-active-lesson"
+              />
+            ) : null}
+            {activeReplay ? (
+              <ActivityCard
+                title="Historical decision replay"
+                eyebrow="Replay"
+                description={`Episode ${activeReplay.episodeId} is saved on this device at step ${activeReplay.phase}.`}
+                status="in_progress"
+                progressLabel="Your reasoning is saved between sessions."
+                actionLabel="Continue replay"
+                onAction={() => router.push('/decision/replay-tv/session' as never)}
+                testID="learn-active-replay"
+              />
+            ) : null}
+          </View>
+        ) : null}
+        <CollapsibleSection
+          title="Learning experiences"
+          description="Start with one clear activity. Advanced tools stay available inside the right hub."
+          defaultExpanded
+          testID="learn-experiences"
+        >
+          <View className="gap-3">
+            <ActivityCard
+              title="Academy"
+              description="Structured paths, lessons, checklists, and saved concepts."
+              actionLabel={completedCount === 0 ? 'Start Foundations' : 'Browse lessons'}
+              onAction={() =>
+                router.push(
+                  completedCount === 0 ? '/academy/path/path-foundations' : '/academy' as never,
+                )
+              }
+              testID="learn-academy-entry"
+            />
+            <ActivityCard
+              title="Replay"
+              description="Work through historical market situations step by step. Outcome does not grade your process."
+              actionLabel="Open Replay"
+              onAction={() => router.push('/decision/replay-tv' as never)}
+              testID="learn-replay-entry"
+            />
+            <ActivityCard
+              title="Practice"
+              description="Apply ideas with short drills for charts, risk, decisions, and event interpretation."
+              actionLabel="Open Practice"
+              onAction={() => router.push('/practice' as never)}
+              testID="learn-practice-entry"
+            />
+            <ActivityCard
+              title="Events"
+              description="Learn why market-moving events matter without turning the calendar into a signal feed."
+              actionLabel="Study Events"
+              onAction={() => router.push('/events' as never)}
+              testID="learn-events-entry"
+            />
+            <ActivityCard
+              title="Study an asset"
+              description="Explore a name in an educational context, then connect it to a lesson or simulation."
+              actionLabel="Search to study"
+              onAction={() => router.push('/search' as never)}
+              testID="learn-asset-entry"
+            />
+          </View>
+        </CollapsibleSection>
         {!isOnline ? (
           <Text variant="caption" className="text-text-tertiary" testID="academy-offline-caption">
             Lessons, quizzes, and paths are on this device. Cloud extras will merge when you are back online.

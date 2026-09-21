@@ -24,6 +24,13 @@ expo-env.d.ts
 *.key
 *.mobileprovision
 
+# Local Apple / ASC secrets (never commit private keys)
+/credentials/asc/
+/credentials/apple/
+/credentials/**/*.p8
+/credentials/**/*.p12
+/credentials/**/*.mobileprovision
+
 # Metro
 .metro-health-check*
 
@@ -52,6 +59,10 @@ coverage/
 # local env files
 .env
 .env*.local
+
+# Large App Review screen recordings (attach in ASC Resolution Center; not in the binary)
+/store/review/*.mp4
+/App_Clip.mp4
 
 # typescript
 *.tsbuildinfo

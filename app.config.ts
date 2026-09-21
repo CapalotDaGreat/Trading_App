@@ -78,6 +78,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       // remote-notification = push; processing = expo-background-task (BGTaskScheduler)
       UIBackgroundModes: ['remote-notification', 'processing'],
       BGTaskSchedulerPermittedIdentifiers: ['com.expo.modules.backgroundtask.processing'],
+      // Explicit Info.plist key — ensures export-compliance is baked even if ios.config is stripped.
+      ITSAppUsesNonExemptEncryption: false,
       CFBundleURLTypes: [
         {
           CFBundleURLSchemes: [APP_SCHEME],
