@@ -1,15 +1,16 @@
 import {
-  getUserProfile,
-  upsertUserProfile,
-  updateUserProfile,
+    getUserProfile,
+    updateUserProfile,
+    upsertUserProfile,
 } from '@/features/profile/services/profile.service';
 import { settingsService } from '@/features/settings/services/settings.service';
 import { auth } from '@/firebase/config';
+import { logger } from '@/shared/services/observability/logger';
 import { useSettingsStore } from '@/shared/stores/settings.store';
 
 import type {
-  OnboardingCompletionInput,
-  OnboardingCompletionResult,
+    OnboardingCompletionInput,
+    OnboardingCompletionResult,
 } from '../types/onboarding.types';
 
 import { clearOnboardingDraft } from './onboarding-draft.service';
@@ -83,10 +84,38 @@ export async function completeOnboarding(
 ): Promise<OnboardingCompletionResult> {
   if (!uid) throw new Error('A uid is required to complete onboarding.');
   const normalized = normalizeCompletionInput(input);
+
+  // Persist the user-facing completion state immediately so the app can route into
+  // the main experience even when Firebase/App Check rejects remote writes in a
+  // production native build.
   dependencies.applyLocal(normalized);
-  await dependencies.syncSettings(uid);
-  await dependencies.syncProfile(uid, normalized);
-  await dependencies.clearDraft(uid);
+
+  try {
+    await dependencies.syncSettings(uid);
+  } catch (error) {
+    logger.warn('onboarding.sync_settings_failed', {
+      uid,
+      message: error instanceof Error ? error.message : 'unknown',
+    });
+  }
+
+  try {
+    await dependencies.syncProfile(uid, normalized);
+  } catch (error) {
+    logger.warn('onboarding.sync_profile_failed', {
+      uid,
+      message: error instanceof Error ? error.message : 'unknown',
+    });
+  }
+
+  try {
+    await dependencies.clearDraft(uid);
+  } catch (error) {
+    logger.warn('onboarding.clear_draft_failed', {
+      uid,
+      message: error instanceof Error ? error.message : 'unknown',
+    });
+  }
 
   return {
     preferences: {
