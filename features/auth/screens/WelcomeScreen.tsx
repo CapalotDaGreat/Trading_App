@@ -5,6 +5,7 @@ import { Pressable, View } from 'react-native';
 import Animated from 'react-native-reanimated';
 
 import { Screen } from '@/shared/components/layout/Screen';
+import { BrandMark } from '@/shared/components/ui/BrandMark';
 import { Button } from '@/shared/components/ui/Button';
 import { GlassCard } from '@/shared/components/ui/GlassCard';
 import { Text } from '@/shared/components/ui/Text';
@@ -59,8 +60,8 @@ export function WelcomeScreen() {
     >
       <View className="min-h-full flex-1 py-6">
         <View className="flex-row items-center">
-          <View className="mr-3 h-11 w-11 items-center justify-center rounded-2xl bg-accent-muted">
-            <Ionicons name="compass-outline" size={24} color={colors.accent.primary} />
+          <View className="mr-3">
+            <BrandMark size={44} />
           </View>
           <View>
             <Text variant="h3" accessibilityRole="header">

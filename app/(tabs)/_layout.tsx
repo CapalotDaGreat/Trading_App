@@ -91,6 +91,7 @@ export default function TabLayout() {
             tabBarIcon: ({ color }) => <TabIcon name="person-outline" color={color} />,
           }}
         />
+        <Tabs.Screen name="events" options={{ href: null }} />
         <Tabs.Screen name="ai" options={{ href: null }} />
         <Tabs.Screen name="research" options={{ href: null }} />
         <Tabs.Screen name="portfolio" options={{ href: null }} />

@@ -324,14 +324,45 @@ def export_set(src_dir: Path, sizes: dict, ipad: bool) -> None:
             save(compose_screenshot(screen, strip, size, caption, sub, ipad), folder / f"{i:02d}-{slug}.png")
 
 
+def validate() -> list[str]:
+    """Every output has the exact slot size, no alpha, and a matching source capture."""
+    errors: list[str] = []
+    slug_to_src = {slug: src for src, slug, _, _ in SCENES}
+    sets = [(SRC_IPHONE, IPHONE_SIZES), (SRC_IPAD, IPAD_SIZES)]
+    for src_dir, sizes in sets:
+        for rel, size in sizes.items():
+            for path in sorted((ROOT / rel).glob("*.png")):
+                img = Image.open(path)
+                img.verify()
+                img = Image.open(path)
+                if img.size != size:
+                    errors.append(f"{path.name} in {rel}: {img.size} != {size}")
+                if img.mode != "RGB":
+                    errors.append(f"{path.name} in {rel}: mode {img.mode} (must be RGB, no alpha)")
+                slug = path.stem.split("-", 1)[1]
+                if not (src_dir / slug_to_src.get(slug, "?")).exists():
+                    errors.append(f"{path.name} in {rel}: no source capture in {src_dir.name}")
+    for name, size in HEADER_SIZES.items():
+        img = Image.open(ROOT / "app-store" / "header" / name)
+        if img.size != size or img.mode != "RGB":
+            errors.append(f"header {name}: {img.size} {img.mode}")
+    return errors
+
+
 def main() -> None:
     export_set(SRC_IPHONE, IPHONE_SIZES, ipad=False)
     if SRC_IPAD.exists() and any(SRC_IPAD.glob("*.png")):
         export_set(SRC_IPAD, IPAD_SIZES, ipad=True)
     else:
-        print(f"no iPad captures in {SRC_IPAD.relative_to(ROOT)} — iPad screenshots not generated")
+        print(f"no iPad captures in {SRC_IPAD.relative_to(ROOT)} - iPad screenshots not generated")
     for name, size in HEADER_SIZES.items():
         save(compose_header(size), ROOT / "app-store" / "header" / name)
+    errors = validate()
+    for e in errors:
+        print("ERROR", e)
+    if errors:
+        raise SystemExit(1)
+    print("validation passed")
 
 
 if __name__ == "__main__":

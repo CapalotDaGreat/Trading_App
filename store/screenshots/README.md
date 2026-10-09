@@ -19,6 +19,12 @@ banner are cropped off and the device frame supplies a plain Dynamic Island.
 For sharper results, replace them with native screenshots from the TestFlight /
 production build using the same file names.
 
+**Known issue:** the current iPhone captures (2026-09-16) predate the tab-bar
+change of 2026-09-21 and show a seventh "Events" tab. Builds 15+ show six tabs
+(Home, Learn, Practice, Simulate, Review, You); Events is reached from Home,
+lessons, and notifications. Recapture before uploading so the screenshots match
+the shipped app.
+
 ## Scenes (01 → 06)
 
 1. **Home** — Know what to train next

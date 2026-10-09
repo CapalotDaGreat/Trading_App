@@ -132,11 +132,15 @@ describe('legal compliance pack', () => {
     const home = readFileSync(join(hostedDir, 'index.html'), 'utf8');
     const privacy = readFileSync(join(hostedDir, 'privacy.html'), 'utf8');
 
-    expect(home).toContain('Official legal, privacy, security &amp; support center');
+    expect(home).toContain('Legal &amp; support');
+    expect(home).toContain('TradeAcademy is coming soon');
+    expect(home).not.toContain('apps.apple.com');
     expect(home).toContain('TradeAcademy');
     expect(home).toContain('by Aithera');
     expect(home).toContain('CML Electronics');
-    expect(home).toContain('Learn → Practice → Replay → Simulate → Journal → Review → Improve');
+    for (const step of ['Learn', 'Practice', 'Replay', 'Simulate', 'Journal', 'Review', 'Improve']) {
+      expect(home).toContain(`</span>${step}</li>`);
+    }
     expect(home).toContain('Updated 16 September 2026');
     expect(home).toContain('Read document');
     expect(home).toContain('/site.css');
