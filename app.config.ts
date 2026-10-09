@@ -1,4 +1,4 @@
-import type { ExpoConfig, ConfigContext } from 'expo/config';
+import type { ConfigContext, ExpoConfig } from 'expo/config';
 
 const APP_SCHEME = 'tradeacademy';
 const BUNDLE_IDENTIFIER = 'ai.tradeacademy.app';
@@ -69,6 +69,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   scheme: APP_SCHEME,
   userInterfaceStyle: 'automatic',
   ios: {
+    icon: './assets/images/icon.png',
     supportsTablet: true,
     usesAppleSignIn: true,
     bundleIdentifier: BUNDLE_IDENTIFIER,
@@ -97,7 +98,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       foregroundImage: './assets/images/android-icon-foreground.png',
       backgroundImage: './assets/images/android-icon-background.png',
       monochromeImage: './assets/images/android-icon-monochrome.png',
-      backgroundColor: '#151922',
+      backgroundColor: '#061622',
     },
     intentFilters: [
       {
@@ -152,10 +153,10 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       {
         image: './assets/images/splash-icon.png',
         resizeMode: 'contain',
-        backgroundColor: '#151922',
+        backgroundColor: '#061622',
         dark: {
           image: './assets/images/splash-icon.png',
-          backgroundColor: '#151922',
+          backgroundColor: '#061622',
         },
       },
     ],
@@ -163,7 +164,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       'expo-notifications',
       {
         icon: './assets/images/android-icon-monochrome.png',
-        color: '#2DD4BF',
+        color: '#7AD6FF',
         defaultChannel: 'default',
         sounds: [],
       },

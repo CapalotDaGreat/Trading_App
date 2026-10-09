@@ -1,0 +1,25 @@
+
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#061622"/>
+      <stop offset="100%" stop-color="#0E213B"/>
+    </linearGradient>
+    <linearGradient id="blue" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#35B7FF"/>
+      <stop offset="38%" stop-color="#1E8FEF"/>
+      <stop offset="100%" stop-color="#0D6DD6"/>
+    </linearGradient>
+    <linearGradient id="lt" x1="0" x2="1" y1="0" y2="0">
+      <stop offset="0%" stop-color="#F2FCFF"/>
+      <stop offset="100%" stop-color="#B9EEFF"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1024" height="1024" rx="210" fill="url(#bg)"/>
+
+  <path d="M214 736L440 284H572L798 736H676L598 580H426L348 736H214Z" fill="url(#blue)"/>
+  <path d="M318 666L456 374H556L694 666H576L518 558H494L436 666H318Z" fill="#F3FBFF" opacity="0.98"/>
+  <path d="M364 736L514 420H604L754 736H628L556 602H562L490 736H364Z" fill="#EAFBFF" opacity="0.9"/>
+  <path d="M275 736L460 340H566L754 736H643L576 628H450L383 736H275Z" fill="url(#lt)" opacity="0.18"/>
+</svg>

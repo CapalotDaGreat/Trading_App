@@ -3,34 +3,35 @@ import { doc, getDoc, setDoc } from 'firebase/firestore';
 
 import { saveTraderMemory } from '@/features/decision/services/trader-intelligence.service';
 import {
-  createWatchlist,
-  getWatchlists,
-  updateWatchlist,
+    createWatchlist,
+    getWatchlists,
+    updateWatchlist,
 } from '@/features/watchlists/services/watchlist.service';
 import { canUseFirestore, requireDb } from '@/firebase/config';
+import { logger } from '@/shared/services/observability/logger';
 import { useSettingsStore } from '@/shared/stores/settings.store';
 import type { ActivationGoal, ExperienceLevel, TradingStyle } from '@/shared/types/user';
 
 import type {
-  CoachProfile,
-  CoachProfileAnswers,
-  CoachProfileDerived,
-  MentorExperienceLevel,
-  ResearchBudgetMinutes,
-  TradingStyleInterest,
+    CoachProfile,
+    CoachProfileAnswers,
+    CoachProfileDerived,
+    MentorExperienceLevel,
+    ResearchBudgetMinutes,
+    TradingStyleInterest,
 } from '../types/mentor-setup.types';
 import {
-  EMPTY_COACH_ANSWERS,
-  MARKET_INTEREST_LABELS,
-  MENTOR_EXPERIENCE_LABELS,
-  RESEARCH_UNIVERSE_MAX,
-  RESEARCH_UNIVERSE_MIN,
-  TRADING_STYLE_INTEREST_LABELS,
-  TRADING_STRUGGLE_LABELS,
+    EMPTY_COACH_ANSWERS,
+    MARKET_INTEREST_LABELS,
+    MENTOR_EXPERIENCE_LABELS,
+    RESEARCH_UNIVERSE_MAX,
+    RESEARCH_UNIVERSE_MIN,
+    TRADING_STRUGGLE_LABELS,
+    TRADING_STYLE_INTEREST_LABELS,
 } from '../types/mentor-setup.types';
 
-import { completeOnboarding } from './onboarding-completion.service';
 import { clearMentorSetupDraft } from './mentor-setup-draft.service';
+import { completeOnboarding } from './onboarding-completion.service';
 import { recommendResearchUniverse } from './research-universe.catalog';
 
 const PROFILE_KEY_PREFIX = 'tradeacademy:coach-profile:v1';
@@ -289,44 +290,65 @@ export async function persistCoachPersonalization(
   });
   useSettingsStore.getState().setMentorSetupCompleted(true);
 
-  const watchlists = await getWatchlists(uid);
-  const list = watchlists.find((item) => item.name === RESEARCH_UNIVERSE_LIST) ?? watchlists[0];
-  if (list) {
-    await updateWatchlist(uid, list.id, { symbols: normalized.researchUniverse });
-  } else {
-    await createWatchlist(uid, {
-      name: RESEARCH_UNIVERSE_LIST,
-      symbols: normalized.researchUniverse,
+  try {
+    const watchlists = await getWatchlists(uid);
+    const list = watchlists.find((item) => item.name === RESEARCH_UNIVERSE_LIST) ?? watchlists[0];
+    if (list) {
+      await updateWatchlist(uid, list.id, { symbols: normalized.researchUniverse });
+    } else {
+      await createWatchlist(uid, {
+        name: RESEARCH_UNIVERSE_LIST,
+        symbols: normalized.researchUniverse,
+      });
+    }
+  } catch (error) {
+    logger.warn('onboarding.watchlist_sync_failed', {
+      uid,
+      message: error instanceof Error ? error.message : 'unknown',
     });
   }
 
   const styleLabel = normalized.styles[0] ?? 'swing';
-  await saveTraderMemory(
-    {
-      favoriteAssets: normalized.researchUniverse,
-      tradingStyle: styleLabel,
-      typicalMistakes: normalized.struggles.map((s) => TRADING_STRUGGLE_LABELS[s]).slice(0, 6),
-      notes: [
-        `Coach tone: ${normalized.coachTone}`,
-        `Research window: ${normalized.researchTimeOfDay}`,
-        `Markets: ${derived.primaryMarketsLabel}`,
-        ...(derived.focusStruggle
-          ? [`Focus: ${TRADING_STRUGGLE_LABELS[derived.focusStruggle]}`]
-          : []),
-      ],
-      coachTone: normalized.coachTone ?? undefined,
-      markets: normalized.markets,
-      struggles: normalized.struggles,
-      researchTimeOfDay: normalized.researchTimeOfDay ?? undefined,
-      successDefinitions: normalized.successDefinitions,
-      tradeFrequency: normalized.frequency ?? undefined,
-      tradingMotive: normalized.motive ?? undefined,
-    },
-    uid,
-  );
-
   await saveCoachProfileLocal(profile);
-  await syncCoachProfileRemote(profile);
+  try {
+    await saveTraderMemory(
+      {
+        favoriteAssets: normalized.researchUniverse,
+        tradingStyle: styleLabel,
+        typicalMistakes: normalized.struggles.map((s) => TRADING_STRUGGLE_LABELS[s]).slice(0, 6),
+        notes: [
+          `Coach tone: ${normalized.coachTone}`,
+          `Research window: ${normalized.researchTimeOfDay}`,
+          `Markets: ${derived.primaryMarketsLabel}`,
+          ...(derived.focusStruggle
+            ? [`Focus: ${TRADING_STRUGGLE_LABELS[derived.focusStruggle]}`]
+            : []),
+        ],
+        coachTone: normalized.coachTone ?? undefined,
+        markets: normalized.markets,
+        struggles: normalized.struggles,
+        researchTimeOfDay: normalized.researchTimeOfDay ?? undefined,
+        successDefinitions: normalized.successDefinitions,
+        tradeFrequency: normalized.frequency ?? undefined,
+        tradingMotive: normalized.motive ?? undefined,
+      },
+      uid,
+    );
+  } catch (error) {
+    logger.warn('onboarding.trader_memory_save_failed', {
+      uid,
+      message: error instanceof Error ? error.message : 'unknown',
+    });
+  }
+
+  try {
+    await syncCoachProfileRemote(profile);
+  } catch (error) {
+    logger.warn('onboarding.coach_profile_sync_failed', {
+      uid,
+      message: error instanceof Error ? error.message : 'unknown',
+    });
+  }
 
   return profile;
 }
@@ -339,7 +361,14 @@ export async function finishMentorSetup(uid: string, answers: CoachProfileAnswer
     activationGoal: mapActivationGoal(profile),
     selectedUniverse: profile.researchUniverse.slice(0, 5),
   });
-  await clearMentorSetupDraft(uid);
+  try {
+    await clearMentorSetupDraft(uid);
+  } catch (error) {
+    logger.warn('onboarding.mentor_draft_clear_failed', {
+      uid,
+      message: error instanceof Error ? error.message : 'unknown',
+    });
+  }
   useSettingsStore.getState().setMentorSetupCompleted(true);
 }
 
