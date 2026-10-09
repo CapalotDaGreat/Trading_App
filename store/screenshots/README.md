@@ -38,8 +38,10 @@ the shipped app.
 
 | Folder | Pixels | ASC slot |
 | --- | --- | --- |
-| `app-store/iphone-6.9/` | 1320 × 2868 | iPhone 6.9" Display |
-| `app-store/iphone-6.5/` | 1284 × 2778 | iPhone 6.5" Display |
+| `app-store/iphone-6.3/` | 1206 × 2622 | iPhone with Dynamic Island (medium display) — **required** |
+| `app-store/iphone-6.9/` | 1320 × 2868 | iPhone with Dynamic Island (large display) — optional |
+| `app-store/iphone-6.5/` | 1284 × 2778 | iPhone with Face ID (large display) — optional |
+| `app-store/iphone-duo-outer/` | 1398 × 2034 | iPhone Duo, outer display — optional until April 2027 |
 | `app-store/ipad-13/` | 2064 × 2752 | iPad 13" Display (needs `source/ipad-device/`) |
 | `app-store/header/header-3840x1646.png` | 3840 × 1646 | Header and Search Results → Product page header |
 | `app-store/header/universal-5244x2950.png` | 5244 × 2950 | Header and Search Results → both placements |
@@ -49,3 +51,7 @@ crop with the Preview tool in App Store Connect before submitting.
 
 Because `supportsTablet` is true, App Store Connect requires iPad 13"
 screenshots. Do not upload iPhone UI framed as an iPad (App Review 2.3.3).
+
+The iPhone Duo outer display uses the phone layout, so it is generated from the
+iPhone captures. The inner display (2007 × 2853) is close to tablet size and is
+not generated: it needs real captures from an iPhone Duo.

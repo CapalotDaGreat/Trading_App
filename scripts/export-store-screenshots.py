@@ -30,8 +30,13 @@ SRC_IPAD = ROOT / "source" / "ipad-device"
 APP_ICON = Path(__file__).resolve().parents[1] / "assets" / "images" / "icon.png"
 
 IPHONE_SIZES = {
+    "app-store/iphone-6.3": (1206, 2622),
     "app-store/iphone-6.9": (1320, 2868),
     "app-store/iphone-6.5": (1284, 2778),
+}
+# iPhone Duo outer display only: it shows the phone layout. The inner display needs real Duo captures.
+DUO_OUTER_SIZES = {
+    "app-store/iphone-duo-outer": (1398, 2034),
 }
 IPAD_SIZES = {
     "app-store/ipad-13": (2064, 2752),
@@ -196,8 +201,9 @@ def compose_screenshot(screen, needs_strip, size, caption, sub, ipad=False) -> I
     canvas = background(size, (W / 2, H * 0.62), W * 0.55)
     draw = ImageDraw.Draw(canvas)
 
-    title_f = font(round(W * (0.064 if ipad else 0.092)), "black")
-    sub_f = font(round(W * (0.026 if ipad else 0.04)), "semibold")
+    type_w = W if ipad else min(W, H / 2.17)
+    title_f = font(round(type_w * (0.064 if ipad else 0.092)), "black")
+    sub_f = font(round(type_w * (0.026 if ipad else 0.04)), "semibold")
     y = round(H * 0.055)
     y = draw_centered_lines(draw, caption.split("\n"), title_f, WHITE, y, W, 1.06)
     y += round(H * 0.012)
@@ -328,7 +334,7 @@ def validate() -> list[str]:
     """Every output has the exact slot size, no alpha, and a matching source capture."""
     errors: list[str] = []
     slug_to_src = {slug: src for src, slug, _, _ in SCENES}
-    sets = [(SRC_IPHONE, IPHONE_SIZES), (SRC_IPAD, IPAD_SIZES)]
+    sets = [(SRC_IPHONE, IPHONE_SIZES), (SRC_IPHONE, DUO_OUTER_SIZES), (SRC_IPAD, IPAD_SIZES)]
     for src_dir, sizes in sets:
         for rel, size in sizes.items():
             for path in sorted((ROOT / rel).glob("*.png")):
@@ -351,6 +357,7 @@ def validate() -> list[str]:
 
 def main() -> None:
     export_set(SRC_IPHONE, IPHONE_SIZES, ipad=False)
+    export_set(SRC_IPHONE, DUO_OUTER_SIZES, ipad=False)
     if SRC_IPAD.exists() and any(SRC_IPAD.glob("*.png")):
         export_set(SRC_IPAD, IPAD_SIZES, ipad=True)
     else:

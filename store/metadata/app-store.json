@@ -27,6 +27,14 @@
     "full": "TradeAcademy by Aithera helps you learn trading through education and simulated practice.\n\nThe loop is Learn → Practice → Replay → Simulate → Journal → Review → Improve. Academy lessons teach concepts with charts and exercises. Practice drills train judgment. Paper simulation uses labelled simulated capital (default $100,000 USD) — not a brokerage and not real money. Journal and Review grade reasoning, risk, and plan adherence. Simulated profit does not mean you made a good decision.\n\nAnyone may download and explore Guest mode. Creating an account or purchasing a subscription requires being at least 18 (or the age of majority where required). A 4+ App Store rating is content suitability only — it does not mean a minor may legally trade.\n\nTradeAcademy is not a broker, does not execute trades, does not handle real money, and does not provide buy/sell signals, guaranteed returns, or investment advice. Scores such as DQS measure process quality, never price direction.\n\nPremium unlocks deeper Academy, Replay, process-pattern review, and coaching tools. Free remains a complete way to learn, practise, simulate, and journal. Monthly (`tradeacademy_premium_monthly`) and yearly (`tradeacademy_premium_yearly`) subscriptions renew automatically unless cancelled in App Store subscription settings. Lifetime (`tradeacademy_premium_lifetime`), if shown on the purchase sheet, is a one-time purchase and does not auto-renew. Cancellation stops renewal while access continues through the store-reported paid-through date. The yearly plan includes a 7-day trial only when shown on the App Store purchase sheet."
   },
   "screenshots": {
+    "iphone63": [
+      "store/screenshots/app-store/iphone-6.3/01-home.png",
+      "store/screenshots/app-store/iphone-6.3/02-practice.png",
+      "store/screenshots/app-store/iphone-6.3/03-replay.png",
+      "store/screenshots/app-store/iphone-6.3/04-simulate.png",
+      "store/screenshots/app-store/iphone-6.3/05-patience.png",
+      "store/screenshots/app-store/iphone-6.3/06-events.png"
+    ],
     "iphone69": [
       "store/screenshots/app-store/iphone-6.9/01-home.png",
       "store/screenshots/app-store/iphone-6.9/02-practice.png",
@@ -43,6 +51,15 @@
       "store/screenshots/app-store/iphone-6.5/05-patience.png",
       "store/screenshots/app-store/iphone-6.5/06-events.png"
     ],
+    "iphoneDuoOuter": [
+      "store/screenshots/app-store/iphone-duo-outer/01-home.png",
+      "store/screenshots/app-store/iphone-duo-outer/02-practice.png",
+      "store/screenshots/app-store/iphone-duo-outer/03-replay.png",
+      "store/screenshots/app-store/iphone-duo-outer/04-simulate.png",
+      "store/screenshots/app-store/iphone-duo-outer/05-patience.png",
+      "store/screenshots/app-store/iphone-duo-outer/06-events.png"
+    ],
+    "iphoneDuoInner": "Pending real iPhone Duo inner-display captures (2007x2853)",
     "ipad13": "Pending real iPad captures in store/screenshots/source/ipad-device/",
     "header": "store/screenshots/app-store/header/header-3840x1646.png",
     "headerUniversal": "store/screenshots/app-store/header/universal-5244x2950.png"
@@ -85,5 +102,5 @@
   "screenshotInventory": "store/screenshots/README.md",
   "copyright": "© 2026 CML Electronics, trading as Aithera",
   "promotionalText": "Learn trading with lessons, drills, and $100k paper simulation — process over P/L. Not a broker. No buy/sell signals.",
-  "screenshotNote": "Hero frames composed from real iPhone device screenshots by scripts/export-store-screenshots.py. Upload iphone-6.9 for 6.9\" Display. iPad 13\" screenshots must come from real iPad captures."
+  "screenshotNote": "Hero frames composed from real iPhone device screenshots by scripts/export-store-screenshots.py. Upload iphone-6.3 (1206x2622) for iPhone with Dynamic Island (medium display), which ASC requires; iphone-6.9 is optional (large display). iphone-duo-outer (1398x2034) covers the iPhone Duo outer display (optional until April 2027); the Duo inner display needs real Duo captures. iPad 13\" screenshots must come from real iPad captures."
 }
