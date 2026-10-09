@@ -5,9 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="color-scheme" content="dark light" />
   <meta name="theme-color" content="#151922" />
-  <meta name="description" content="Official legal and support center for TradeAcademy by Aithera. Education and simulation only — not a broker and not buy/sell signals." />
-  <title>TradeAcademy by Aithera — Legal &amp; Support</title>
+  <meta name="description" content="TradeAcademy is a trading education app with lessons, chart drills, historical replays, and a $100,000 paper simulator. Coming soon to the App Store. Simulated money only — not a broker and no buy/sell signals." />
+  <title>TradeAcademy — Learn trading. Practice the decision. Coming soon</title>
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="TradeAcademy" />
+  <meta property="og:title" content="TradeAcademy — Learn trading. Practice the decision. Coming soon" />
+  <meta property="og:description" content="TradeAcademy is a trading education app with lessons, chart drills, historical replays, and a $100,000 paper simulator. Coming soon to the App Store. Simulated money only — not a broker and no buy/sell signals." />
+  <meta property="og:image" content="https://tradeacademy.cloud/img/app-icon.png" />
+  <meta name="twitter:card" content="summary" />
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="/img/app-icon.png" />
   <link rel="stylesheet" href="/site.css" />
 </head>
 <body>
@@ -15,7 +22,13 @@
   <header class="site-header">
     <div class="header-inner">
       <a class="brand" href="/" aria-current="page">
-        <svg class="mark" viewBox="0 0 32 32" width="40" height="40" aria-hidden="true"><rect width="32" height="32" rx="10" fill="currentColor" opacity="0"/><circle cx="16" cy="16" r="9.25" fill="none" stroke="currentColor" stroke-width="2"/><path d="M16 7.8 18.4 16 16 24.2 13.6 16Z" fill="currentColor"/></svg>
+        <svg class="mark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="40" height="40" aria-hidden="true">
+  <rect width="32" height="32" rx="7" fill="#151922"/>
+  <path d="M14.4 4.6H17.6L22.9 27.4H19.5L16 17.8 12.5 27.4H9.1Z" fill="#F8FAFC"/>
+  <path d="M6.2 21.3 11.4 18.8 14.6 20.4 22.6 14.6" fill="none" stroke="#151922" stroke-width="4.6" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M6.2 21.3 11.4 18.8 14.6 20.4 22.6 14.6" fill="none" stroke="#2DD4BF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="23.6" cy="13.9" r="2.6" fill="#2DD4BF" stroke="#151922" stroke-width="1"/>
+</svg>
         <span class="brand-text">
           <span class="brand-name">TradeAcademy</span>
           <span class="brand-sub">by Aithera</span>
@@ -26,23 +39,111 @@
   </header>
   <main id="content">
     <div class="wrap">
-      <section class="hero legal-hero">
-        <p class="eyebrow">Official legal, privacy, security &amp; support center</p>
-        <h1>TradeAcademy<br /><span class="accent">by Aithera</span></h1>
-        <p class="lede">Official legal, privacy, security and support center for TradeAcademy.</p>
-        <p class="hero-loop" aria-label="Product learning loop">Learn → Practice → Replay → Simulate → Journal → Review → Improve</p>
+      <section class="hero promo-hero" aria-labelledby="hero-title">
+        <div class="hero-copy">
+          <p class="eyebrow">Trading education app · iPhone &amp; iPad</p>
+          <h1 id="hero-title">Learn trading.<br /><span class="accent">Practice the decision.</span></h1>
+          <p class="lede">TradeAcademy teaches trading through lessons, chart drills, historical replays, and a $100,000 paper simulator — all with simulated money, so you can practise without risking any.</p>
+          <div class="hero-actions">
+            <div class="soon-badge" role="note" aria-label="Coming soon to the App Store for iPhone and iPad"><span class="soon-dot" aria-hidden="true"></span><span><span class="soon-top">Coming soon</span><span class="soon-main">to the App Store</span></span></div>
+            <a class="btn-ghost" href="#learn">See what's inside</a>
+          </div>
+          <p class="hero-fine">Free to download at launch, with optional Premium. Not available yet — we'll add the download link here the day it goes live.</p>
+        </div>
+        <div class="hero-media">
+          <figure class="phone phone-back"><img src="/img/screen-practice.webp" alt="Practice drill &#x27;Identify the trend&#x27; with a labelled educational candlestick chart." width="472" height="838" loading="lazy" decoding="async" /></figure>
+          <figure class="phone phone-front"><img src="/img/screen-home.webp" alt="TradeAcademy Home screen: Your training center." width="472" height="838" loading="lazy" decoding="async" /></figure>
+        </div>
       </section>
-      <section aria-labelledby="docs-heading">
-        <h2 id="docs-heading" class="section-title">Legal documents</h2>
+
+      <ul class="truth-strip" aria-label="What TradeAcademy is not">
+        <li>Simulated money only</li>
+        <li>Not a broker</li>
+        <li>No buy/sell signals</li>
+        <li>Try it without an account</li>
+      </ul>
+
+
+      <section class="feature" id="learn" aria-labelledby="learn-title">
+        <div class="feature-media"><figure class="phone"><img src="/img/screen-home.webp" alt="TradeAcademy Home screen: Your training center, with a Start Learning button for the Foundations path." width="472" height="838" loading="lazy" decoding="async" /></figure></div>
+        <div class="feature-copy">
+          <p class="eyebrow">Learn</p>
+          <h2 id="learn-title">A training center that knows what to work on next</h2>
+          <p class="feature-body">Home suggests your next lesson, drill, or review based on your progress. Academy paths start with market literacy, risk, and chart basics, then build from there.</p>
+          <ul class="checks"><li>Guided paths from first concepts to process review</li><li>Quick, normal, or deep sessions to fit your day</li><li>Start in Guest mode — no account needed</li></ul>
+
+        </div>
+      </section>
+      <section class="feature flip" id="practice" aria-labelledby="practice-title">
+        <div class="feature-media"><figure class="phone"><img src="/img/screen-practice.webp" alt="Practice drill &#x27;Identify the trend&#x27; showing a labelled educational candlestick chart with higher highs and higher lows." width="472" height="838" loading="lazy" decoding="async" /></figure></div>
+        <div class="feature-copy">
+          <p class="eyebrow">Practice</p>
+          <h2 id="practice-title">Short drills that train how you read a chart</h2>
+          <p class="feature-body">Identify trends, spot breakouts, and name market structure in focused exercises that take a few minutes each.</p>
+          <ul class="checks"><li>Bite-sized drills for chart reading and risk</li><li>Each drill explains why the structure matters</li><li>Track what you have and haven&#x27;t completed</li></ul>
+          <p class="feature-note">Drill charts are labelled educational examples, not live market data.</p>
+        </div>
+      </section>
+      <section class="feature" id="replay" aria-labelledby="replay-title">
+        <div class="feature-media"><figure class="phone"><img src="/img/screen-replay.webp" alt="Decision Replay TV screen asking how you would have reasoned at a frozen point, featuring the 2020 COVID Crash episode." width="472" height="838" loading="lazy" decoding="async" /></figure></div>
+        <div class="feature-copy">
+          <p class="eyebrow">Replay</p>
+          <h2 id="replay-title">Decision Replay TV: what would you have done?</h2>
+          <p class="feature-body">Step into reconstructions of market episodes such as the 2020 COVID crash with the future hidden. Decide using only what was known at that moment — then reveal what happened next.</p>
+          <ul class="checks"><li>The future stays hidden until you commit</li><li>Waiting is a valid decision, too</li><li>Scores measure your process, not whether price went your way</li></ul>
+          <p class="feature-note">Replay bars are educational reconstructions, not exchange tick data.</p>
+        </div>
+      </section>
+      <section class="feature flip" id="simulate" aria-labelledby="simulate-title">
+        <div class="feature-media"><figure class="phone"><img src="/img/screen-simulate.webp" alt="Simulate screen labelled SIMULATED, showing a simulated portfolio with USD 100,000 in paper capital." width="472" height="838" loading="lazy" decoding="async" /></figure></div>
+        <div class="feature-copy">
+          <p class="eyebrow">Simulate</p>
+          <h2 id="simulate-title">Practise with $100,000 in simulated capital</h2>
+          <p class="feature-body">Write a thesis and set your invalidation, then see how the trade plays out on a simulated price path. Every path is generated fresh, so you can&#x27;t memorise the answer.</p>
+          <ul class="checks"><li>Clearly labelled paper money — never real funds</li><li>No brokerage connection and nothing is executed</li><li>Reflection is part of every practice trade</li></ul>
+          <p class="feature-note">A profitable simulated trade is not automatically a good decision. Simulated results do not predict real-world results.</p>
+        </div>
+      </section>
+      <section class="feature" id="events" aria-labelledby="events-title">
+        <div class="feature-media"><figure class="phone"><img src="/img/screen-events.webp" alt="Events screen suggesting a lesson, practice drill, replay, and simulation related to an upcoming central-bank decision." width="472" height="838" loading="lazy" decoding="async" /></figure></div>
+        <div class="feature-copy">
+          <p class="eyebrow">Events</p>
+          <h2 id="events-title">Study the events that move markets</h2>
+          <p class="feature-body">When something like a central-bank decision is coming up, TradeAcademy suggests a related lesson, drill, replay, and scenario so you understand what such events can mean.</p>
+          <ul class="checks"><li>A small learning calendar, not a news feed</li><li>Scenarios show possibilities, not forecasts</li><li>Your own training plan stays in charge</li></ul>
+          <p class="feature-note">Event suggestions are study material — not trade alerts and not predictions.</p>
+        </div>
+      </section>
+
+      <section class="loop-section" aria-labelledby="loop-title">
+        <p class="eyebrow">How it fits together</p>
+        <h2 id="loop-title" class="section-title big">One loop, built around better decisions</h2>
+        <p class="section-lede">Every part of the app feeds the next. You journal your reasoning, review the process behind each decision, and the app points you to what to train next.</p>
+        <ol class="loop"><li><span class="loop-num">1</span>Learn</li><li><span class="loop-num">2</span>Practice</li><li><span class="loop-num">3</span>Replay</li><li><span class="loop-num">4</span>Simulate</li><li><span class="loop-num">5</span>Journal</li><li><span class="loop-num">6</span>Review</li><li><span class="loop-num">7</span>Improve</li></ol>
+        <p class="feature-note">Your Decision Quality Score (DQS) rates the quality of your process — planning, risk, and discipline. It is never a prediction of where price will go.</p>
+      </section>
+
+      <section class="trust" aria-labelledby="trust-heading">
+        <h2 id="trust-heading" class="section-title big">Honest by design</h2>
+        <div class="principles">
+          <article class="principle"><h3>Educational purpose</h3><p>TradeAcademy teaches concepts and decision process through Academy, practice, replay, simulation, journal, and review — not live execution.</p></article><article class="principle"><h3>Simulation only</h3><p>Paper capital starts at USD 100,000. Prices may be synthetic, sample, delayed, or licensed historical and are labelled. Simulated P/L never grades competence.</p></article><article class="principle"><h3>Privacy principles</h3><p>Optional analytics are opt-in and allowlisted. Raw journal text, AI chat content, and portfolio values are not sent to analytics.</p></article><article class="principle"><h3>Account control</h3><p>You can review legal documents, manage subscription billing in the store, and request account deletion from Settings.</p></article>
+        </div>
+      </section>
+
+      <section class="launch" aria-labelledby="launch-title">
+        <h2 id="launch-title">TradeAcademy is coming soon</h2>
+        <p>We're finishing the first release for iPhone and iPad. When it's live on the App Store, this page will link straight to it.</p>
+        <div class="soon-badge" role="note" aria-label="Coming soon to the App Store for iPhone and iPad"><span class="soon-dot" aria-hidden="true"></span><span><span class="soon-top">Coming soon</span><span class="soon-main">to the App Store</span></span></div>
+        <p class="mute">Questions before launch? <a href="mailto:support@tradeacademy.cloud">support@tradeacademy.cloud</a></p>
+      </section>
+
+      <p class="screens-note">Screens shown are from a pre-release build of the app and may change before launch.</p>
+
+      <section class="docs" aria-labelledby="docs-heading">
+        <h2 id="docs-heading" class="section-title">Legal &amp; support</h2>
         <p class="section-lede">Each document describes how TradeAcademy actually behaves. Operated by CML Electronics, trading as Aithera.</p>
         <div class="cards">
           <a class="card doc-card" href="/privacy"><div class="card-top"><h2>Privacy Policy</h2><span class="card-updated">Updated 16 September 2026</span></div><p>How we collect, use, and protect data.</p><span class="card-action">Read document</span></a><a class="card doc-card" href="/terms"><div class="card-top"><h2>Terms of Service</h2><span class="card-updated">Updated 16 September 2026</span></div><p>Rules for using TradeAcademy.</p><span class="card-action">Read document</span></a><a class="card doc-card" href="/risk"><div class="card-top"><h2>Risk &amp; Investment Disclaimer</h2><span class="card-updated">Updated 16 September 2026</span></div><p>Education and simulation are not investment advice.</p><span class="card-action">Read document</span></a><a class="card doc-card" href="/security"><div class="card-top"><h2>Security Notice</h2><span class="card-updated">Updated 16 September 2026</span></div><p>How we protect accounts and handle incidents.</p><span class="card-action">Read document</span></a><a class="card doc-card" href="/account-deletion"><div class="card-top"><h2>Account Deletion</h2><span class="card-updated">Updated 16 September 2026</span></div><p>How to delete your account and what remains.</p><span class="card-action">Read document</span></a><a class="card doc-card" href="/support"><div class="card-top"><h2>Support</h2><span class="card-updated">Updated 16 September 2026</span></div><p>Where to get help inside the app and by email.</p><span class="card-action">Read document</span></a>
-        </div>
-      </section>
-      <section class="trust" aria-labelledby="trust-heading">
-        <h2 id="trust-heading" class="section-title">What you can trust us to say</h2>
-        <div class="principles">
-          <article class="principle"><h2>Educational purpose</h2><p>TradeAcademy teaches concepts and decision process through Academy, practice, replay, simulation, journal, and review — not live execution.</p></article><article class="principle"><h2>Simulation only</h2><p>Paper capital starts at USD 100,000. Prices may be synthetic, sample, delayed, or licensed historical and are labelled. Simulated P/L never grades competence.</p></article><article class="principle"><h2>Privacy principles</h2><p>Optional analytics are opt-in and allowlisted. Raw journal text, AI chat content, and portfolio values are not sent to analytics.</p></article><article class="principle"><h2>Account control</h2><p>You can review legal documents, manage subscription billing in the store, and request account deletion from Settings.</p></article>
         </div>
       </section>
     </div>
@@ -51,7 +152,7 @@
     <div class="footer-inner">
       <div class="footer-brand">
         <p class="footer-name">TradeAcademy <span class="footer-by">by Aithera</span></p>
-        <p>Official legal and support center for the TradeAcademy education and simulation app.</p>
+        <p>Official website and legal &amp; support center for the TradeAcademy trading education and simulation app — coming soon to the App Store.</p>
       </div>
       <nav class="footer-nav" aria-label="Footer legal">
         <a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="/risk">Risk</a><a href="/security">Security</a><a href="/account-deletion">Account deletion</a><a href="/support">Support</a>

@@ -1,25 +1,22 @@
-
-<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
   <defs>
-    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
-      <stop offset="0%" stop-color="#061622"/>
-      <stop offset="100%" stop-color="#0E213B"/>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1C2432"/>
+      <stop offset="1" stop-color="#0C0F16"/>
     </linearGradient>
-    <linearGradient id="blue" x1="0" x2="1" y1="0" y2="1">
-      <stop offset="0%" stop-color="#35B7FF"/>
-      <stop offset="38%" stop-color="#1E8FEF"/>
-      <stop offset="100%" stop-color="#0D6DD6"/>
-    </linearGradient>
-    <linearGradient id="lt" x1="0" x2="1" y1="0" y2="0">
-      <stop offset="0%" stop-color="#F2FCFF"/>
-      <stop offset="100%" stop-color="#B9EEFF"/>
-    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.45">
+      <stop offset="0" stop-color="#2DD4BF" stop-opacity="0.16"/>
+      <stop offset="1" stop-color="#2DD4BF" stop-opacity="0"/>
+    </radialGradient>
+    <mask id="gap">
+      <rect width="1024" height="1024" fill="#fff"/>
+      <path d="M217.1 654.5 L389.1 568.4 L499.7 623.7 L733.2 445.6" fill="none" stroke="#000" stroke-width="89.1" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="733.2" cy="445.6" r="67.6" fill="#000"/>
+    </mask>
   </defs>
-
-  <rect width="1024" height="1024" rx="210" fill="url(#bg)"/>
-
-  <path d="M214 736L440 284H572L798 736H676L598 580H426L348 736H214Z" fill="url(#blue)"/>
-  <path d="M318 666L456 374H556L694 666H576L518 558H494L436 666H318Z" fill="#F3FBFF" opacity="0.98"/>
-  <path d="M364 736L514 420H604L754 736H628L556 602H562L490 736H364Z" fill="#EAFBFF" opacity="0.9"/>
-  <path d="M275 736L460 340H566L754 736H643L576 628H450L383 736H275Z" fill="url(#lt)" opacity="0.18"/>
+  <rect width="1024" height="1024" fill="url(#bg)"/>
+  <rect width="1024" height="1024" fill="url(#glow)"/>
+  <path d="M450.6 236.7 L573.4 236.7 L776.2 777.3 L647.2 777.3 L512.0 408.7 L376.8 777.3 L247.8 777.3 Z" fill="#F8FAFC" mask="url(#gap)"/>
+  <path d="M217.1 654.5 L389.1 568.4 L499.7 623.7 L733.2 445.6" fill="none" stroke="#2DD4BF" stroke-width="46.1" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="733.2" cy="445.6" r="46.1" fill="#2DD4BF"/>
 </svg>

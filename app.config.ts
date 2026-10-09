@@ -98,7 +98,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       foregroundImage: './assets/images/android-icon-foreground.png',
       backgroundImage: './assets/images/android-icon-background.png',
       monochromeImage: './assets/images/android-icon-monochrome.png',
-      backgroundColor: '#061622',
+      backgroundColor: '#151922',
     },
     intentFilters: [
       {
@@ -153,10 +153,10 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       {
         image: './assets/images/splash-icon.png',
         resizeMode: 'contain',
-        backgroundColor: '#061622',
+        backgroundColor: '#151922',
         dark: {
           image: './assets/images/splash-icon.png',
-          backgroundColor: '#061622',
+          backgroundColor: '#151922',
         },
       },
     ],
@@ -164,7 +164,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       'expo-notifications',
       {
         icon: './assets/images/android-icon-monochrome.png',
-        color: '#7AD6FF',
+        color: '#2DD4BF',
         defaultChannel: 'default',
         sounds: [],
       },

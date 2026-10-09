@@ -1,257 +1,215 @@
+"""Generate every TradeAcademy icon asset from one shared geometry.
+
+Mark: a bold "A" (Academy) whose crossbar is a teal learning-curve line.
+
+Outputs (assets/images/):
+  icon.png                     1024 RGB, opaque, full-bleed square (iOS / App Store)
+  splash-icon.png              1024 RGBA, mark only on transparent (expo-splash-screen)
+  favicon.png                  512 RGB (web)
+  android-icon-background.png  1024 RGB (adaptive icon background layer)
+  android-icon-foreground.png  1024 RGBA, mark inside the 66/108 safe zone
+  android-icon-monochrome.png  1024 RGBA, white silhouette (themed icon + notification icon)
+  tradeacademy-icon-master.svg vector master of icon.png
+
+Usage:  python scripts/generate_tradeacademy_icons.py           # generate + validate
+        python scripts/generate_tradeacademy_icons.py --check   # validate only
+"""
+
 from __future__ import annotations
 
+import sys
 from pathlib import Path
-from PIL import Image, ImageDraw, ImageFilter
 
-ROOT = Path(__file__).resolve().parents[1]
-ASSETS = ROOT / 'assets' / 'images'
-ASSETS.mkdir(parents=True, exist_ok=True)
+from PIL import Image, ImageChops, ImageDraw, ImageFilter
 
+ASSETS_DIR = Path(__file__).resolve().parents[1] / 'assets' / 'images'
 
-def to_rgba(hex_color: str) -> tuple[int, int, int, int]:
-    value = hex_color.lstrip('#')
-    if len(value) == 6:
-        value += 'ff'
-    return tuple(int(value[i : i + 2], 16) for i in (0, 2, 4, 6))
+BG_TOP = (28, 36, 50)
+BG_BOTTOM = (12, 15, 22)
+BG_FLAT = (21, 25, 34)  # #151922, app background
+LETTER = (248, 250, 252)  # #F8FAFC
+TEAL = (45, 212, 191)  # #2DD4BF, accent.primary
 
+SS = 4  # supersampling factor
 
-def rounded_square(size: int, radius: int, fill: tuple[int, int, int, int]) -> Image.Image:
-    img = Image.new('RGBA', (size, size), (0, 0, 0, 0))
-    draw = ImageDraw.Draw(img)
-    draw.rounded_rectangle((0, 0, size, size), radius=radius, fill=fill)
-    return img
-
-
-def build_background(size: int) -> Image.Image:
-    canvas = Image.new('RGBA', (size, size), (0, 0, 0, 0))
-    draw = ImageDraw.Draw(canvas)
-    # dark navy base with subtle cool blue vignette
-    for y in range(size):
-        for x in range(size):
-            nx = (x - size / 2) / (size / 2)
-            ny = (y - size / 2) / (size / 2)
-            dist = (nx * nx + ny * ny) ** 0.5
-            mix = max(0.0, 1.0 - dist)
-            r = int(7 + 18 * mix)
-            g = int(17 + 20 * mix)
-            b = int(27 + 30 * mix)
-            a = 255
-            canvas.putpixel((x, y), (r, g, b, a))
-    # radial glow overlay
-    glow = Image.new('RGBA', (size, size), (0, 0, 0, 0))
-    glow_draw = ImageDraw.Draw(glow)
-    glow_draw.ellipse((size * 0.08, size * 0.08, size * 0.92, size * 0.92), fill=(24, 88, 168, 65))
-    canvas = Image.alpha_composite(canvas, glow)
-    return canvas
+# Mark geometry in a unit box (0..1). The "A" has no crossbar; the curve replaces it.
+A_POLY = [
+    (0.40, 0.06), (0.60, 0.06), (0.93, 0.94), (0.72, 0.94),
+    (0.50, 0.34), (0.28, 0.94), (0.07, 0.94),
+]
+CURVE = [(0.02, 0.74), (0.30, 0.60), (0.48, 0.69), (0.86, 0.40)]
+CURVE_END_DOT = (0.86, 0.40)
+CURVE_WIDTH = 0.075
+CURVE_GAP = 0.035
+DOT_RADIUS = 0.075
 
 
-def add_mark(base: Image.Image, size: int, mark_color: tuple[int, int, int, int], accent_color: tuple[int, int, int, int]) -> Image.Image:
-    mark = Image.new('RGBA', (size, size), (0, 0, 0, 0))
-    d = ImageDraw.Draw(mark)
+def _scale(points, origin, size):
+    ox, oy = origin
+    return [(ox + x * size, oy + y * size) for x, y in points]
 
-    # elevated geometric A / roofline to feel like research confidence and upward movement.
-    d.polygon(
-        [
-            (170, 760),
-            (365, 260),
-            (468, 260),
-            (292, 760),
-        ],
-        fill=mark_color,
+
+def _polyline(draw, pts, width, fill):
+    draw.line(pts, fill=fill, width=int(round(width)), joint='curve')
+    r = width / 2
+    for x, y in (pts[0], pts[-1]):
+        draw.ellipse((x - r, y - r, x + r, y + r), fill=fill)
+
+
+def _dot(draw, center, radius, fill):
+    x, y = center
+    draw.ellipse((x - radius, y - radius, x + radius, y + radius), fill=fill)
+
+
+def render_mark(canvas: int, box: float, letter=LETTER, curve=TEAL, dy: float = 0.0) -> Image.Image:
+    """Mark on a transparent canvas. `box` is the mark size as a fraction of the canvas."""
+    big = canvas * SS
+    size = big * box
+    origin = ((big - size) / 2, (big - size) / 2 + dy * big)
+
+    letter_mask = Image.new('L', (big, big), 0)
+    ImageDraw.Draw(letter_mask).polygon(_scale(A_POLY, origin, size), fill=255)
+
+    curve_pts = _scale(CURVE, origin, size)
+    dot_center = _scale([CURVE_END_DOT], origin, size)[0]
+
+    gap = Image.new('L', (big, big), 0)
+    gd = ImageDraw.Draw(gap)
+    _polyline(gd, curve_pts, (CURVE_WIDTH + 2 * CURVE_GAP) * size, 255)
+    _dot(gd, dot_center, (DOT_RADIUS + CURVE_GAP) * size, 255)
+    letter_mask = ImageChops.subtract(letter_mask, gap)
+
+    curve_mask = Image.new('L', (big, big), 0)
+    cd = ImageDraw.Draw(curve_mask)
+    _polyline(cd, curve_pts, CURVE_WIDTH * size, 255)
+    _dot(cd, dot_center, DOT_RADIUS * size, 255)
+
+    out = Image.composite(
+        Image.new('RGB', (big, big), curve),
+        Image.new('RGB', (big, big), letter),
+        curve_mask,
+    ).convert('RGBA')
+    out.putalpha(ImageChops.lighter(letter_mask, curve_mask))
+    return out.resize((canvas, canvas), Image.LANCZOS)
+
+
+def render_background(canvas: int, glow: bool = True) -> Image.Image:
+    grad = Image.linear_gradient('L').resize((canvas, canvas))
+    bg = Image.composite(
+        Image.new('RGB', (canvas, canvas), BG_BOTTOM),
+        Image.new('RGB', (canvas, canvas), BG_TOP),
+        grad,
     )
-    d.polygon(
-        [
-            (854, 760),
-            (659, 260),
-            (556, 260),
-            (732, 760),
-        ],
-        fill=mark_color,
-    )
-    d.polygon(
-        [
-            (242, 760),
-            (414, 318),
-            (500, 318),
-            (344, 760),
-        ],
-        fill=(58, 155, 244, 255),
-    )
-    d.polygon(
-        [
-            (782, 760),
-            (610, 318),
-            (524, 318),
-            (680, 760),
-        ],
-        fill=(58, 155, 244, 255),
-    )
-
-    # central crossbar
-    d.rounded_rectangle((320, 480, 704, 610), radius=38, fill=accent_color)
-
-    # upper highlight / taper to read clearly at small sizes
-    d.rounded_rectangle((338, 330, 688, 430), radius=28, fill=(148, 223, 255, 90))
-
-    # subtle inner shadow for polish
-    shadow = Image.new('RGBA', (size, size), (0, 0, 0, 0))
-    s = ImageDraw.Draw(shadow)
-    s.polygon(
-        [
-            (280, 625),
-            (380, 392),
-            (500, 392),
-            (450, 625),
-        ],
-        fill=(5, 10, 18, 90),
-    )
-    s.polygon(
-        [
-            (744, 625),
-            (644, 392),
-            (524, 392),
-            (574, 625),
-        ],
-        fill=(5, 10, 18, 90),
-    )
-    mark = Image.alpha_composite(mark, shadow)
-
-    # using a crisp white accent that reads like a polished, branded monogram rather than a placeholder
-    accent = Image.new('RGBA', (size, size), (0, 0, 0, 0))
-    ad = ImageDraw.Draw(accent)
-    ad.polygon([(300, 700), (430, 345), (510, 345), (390, 700)], fill=(255, 255, 255, 36))
-    ad.polygon([(724, 700), (594, 345), (514, 345), (634, 700)], fill=(255, 255, 255, 36))
-    mark = Image.alpha_composite(mark, accent)
-
-    # dark frame at the edges to keep the mark clean and app-store ready
-    frame = Image.new('RGBA', (size, size), (0, 0, 0, 0))
-    fd = ImageDraw.Draw(frame)
-    fd.rounded_rectangle((35, 35, size - 35, size - 35), radius=170, outline=(15, 29, 44, 100), width=18)
-    mark = Image.alpha_composite(mark, frame)
-
-    return Image.alpha_composite(base, mark)
+    if glow:
+        halo = Image.new('L', (canvas, canvas), 0)
+        r = canvas * 0.34
+        c = canvas / 2
+        ImageDraw.Draw(halo).ellipse((c - r, c - r, c + r, c + r), fill=40)
+        halo = halo.filter(ImageFilter.GaussianBlur(canvas * 0.12))
+        bg = Image.composite(Image.new('RGB', (canvas, canvas), TEAL), bg, halo)
+    return bg
 
 
-def save_png(path: Path, image: Image.Image) -> None:
-    image.save(path)
+def full_icon(canvas: int) -> Image.Image:
+    bg = render_background(canvas).convert('RGBA')
+    bg.alpha_composite(render_mark(canvas, box=0.60, dy=-0.005))
+    return bg.convert('RGB')
 
 
-# Build the primary app icon, which also serves as the splash icon and web favicon.
-icon_size = 1024
-base = build_background(icon_size)
-icon = add_mark(
-    base,
-    icon_size,
-    mark_color=(28, 135, 233, 255),
-    accent_color=(116, 216, 255, 255),
-)
-
-save_png(ASSETS / 'icon.png', icon)
-save_png(ASSETS / 'splash-icon.png', icon)
-
-# Android foreground and background are intentionally aligned to the same visual system.
-background = rounded_square(1024, 220, (9, 18, 28, 255))
-foreground = Image.new('RGBA', (1024, 1024), (0, 0, 0, 0))
-foreground = add_mark(
-    foreground,
-    1024,
-    mark_color=(28, 135, 233, 255),
-    accent_color=(116, 216, 255, 255),
-)
-# strip the background from the foreground so Android adaptive icons can use the dedicated background asset.
-alpha = Image.new('RGBA', (1024, 1024), (0, 0, 0, 0))
-alpha.paste(foreground, (0, 0))
-# Ensure the mark itself is transparent in the background layer.
-# For Android adaptive icon, the foreground image is the mark only; the dark square is supplied separately.
-# We keep the mark on transparent canvas and leave background as a separate file.
-foreground = Image.new('RGBA', (1024, 1024), (0, 0, 0, 0))
-foreground = add_mark(
-    foreground,
-    1024,
-    mark_color=(28, 135, 233, 255),
-    accent_color=(116, 216, 255, 255),
-)
-# Remove the dark square fill from the background in the final foreground image by compositing with a transparent layer.
-# The result keeps the mark only and is ready for Android adaptive icons.
-foreground = foreground.crop((0, 0, 1024, 1024))
-save_png(ASSETS / 'android-icon-foreground.png', foreground)
-save_png(ASSETS / 'android-icon-background.png', background)
-
-# Simple monochrome mark for Android notification and monochrome adaptive use.
-mono = Image.new('RGBA', (1024, 1024), (0, 0, 0, 0))
-mono_draw = ImageDraw.Draw(mono)
-mono_draw.polygon(
-    [
-        (170, 760),
-        (365, 260),
-        (468, 260),
-        (292, 760),
-    ],
-    fill=(255, 255, 255, 255),
-)
-mono_draw.polygon(
-    [
-        (854, 760),
-        (659, 260),
-        (556, 260),
-        (732, 760),
-    ],
-    fill=(255, 255, 255, 255),
-)
-mono_draw.polygon(
-    [
-        (242, 760),
-        (414, 318),
-        (500, 318),
-        (344, 760),
-    ],
-    fill=(255, 255, 255, 255),
-)
-mono_draw.polygon(
-    [
-        (782, 760),
-        (610, 318),
-        (524, 318),
-        (680, 760),
-    ],
-    fill=(255, 255, 255, 255),
-)
-mono_draw.rounded_rectangle((320, 480, 704, 610), radius=38, fill=(255, 255, 255, 255))
-mono_draw.rounded_rectangle((338, 330, 688, 430), radius=28, fill=(255, 255, 255, 120))
-# Small white details are okay here; the adaptive monochrome icon remains crisp and uniform.
-save_png(ASSETS / 'android-icon-monochrome.png', mono)
-
-# favicon for web/social surfaces is aligned to the same mark.
-favicon = icon.resize((512, 512), Image.Resampling.LANCZOS)
-save_png(ASSETS / 'favicon.png', favicon)
-
-# Also keep a reusable master source with a vector-like layout to make future tweaks easier.
-svg = '''
-<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+def master_svg() -> str:
+    s, o = 1024 * 0.60, (1024 - 1024 * 0.60) / 2
+    def pt(x, y):
+        return f'{o + x * s:.1f} {o + y * s - 5:.1f}'
+    a_path = 'M' + ' L'.join(pt(x, y) for x, y in A_POLY) + ' Z'
+    curve_path = 'M' + ' L'.join(pt(x, y) for x, y in CURVE)
+    dx, dy = (o + CURVE_END_DOT[0] * s, o + CURVE_END_DOT[1] * s - 5)
+    hex_ = lambda c: '#%02X%02X%02X' % c
+    return f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
   <defs>
-    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
-      <stop offset="0%" stop-color="#061622"/>
-      <stop offset="100%" stop-color="#0f233c"/>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="{hex_(BG_TOP)}"/>
+      <stop offset="1" stop-color="{hex_(BG_BOTTOM)}"/>
     </linearGradient>
-    <linearGradient id="mark" x1="0" x2="1" y1="0" y2="1">
-      <stop offset="0%" stop-color="#35B7FF"/>
-      <stop offset="48%" stop-color="#1B87E8"/>
-      <stop offset="100%" stop-color="#0E6AD7"/>
-    </linearGradient>
-    <linearGradient id="accent" x1="0" x2="1" y1="0" y2="0">
-      <stop offset="0%" stop-color="#C9F2FF"/>
-      <stop offset="100%" stop-color="#79D8FF"/>
-    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.45">
+      <stop offset="0" stop-color="{hex_(TEAL)}" stop-opacity="0.16"/>
+      <stop offset="1" stop-color="{hex_(TEAL)}" stop-opacity="0"/>
+    </radialGradient>
+    <mask id="gap">
+      <rect width="1024" height="1024" fill="#fff"/>
+      <path d="{curve_path}" fill="none" stroke="#000" stroke-width="{(CURVE_WIDTH + 2 * CURVE_GAP) * s:.1f}" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="{dx:.1f}" cy="{dy:.1f}" r="{(DOT_RADIUS + CURVE_GAP) * s:.1f}" fill="#000"/>
+    </mask>
   </defs>
-  <rect width="1024" height="1024" rx="210" fill="url(#bg)"/>
-  <path d="M170 760 L365 260 L468 260 L292 760 Z" fill="url(#mark)"/>
-  <path d="M854 760 L659 260 L556 260 L732 760 Z" fill="url(#mark)"/>
-  <path d="M242 760 L414 318 L500 318 L344 760 Z" fill="#1F9AE9"/>
-  <path d="M782 760 L610 318 L524 318 L680 760 Z" fill="#1F9AE9"/>
-  <rect x="320" y="480" width="384" height="130" rx="38" fill="url(#accent)"/>
-  <rect x="338" y="330" width="350" height="100" rx="28" fill="#B9EEFF" opacity="0.42"/>
+  <rect width="1024" height="1024" fill="url(#bg)"/>
+  <rect width="1024" height="1024" fill="url(#glow)"/>
+  <path d="{a_path}" fill="{hex_(LETTER)}" mask="url(#gap)"/>
+  <path d="{curve_path}" fill="none" stroke="{hex_(TEAL)}" stroke-width="{CURVE_WIDTH * s:.1f}" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="{dx:.1f}" cy="{dy:.1f}" r="{DOT_RADIUS * s:.1f}" fill="{hex_(TEAL)}"/>
 </svg>
-'''
-(ASSETS / 'tradeacademy-icon-master.svg').write_text(svg, encoding='utf-8')
+"""
 
-print('Generated icon assets in', ASSETS)
+
+def generate() -> None:
+    ASSETS_DIR.mkdir(parents=True, exist_ok=True)
+    full_icon(1024).save(ASSETS_DIR / 'icon.png', optimize=True)
+    full_icon(512).save(ASSETS_DIR / 'favicon.png', optimize=True)
+    render_mark(1024, box=0.86).save(ASSETS_DIR / 'splash-icon.png', optimize=True)
+    Image.new('RGB', (1024, 1024), BG_FLAT).save(ASSETS_DIR / 'android-icon-background.png', optimize=True)
+    # Adaptive icons are masked to the central 66/108 (~61%) circle; keep the mark well inside it.
+    render_mark(1024, box=0.44).save(ASSETS_DIR / 'android-icon-foreground.png', optimize=True)
+    render_mark(1024, box=0.44, letter=(255, 255, 255), curve=(255, 255, 255)).save(
+        ASSETS_DIR / 'android-icon-monochrome.png', optimize=True
+    )
+    (ASSETS_DIR / 'tradeacademy-icon-master.svg').write_text(master_svg(), encoding='utf-8')
+
+
+EXPECTED = {
+    # name: (size, must_be_opaque)
+    'icon.png': ((1024, 1024), True),
+    'favicon.png': ((512, 512), True),
+    'splash-icon.png': ((1024, 1024), False),
+    'android-icon-background.png': ((1024, 1024), True),
+    'android-icon-foreground.png': ((1024, 1024), False),
+    'android-icon-monochrome.png': ((1024, 1024), False),
+}
+
+
+def validate() -> list[str]:
+    errors: list[str] = []
+    for name, (size, opaque) in EXPECTED.items():
+        path = ASSETS_DIR / name
+        if not path.exists():
+            errors.append(f'{name}: missing')
+            continue
+        img = Image.open(path)
+        if img.size != size:
+            errors.append(f'{name}: expected {size}, got {img.size}')
+        if opaque and img.mode != 'RGB':
+            errors.append(f'{name}: must be RGB without alpha (App Store rejects transparent icons), got {img.mode}')
+        if not opaque and img.mode != 'RGBA':
+            errors.append(f'{name}: expected RGBA with transparency, got {img.mode}')
+    mono = ASSETS_DIR / 'android-icon-monochrome.png'
+    if mono.exists():
+        r, g, b, a = Image.open(mono).convert('RGBA').split()
+        visible = a.point(lambda v: 255 if v > 0 else 0)
+        darkest = min(
+            ImageChops.lighter(ch, ImageChops.invert(visible)).getextrema()[0] for ch in (r, g, b)
+        )
+        if darkest < 250:
+            errors.append('android-icon-monochrome.png: must be pure white on transparent')
+    return errors
+
+
+def main() -> int:
+    if '--check' not in sys.argv:
+        generate()
+    errors = validate()
+    for e in errors:
+        print(f'ERROR {e}')
+    if not errors:
+        print('All TradeAcademy icon assets valid.')
+    return 1 if errors else 0
+
+
+if __name__ == '__main__':
+    raise SystemExit(main())

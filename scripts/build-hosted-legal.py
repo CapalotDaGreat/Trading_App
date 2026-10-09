@@ -26,6 +26,20 @@ LEGAL = ROOT / "store" / "legal"
 HOSTED = ROOT / "store" / "hosted"
 WELL_KNOWN = HOSTED / ".well-known"
 CSS_SRC = Path(__file__).with_name("hosted-legal.css")
+SCREENSHOT_SRC = ROOT / "store" / "screenshots" / "source" / "iphone-device"
+APP_ICON_SRC = ROOT / "assets" / "images" / "icon.png"
+IMG_OUT = HOSTED / "img"
+SITE_ORIGIN = "https://tradeacademy.cloud"
+
+# Real device screenshots; the crop drops the status bar and the guest-mode demo banner.
+SCREENS = {
+    "home": "02-home.png",
+    "practice": "04-practice-trend.png",
+    "replay": "07-replay-tv.png",
+    "simulate": "03-simulate.png",
+    "events": "06-events.png",
+}
+SCREEN_CROP_TOP = 186 / 1024
 
 PAGES = {
     "privacy": ("privacy-policy.md", "Privacy Policy", "How we collect, use, and protect data."),
@@ -78,9 +92,11 @@ ASSETLINKS = """[
 """
 
 FAVICON = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <rect width="32" height="32" rx="8" fill="#151922"/>
-  <circle cx="16" cy="16" r="9.25" fill="none" stroke="#2DD4BF" stroke-width="2"/>
-  <path d="M16 7.8 18.4 16 16 24.2 13.6 16Z" fill="#2DD4BF"/>
+  <rect width="32" height="32" rx="7" fill="#151922"/>
+  <path d="M14.4 4.6H17.6L22.9 27.4H19.5L16 17.8 12.5 27.4H9.1Z" fill="#F8FAFC"/>
+  <path d="M6.2 21.3 11.4 18.8 14.6 20.4 22.6 14.6" fill="none" stroke="#151922" stroke-width="4.6" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M6.2 21.3 11.4 18.8 14.6 20.4 22.6 14.6" fill="none" stroke="#2DD4BF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="23.6" cy="13.9" r="2.6" fill="#2DD4BF" stroke="#151922" stroke-width="1"/>
 </svg>
 """
 
@@ -333,13 +349,10 @@ def template_notice(md: str) -> str:
 
 
 def mark_svg() -> str:
-    return (
-        '<svg class="mark" viewBox="0 0 32 32" width="40" height="40" aria-hidden="true">'
-        '<rect width="32" height="32" rx="10" fill="currentColor" opacity="0"/>'
-        '<circle cx="16" cy="16" r="9.25" fill="none" stroke="currentColor" stroke-width="2"/>'
-        '<path d="M16 7.8 18.4 16 16 24.2 13.6 16Z" fill="currentColor"/>'
-        "</svg>"
-    )
+    return FAVICON.replace(
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">',
+        '<svg class="mark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="40" height="40" aria-hidden="true">',
+    ).strip()
 
 
 def nav_html(current: str | None) -> str:
@@ -365,7 +378,7 @@ def footer_html() -> str:
     <div class="footer-inner">
       <div class="footer-brand">
         <p class="footer-name">TradeAcademy <span class="footer-by">by Aithera</span></p>
-        <p>Official legal and support center for the TradeAcademy education and simulation app.</p>
+        <p>Official website and legal &amp; support center for the TradeAcademy trading education and simulation app — coming soon to the App Store.</p>
       </div>
       <nav class="footer-nav" aria-label="Footer legal">
         {links}
@@ -393,7 +406,14 @@ def chrome(title: str, body: str, *, current: str | None, description: str) -> s
   <meta name="theme-color" content="#151922" />
   <meta name="description" content="{html.escape(description)}" />
   <title>{html.escape(page_title)}</title>
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="TradeAcademy" />
+  <meta property="og:title" content="{html.escape(page_title)}" />
+  <meta property="og:description" content="{html.escape(description)}" />
+  <meta property="og:image" content="{SITE_ORIGIN}/img/app-icon.png" />
+  <meta name="twitter:card" content="summary" />
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="/img/app-icon.png" />
   <link rel="stylesheet" href="/site.css" />
 </head>
 <body>
@@ -418,6 +438,118 @@ def chrome(title: str, body: str, *, current: str | None, description: str) -> s
 """
 
 
+def phone(screen: str, alt: str, extra_class: str = "") -> str:
+    cls = f"phone {extra_class}".strip()
+    return (
+        f'<figure class="{cls}"><img src="/img/screen-{screen}.webp" alt="{html.escape(alt)}" '
+        'width="472" height="838" loading="lazy" decoding="async" /></figure>'
+    )
+
+
+FEATURES = [
+    {
+        "id": "learn",
+        "screen": "home",
+        "alt": "TradeAcademy Home screen: Your training center, with a Start Learning button for the Foundations path.",
+        "eyebrow": "Learn",
+        "title": "A training center that knows what to work on next",
+        "body": "Home suggests your next lesson, drill, or review based on your progress. Academy paths start with market literacy, risk, and chart basics, then build from there.",
+        "points": [
+            "Guided paths from first concepts to process review",
+            "Quick, normal, or deep sessions to fit your day",
+            "Start in Guest mode — no account needed",
+        ],
+        "note": None,
+    },
+    {
+        "id": "practice",
+        "screen": "practice",
+        "alt": "Practice drill 'Identify the trend' showing a labelled educational candlestick chart with higher highs and higher lows.",
+        "eyebrow": "Practice",
+        "title": "Short drills that train how you read a chart",
+        "body": "Identify trends, spot breakouts, and name market structure in focused exercises that take a few minutes each.",
+        "points": [
+            "Bite-sized drills for chart reading and risk",
+            "Each drill explains why the structure matters",
+            "Track what you have and haven't completed",
+        ],
+        "note": "Drill charts are labelled educational examples, not live market data.",
+    },
+    {
+        "id": "replay",
+        "screen": "replay",
+        "alt": "Decision Replay TV screen asking how you would have reasoned at a frozen point, featuring the 2020 COVID Crash episode.",
+        "eyebrow": "Replay",
+        "title": "Decision Replay TV: what would you have done?",
+        "body": "Step into reconstructions of market episodes such as the 2020 COVID crash with the future hidden. Decide using only what was known at that moment — then reveal what happened next.",
+        "points": [
+            "The future stays hidden until you commit",
+            "Waiting is a valid decision, too",
+            "Scores measure your process, not whether price went your way",
+        ],
+        "note": "Replay bars are educational reconstructions, not exchange tick data.",
+    },
+    {
+        "id": "simulate",
+        "screen": "simulate",
+        "alt": "Simulate screen labelled SIMULATED, showing a simulated portfolio with USD 100,000 in paper capital.",
+        "eyebrow": "Simulate",
+        "title": "Practise with $100,000 in simulated capital",
+        "body": "Write a thesis and set your invalidation, then see how the trade plays out on a simulated price path. Every path is generated fresh, so you can't memorise the answer.",
+        "points": [
+            "Clearly labelled paper money — never real funds",
+            "No brokerage connection and nothing is executed",
+            "Reflection is part of every practice trade",
+        ],
+        "note": "A profitable simulated trade is not automatically a good decision. Simulated results do not predict real-world results.",
+    },
+    {
+        "id": "events",
+        "screen": "events",
+        "alt": "Events screen suggesting a lesson, practice drill, replay, and simulation related to an upcoming central-bank decision.",
+        "eyebrow": "Events",
+        "title": "Study the events that move markets",
+        "body": "When something like a central-bank decision is coming up, TradeAcademy suggests a related lesson, drill, replay, and scenario so you understand what such events can mean.",
+        "points": [
+            "A small learning calendar, not a news feed",
+            "Scenarios show possibilities, not forecasts",
+            "Your own training plan stays in charge",
+        ],
+        "note": "Event suggestions are study material — not trade alerts and not predictions.",
+    },
+]
+
+LOOP = ["Learn", "Practice", "Replay", "Simulate", "Journal", "Review", "Improve"]
+
+
+def coming_soon_badge() -> str:
+    return (
+        '<div class="soon-badge" role="note" aria-label="Coming soon to the App Store for iPhone and iPad">'
+        '<span class="soon-dot" aria-hidden="true"></span>'
+        '<span><span class="soon-top">Coming soon</span>'
+        '<span class="soon-main">to the App Store</span></span></div>'
+    )
+
+
+def feature_section(index: int, feature: dict) -> str:
+    points = "".join(f"<li>{html.escape(p)}</li>" for p in feature["points"])
+    note = (
+        f'<p class="feature-note">{html.escape(feature["note"])}</p>' if feature["note"] else ""
+    )
+    flip = " flip" if index % 2 else ""
+    return f"""
+      <section class="feature{flip}" id="{feature['id']}" aria-labelledby="{feature['id']}-title">
+        <div class="feature-media">{phone(feature['screen'], feature['alt'])}</div>
+        <div class="feature-copy">
+          <p class="eyebrow">{html.escape(feature['eyebrow'])}</p>
+          <h2 id="{feature['id']}-title">{html.escape(feature['title'])}</h2>
+          <p class="feature-body">{html.escape(feature['body'])}</p>
+          <ul class="checks">{points}</ul>
+          {note}
+        </div>
+      </section>"""
+
+
 def home_page() -> str:
     trust = [
         (
@@ -438,7 +570,7 @@ def home_page() -> str:
         ),
     ]
     trust_html = "".join(
-        f'<article class="principle"><h2>{html.escape(title)}</h2><p>{html.escape(body)}</p></article>'
+        f'<article class="principle"><h3>{html.escape(title)}</h3><p>{html.escape(body)}</p></article>'
         for title, body in trust
     )
     card_bits: list[str] = []
@@ -453,34 +585,76 @@ def home_page() -> str:
             f'<span class="card-action">Read document</span></a>'
         )
     cards = "".join(card_bits)
+    features_html = "".join(feature_section(i, f) for i, f in enumerate(FEATURES))
+    loop_html = "".join(
+        f'<li><span class="loop-num">{i + 1}</span>{html.escape(step)}</li>' for i, step in enumerate(LOOP)
+    )
     body = f"""
     <div class="wrap">
-      <section class="hero legal-hero">
-        <p class="eyebrow">Official legal, privacy, security &amp; support center</p>
-        <h1>TradeAcademy<br /><span class="accent">by Aithera</span></h1>
-        <p class="lede">Official legal, privacy, security and support center for TradeAcademy.</p>
-        <p class="hero-loop" aria-label="Product learning loop">Learn → Practice → Replay → Simulate → Journal → Review → Improve</p>
+      <section class="hero promo-hero" aria-labelledby="hero-title">
+        <div class="hero-copy">
+          <p class="eyebrow">Trading education app · iPhone &amp; iPad</p>
+          <h1 id="hero-title">Learn trading.<br /><span class="accent">Practice the decision.</span></h1>
+          <p class="lede">TradeAcademy teaches trading through lessons, chart drills, historical replays, and a $100,000 paper simulator — all with simulated money, so you can practise without risking any.</p>
+          <div class="hero-actions">
+            {coming_soon_badge()}
+            <a class="btn-ghost" href="#learn">See what's inside</a>
+          </div>
+          <p class="hero-fine">Free to download at launch, with optional Premium. Not available yet — we'll add the download link here the day it goes live.</p>
+        </div>
+        <div class="hero-media">
+          {phone("practice", "Practice drill 'Identify the trend' with a labelled educational candlestick chart.", "phone-back")}
+          {phone("home", "TradeAcademy Home screen: Your training center.", "phone-front")}
+        </div>
       </section>
-      <section aria-labelledby="docs-heading">
-        <h2 id="docs-heading" class="section-title">Legal documents</h2>
+
+      <ul class="truth-strip" aria-label="What TradeAcademy is not">
+        <li>Simulated money only</li>
+        <li>Not a broker</li>
+        <li>No buy/sell signals</li>
+        <li>Try it without an account</li>
+      </ul>
+
+      {features_html}
+
+      <section class="loop-section" aria-labelledby="loop-title">
+        <p class="eyebrow">How it fits together</p>
+        <h2 id="loop-title" class="section-title big">One loop, built around better decisions</h2>
+        <p class="section-lede">Every part of the app feeds the next. You journal your reasoning, review the process behind each decision, and the app points you to what to train next.</p>
+        <ol class="loop">{loop_html}</ol>
+        <p class="feature-note">Your Decision Quality Score (DQS) rates the quality of your process — planning, risk, and discipline. It is never a prediction of where price will go.</p>
+      </section>
+
+      <section class="trust" aria-labelledby="trust-heading">
+        <h2 id="trust-heading" class="section-title big">Honest by design</h2>
+        <div class="principles">
+          {trust_html}
+        </div>
+      </section>
+
+      <section class="launch" aria-labelledby="launch-title">
+        <h2 id="launch-title">TradeAcademy is coming soon</h2>
+        <p>We're finishing the first release for iPhone and iPad. When it's live on the App Store, this page will link straight to it.</p>
+        {coming_soon_badge()}
+        <p class="mute">Questions before launch? <a href="mailto:support@tradeacademy.cloud">support@tradeacademy.cloud</a></p>
+      </section>
+
+      <p class="screens-note">Screens shown are from a pre-release build of the app and may change before launch.</p>
+
+      <section class="docs" aria-labelledby="docs-heading">
+        <h2 id="docs-heading" class="section-title">Legal &amp; support</h2>
         <p class="section-lede">Each document describes how TradeAcademy actually behaves. Operated by CML Electronics, trading as Aithera.</p>
         <div class="cards">
           {cards}
         </div>
       </section>
-      <section class="trust" aria-labelledby="trust-heading">
-        <h2 id="trust-heading" class="section-title">What you can trust us to say</h2>
-        <div class="principles">
-          {trust_html}
-        </div>
-      </section>
     </div>
     """
     return chrome(
-        "TradeAcademy by Aithera — Legal & Support",
+        "TradeAcademy — Learn trading. Practice the decision. Coming soon",
         body,
         current=None,
-        description="Official legal and support center for TradeAcademy by Aithera. Education and simulation only — not a broker and not buy/sell signals.",
+        description="TradeAcademy is a trading education app with lessons, chart drills, historical replays, and a $100,000 paper simulator. Coming soon to the App Store. Simulated money only — not a broker and no buy/sell signals.",
     )
 
 
@@ -489,7 +663,7 @@ def not_found_page() -> str:
     <div class="wrap narrow">
       <section class="hero">
         <h1>Page not found</h1>
-        <p class="lede">That URL is not a TradeAcademy legal page. Use the links below, or return home.</p>
+        <p class="lede">That page doesn't exist on tradeacademy.cloud. Use the links below, or return home.</p>
       </section>
       <div class="cards">
         <a class="card" href="/"><h2>Home</h2><p>Product overview and legal index.</p></a>
@@ -516,11 +690,27 @@ def write_page(path: Path, html_text: str) -> None:
     path.write_text(cleaned, encoding="utf-8")
 
 
+def build_images() -> None:
+    from PIL import Image
+
+    IMG_OUT.mkdir(parents=True, exist_ok=True)
+    for key, filename in SCREENS.items():
+        src = Image.open(SCREENSHOT_SRC / filename).convert("RGB")
+        top = round(src.height * SCREEN_CROP_TOP)
+        src.crop((0, top, src.width, src.height)).save(
+            IMG_OUT / f"screen-{key}.webp", "WEBP", quality=92, method=6
+        )
+    Image.open(APP_ICON_SRC).convert("RGB").resize((512, 512), Image.LANCZOS).save(
+        IMG_OUT / "app-icon.png", optimize=True
+    )
+
+
 def main() -> None:
     HOSTED.mkdir(parents=True, exist_ok=True)
     WELL_KNOWN.mkdir(parents=True, exist_ok=True)
 
     shutil.copyfile(CSS_SRC, HOSTED / "site.css")
+    build_images()
     (HOSTED / "favicon.svg").write_text(FAVICON, encoding="utf-8")
     (HOSTED / "robots.txt").write_text("User-agent: *\nAllow: /\n", encoding="utf-8")
     write_page(HOSTED / "index.html", home_page())
