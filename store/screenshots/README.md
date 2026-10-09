@@ -1,39 +1,45 @@
 # Store screenshot inventory
 
-## Status (2026-09-16 — real iPhone heroes)
-
-**App Store drafts** under `app-store/` are composed from **real iPhone
-screenshots** in `source/iphone-device/`, with marketing hero captions and a
-device frame.
-
-Regenerate with:
+App Store screenshots and header art are composed from **real app captures** by:
 
 ```bash
 python scripts/export-store-screenshots.py
 ```
 
-### Scenes (01 → 07)
+## Sources
 
-1. **Welcome** — Learn trading. / Practice the decision.
-2. **Home** — Your training center
-3. **Simulate** — $100,000 paper capital
-4. **Practice (trend)** — Train judgment
-5. **Practice (breakout)** — Process over urgency
-6. **Events** — Learn the event
-7. **Decision Replay TV** — Reason with the information you had then.
-
-### Sizes
-
-| Folder | Pixels |
+| Folder | Contents |
 | --- | --- |
-| `app-store/iphone-6.7/` | 1290 × 2796 |
-| `app-store/iphone-6.5/` | 1284 × 2778 (ASC 6.5" Display) |
-| `app-store/ipad-pro-12.9/` | 2048 × 2732 (ASC 13" / 12.9") |
+| `source/iphone-device/` | iPhone captures (required) |
+| `source/ipad-device/` | iPad captures (optional — iPad sets are only generated from real iPad captures) |
 
-### ASC upload
+Captures at native resolution (height ≥ 2000 px) are used as-is. The current
+iPhone captures are low-res Expo Go shots, so the status bar and the guest/demo
+banner are cropped off and the device frame supplies a plain Dynamic Island.
+For sharper results, replace them with native screenshots from the TestFlight /
+production build using the same file names.
 
-- **iPhone → 6.5" Display:** `iphone-6.5/*.png` in order 01→07  
-- **iPad → 13" Display:** `ipad-pro-12.9/*.png` in order 01→07  
+## Scenes (01 → 06)
 
-Sources keep the real status bar / Dynamic Island. Captions sit above a framed
-phone; UI is contain-scaled and top-aligned (headers never cover-cropped).
+1. **Home** — Know what to train next
+2. **Practice (trend)** — Learn to read the chart
+3. **Decision Replay TV** — What would you have done?
+4. **Simulate** — $100,000 to practise with
+5. **Practice (breakout)** — Patience is a skill
+6. **Events** — Understand market events
+
+## Output
+
+| Folder | Pixels | ASC slot |
+| --- | --- | --- |
+| `app-store/iphone-6.9/` | 1320 × 2868 | iPhone 6.9" Display |
+| `app-store/iphone-6.5/` | 1284 × 2778 | iPhone 6.5" Display |
+| `app-store/ipad-13/` | 2064 × 2752 | iPad 13" Display (needs `source/ipad-device/`) |
+| `app-store/header/header-3840x1646.png` | 3840 × 1646 | Header and Search Results → Product page header |
+| `app-store/header/universal-5244x2950.png` | 5244 × 2950 | Header and Search Results → both placements |
+
+Header art shows on iOS/iPadOS 27+. Key content sits in the centre; check the
+crop with the Preview tool in App Store Connect before submitting.
+
+Because `supportsTablet` is true, App Store Connect requires iPad 13"
+screenshots. Do not upload iPhone UI framed as an iPad (App Review 2.3.3).

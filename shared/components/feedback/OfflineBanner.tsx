@@ -21,10 +21,10 @@ export function OfflineBanner() {
   const copy =
     kind === 'guest_local'
       ? {
-          title: 'Local demo — no cloud sync',
-          body: 'Guest mode keeps lessons, practice, simulation, and journal on this device. Sign in for cloud backup when Firebase is configured.',
+          title: 'Guest mode — saved on this device',
+          body: 'Lessons, practice, simulations, and journal stay on this device. Sign in to use cloud backup.',
           icon: 'person-outline' as const,
-          label: 'Local demo mode',
+          label: 'Guest mode, saved on this device',
           tone: 'info' as const,
         }
       : kind === 'sync_pending'
