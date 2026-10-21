@@ -1,7 +1,7 @@
 import type { EducationalChartSpec } from './educational-chart.types';
 import type { CompetencyScenarioContext } from '@/features/competency/types/competency.types';
 
-export type LessonDifficulty = 'beginner' | 'intermediate' | 'advanced';
+export type LessonDifficulty = 'beginner' | 'intermediate' | 'advanced' | 'expert';
 
 export type LessonCategory =
   | 'basics'

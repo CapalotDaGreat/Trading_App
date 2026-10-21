@@ -270,6 +270,17 @@ export default function SimulateScreen() {
       ) : null}
       <SimulationDisclaimer />
 
+      <Surface className="mb-4" testID="simulate-intraday-entry">
+        <Text variant="label" className="text-accent">Day Trading &amp; Scalping</Text>
+        <Text variant="body-sm" className="mt-2 text-text-secondary">
+          Intraday replay, a full Trading Day with a daily-loss circuit breaker, spread-aware
+          scalping practice, and advanced timed drills — all on fictional synthetic sessions.
+        </Text>
+        <Button className="mt-3" size="sm" onPress={() => router.push('/intraday' as never)}>
+          Open intraday training
+        </Button>
+      </Surface>
+
       {isEventPrep(prepParam) ? (
         <Surface tone="accent" emphasis="outlined" className="mb-4" testID="simulate-event-prep">
           <Text variant="label" className="text-accent">

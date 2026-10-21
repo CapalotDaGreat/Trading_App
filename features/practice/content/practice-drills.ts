@@ -2,7 +2,7 @@ import type { LearningTopic } from '@/shared/constants/learning-topics';
 import { LEARNING_TOPIC_LABELS } from '@/shared/constants/learning-topics';
 
 export type PracticeSkill = 'chart' | 'risk' | 'decision' | 'psychology';
-export type PracticeDifficulty = 'beginner' | 'intermediate';
+export type PracticeDifficulty = 'beginner' | 'intermediate' | 'advanced' | 'expert';
 export type PracticeTimeBucket = 'short' | 'medium';
 
 export interface PracticeDrill {

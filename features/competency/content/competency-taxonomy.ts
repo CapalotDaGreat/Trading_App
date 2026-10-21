@@ -571,6 +571,40 @@ export const COMPETENCY_CONCEPTS: CompetencyConcept[] = [
     { description: 'Changing the next process step because the last review earned it.' },
   ),
 
+  // --- Intraday (day trading & scalping) ---
+  concept(
+    'intraday-structure',
+    'Intraday structure',
+    'technical_analysis',
+    'chart_reading',
+    ['trend-identification', 'support', 'breakouts', 'false-breakouts'],
+    { description: 'Reading trend, range, compression, and acceptance on intraday candles without treating one candle as a prediction.' },
+  ),
+  concept(
+    'vwap-interpretation',
+    'VWAP interpretation',
+    'technical_analysis',
+    'technical_analysis',
+    ['volume', 'moving-averages', 'false-signals'],
+    { aliases: ['vwap'], description: 'Using VWAP as volume context, never as a standalone signal.' },
+  ),
+  concept(
+    'execution-mechanics',
+    'Execution mechanics',
+    'thesis_decision_making',
+    'process_discipline',
+    ['liquidity', 'stop-logic', 'following-a-plan'],
+    { description: 'Matching market, limit, and stop orders to a written plan while accounting for spread, slippage, latency, and unfilled orders.' },
+  ),
+  concept(
+    'session-planning',
+    'Session planning',
+    'review_process',
+    'process_discipline',
+    ['following-a-plan', 'drawdown-management', 'journaling'],
+    { description: 'Preparing, bounding, and shutting down a simulated session — including stopping when limits are reached.' },
+  ),
+
   // --- Existing graph extras ---
   concept(
     'fx',

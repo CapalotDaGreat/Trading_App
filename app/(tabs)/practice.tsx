@@ -297,7 +297,7 @@ export default function PracticeScreen() {
         ))}
       </FilterRow>
       <FilterRow label="Difficulty">
-        {(['all', 'beginner', 'intermediate'] as const).map((difficulty) => (
+        {(['all', 'beginner', 'intermediate', 'advanced', 'expert'] as const).map((difficulty) => (
           <FilterChip
             key={difficulty}
             label={difficulty === 'all' ? 'All levels' : difficulty}

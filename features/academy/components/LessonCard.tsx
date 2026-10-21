@@ -19,6 +19,7 @@ const difficultyVariant: Record<Lesson['difficulty'], 'success' | 'warning' | 'd
   beginner: 'success',
   intermediate: 'warning',
   advanced: 'danger',
+  expert: 'danger',
 };
 
 export function LessonCard({ lesson, matchWhy }: LessonCardProps) {

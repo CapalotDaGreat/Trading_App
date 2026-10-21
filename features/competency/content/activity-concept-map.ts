@@ -61,6 +61,17 @@ export const LESSON_CONCEPT_IDS: Record<string, readonly string[]> = {
   'opt-basics': ['uncertainty', 'risk-per-trade'],
   'crypto-structure': ['chart-interpretation', 'volatility-aware-risk'],
   'prep-simulation-vs-live': ['following-a-plan', 'uncertainty'],
+  'dt-foundations': ['intraday-structure', 'liquidity'],
+  'dt-candles-structure': ['intraday-structure', 'trend-identification'],
+  'dt-structure-zones': ['support', 'false-breakouts'],
+  'dt-multi-timeframe': ['multi-timeframe', 'confirmation-bias'],
+  'dt-vwap-volume': ['vwap-interpretation', 'volume'],
+  'dt-scalping-costs': ['execution-mechanics', 'liquidity'],
+  'dt-intraday-risk': ['position-sizing', 'drawdown-management'],
+  'dt-intraday-psychology': ['fomo', 'revenge-trading'],
+  'dt-session-plan': ['session-planning', 'following-a-plan'],
+  'dt-execution-orders': ['execution-mechanics', 'stop-logic'],
+  'dt-strategy-evaluation': ['avoiding-hindsight', 'scenario-thinking'],
 };
 
 export const DRILL_CONCEPT_IDS: Record<string, readonly string[]> = {

@@ -70,7 +70,7 @@ describe('curriculum coverage matrix', () => {
       expect.arrayContaining([
         'anchoring',
         'alternative-explanations',
-        'avoiding-hindsight',
+        // 'avoiding-hindsight' is covered since the Day Trading & Scalping path (dt-strategy-evaluation).
         'employment',
         'geopolitical',
         'commodity-shocks',
