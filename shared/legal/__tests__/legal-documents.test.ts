@@ -133,8 +133,10 @@ describe('legal compliance pack', () => {
     const privacy = readFileSync(join(hostedDir, 'privacy.html'), 'utf8');
 
     expect(home).toContain('Legal &amp; support');
-    expect(home).toContain('TradeAcademy is coming soon');
-    expect(home).not.toContain('apps.apple.com');
+    expect(home).toContain('TradeAcademy is on the App Store');
+    expect(home).toContain('https://apps.apple.com/us/app/cml-tradeacademy/id6812049061');
+    expect(home).toContain('itms-apps://apps.apple.com/app/id6812049061');
+    expect(home).not.toContain('coming soon');
     expect(home).toContain('TradeAcademy');
     expect(home).toContain('by Aithera');
     expect(home).toContain('CML Electronics');

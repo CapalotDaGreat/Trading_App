@@ -30,6 +30,9 @@ SCREENSHOT_SRC = ROOT / "store" / "screenshots" / "source" / "iphone-device"
 APP_ICON_SRC = ROOT / "assets" / "images" / "icon.png"
 IMG_OUT = HOSTED / "img"
 SITE_ORIGIN = "https://tradeacademy.cloud"
+APP_STORE_ID = "6812049061"
+APP_STORE_WEB = "https://apps.apple.com/us/app/cml-tradeacademy/id6812049061"
+APP_STORE_IOS = "itms-apps://apps.apple.com/app/id6812049061"
 
 # Real device screenshots; the crop drops the status bar and the guest-mode demo banner.
 SCREENS = {
@@ -378,7 +381,7 @@ def footer_html() -> str:
     <div class="footer-inner">
       <div class="footer-brand">
         <p class="footer-name">TradeAcademy <span class="footer-by">by Aithera</span></p>
-        <p>Official website and legal &amp; support center for the TradeAcademy trading education and simulation app — coming soon to the App Store.</p>
+        <p>Official website and legal &amp; support center for the TradeAcademy trading education and simulation app — available on the App Store for iPhone and iPad.</p>
       </div>
       <nav class="footer-nav" aria-label="Footer legal">
         {links}
@@ -412,6 +415,7 @@ def chrome(title: str, body: str, *, current: str | None, description: str) -> s
   <meta property="og:description" content="{html.escape(description)}" />
   <meta property="og:image" content="{SITE_ORIGIN}/img/app-icon.png" />
   <meta name="twitter:card" content="summary" />
+  <meta name="apple-itunes-app" content="app-id={APP_STORE_ID}" />
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <link rel="apple-touch-icon" href="/img/app-icon.png" />
   <link rel="stylesheet" href="/site.css" />
@@ -428,12 +432,23 @@ def chrome(title: str, body: str, *, current: str | None, description: str) -> s
         </span>
       </a>
       {nav_html(current)}
+      <a class="nav-link store-nav" data-store-link href="{APP_STORE_WEB}">Get the app</a>
     </div>
   </header>
   <main id="content">
     {body.strip()}
   </main>
-{footer_html()}</body>
+{footer_html()}
+  <script>
+    (function () {{
+      var ua = navigator.userAgent || "";
+      var ios = /iPhone|iPad|iPod/i.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+      if (!ios) return;
+      var links = document.querySelectorAll("[data-store-link]");
+      for (var i = 0; i < links.length; i++) links[i].setAttribute("href", "{APP_STORE_IOS}");
+    }})();
+  </script>
+</body>
 </html>
 """
 
@@ -522,12 +537,13 @@ FEATURES = [
 LOOP = ["Learn", "Practice", "Replay", "Simulate", "Journal", "Review", "Improve"]
 
 
-def coming_soon_badge() -> str:
+def store_badge() -> str:
     return (
-        '<div class="soon-badge" role="note" aria-label="Coming soon to the App Store for iPhone and iPad">'
+        f'<a class="store-cta" data-store-link href="{APP_STORE_WEB}" '
+        'aria-label="Download TradeAcademy on the App Store">'
         '<span class="soon-dot" aria-hidden="true"></span>'
-        '<span><span class="soon-top">Coming soon</span>'
-        '<span class="soon-main">to the App Store</span></span></div>'
+        '<span><span class="soon-top">Download</span>'
+        '<span class="soon-main">on the App Store</span></span></a>'
     )
 
 
@@ -597,10 +613,10 @@ def home_page() -> str:
           <h1 id="hero-title">Learn trading.<br /><span class="accent">Practice the decision.</span></h1>
           <p class="lede">TradeAcademy teaches trading through lessons, chart drills, historical replays, and a $100,000 paper simulator — all with simulated money, so you can practise without risking any.</p>
           <div class="hero-actions">
-            {coming_soon_badge()}
+            {store_badge()}
             <a class="btn-ghost" href="#learn">See what's inside</a>
           </div>
-          <p class="hero-fine">Free to download at launch, with optional Premium. Not available yet — we'll add the download link here the day it goes live.</p>
+          <p class="hero-fine">Free to download on the App Store, with optional Premium. On iPhone and iPad this opens the App Store.</p>
         </div>
         <div class="hero-media">
           {phone("practice", "Practice drill 'Identify the trend' with a labelled educational candlestick chart.", "phone-back")}
