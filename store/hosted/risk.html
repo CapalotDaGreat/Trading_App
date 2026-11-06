@@ -13,6 +13,7 @@
   <meta property="og:description" content="Education and simulation are not investment advice." />
   <meta property="og:image" content="https://tradeacademy.cloud/img/app-icon.png" />
   <meta name="twitter:card" content="summary" />
+  <meta name="apple-itunes-app" content="app-id=6812049061" />
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <link rel="apple-touch-icon" href="/img/app-icon.png" />
   <link rel="stylesheet" href="/site.css" />
@@ -35,6 +36,7 @@
         </span>
       </a>
       <nav class="site-nav" aria-label="Legal"><a class="nav-link" href="/privacy">Privacy</a><a class="nav-link" href="/terms">Terms</a><a class="nav-link" href="/risk" aria-current="page">Risk</a><a class="nav-link" href="/security">Security</a><a class="nav-link" href="/account-deletion">Account deletion</a><a class="nav-link" href="/support">Support</a></nav>
+      <a class="nav-link store-nav" data-store-link href="https://apps.apple.com/us/app/cml-tradeacademy/id6812049061">Get the app</a>
     </div>
   </header>
   <main id="content">
@@ -86,7 +88,7 @@
     <div class="footer-inner">
       <div class="footer-brand">
         <p class="footer-name">TradeAcademy <span class="footer-by">by Aithera</span></p>
-        <p>Official website and legal &amp; support center for the TradeAcademy trading education and simulation app — coming soon to the App Store.</p>
+        <p>Official website and legal &amp; support center for the TradeAcademy trading education and simulation app — available on the App Store for iPhone and iPad.</p>
       </div>
       <nav class="footer-nav" aria-label="Footer legal">
         <a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="/risk">Risk</a><a href="/security">Security</a><a href="/account-deletion">Account deletion</a><a href="/support">Support</a>
@@ -95,5 +97,15 @@
       <p class="mute footer-copy">© TradeAcademy by Aithera. Operated by CML Electronics · Höglerstrasse 55, 8600 Dübendorf, Switzerland · https://tradeacademy.cloud</p>
     </div>
   </footer>
+
+  <script>
+    (function () {
+      var ua = navigator.userAgent || "";
+      var ios = /iPhone|iPad|iPod/i.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+      if (!ios) return;
+      var links = document.querySelectorAll("[data-store-link]");
+      for (var i = 0; i < links.length; i++) links[i].setAttribute("href", "itms-apps://apps.apple.com/app/id6812049061");
+    })();
+  </script>
 </body>
 </html>

@@ -715,7 +715,7 @@ tbody tr:nth-child(even) td {
   line-height: 1.55;
 }
 
-.soon-badge {
+.store-cta {
   display: inline-flex;
   align-items: center;
   gap: 0.75rem;
@@ -726,6 +726,17 @@ tbody tr:nth-child(even) td {
   background: var(--accent-muted);
   color: var(--text);
   line-height: 1.15;
+  text-decoration: none;
+}
+
+.store-cta:hover {
+  border-color: var(--accent);
+  color: var(--text);
+}
+
+.store-nav {
+  color: var(--accent-light);
+  font-weight: 700;
 }
 
 .soon-dot {

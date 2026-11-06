@@ -649,13 +649,13 @@ def home_page() -> str:
       </section>
 
       <section class="launch" aria-labelledby="launch-title">
-        <h2 id="launch-title">TradeAcademy is coming soon</h2>
-        <p>We're finishing the first release for iPhone and iPad. When it's live on the App Store, this page will link straight to it.</p>
-        {coming_soon_badge()}
-        <p class="mute">Questions before launch? <a href="mailto:support@tradeacademy.cloud">support@tradeacademy.cloud</a></p>
+        <h2 id="launch-title">TradeAcademy is on the App Store</h2>
+        <p>Download it for iPhone and iPad. On a phone this opens the App Store. On a computer it opens the App Store listing.</p>
+        {store_badge()}
+        <p class="mute">Questions? <a href="mailto:support@tradeacademy.cloud">support@tradeacademy.cloud</a></p>
       </section>
 
-      <p class="screens-note">Screens shown are from a pre-release build of the app and may change before launch.</p>
+      <p class="screens-note">Screens shown are from the app and may change as it is updated.</p>
 
       <section class="docs" aria-labelledby="docs-heading">
         <h2 id="docs-heading" class="section-title">Legal &amp; support</h2>
@@ -667,10 +667,10 @@ def home_page() -> str:
     </div>
     """
     return chrome(
-        "TradeAcademy — Learn trading. Practice the decision. Coming soon",
+        "TradeAcademy — Learn trading. Practice the decision.",
         body,
         current=None,
-        description="TradeAcademy is a trading education app with lessons, chart drills, historical replays, and a $100,000 paper simulator. Coming soon to the App Store. Simulated money only — not a broker and no buy/sell signals.",
+        description="TradeAcademy is a trading education app with lessons, chart drills, historical replays, and a $100,000 paper simulator. Download it on the App Store for iPhone and iPad. Simulated money only — not a broker and no buy/sell signals.",
     )
 
 
