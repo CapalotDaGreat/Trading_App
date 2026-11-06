@@ -720,22 +720,21 @@ tbody tr:nth-child(even) td {
   align-items: center;
   justify-content: center;
   min-height: 48px;
-  padding: 0.7rem 1.35rem;
-  border: 1px solid transparent;
+  padding: 0.7rem 1.25rem;
+  border: 1px solid #16a34a;
   border-radius: 999px;
-  background: var(--accent);
-  color: var(--text-on-accent);
-  font-size: 1rem;
-  font-weight: 750;
-  letter-spacing: -0.015em;
+  background: #22c55e;
+  color: #052e16;
+  font-weight: 700;
   line-height: 1;
   text-decoration: none;
-  box-shadow: 0 10px 24px color-mix(in srgb, var(--accent) 38%, transparent);
+  box-shadow: 0 8px 22px rgba(34, 197, 94, 0.42);
 }
 
 .store-cta:hover {
-  background: var(--accent-light);
-  color: var(--text-on-accent);
+  background: #4ade80;
+  border-color: #22c55e;
+  color: #052e16;
 }
 
 .store-cta:focus-visible {
@@ -745,9 +744,8 @@ tbody tr:nth-child(even) td {
 
 .store-nav {
   min-height: 40px;
-  padding: 0.4rem 0.95rem;
+  padding: 0.45rem 1rem;
   font-size: 0.92rem;
-  box-shadow: 0 6px 16px color-mix(in srgb, var(--accent) 32%, transparent);
 }
 
 .launch .store-cta {

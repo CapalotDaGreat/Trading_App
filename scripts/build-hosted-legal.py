@@ -32,7 +32,6 @@ IMG_OUT = HOSTED / "img"
 SITE_ORIGIN = "https://tradeacademy.cloud"
 APP_STORE_ID = "6812049061"
 APP_STORE_WEB = "https://apps.apple.com/us/app/cml-tradeacademy/id6812049061"
-APP_STORE_IOS = "itms-apps://apps.apple.com/app/id6812049061"
 
 # Real device screenshots; the crop drops the status bar and the guest-mode demo banner.
 SCREENS = {
@@ -438,17 +437,7 @@ def chrome(title: str, body: str, *, current: str | None, description: str) -> s
   <main id="content">
     {body.strip()}
   </main>
-{footer_html()}
-  <script>
-    (function () {{
-      var ua = navigator.userAgent || "";
-      var ios = /iPhone|iPad|iPod/i.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
-      if (!ios) return;
-      var links = document.querySelectorAll("[data-store-link]");
-      for (var i = 0; i < links.length; i++) links[i].setAttribute("href", "{APP_STORE_IOS}");
-    }})();
-  </script>
-</body>
+{footer_html()}</body>
 </html>
 """
 
