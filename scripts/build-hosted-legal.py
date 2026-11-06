@@ -432,7 +432,7 @@ def chrome(title: str, body: str, *, current: str | None, description: str) -> s
         </span>
       </a>
       {nav_html(current)}
-      <a class="nav-link store-nav" data-store-link href="{APP_STORE_WEB}">Get the app</a>
+      <a class="store-cta store-nav" data-store-link href="{APP_STORE_WEB}">Get the app</a>
     </div>
   </header>
   <main id="content">
@@ -539,11 +539,8 @@ LOOP = ["Learn", "Practice", "Replay", "Simulate", "Journal", "Review", "Improve
 
 def store_badge() -> str:
     return (
-        f'<a class="store-cta" data-store-link href="{APP_STORE_WEB}" '
-        'aria-label="Download TradeAcademy on the App Store">'
-        '<span class="soon-dot" aria-hidden="true"></span>'
-        '<span><span class="soon-top">Download</span>'
-        '<span class="soon-main">on the App Store</span></span></a>'
+        f'<a class="store-cta" data-store-link href="{APP_STORE_WEB}">'
+        "Download on the App Store</a>"
     )
 
 

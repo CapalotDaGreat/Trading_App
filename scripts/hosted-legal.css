@@ -718,67 +718,55 @@ tbody tr:nth-child(even) td {
 .store-cta {
   display: inline-flex;
   align-items: center;
-  gap: 0.75rem;
-  min-height: 3.4rem;
-  padding: 0.55rem 1.2rem 0.55rem 1rem;
-  border: 1px solid var(--border-accent);
-  border-radius: 14px;
-  background: var(--accent-muted);
-  color: var(--text);
-  line-height: 1.15;
+  justify-content: center;
+  min-height: 48px;
+  padding: 0.7rem 1.35rem;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--text-on-accent);
+  font-size: 1rem;
+  font-weight: 750;
+  letter-spacing: -0.015em;
+  line-height: 1;
   text-decoration: none;
+  box-shadow: 0 10px 24px color-mix(in srgb, var(--accent) 38%, transparent);
 }
 
 .store-cta:hover {
-  border-color: var(--accent);
-  color: var(--text);
+  background: var(--accent-light);
+  color: var(--text-on-accent);
+}
+
+.store-cta:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
 }
 
 .store-nav {
-  color: var(--accent-light);
-  font-weight: 700;
+  min-height: 40px;
+  padding: 0.4rem 0.95rem;
+  font-size: 0.92rem;
+  box-shadow: 0 6px 16px color-mix(in srgb, var(--accent) 32%, transparent);
 }
 
-.soon-dot {
-  width: 0.65rem;
-  height: 0.65rem;
-  border-radius: 50%;
-  background: var(--accent);
-  box-shadow: 0 0 0 0 rgba(45, 212, 191, 0.55);
-  animation: soon-pulse 2.4s ease-out infinite;
-}
-
-@keyframes soon-pulse {
-  0% { box-shadow: 0 0 0 0 rgba(45, 212, 191, 0.55); }
-  70% { box-shadow: 0 0 0 0.65rem rgba(45, 212, 191, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(45, 212, 191, 0); }
-}
-
-.soon-top {
-  display: block;
-  color: var(--accent-light);
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.soon-main {
-  display: block;
-  font-size: 1.1rem;
-  font-weight: 700;
-  letter-spacing: -0.01em;
+.launch .store-cta {
+  min-height: 52px;
+  padding: 0.8rem 1.5rem;
+  font-size: 1.05rem;
 }
 
 .btn-ghost {
   display: inline-flex;
   align-items: center;
-  min-height: 44px;
-  padding: 0.5rem 1rem;
+  min-height: 48px;
+  padding: 0.7rem 1.2rem;
   border: 1px solid var(--border-strong);
   border-radius: 999px;
+  background: transparent;
   color: var(--text);
   font-weight: 600;
+  line-height: 1;
   text-decoration: none;
 }
 
